@@ -10,7 +10,7 @@ exact words.
 
 | moment | file | note |
 |---|---|---|
-| **Battle CALLED** (the shout, not the outcome) | the sword clash, latest clip | *"I want the clashing sound to happen when battles are first called; the sound is exciting."* **This MOVES it — it currently plays on the resolve.** |
+| **Battle CALLED** (the shout, not the outcome) | the sword clash, latest clip | *"I want the clashing sound to happen when battles are first called; the sound is exciting."* ⛔ **~~This MOVES it — it currently plays on the resolve.~~ THAT WAS FALSE. HIS RULING IS ALREADY SATISFIED IN CODE — change nothing.** `src/orchestrator.js:631` calls `playBattleEngage()` one line BEFORE the opening ⚔️ line, and `EVENT_SOUND` has `battle: null` (`src/ui/audio.js:120`) because the `battle` event only fires once the fight has resolved — *"the clash moved to engage time"*. The claim came from the PRD's own "fight-resolves / clash slot" framing, repeated without opening the file. **Rule 6, and it nearly sent a watch to "fix" correct code.** What is left: confirm by ear, and use Luis's latest clip. |
 | **A shot LANDS** | `PP_SFX_Cannons` | strictly after the 2nd coin flip of a battle, ~100ms, **no overlap**. Derive from when the flip audio ends (rule 9); the 100ms is his example, not a constant. |
 | **Your turn** | `PP_SFX_Bells` | ⚠ **supersedes his own morning ruling** — see below |
 | **New day** | **NOTHING** | *"New Day should NOT use this sound. New Day should use nothing right now."* Later: a wind whoosh or weather-vane creak, because the wind changes direction daily. Brief written: [`LUIS-SFX-ROUND-3-BRIEF.md`](../../.planning/wyclau/LUIS-SFX-ROUND-3-BRIEF.md) |
@@ -39,8 +39,10 @@ recommendation).
    turn-timer-expiry feature first** — a game-behaviour change, not a file drop, and much bigger
    than the rest of the pass. **Price it separately and put it to him.**
 4. ⚠ **HIS SWORD RULING CONTRADICTS A MEASUREMENT ON THIS PROJECT'S OWN RECORD, and he has chosen.**
-   `docs/AUDIO.md` DEFECT-3 measured the shipped `battle-swords.mp3` at **+0.2 dBFS true peak** —
-   genuinely clipping. He rules: *"the swords are not clipped according to Luis; accept his ruling
+   `src/ui/audio.js:52-53` states the shipped `battle-swords.mp3` is clipped inside the file at
+   **+0.2 dBFS** — ⚠ **but `docs/AUDIO.md:31` says DEFECT-3 is "UNVERIFIED either way", so the
+   repo contradicts ITSELF here and an earlier draft of this entry said "genuinely clipping",
+   which is firmer than the record supports.** He rules: *"the swords are not clipped according to Luis; accept his ruling
    and use the latest clip available."* **These are reconcilable and that is the likely answer: the
    measurement was of the file SHIPPED, which may not be Luis's LATEST clip.** So — fetch the latest
    clip, **re-measure THAT one**, and report the number. **Do not quietly drop the measurement, and
@@ -70,6 +72,21 @@ once, do not restart it playing immediately -- wait 2 minutes."*
    **Wire everything else; the Alarm waits for the feature.** Building turn-timer expiry is a real
    game-behaviour decision (does the turn auto-pass? what does the table see?) and is not part of
    wiring Luis's files.
+
+### ⚠ TWO THINGS HE WAS NOT SHOWN, FOUND BY CEO 225 — one means he ruled on a false premise
+
+1. **`q2` IS THE ONE BOX HE LEFT BLANK, and he said "I finished my rulings."** It asked him to
+   confirm the probable mappings — **Cannons, ClockTick, Ocean_Loop, the Seagulls, the BoatCreaks.**
+   Four of those he settled elsewhere in his notes (cannon on landing, ambience per Luis's spec).
+   **`ClockTick` he never confirmed anywhere.** It is the warning tick by elimination once the Alarm
+   took timer-expiry — **that is an inference, not his ruling. Do not wire it as confirmed.**
+2. ⛔ **`q7` ASKED HIM A QUESTION WITH A FALSE PREMISE AND HE ANSWERED IT.** The PRD told him
+   *"`SFX_VOLUME` … every value is still `1`"*. **It is not.** `src/ui/audio.js:54-61` already
+   carries six real values — `battle-swords: 0.46, coin-flip: 1.45, fishing: 0.81, ship-move: 1.72,
+   store-ingredient: 2.79, storm: 0.86`. **Levelling has partly happened.** His answer ("level
+   everything together, once, at the end") most likely survives the correction — levelling the whole
+   set once still covers the six — **but he was not shown the true state, so treat it as his answer
+   to the question as asked, and re-put it to him if the plan starts depending on it.**
 
 ### AND ONE NEW FEATURE, restated — it is not a sound swap
 

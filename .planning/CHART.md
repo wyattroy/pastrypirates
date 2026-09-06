@@ -303,10 +303,21 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
       ✅ **16:36Z — HE FINISHED. *"I finished my rulings."* 12 comment-box entries, all harvested.**
       Digest at the top of [`DECISIONS.md`](../.claude/memory/DECISIONS.md); his exact words in
       `INBOX.md`. The committed page is re-synced from the live one so nothing can overwrite him.
-      **TWO OF HIS RULINGS MOVE SOUNDS RATHER THAN FILL BLANKS** — the sword clash goes to when a
-      battle is CALLED (not when it resolves), and the narration box moves to fit the drumroll audio
-      rather than the audio being cut to the box's 2.55s.
-      ⛔ **FOUR COLLISIONS, AND THE ROW STILL DOES NOT CLOSE BECAUSE OF TWO OF THEM:**
+      ⛔ **CORRECTED BY CEO 225: an earlier version of this row said his clash ruling "MOVES" the
+      sound because "it currently plays on the resolve." THAT WAS FALSE — the clash already
+      plays at battle-engage** (`src/orchestrator.js:631`, `playBattleEngage()` one line before
+      the opening ⚔️ line; `EVENT_SOUND` has `battle: null` because that event only fires after
+      the fight resolves). **His ruling is already satisfied; the work is to confirm by ear and
+      use Luis's latest clip, not to move anything.** The claim came from the PRD's own
+      "fight-resolves / clash slot" heading, repeated without opening the file — rule 6.
+      **ONE of his rulings really does move something:** the narration box moves to fit the
+      drumroll audio, rather than the audio being cut to the box's 2.55s.
+      ⛔ **~~FOUR COLLISIONS, AND THE ROW STILL DOES NOT CLOSE BECAUSE OF TWO OF THEM~~ — STRUCK BY
+      CEO 225. That was a FOURTH definition of "delivered" stacked on a row that got the
+      one-definition block above eight hours earlier to stop exactly this, and I wrote it.**
+      By the row's own test — he has written, a watch has harvested — **this row is DELIVERED.**
+      The collisions are real and they are the NEXT job, not this one; they leave as their own
+      rows. **FOUR COLLISIONS, CARRIED FORWARD:**
       1. **He overrode his own morning ruling** — *"wait for a dedicated file from Luis"* for "your
          turn" became *"use Bell."* The later wins outright; do not average them.
       2. ⛔ **"Your turn" still collides with `audio.js` D-07** — everyone hears the whole table; a
@@ -323,6 +334,16 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
       part of "wire Luis's files".
       📄 **`LUIS-SFX-ROUND-3-BRIEF.md` written at his instruction** — New Day wants a wind whoosh or
       a weather-vane creak, because the wind changes direction daily.
+      ⚠ **A REPUBLISH NOTIFICATION CAN ARRIVE LATE AND OUT OF ORDER — AND IT READS LIKE DATA LOSS.**
+      Two arrived after his last save saying *"it is now version 1788712022"* and *"…712123"*, both
+      **OLDER than the 1788712575 already in hand** — replays of saves he had already made, not
+      rollbacks. Read literally they say the page reverted and his rulings are gone.
+      **THE CHEAP TEST: compare the version in the notification with the one you hold. OLDER = a
+      replay. Only a NEWER version is a reason to re-read.** Both were checked against the live page
+      anyway (14 notes; live == committed == harvested), because getting this wrong silently loses
+      his words — **but do not burn a full re-read on every one; the version number answers it.**
+      **And this is why the committed copy is kept in sync**: had either been a real rollback,
+      `INBOX.md` plus the committed HTML hold every word and could restore the page.
       **ClockTick is the one mapping never explicitly confirmed** — he ruled Alarm = timer expiry,
       which leaves ClockTick as the warning tick by elimination, but he never said so.
       ✅ **Same session, second publish: the dead `docs/AUDIO.md` link in §1 is fixed.** It was

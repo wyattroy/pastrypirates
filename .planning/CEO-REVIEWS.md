@@ -1,5 +1,65 @@
 # CEO reviews — the standing record
 
+## CEO Review 225 — `T-261`: "I finished my rulings" — **NO, not as it stands** — 2026-09-06
+
+**Wyatt's ask, verbatim:** *"I finished my rulings in https://claude.ai/code/artifact/ed82256e-…"*
+
+**VERDICT: NO.** In its words: *"The harvest and the quote-fidelity are excellent. Two things must be
+fixed before this record is left for the next session… it states one **fact about the game that is
+false**, in the file sessions are told to answer from; and it holds `T-261` open against the single
+definition of 'done' that the last CEO forced onto that row this morning."*
+
+1. ✅ **Every row of the digest traces to his actual words.** It extracted the raw `glassState` and
+   diffed against `INBOX.md:2358-2428`: *"14 comment entries total; all 14 carried verbatim,
+   character-for-character, including his typos ('teh', 'Beacuse')."* All nine mapping rows
+   quote-checked and confirmed. Nothing dropped, invented or softened.
+2. ⛔ **THE DIGEST STATED A RUNTIME FACT THE CODE FLATLY CONTRADICTS.** `DECISIONS.md:13` said of the
+   sword clash *"This MOVES it — it currently plays on the resolve."* It does not. `src/ui/audio.js:86-89`
+   calls it *"the moment cue for a battle being JOINED"*; `:116-120` says *"The clash moved to engage
+   time"*; `src/orchestrator.js:631` calls `playBattleEngage()` one line **before** the opening line;
+   `EVENT_SOUND` has `battle: null`. *"A future watch reading `DECISIONS.md` will go 'move' a cue that
+   is already correct. This is rule 6's exact shape: a claim about what the game does, asserted
+   without opening the file."* **VERIFIED INDEPENDENTLY AND FIXED** — both lines struck, the entry now
+   says his ruling is already satisfied.
+3. ✅ **All four collisions are real; none manufactured.** It re-verified each with its own citations,
+   including the D-07 line the digest had not cited (`src/ui/audio.js:300`) and
+   `SHOTCLOCK_SOUND_PLACEHOLDER` (`:74-75`, *"Left with the shot clock 2026-08-28"*) confirming no
+   turn-timer exists. ⚠ One caveat it caught: `docs/AUDIO.md:31` says DEFECT-3 is *"UNVERIFIED either
+   way"*, so *"genuinely clipping"* was **one notch firmer than the record supports** — **FIXED**, and
+   the repo's contradiction with `audio.js:52-53` is now recorded rather than resolved by fiat.
+4. ⚠ **Two things nobody caught, one of which means he ruled on a false premise. Both now recorded.**
+   `q2` is the single box he left blank while saying he had finished — leaving **ClockTick confirmed
+   nowhere**, an inference rather than his ruling. And **`q7` asked him a question with a false
+   premise**: the PRD told him *"every value is still `1`"* while `src/ui/audio.js:54-61` already
+   carries six real values. *"His answer probably survives that correction, but he was not shown the
+   true state and nobody noticed."*
+5. ✅ **The Luis brief is faithful**, including the additions he did not dictate, which *"are what
+   round 3 should know, which is what he asked the file to be."* ⚠ **One gap: it is a repo file, and
+   the moment he wants to send it to Luis he needs something tappable (rule 27).**
+6. ⛔ **LEAVING `T-261` OPEN IS WRONG — AND IT REOPENED THE FAULT CEO 224 CLOSED THAT MORNING.** The
+   row's own authoritative block says delivered = *"Wyatt has WRITTEN in the boxes and a watch has
+   HARVESTED"*. Both are true. *"Yet `CHART.md:309` now reads 'FOUR COLLISIONS, AND THE ROW STILL DOES
+   NOT CLOSE' — a **fourth** stacked definition, added to a row that got a one-definition block
+   precisely to stop this."* It judged the two open questions genuine but *"the next job, not this
+   one"*, and noted the SFX work he explicitly prioritised was left ranked behind a finished row.
+   **ACCEPTED — the row is closed and the pin handed back, with the open questions carried as their
+   own rows.**
+
+**RECURRENCE vs 224:** *"224's finding 5 has recurred, in the same file, on the same row, within eight
+hours of being fixed."* And its headline species too — *"a record describing a state that has since
+moved"* — this time `DECISIONS.md` describing a sound as playing where it has not played for weeks.
+224's finding 4 does **not** recur: the PRD re-sync *"touches exactly one line, the `glassState` line,
+which is what a faithful re-sync looks like"*, `src/` untouched, and `harvest_glass.mjs` confirmed
+unmodified — *"so the harvest really was done with the standing tool, as claimed."*
+
+**ITS ONE SENTENCE FOR WYATT, verbatim:** *"Your twelve rulings were carried across word-for-word and
+nothing you wrote was lost or softened — but the note that came out of it tells the next session that
+the sword clash currently plays at the end of a battle and needs moving to the start, and that is
+simply not true (it was moved to the start weeks ago, and your ruling is already satisfied); and the
+SFX job you unblocked by answering is still sitting behind a task that, by its own written rule,
+finished the moment your words were harvested."*
+
+
 ## CEO Review 225 — `INBOX-20260902T190743Z` (`T-243`): the sitemap regeneration ask, closed as old paperwork not new work — **YES** — 2026-09-06
 
 **Wyatt asked, verbatim:** "Regenerate sitemap.xml at the repo root of playpastrypirates.com now
