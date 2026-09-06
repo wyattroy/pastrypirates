@@ -687,13 +687,35 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
   Vision judge, `solo-phone-017-settled.png`: the toast overlaps the button beneath it. Per `T-019`
   the judge's own wording is not quotable as the cause — open the screenshot before acting. Not yet
   posed (rule 26).
+- [ ] **A ROW CAN DECLARE ITSELF CLOSED IN PROSE AND STILL NEVER LEAVE WYATT'S TASKS LIST — the
+      ⟨`T-264`⟩
+      parser only recognizes one exact marker, and watches keep writing a different one.**
+      Found and fixed for two clean instances 2026-09-06 (CEO 230, YES); the mechanism is the
+      remaining work. `hasFate()`/`stateOf()` (`scripts/wyclau/lib/chart_model.mjs:58-112`) only
+      count an IDEA INBOX row as finished when its verdict is written `→ **X**` — an arrow
+      immediately before bold text. At least four rows in `.planning/CHART.md` have declared their
+      own closure a different way (`**FATE: SHIPPED ...**` at :1340/:1365, both now fixed by adding
+      the arrow; `✅ **CLOSED ...**`/`✅ **FATED AND ANSWERED ...**` at :1455 and :1504, the `T-243`
+      sitemap row, NOT fixed — too tangled to hand-edit safely) and every one of them silently kept
+      re-ranking as open work, wasting a watch's time re-verifying a closure that already happened.
+      **A general regex fix is NOT safe as a drop-in**: matching any bare `✅ **...**` would wrongly
+      close `T-073` (rank 1, DO NOW) — its own sub-note *"✅ **THE GATE IS CLEAR — `T-261` CLOSED
+      2026-09-06...**"* mentions a DIFFERENT ticket's closure inside a row that is very much still
+      open. Whoever takes this needs to design a marker (or a row-position rule) that distinguishes
+      "this row's own final verdict" from "a mention, anywhere in the row's body, of some other
+      ticket closing" — and then sweep `.planning/CHART.md` for every row using the wrong
+      convention, not just re-patch the next one somebody happens to notice.
+      Full account: `.planning/wyclau/PREDICTION-20260906T2130Z-chart-stale-fate-rows.md`, CEO
+      Review 230 in `.planning/CEO-REVIEWS.md`.
+      **Sizing: SMALL-TO-MEDIUM** — the marker design is the hard part; the sweep is mechanical
+      once it exists.
+
 - [ ] **A SAIL SQUARE COVERS THE VERY TEXT IT IS ANSWERING — "tap to sail" HIDDEN UNDER ITS OWN HIT
       ⟨`T-258`⟩
   ZONE, PASS-AND-PLAY PHONE.** Same source trial as `T-257`. **Structural, not a judge guess** —
   the trial's `no-cover-ask` check measures real bounding-box overlap: `sailCell` sits over "Peg Leg
   Meg: tap to sail — blu…". Harder evidence than the vision-judge rows in this section; closer to
   confirmed.
-
 - [ ] **A STRAIGHT DOUBLE QUOTE IN ANY QUESTION OPTION SILENTLY TRUNCATES THE LABEL HIS RULING IS
       ⟨`T-248`⟩
   STORED UNDER.** `glass.mjs` writes each option into `data-label="…"` without escaping, so an
@@ -765,6 +787,7 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
   stable across a restart (e.g. the report path, which IS stable per run) rather than a fresh
   timestamp. Full account of the original trace: `.planning/wyclau/PREDICTION-20260904T034500Z-T-219.md`.
   Sizing: SMALL, tooling not game code, investigation-first (rule: write the prediction before you fix).
+
 - [ ] **EVERY ROW IS MOVEABLE TODAY AND WILL NOT BE TOMORROW — THE NEXT IDEA HE TYPES INTO THE
       GLASS ARRIVES WITH NO ▲ BUTTON.** CEO 182, finding 3.
       ⟨`T-245`⟩
@@ -914,7 +937,6 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
   `.planning/SEA-TRIAL-2026-09-01T1914Z-Wy-Blade.md`, log
   `.planning/wyclau/detached/trial-2026-09-01T1914Z-Wy-Blade.out`. ~88 min on the last run's timing.
       ⚠ STALE-CANDIDATE — dead-pointer (correct the text (it points at something gone)) — warns readers off on account of pid 45256, which is not running; measured on build 2026.09.01.6; the tree is 2026.09.04.2, so its evidence no longer describes this game
-
 - [ ] **LET A SEA TRIAL BE RUN AT A DEPTH SOMEBODY CHOOSES — his own words, and he is right.**
       ⟨`T-220`⟩
       `INBOX-20260902T214507Z` / his ruling on `qid:t206-ga-turn-on`: *"we need a way to bypass
@@ -996,6 +1018,7 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
       and `GEARS.PLUMBING` reason text; (b) in `game-code.cjs`'s `isGameCode()`, normalise `rel`
       with `.replace(/\\/g, "/")` before testing against `NOT_GAME`. Then wire the check above
       into `npm test`'s chain in the same commit.
+
 - [ ] **A QUESTION FOR HIM, NOT A BUG: on a phone the last screen of the voyage hides who won which
       ⟨`T-143`⟩
       award until you scroll. The tablet shows all four awards AND the whole stats table.**
@@ -1097,10 +1120,10 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
   him in `## BLOCKED ON WYATT` (`qid:t142-recipe-choice-captains-bar`) with a marked
   recommendation and the posed picture as evidence, rather than guessed at.**
 
+
 - [ ] Your ruling: merge the 465-commit branch to `main` — **GATED: his own final say-so, and he has not played 2026.09.01.8 on staging yet.** The release trial has since landed clean (0137Z, 10 of 10, empty not-run column). Nothing for a watch to do but wait.
       ⟨`T-006`⟩
       ⚠ STALE-CANDIDATE — stale-evidence (re-measure it on this build) — measured on build 2026.09.01.8; the tree is 2026.09.04.2, so its evidence no longer describes this game
-
 
 - [ ] **GATED: recurrence. One `<img>` reserved its box and did not paint, once, in one headless
       ⟨`T-078`⟩
@@ -1149,6 +1172,7 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
       **NOT FIXED HERE, deliberately.** c1 held `glass.mjs` and `rulings_triage_check.mjs` this
       watch, a peer was live on the Chart, and a trial was at sea. **Sizing: SMALL — one bound and
       one refusal, plus the gate.** Whoever takes it inherits the measurement, not a theory.
+
 ## BLOCKED ON WYATT
 
 <!-- ⚠ THIS SECTION IS TABLE ROWS, BLANK LINES, OR HTML COMMENTS. NOTHING ELSE, AND A GATE ENFORCES IT
@@ -1337,7 +1361,7 @@ fate — SHIPPED / SCHEDULED (where) / PARKED (why) — with a recommendation, w
   lights their ovens and rank on it; fairer, and it is the rule you clearly meant, but it touches
   the end-of-voyage ranking"*
 
-  **FATE: SHIPPED 2026-09-04, already closed as `T-216`** — this is a leftover duplicate copy of
+  → **FATE: SHIPPED 2026-09-04, already closed as `T-216`** — this is a leftover duplicate copy of
   the same ruling, harvested from a later Glass snapshot after the original had already shipped.
   Full record archived in `CHART-LOG.md` (`## T-216`): new `ovensDay` field stamped in
   `lightOvens()`, `bakeRank()`'s third comparator reads it ahead of the old seat-order fallback,
@@ -1362,7 +1386,7 @@ carries its fate below, added when it got one.
   Approve and Deny with 1 2 3 Other, to bring Glass into parity with Claude's question UI, and
   leave the box as a space to write \"other\" content in"*
 
-  **FATE: SHIPPED 2026-09-03, and closed as `T-218`** — full record in
+  → **FATE: SHIPPED 2026-09-03, and closed as `T-218`** — full record in
   [`CHART-LOG.md`](CHART-LOG.md) (`## T-218`), with the two alternatives he rejected.
   Every card is now **1 · 2 · 3 · Other**; a question that declares its own options gets those,
   one that declares none gets numbered defaults. The stored keys stay `yes`/`no`/`talk` so

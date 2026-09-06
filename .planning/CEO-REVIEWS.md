@@ -17013,3 +17013,19 @@ Its words: *"The machinery he asked for is genuinely built and genuinely works �
 **STILL OPEN, and honestly so:** nothing is deployed. No Cloudflare account, no Pages project, no DNS change — all of which need him. That is now step 1 of a written list rather than an unstated gap.
 
 **ITS ONE THING FOR WYATT (its words):** *"a production build of your site is byte-for-byte the same game you have in the repo — all 222 files, not a sample — and a staging build correctly wears all five 'this is not the real thing' markers... Two things before you act on it. First, one file that ships is not the game: `two-machines.html`... Second, 'staging first' is not finished: nobody has created the Cloudflare projects or moved your DNS, and there is no step-by-step list waiting for you to follow."* Both are now done: the file is out, and the list exists.
+
+## CEO Review 230 — 2026-09-06T~2135Z, Wy-Blade — Chart rank surfaced two already-closed rows as open work
+
+**No new Wyatt ask — found while orienting.** Ranking the Chart (`chartkeeper.mjs --rank`) put `t216-baker-tiebreak` at rank 3 and the sitemap ask (`T-243`) at rank 4, above every genuinely open bug, even though `t216` already carried its own prose saying it was a duplicate closed under `T-216`. Root cause traced, not guessed: `hasFate()`/`stateOf()` (`scripts/wyclau/lib/chart_model.mjs:58-112`) only recognize a row as finished when its verdict is written as `→ **X**` — an arrow immediately before bold text. Two rows declared their own closure as `**FATE: SHIPPED ...**` with no arrow, so they never left his Tasks list.
+
+### VERDICT: YES
+
+Fresh CEO (general-purpose agent, independent): confirmed the two-line diff is exactly a `→ ` prefix added to `.planning/CHART.md:1340` and `:1365`, nothing else; read `chart_model.mjs` itself and confirmed the arrow requirement is real; ran `chartkeeper.mjs --rank` independently and got the same before/after ("38 open rows + 34 unfated ideas = 72 tasks" → "...+ 32... = 70 tasks", exactly -2, `t216-baker-tiebreak` gone from the rank list); confirmed `chartkeeper_check.mjs` and `npm test` both clean; confirmed no game code touched.
+
+**Deliberately NOT fixed the same way: `T-243`.** Its block carries a *second*, later, also-unrecognized re-fating (`✅ **FATED AND ANSWERED 2026-09-03...**` at line 1504) on top of the first (`✅ **CLOSED PROPERLY 2026-09-06...**` at 1455) — genuinely layered history, not a clean single closure. CEO judged leaving it alone was the right call, not laziness.
+
+**A broader fix was considered and rejected, in the open, before touching anything.** Matching any bare `✅ **...**` as a row-fate declaration would have looked safer at first, but `T-073`'s own sub-note — *"✅ **THE GATE IS CLEAR — `T-261` CLOSED 2026-09-06...**"* — mentions a DIFFERENT ticket being closed inside a row that is very much still open (rank 1, DO NOW). A bare-checkmark match would have wrongly marked the whole SFX row finished. Written into the prediction file before editing anything: `.planning/wyclau/PREDICTION-20260906T2130Z-chart-stale-fate-rows.md`.
+
+**Gear: NONE.** Only `.planning/CHART.md` (2 lines) and the prediction file touched — no `index.html`/`src/` diff, no sea trial owed.
+
+**Its one thing for Wyatt:** two already-shipped duplicate rows were quietly inflating his Tasks-list count and out-ranking real open bugs; the fix is two characters each, and the same parser gap likely still affects other rows written in the `**FATE:**`/`✅` style — filed as a note for whoever next touches `chart_model.mjs`, not attempted here because a safe general fix needs more care than one watch turn allows.

@@ -12245,3 +12245,71 @@ trace it next.
 **One item closed this watch.** Ending the turn here, per the Door's own rule.
 
 END OF WATCH.
+
+---
+
+## WATCH 2026-09-06T~2100Z-2140Z — the Chart's own rank list was showing him closed work as open
+
+**Orientation:** `git fetch && git pull --rebase` refused (unstaged foreign changes: a live Cloudflare
+publish-set session's WIP — `.gitignore`, `package.json`, `.claude/memory/DECISIONS.md` plus untracked
+`scripts/build-site.mjs`/`wrangler.toml`/`scripts/qa/site_build_check.mjs`). Branch was already
+`up to date with origin`, so no rebase was actually needed — confirmed via `git fetch` + `git status`.
+Left the foreign WIP untouched per the prior watch's own note ("a live session's in-progress work, not
+abandoned"); it was committed by that session partway through this watch (`4cfd52ae`, confirmed via
+`git log` — already on `origin` by the time this watch went to push, so no conflict). `can_push.mjs`
+healthy. No IN-HAND claim on this machine. No Artifact tool this session (confirmed via `ToolSearch`).
+Ranked/swept the Chart before picking an item.
+
+**What I found, not assumed:** rank put `t216-baker-tiebreak` at #3 and the sitemap ask (`T-243`) at
+#4 — above every genuinely open bug — even though `t216`'s own prose already said it was a duplicate
+closed under `T-216`. Traced to source: `hasFate()`/`stateOf()`
+(`scripts/wyclau/lib/chart_model.mjs:58-112`) only recognize a row as finished when its verdict is
+written `→ **X**` (arrow immediately before bold text). Two rows had declared closure a different way
+— `**FATE: SHIPPED ...**`, no arrow — so they never left his Tasks list and kept re-ranking as open
+work, which is exactly the "record disagrees with itself" hazard this project's ledger/CEO machinery
+exists to catch (same shape as the last two watches' `T-073`/`T-219` paperwork fixes).
+
+**Prediction written before measuring:** `.planning/wyclau/PREDICTION-20260906T2130Z-chart-stale-fate-rows.md`
+— predicted the arrow-prefix fix would drop the task count by exactly 2 and remove `t216` from rank;
+both held exactly.
+
+**Fix:** added a `→ ` prefix to two lines only — `.planning/CHART.md:1340` (`t216-baker-tiebreak`) and
+`:1365` (`donow-buttons-numbered`/`T-218` duplicate). Verified RED (72 tasks, `t216` at rank 3) →
+GREEN (70 tasks, `t216` gone from the rank list, `T-243` correctly still open). `npm test` clean, no
+real FAIL lines (only prose mentioning the word). **Deliberately did NOT touch `T-243`** — its block
+carries a second, later, also-unrecognized re-fating note on top of the first, genuinely layered
+history rather than a clean single closure. **Deliberately did NOT generalize the parser fix** — a
+bare `✅ **...**` match would wrongly close `T-073` (rank 1, DO NOW), whose own sub-note mentions a
+DIFFERENT ticket's closure inside a still-very-much-open row. Filed the systemic gap as its own Chart
+row (new handle minted by `chartkeeper.mjs`, immediately before `## BLOCKED ON WYATT`) rather than
+attempting a same-turn general fix.
+
+**Fresh-context CEO (general-purpose agent, independent verification): YES.** Confirmed the two-line
+diff directly, read `chart_model.mjs` itself and confirmed the arrow requirement, re-ran
+`chartkeeper.mjs --rank` independently and got the identical before/after count, confirmed `T-243` was
+correctly left alone (genuinely tangled), confirmed no game code touched. Appended as CEO Review 230
+(230 was free — checked the live file first).
+
+**Gear: NONE.** Only `.planning/CHART.md`, `.planning/CEO-REVIEWS.md`, and the prediction file
+touched — no `index.html`/`src/` diff, no sea trial owed. This is a records/tooling-hygiene fix, not a
+Chart row that pre-existed with its own handle, so there is no `close_item.mjs` INBOX/Chart entry to
+close through the gate — the fix and its record are the CHART.md edit itself plus this ledger entry
+and the CEO review.
+
+**No Artifact tool this session** — nothing to publish; this is not a Glass-facing change beyond what
+the Chart's own content already carries (a session with the Artifact tool will show the corrected
+count next time it republishes). Publish queue not touched (still empty, confirmed).
+
+**Browsers/servers:** none started this watch.
+
+**Daily lesson:** already given today (per the last watch's entry) — not duplicating it.
+
+**Still open for the next watch, unchanged from the last entry's list, plus:** the new Chart row on
+the arrow-marker parser gap (small-to-medium, needs a careful marker/position design before a general
+sweep); the foreign Cloudflare publish-set work is now committed (`4cfd52ae`) but per its own CEO 228
+review nothing is deployed yet — Cloudflare account, Pages project, DNS all still need Wyatt.
+
+**One item worked this watch — a records-hygiene fix, not an INBOX/Chart-handle close.** Ending the
+turn here, per the Door's own rule.
+
+END OF WATCH.
