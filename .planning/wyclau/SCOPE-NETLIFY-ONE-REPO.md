@@ -121,6 +121,26 @@ counts the live hosts):
 | last 7 days | 57 |
 | since 2026-08-21 (17 days) | 250 |
 
+> ### ⚠ HE MOVED THE GOALPOST AN HOUR AFTER THIS WAS WRITTEN, AND IT INVERTS THE ANSWER
+>
+> **Wyatt, 2026-09-06, verbatim:** *"my traffic is about to increase 10000 fold — i'm pre-launch
+> right now."*
+>
+> **10,000 × 500 visits/month = 5,000,000 visits/month.** Page weight measured off the live site
+> with compression on: `index.html` **81.6 KB**, all of `src/` gzipped **~604 KB**, `assets/`
+> **4.4 MB across 150 already-compressed images**. Call a cold visit **3 MB** → **~15 TB/month**.
+>
+> | host | at launch scale | verdict |
+> |---|---|---|
+> | **GitHub Pages** | soft limit **100 GB/month** — he would be ~150× over, and GitHub may disable a site that exceeds it | **NOT VIABLE** |
+> | **Netlify** | 20 credits/GB; the Free plan's 300 credits **is 15 GB**. ~15,000 GB at the published $0.13/GB Pro rate | **~$1,950/month** |
+> | **Cloudflare Pages** | static assets are **unlimited bandwidth and unlimited requests on the FREE plan** | **$0** |
+>
+> **The conclusion survives being wrong by 4× in either direction, which is the point of writing the
+> arithmetic down rather than the answer.** At a quarter of that traffic Netlify is still ~$490/month
+> and Cloudflare is still nothing. **Everything below this box is the pre-launch analysis and is kept
+> only because it is the honest record of what was true this morning.**
+
 **Call it 500 visits a month.** At a generous 4 MB per visit that is **2 GB of bandwidth a month**.
 
 Netlify's Free plan is **300 credits/month, a hard limit with no auto-recharge**. Every figure in the
