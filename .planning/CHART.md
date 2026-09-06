@@ -115,12 +115,21 @@ https://claude.ai/code/artifact/8c855d0c-92b5-471e-9c51-f6800f1e8539
       appears outside `playForEvent`'s dispatch, except a short named allow-list.
       **Red-proof it against this exact mistake:** commit `c28f92b4` (the two-call-site drumroll)
       must go RED; `a426dece` must go green.
-      ⚠ **IT WILL ALSO CATCH `playWinScreen()`, which is hand-placed in BOTH twins today**
-      (`src/orchestrator.js:959` and `:1467`, "D-05… tied to the screen appearing"). That is real
-      pre-existing debt, older than the Wave 1 convergence — **the SFX session did not create it and
-      has not touched it.** Whoever takes this decides: converge it onto the event channel, or
-      record it as a sanctioned exception with his ruling behind it. Do not let it quietly widen
-      the allow-list.
+      ⭐ **HE HAS ALREADY RULED ON THE ONE THING THIS GATE WILL CATCH FIRST — DO NOT RE-ASK IT.**
+      `playWinScreen()` is hand-placed in BOTH end-of-voyage twins today (`src/orchestrator.js:959`
+      and `:1467`, *"D-05… tied to the screen appearing"*) — pre-existing debt, older than the Wave 1
+      convergence, which the SFX session did not create and has not touched.
+      **Wyatt, 2026-09-06, verbatim: *"tell the chart to converge playWinScreen onto the event
+      channel."*** So it is NOT a sanctioned exception and the allow-list must NOT be widened to
+      accommodate it. **Converge it**: the win cue rides the shared event stream through the single
+      `playForEvent` dispatcher every tier reaches, exactly like the your-turn bell.
+      ⚠ **WHAT MAKES THIS MORE THAN A MOVE, and it is why D-05 tied it to the screen in the first
+      place:** the win sound is currently pinned to the *screen appearing*, while `end`/`finish` are
+      deliberately silent AS EVENTS (D-06, `src/ui/audio.js`). Converging means the ending's sound
+      and the ending's screen become the same beat again. **Measure when `end` actually drains
+      relative to the win screen before wiring** — `liveResolveEndNet`'s own comment says `end` is
+      consumed *"lines ago"*, so the moment may not be where it looks. This session has been wrong
+      about audio timing twice; do not add a third.
 
       **(b) MAKE THE TRIGGER SENTENCE FIRE AT THE MOMENT, NOT AT SESSION START.** Rule 23 is read
       hours before it gets broken. `.claude/hooks/qa-gear-first.cjs` already interrupts the first
