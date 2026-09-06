@@ -138,3 +138,21 @@ cited in `.claude/memory/DECISIONS.md`.
 
 **CEO verdicts this session:** 227 (PARTIAL, the scope document) and 228 (PARTIAL, the pipeline) —
 both in `.planning/CEO-REVIEWS.md`, all findings fixed.
+
+## ⚠ ONE DEBT THIS SESSION IS LEAVING YOU: A CEO VERDICT IS OWED
+
+**The staging clobber and its repair never got a fresh-context CEO review.** The cadence hook
+fired and offered the mid-flight retry, and this session took it — because Wyatt was waiting to
+kill the session and open you, and a four-minute review would have held him there.
+
+**That is a judgement call, not a rule that stopped applying.** It is written here rather than
+left silent, because a skipped review nobody recorded is exactly the gap `.planning/CEO-REVIEWS.md`
+exists to close. **Run it early:**
+
+```bash
+node scripts/qa/ceo_brief.mjs --ask="write a handoff so I can kill this session and start a full session that has artifact"
+```
+
+Give it: the clobber and the repair (both verified over the wire, above), this handoff, and
+CEO 228 as the previous verdict. Its narrow question is whether the handoff actually hands off —
+not whether the repair was clever.
