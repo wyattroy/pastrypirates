@@ -80,14 +80,16 @@ dialog textarea{height:46vh;font:13px/1.45 ui-monospace,SFMono-Regular,Menlo,mon
 </style>
 
 <div class="halt"><div class="wrap">
-  <strong>⛔ DON'T TEST THIS YET — staging is not serving this build.</strong>
-  Another session (the SFX/ambience one) published over the same address a few minutes ago.
-  Staging now serves <code>2026.09.07.1-staging@4bca119c</code>, which has <em>none of the tutorial in it</em> —
-  I checked the wire: <code>src/ui/pilot.js</code> and <code>src/ui/course.js</code> both 404 there.
-  <strong>Every item below would read as broken, and none of it would be your fault or mine.</strong>
-  Nothing is lost — the build is one command from going back — but <strong>two sessions are
-  contending for one address and which one it serves is your call, not ours.</strong>
-  <span class="ok">Real players are fine: production is untouched at 2026.09.06.2.</span>
+  <strong>⛔ STILL DON'T TEST — but the fix is ready and waiting on you.</strong>
+  Staging serves <code>2026.09.07.1-staging@4bca119c</code>, which is the ambience session's build
+  and has <em>none of the tutorial in it</em>. Every item below would read as broken.
+  <span class="ok"><strong>What changed since:</strong> both sessions merged into one branch —
+  <code>origin/dev</code> at <code>b01780cd</code>, build <code>2026.09.07.3</code> — carrying the
+  tutorial <em>and</em> the sea ambience and music in a single tree. 106 gates, <code>npm test</code>
+  exit 0, verified independently by both of us. <strong>Publishing dev to staging clears this sheet
+  and the ambience one at once</strong> — neither of us has done it, because which build you play
+  mid-playtest is your call. Say the word and it is two minutes.</span>
+  <span class="ok">Real players are unaffected throughout: production is untouched at 2026.09.06.2.</span>
 </div></div>
 
 <header><div class="wrap">
