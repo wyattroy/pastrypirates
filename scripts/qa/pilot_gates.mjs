@@ -187,5 +187,61 @@ ok(`no rung prints a price the button already carries (${lines.length} rungs sca
    priced.length ? JSON.stringify(priced) : "");
 ok("RED-PROOF: the scan can fail", /[−-]\s?\d+\s*🌕/.test("Attack −2🌕 for powder"));
 
+/* ══ 10 · ?pilot= — THE ENTRY POINT'S LOGIC, WITHOUT A BROWSER ════════════════════════════════
+   This was a browser gate and it had to come OUT of the chain: it drove six real game starts and
+   was INTERMITTENT — pass, fail, and once a HANG on an unsettled CDP promise. A gate that
+   sometimes hangs is worse than one that is red, because the next session reads the timeout as a
+   machine problem and re-runs until it goes green. Caught by the SFX session measuring it five
+   times on the merged tree and three on mine; I had called it deterministic after three passes,
+   which is not what three passes proves.
+
+   What actually needs guarding is the LOGIC, and that is pure: pilotApplyUrlFlag() reads
+   location.search and location.hostname and writes counts. So it is driven the way
+   scripts/dev_flag_gate_check.js already drives devHost() — a stubbed globalThis.location — which
+   is deterministic, takes milliseconds, and cannot hang.
+   THE END-TO-END PROOF STILL EXISTS and was run: scripts/qa/_pilot_url_flag_probe.mjs drives all
+   three modes in a real browser. It is a probe, not a gate, and it is named with a leading _ like
+   the other one-offs here. Run it when you change the flag. */
+console.log("\n10 · the ?pilot= entry point");
+const withLoc = (hostname, search, fn) => {
+  const had = Object.prototype.hasOwnProperty.call(globalThis, "location");
+  const prev = globalThis.location;
+  globalThis.location = { hostname, search };
+  try { return fn(); } finally { if (had) globalThis.location = prev; else delete globalThis.location; }
+};
+const pose = () => __pilotPose({ seen: Object.fromEntries(MOMENTS.map((id) => [id, 9])), met: true });
+
+ok("?pilot=new puts every ladder back to the top", withLoc("localhost", "?pilot=new", () => {
+  pose(); pilot.pilotApplyUrlFlag();
+  return MOMENTS.every((id) => pilotRung(id) === 0);
+}));
+ok("…and un-answers the fork, so a device that has played meets it again", withLoc("localhost", "?pilot=new", () => {
+  pose(); pilot.pilotApplyUrlFlag(); return pilot.pilotFirstTime();
+}));
+ok("?pilot=vet leaves every ladder at the bottom and skips the fork", withLoc("localhost", "?pilot=vet", () => {
+  __pilotPose({}); pilot.pilotApplyUrlFlag();
+  return MOMENTS.every((id) => pilotRung(id) === pilotDepth(id) - 1) && !pilot.pilotFirstTime();
+}));
+ok("?pilot=off silences the parrot", withLoc("localhost", "?pilot=off", () => {
+  __pilotPose({}); pilot.pilotApplyUrlFlag(); return !pilot.pilotIsOn();
+}));
+ok("staging counts as a developer's machine", withLoc("staging.playpastrypirates.com", "?pilot=new", () => {
+  pose(); return pilot.pilotApplyUrlFlag() === "new";
+}));
+/* THE SAFETY PROPERTY, and nothing tested it before: on the LIVE domain the flag must do nothing
+   at all. A URL a player can paste must never be able to reset their tutorial mid-voyage. */
+ok("⚠ on the LIVE domain the flag does nothing", withLoc("playpastrypirates.com", "?pilot=new", () => {
+  pose();
+  const applied = pilot.pilotApplyUrlFlag();
+  return applied === null && MOMENTS.every((id) => pilotRung(id) === pilotDepth(id) - 1);
+}));
+ok("RED-PROOF: an unknown flag changes nothing", withLoc("localhost", "?pilot=banana", () => {
+  pose();
+  return pilot.pilotApplyUrlFlag() === null && MOMENTS.every((id) => pilotRung(id) === pilotDepth(id) - 1);
+}));
+ok("RED-PROOF: …and the check can tell, because a KNOWN flag does change it", withLoc("localhost", "?pilot=new", () => {
+  pose(); return pilot.pilotApplyUrlFlag() === "new";
+}));
+
 console.log(`\n${fails ? "FAILED" : "PASSED"} — ${fails} failing check(s)`);
 process.exit(fails ? 1 : 0);

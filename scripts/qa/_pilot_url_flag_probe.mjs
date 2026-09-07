@@ -1,6 +1,13 @@
-/* ?pilot=new / vet / off — DOES THE FLAG IN THE CHECKLIST ACTUALLY DO ANYTHING?
+/* ?pilot=new / vet / off — DOES THE FLAG ACTUALLY DO ANYTHING, IN A REAL BROWSER?
  *
- *   node scripts/qa/pilot_url_flag_check.mjs
+ *   node scripts/qa/_pilot_url_flag_probe.mjs
+ *
+ * ⚠ A PROBE, NOT A GATE, and the underscore says so. It was in `npm test` and had to come out: it
+ * drives six real game starts and was INTERMITTENT — pass, fail, and once a HANG (node exited 13,
+ * "Detected unsettled top-level await"). A gate that sometimes hangs is worse than one that is red,
+ * because the next reader takes the timeout for a machine problem and re-runs until it goes green.
+ * The flag's LOGIC is gated deterministically instead, in pilot_gates.mjs §10. This stays as the
+ * end-to-end check: run it by hand when you change the flag.
  *
  * WHY THIS IS A GATE AND NOT A ONE-OFF. A flag that silently does nothing is the worst kind of
  * checklist item: the URL loads, no error, no hint — so Wyatt plays the default path, sees the old
@@ -17,7 +24,14 @@ import { serve, launch, attach, killAll, sleep } from "../mp_rig.mjs";
 
 import fs from "node:fs";
 const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "..");
-const PORT = 8493, DBG = 9393;                 // a port not used by the other probes
+/* ⚠ UNIQUE PORTS PER PROCESS, and this is the SAME lesson as the profile directory one below —
+   learned twice in one sitting because I fixed the symptom the first time.
+   With a fixed debug port, attach() can find the PREVIOUS run's Chrome, still shutting down and
+   still holding its old profile — a device that has already played. That produced a textbook
+   alternation: fail, pass, fail, pass. Nothing about the game was involved.
+   killAll() does not wait, so "wait for the port to free" is the version that races. Deriving the
+   ports from the pid means a still-dying process cannot be found by a name it never had. */
+const PORT = 8400 + (process.pid % 90), DBG = 9200 + (process.pid % 90);
 const base = serve(PORT);
 /* ⚠ A PROFILE NOBODY ELSE COULD HAVE TOUCHED, and this gate took three tries to get right.
    Chrome keeps localStorage in its profile directory, so "a device that has never played" is a
@@ -37,7 +51,19 @@ for (const d of fs.readdirSync(REPO)) {
   try { fs.rmSync(path.join(REPO, d), { recursive: true, force: true }); } catch {}
 }
 launch(DBG, PROFILE);
-const C = await attach(DBG);
+const C0 = await attach(DBG);
+/* EVERY CDP CALL GETS A DEADLINE, and this is the fix for the hang rather than a precaution.
+   attach()'s send() resolves its promise when a reply arrives with a matching id. If the page
+   navigates (or the tab dies) while a call is in flight, THE REPLY NEVER ARRIVES and that promise
+   is unsettled for the life of the process — which is exactly what "unsettled top-level await at
+   line 78" was. A lost reply is now a rejection, so the probe fails in a readable way instead of
+   sitting there looking like a slow machine. */
+const C = Object.assign(Object.create(C0), {
+  ev: (expr) => Promise.race([
+    C0.ev(expr),
+    new Promise((_, rej) => setTimeout(() => rej(new Error("CDP eval timed out (reply lost, most likely across a navigation): " + String(expr).slice(0, 60))), 15000)),
+  ]),
+});
 await C.send("Emulation.setDeviceMetricsOverride", { width: 390, height: 844, deviceScaleFactor: 2, mobile: true });
 
 let fails = 0;
@@ -91,7 +117,13 @@ async function run(flag, { wipe }){
      rather than the code's. Answering it is what a captain does. */
   if (seen === "FORK"){
     await C.ev(`(()=>{const b=[...document.querySelectorAll('#actionPanel .apBtn')].find(x=>/yaargh/i.test(x.textContent));if(b){b.click();return true}return false})()`);
-    await sleep(600);
+    /* CONFIRMED, NOT ASSUMED. The click was followed by a flat 600ms sleep, so a tap that missed
+       left `met` false — and the NEXT case ("a device that has played is not asked again") then
+       failed for the probe's own reason while the game was behaving perfectly. That is the
+       intermittency, and it is the same fault class as the sea trial's: a step whose success is
+       inferred from the clock. */
+    if (!await waitFor(`!/know how to play/i.test((document.getElementById('actionPanel')||{}).textContent||'')`, 6000))
+      throw new Error("the fork was clicked and did not close — the probe cannot trust anything after this");
   }
   return seen;
 }
