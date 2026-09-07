@@ -848,8 +848,23 @@ run**, which is exactly why nobody looked twice. Fixed 2026-09-07; both now deri
 **Two sessions independently parsed this chain for browser-driving gates and BOTH reported zero.**
 Both greps looked for `launch(` and `--user-data-dir`; this file spells it
 `openChrome({ profileDir })`. **An audit that greps a spelling measures the spelling.** If you are
-sweeping for this fault, enumerate the chain from `package.json` and follow each gate's imports —
+sweeping for this fault, enumerate the chain from `package.json` and follow each gate's IMPORTS —
 `openChrome`, `launch`, and a bare `spawn` of Chrome are three spellings of one thing.
+
+**And one of those two audits was worse than a blind spot**, in its own author's words: it used two
+different patterns in the same session — a tree-wide one matching `launch(|openChrome(`, and a
+chain one matching only `launch(` — and quoted the narrower result as "verified independently,
+twice". The right instrument was already written, in the same file, minutes earlier. **Check that
+the check you are quoting is the check you built.**
+
+### The general form, and it is the most reusable thing here
+
+**A comment that is true against everyone except yourself is a very good way to stop two people
+looking twice.** *"This gate's own ports, never shared"* was true of every other gate in the
+repository and false of the only thing that gate actually races — its own previous run. Neither
+session re-read it, because it answered a real question convincingly; it just was not the question
+being asked. When a comment explains why something is safe, check what it is claiming safety
+FROM.
 
 ### The runner poisoning the run — reap between runs
 
