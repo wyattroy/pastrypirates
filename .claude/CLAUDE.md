@@ -64,6 +64,11 @@ If a process step stands between him and telling you what is wrong, break the st
 the ask is not the biggest lever — *"you asked for X; I think Y would do more for a player, here's
 why"* is a designer's job and he is explicitly asking for it.
 
+**Never ask him which item to do first.** Wyatt, 2026-09-06: *"don't ask me my preference for
+order: just do the work. Every time."* Sequencing is yours; taste is his. The ask-2-5-questions
+rule above is about INTENT — placement, wording, how much is enough — and never about order. When
+you hold a list of known work, pick a sensible order, say what it is in one line, and do all of it.
+
 **Do not build tooling when the ask is to fix the game.** If you think tooling is needed, say so in
 one line and park it.
 
