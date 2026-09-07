@@ -104,8 +104,19 @@ otherwise means finding a device that has never played. Three modes, **on a dev 
 
 **It does nothing at all on the live domain, silently** — that is the `devHost()` gate and it is
 deliberate. Any checklist item using it must point at staging.
-`scripts/qa/pilot_url_flag_check.mjs` drives all three in a browser and red-proofs them against an
-unknown flag, because a flag that quietly does nothing is worse than no flag.
+**The LOGIC is gated deterministically** in `scripts/qa/pilot_gates.mjs` §10 — a stubbed
+`globalThis.location`, the same trick `dev_flag_gate_check.js` uses — including the safety property
+that on the LIVE domain the flag does nothing at all.
+
+**The end-to-end proof is a PROBE, not a gate:** `scripts/qa/_pilot_url_flag_probe.mjs` drives all
+three modes in a real browser. Run it by hand when you change the flag.
+
+> ⚠ **It was a gate and it had to come out of `npm test`, and the reason generalises.** It was
+> INTERMITTENT — pass, fail, and once a HANG on an unsettled CDP promise (`node` exited 13 with
+> *"Detected unsettled top-level await"*). **A gate that sometimes hangs is worse than one that is
+> red**, because the next session reads the timeout as a machine problem and re-runs until it goes
+> green. Any probe that drives a browser through several game starts has this shape; keep those out
+> of the chain and gate the pure logic instead.
 
 ## 3b. STARTING A CREW GAME — "Start the voyage!" is not the button that starts the voyage
 
