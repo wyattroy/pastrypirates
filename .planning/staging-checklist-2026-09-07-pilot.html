@@ -74,9 +74,9 @@ dialog textarea{height:46vh;font:13px/1.45 ui-monospace,SFMono-Regular,Menlo,mon
 
 <header><div class="wrap">
   <h1>Pastry Pirates — staging checklist · The Pilot</h1>
-  <div class="sub">Build <strong id="stamp">2026.09.07.1-staging@b5ddb501</strong> ·
+  <div class="sub">Build <strong id="stamp">2026.09.07.2-staging@681a307b</strong> ·
    <a href="https://staging.playpastrypirates.com/?pilot=new" target="_blank" rel="noopener">staging.playpastrypirates.com</a>
-   — <strong>the ☰ stamp must end <code>-staging@b5ddb501</code></strong>. Read on the wire before this sheet
+   — <strong>the ☰ stamp must end <code>-staging@681a307b</code></strong>. Read on the wire before this sheet
    was written, not taken from the deploy script's word. A different stamp is a different build: stop and tell me.
    <em>Production is untouched — it is still serving 2026.09.06.2, checked at the same moment.</em>
    <strong>Every item below has its own link.</strong> Tap the link in the item, not this one.</div>
@@ -106,7 +106,7 @@ const DATA = [
  {note:"<strong>Every link on this sheet carries <code>?pilot=…</code>, and those only work on staging.</strong> On the live domain they do nothing at all, silently — that is deliberate. <code>?pilot=new</code> puts ye back to a first-time captain <em>and clears any saved voyage</em>, so it really is a new one. <code>?pilot=vet</code> is today's game with no tutorial. <code>?pilot=off</code> is the parrot switched off. All three were driven in a real browser before this sheet was written, and red-proofed against a typo'd flag — because a flag that quietly does nothing is how ye end up reporting an item green after seeing the old behaviour."},
  {n:1,look:"Open the link, then ☰ menu, and read the build stamp.",
   url:"https://staging.playpastrypirates.com/",
-  right:"“Build 2026.09.07.1-staging” with @b5ddb501 beneath it. The browser tab reads [STAGING].",
+  right:"“Build 2026.09.07.2-staging” with @681a307b beneath it. The browser tab reads [STAGING].",
   why:"There is no build step here, so a different stamp is a different build. I read this off the wire with curl before writing the sheet rather than trusting the deploy script's own output."},
 
  {h:"A first-time captain — the first ten seconds"},
@@ -128,8 +128,8 @@ const DATA = [
   why:"Every number in that line is yers, off the Course Tuner on 3 Sept — dashes not dots, constant size with only the opacity fading, each dash bent along the line it traces. The route uses the game's OWN path finder, so it can never sail over Tortuga again. The X replacing the orange dock ring is yer ruling and it is global — every captain sees it, tutorial or not."},
  {n:6,look:"Look at the recipe cards themselves, and the arrows either side.",
   url:"https://staging.playpastrypirates.com/?pilot=new",
-  right:"ONE card at a time — picture, name, five ingredient pictures, nothing else. The second card peeks out behind it. No “1 of 2” written anywhere. Gold ‹ › arrows at both edges.",
-  why:"Yer ruling 18, including the awkward half: it must show it is a stack of two WITHOUT saying so in numbers. The ten ingredient names and the little grey glosses under them are gone — “Adding more text is not the solution to this.”"},
+  right:"ONE card at a time — picture, name, five ingredient pictures, nothing else. Behind it, a BLANK strip of the same parchment peeks out bottom-right, like the edge of a second card in a pile — no words on it. No “1 of 2” anywhere. Gold ‹ › arrows at both edges.",
+  why:"Yer ruling 18, including the awkward half: it must show it is a stack of two WITHOUT saying so in numbers. ⚠ The blank edge is the THIRD version of this: the sea trial caught the first two. On a tablet the second card used to stick out far enough to READ, with its title clipped to “n-Chocolate Fudge” — it looked broken, not stacked. It is now drawn rather than being a real button hiding behind another one."},
  {n:7,look:"Tap an arrow, or SWIPE the card sideways. Watch the board, not the card.",
   url:"https://staging.playpastrypirates.com/?pilot=new",
   right:"The other recipe comes to the front AND the dotted course redraws to that recipe's five docks.",
@@ -196,89 +196,8 @@ const DATA = [
   why:"⚠ NOT BUILT. I tried it: with the panel's message emptied, the question vanished from the screen altogether — the narration channel will not draw a bubble while a prompt card is up, which is exactly the consequence the spec warned this carried. Making it work means the picker stops being a prompt card at all, which changes how EVERY question in the game is drawn. I reverted rather than half-land it."},
 
  {h:"Already known — please do NOT spend yer eyes"},
- {note:"<strong>1.</strong> The sea trial (whole voyages, three modes, both engines) was STILL RUNNING when this sheet was written, and it is testing the tree from just BEFORE the ?pilot flag and the build bump. So it does not cover items 2–11's entry points. 106 gates are green on the exact tree ye are playing. I will tell ye its verdict either way.<br><strong>2.</strong> The captains panel shows a different row order on host and guest — <strong>yer own rule</strong> (the viewer's captain sits on top).<br><strong>3.</strong> Yer own row's greyed red-backed chips are yer RECIPE, not yer hold — also yer rule, and the third session to re-report it.<br><strong>4.</strong> A guest reading a LONGER sail prompt than the host is <strong>correct and deliberate</strong>: the tutorial counts per device, so a first-time guest gets help a veteran host does not need. It has its own row in docs/INTENDED-BEHAVIOUR.md now.<br><strong>5.</strong> The FORECAST text in the ribbon can clip mid-word — pre-existing.<br><strong>6.</strong> The recipe hint still says “those five” with no noun — I dropped “crates” rather than pick a side while crate→ingredient was landing in the same change. Tell me which ye want."}
+ {note:"<strong>1. THE SEA TRIAL FAILED, and it was right.</strong> 116 minutes, all ten voyages sailed. Three findings were mine and all three are fixed in the build ye are playing — the recipe stack rendering as a broken clipped card on a tablet, the hidden card still being reachable by keyboard, and the picker rebuilding itself every frame while “Bake this!” was up. I re-ran the two legs that caught them: <strong>4 structural failures → 0, and 2 → 0</strong>, with solo-phone sailing a complete voyage to End of Voyage at day 15.<br><br><strong>2. Two things in that trial are NOT mine and are still open.</strong> A crash that kills crew voyages (<code>stormSummary</code> reading .length of undefined) is named as a known fault in yer own 2026-08-21 handoff — serious, pre-existing, and not something I should fix blind at the end of this. And “screens never stopped moving” on every leg is the sail squares' permanent bounce: I guessed wrong once, then measured it — 43 of 47 movements are <code>.sailCell</code>, and the trial's own code predicts it in a comment.<br><br><strong>3.</strong> Still real and unfixed: empty cream space below the recipe card on a phone. The judge flagged it and I had seen it and left it.<br><br><strong>4.</strong> The captains panel row order differing between host and guest is <strong>yer own rule</strong>, and so are the greyed red-backed chips being yer RECIPE rather than yer hold.<br><br><strong>5.</strong> A guest reading a LONGER sail prompt than the host is <strong>correct and deliberate</strong> — the tutorial counts per device. It has its own row in docs/INTENDED-BEHAVIOUR.md now.<br><br><strong>6.</strong> The recipe hint says “those five” with no noun — I dropped “crates” rather than pick a side while crate→ingredient was landing in the same change. Tell me which ye want."}
 ];
-
-const KEY="pp4-staging-2026-09-07-pilot";
-/* EVERY TOUCH OF localStorage IS GUARDED, and it is not defensive habit. This sheet is opened as
-   a hosted page on his PHONE, where a private tab or blocked site data makes the accessor itself
-   THROW rather than return null -- and an unguarded read at the top of this script would take the
-   whole page down with it, leaving him a blank screen instead of a checklist. The marks are a
-   convenience; the sheet working is not. So a storage failure costs him his saved marks and
-   nothing else. */
-const store = {
-  read(){ try{ return JSON.parse(localStorage.getItem(KEY)||"{}"); }catch(e){ return {}; } },
-  write(v){ try{ localStorage.setItem(KEY,JSON.stringify(v)); return true; }catch(e){ return false; } },
-  drop(){ try{ localStorage.removeItem(KEY); }catch(e){} }
-};
-let state=store.read();
-const save=()=>{const ok=store.write(state);const s=document.getElementById("saved");s.textContent=ok?"saved ✓":"can’t save here — copy yer notes before ye leave";clearTimeout(save._t);save._t=setTimeout(()=>s.textContent="saves as you type",1200);tally();};
-const list=document.getElementById("list");
-
-for(const d of DATA){
-  if(d.h){const h=document.createElement("h2");h.textContent=d.h;list.appendChild(h);continue;}
-  if(d.note){const p=document.createElement("div");p.className="note";p.innerHTML=d.note;list.appendChild(p);continue;}
-  const it=document.createElement("div");it.className="item";it.id="i"+d.n;
-  /* THE LINK IS PER ITEM, and it is built as an ELEMENT rather than interpolated into the template
-     above — d.url is data, and a URL pasted into innerHTML is a hole. Different items need
-     different entry points (?pilot=new vs vet vs the rules page), which is why it lives beside
-     what to do rather than once at the top of the sheet. */
-  it.innerHTML=`<div class="top"><div class="n">${d.n}</div><div class="txt">
-      <div class="look"></div>${d.url?'<div class="go"></div>':""}${d.right?'<div class="right"></div>':""}${d.why?'<div class="why"></div>':""}
-    </div></div>
-    <div class="acts">
-      <button data-v="pass" aria-pressed="false">Passed</button>
-      <button data-v="fail" aria-pressed="false">Problem</button>
-    </div>
-    <textarea placeholder="Notes on #${d.n}…"></textarea>`;
-  it.querySelector(".look").textContent=d.look;
-  if(d.url){
-    const a=document.createElement("a");
-    a.href=d.url; a.target="_blank"; a.rel="noopener";
-    a.textContent=d.url.replace("https://staging.playpastrypirates.com","staging")||d.url;
-    it.querySelector(".go").appendChild(a);
-  }
-  if(d.right) it.querySelector(".right").textContent=d.right;
-  if(d.why) it.querySelector(".why").textContent=d.why;
-  const st=state[d.n]||{};
-  const ta=it.querySelector("textarea");
-  ta.value=st.c||""; if(ta.value) ta.classList.add("has");
-  if(st.v) it.classList.add(st.v);
-  it.querySelectorAll(".acts button").forEach(b=>{
-    if(st.v===b.dataset.v) b.setAttribute("aria-pressed","true");
-    b.onclick=()=>{
-      const cur=state[d.n]||{}; const v=cur.v===b.dataset.v?null:b.dataset.v;
-      state[d.n]={...cur,v};
-      it.classList.remove("pass","fail"); if(v) it.classList.add(v);
-      it.querySelectorAll(".acts button").forEach(o=>o.setAttribute("aria-pressed", String(o.dataset.v===v)));
-      save();
-    };
-  });
-  ta.oninput=()=>{state[d.n]={...(state[d.n]||{}),c:ta.value};ta.classList.toggle("has",!!ta.value);save();};
-  it._d=d; list.appendChild(it);
-}
-function tally(){
-  const items=DATA.filter(d=>d.n);
-  const done=items.filter(d=>(state[d.n]||{}).v).length;
-  const bad=items.filter(d=>(state[d.n]||{}).v==="fail").length;
-  document.getElementById("count").textContent=`${done} / ${items.length} checked${bad?` · ${bad} problem${bad>1?"s":""}`:""}`;
-}
-tally();
-/* W0-2 (Wyatt, 2026-08-27): "Copy my notes takes two clicks." It did — the first built the text
-   and opened the box, the second copied. On a phone, at the end of a playtest, that is one tap too
-   many at exactly the moment his hands are full. THE FIRST TAP NOW COPIES; the box becomes
-   confirmation of something that already happened rather than a second thing to do.
-
-   ORDER MATTERS AND IS NOT ARBITRARY. showModal() comes BEFORE the copy because the execCommand
-   fallback can only select a textarea that is actually on screen — copying first would leave the
-   fallback selecting a hidden element and silently doing nothing. The clipboard write still
-   happens inside the same user gesture, which is what the permission model requires.
-
-   AND IT NEVER CLAIMS A COPY IT DID NOT MAKE. If both routes fail (an insecure origin, a denied
-   permission) the button says so and the text is sitting selected in the box, ready to copy by
-   hand. A confirmation that lies is worse than the second tap it replaced. */
-function buildNotes(){
-  const L=[`Pastry Pirates playtest — build ${document.getElementById("stamp").textContent}`,""];
   for(const d of DATA){ if(!d.n) continue; const s=state[d.n]||{}; if(!s.v && !(s.c||"").trim()) continue;
     L.push(`#${d.n} [${s.v==="pass"?"PASSED":s.v==="fail"?"PROBLEM":"—"}] ${d.look}`);
     if((s.c||"").trim()) L.push(`    ${s.c.trim().replace(/\n/g,"\n    ")}`);
