@@ -277,7 +277,13 @@ export function pilotDecayOnLaunch(now){
   if (back > 0) for (const k of MOMENTS)
     s.seen[k] = back === Infinity ? 0 : Math.max(0, (s.seen[k] | 0) - back);
   s.last = t.toISOString();
-  s.met = true;
+  /* ⚠ THIS MUST NOT SET `met`, AND IT USED TO. `met` is what pilotFirstTime() reads, and decay
+     runs at the top of showAhoyIntro — one line ABOVE the fork. So setting it here answered the
+     fork's own question before the fork could ask it, and "Do ye know how to play?" never appeared
+     for anyone. Caught by running the thing rather than by reading it: the posed pair timed out
+     waiting for a card that could no longer exist.
+     `met` belongs to the two places a captain actually meets the Pilot — answering the fork, or
+     tapping the parrot. A voyage merely happening is not either of those. */
   write();
   return back;
 }

@@ -3039,25 +3039,31 @@ export async function botTurn(player){
    nor meaningful). The dispatcher does not reproduce it; the serial branch DOES set the actor,
    because there the device genuinely follows one seat at a time.
    Gate: scripts/qa/draft_dispatch_convergence_check.mjs. */
-export async function draftDispatch({seats,isPublic,msgFor,optsFor,waitMsg,announce}){
+/* `subFor` is OPTIONAL and per-seat, and it is how the Pilot reaches the two draft moments
+   without a second dispatcher. It lands in localAsk's helper slot (.apSub) — last in the DOM, per
+   the standing top-to-bottom reveal order — and it is deliberately NOT passed to
+   onRemoteDraftPrompt: a rung is per device, so a remote seat's own device supplies its own. The
+   host composing one for a guest is the exact thing the Pilot exists to avoid. */
+export async function draftDispatch({seats,isPublic,msgFor,optsFor,waitMsg,announce,subFor}){
+  const sub=seat=>subFor?(subFor(seat)||null):null;
   const results={};
   if(appState.passAndPlay){
     if(isPublic){
       // ONE DEVICE, ONE SHOWING — the table reads it together, off one screen.
-      results[seats[0]]=await localAsk(msgFor(seats[0]),optsFor(seats[0]));
+      results[seats[0]]=await localAsk(msgFor(seats[0]),optsFor(seats[0]),null,sub(seats[0]));
       return results;
     }
     // one device, secret options: draft in turn, each behind the pass-the-device screen
     for(const seat of seats){
       await passGate(seat);
       applyActiveSeat(seat);
-      results[seat]=await localAsk(msgFor(seat),optsFor(seat));
+      results[seat]=await localAsk(msgFor(seat),optsFor(seat),null,sub(seat));
     }
     return results;
   }
   if(announce)netHandlers().onBroadcast(announce.html,announce.variants,{wait:true});
   await Promise.all(seats.map(seat=>{
-    if(decisionIsLocal(seat))return localAsk(msgFor(seat),optsFor(seat)).then(i=>{
+    if(decisionIsLocal(seat))return localAsk(msgFor(seat),optsFor(seat),null,sub(seat)).then(i=>{
       results[seat]=i;
       if(waitMsg)showNarration(waitMsg,{wait:true}); // item 19: no deadline on a wait line
     });

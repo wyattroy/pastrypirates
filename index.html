@@ -883,6 +883,20 @@
      z-index 1, LEVEL WITH #rimHost AND BELOW #sailHost(2), and that is the rule rather than a
      preference: the course is scenery, the gold squares are a choice, and scenery must never
      cover a choice. */
+  /* "WHERE DID MY RECIPE GO?" — his own ask. The captains box blinks ONCE as the line lands.
+     A sentence saying `below` and a box that blinks are the same instruction twice, and the second
+     one works without being read.
+     OUTLINE AND box-shadow ONLY, never a size or a position: the captains box is a flex column
+     that other things are measured against, so animating its geometry would move the board. Two
+     slow beats rather than a flash — this is a signpost, not an alarm. */
+  .pp4StowFlash { animation: pp4StowBlink 1.6s ease-in-out 2; border-radius: 12px; }
+  @keyframes pp4StowBlink {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(245,166,35,0); }
+    45%      { box-shadow: 0 0 0 3px rgba(245,166,35,.85), 0 0 18px rgba(245,166,35,.45); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .pp4StowFlash { animation: none; box-shadow: 0 0 0 3px rgba(245,166,35,.85); }
+  }
   #courseHost { position: absolute; inset: 0; pointer-events: none; z-index: 1; }
   /* the wrapper holds the static tilt and NEVER animates; the art breathes inside it. Written on
      one element the keyframe overwrites the rotate every frame — the same failure as the compass

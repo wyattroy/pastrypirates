@@ -67,6 +67,7 @@
 // every time (harmless, and needed so a genuine re-entry still sees the current room state).
 
 import { appState } from "./state/index.js";
+import { pilotMsg, pilotSee } from "./ui/pilot.js";
 import { pingVisit, pingStart, pingFin, usageGid } from "./ui/usage.js";
 import { Game, roundCfg, rollStorm } from "./engine/index.js";
 import { applyResult } from "./engine/bakeoff.js";
@@ -997,14 +998,54 @@ export async function recipeDraftNet(){
     // @copy misc.draftwait.recipechosen
     // a wait line: it holds until the crew actually finishes, not for 2.5 seconds (item 19)
     const draftWait=pending.length>1?"⚓ Recipe chosen! Waiting for the rest of the crew…":null;
+    /* THE PILOT'S HELPER LINE AT THE DRAFT. He rejected adding TEXT to this moment — "The recipe
+       choice moment has a lot of text in it already, and it's pretty overwhelming -- even as is.
+       Adding more text is not the solution to this." — so this ladder is short and the real
+       teaching here is the dotted course (src/ui/course.js), which is a picture. The shipped line
+       ("Tap a recipe to highlight its docks") is passed IN, so at the bottom rung it is what
+       renders, unchanged. */
+    const draftSub=()=>{
+      const line=pilotMsg("recipe.draft","Tap a recipe to highlight its docks");
+      pilotSee("recipe.draft");
+      return line;
+    };
     const results=await draftDispatch({seats:pending.map(player=>player.idx),isPublic:false,
-      msgFor:i=>msgFor(byIdx[i]),optsFor:i=>optsFor(byIdx[i]),waitMsg:draftWait,announce});
+      msgFor:i=>msgFor(byIdx[i]),optsFor:i=>optsFor(byIdx[i]),waitMsg:draftWait,announce,
+      subFor:draftSub});
     for(const player of pending){picks[player.idx]=results[player.idx];logDecision(results[player.idx]);}
   }
   appState.game.players.forEach(player=>{if(player.recipeChoices)player.recipe=player.recipeChoices[picks[player.idx]];});
   if(appState.db&&appState.room&&!appState.replaying)await netSetRecipes(appState.db,appState.room,picks,netFail("recipe picks"));
   if(!appState.replaying)updateRecipeBanner();
   liveRender();
+  /* ── "WHERE DID MY RECIPE GO?" — his own ask, 2026-09-02 ────────────────────────────────────
+     THE ONE LADDER THAT ADDS A LINE WHERE THE GAME SAYS NOTHING TODAY. It earns the exception
+     because the answer to the question is "look down there", and nothing currently points down
+     there. Its bottom rung is SILENCE rather than today's copy, so a veteran's game is still
+     byte-identical — pilotMsg() returns "" and this whole block does nothing.
+     AND THE CAPTAINS BOX FLASHES ONCE as the line lands: a sentence saying `below` and a box that
+     blinks are the same instruction twice, and the second one works without being read. */
+  if(!appState.replaying)for(const player of appState.game.players){
+    if(player.strategy!=="human"||!decisionIsLocal(player.idx))continue;
+    const line=pilotMsg("recipe.stowed","");
+    pilotSee("recipe.stowed");
+    if(!line)break;
+    flashCaptainsBox();
+    await flash(line.replace("{name}",pn(player.idx)),undefined,undefined,
+      [{seat:player.idx,html:line.replace("{name}","")
+        .replace(/^Yer recipe's stowed below, /,"Yer recipe's stowed below — ")}]);
+    break;                       // one showing per device: the box is the same box for all seats
+  }
+}
+/* The blink itself. A class the CSS owns for one animation, removed when it ends, so nothing is
+   left on the element to go stale — and nothing here animates width/height/top/left. */
+function flashCaptainsBox(){
+  const cap=document.getElementById("pp4Cap")||document.getElementById("captainsPanel");
+  if(!cap)return;
+  cap.classList.remove("pp4StowFlash");
+  void cap.getBoundingClientRect();          // force a commit, or re-adding the class is a no-op
+  cap.classList.add("pp4StowFlash");
+  setTimeout(()=>cap.classList.remove("pp4StowFlash"),1600);
 }
 /* TODAY'S DAY, MOVED VERBATIM. Extracted rather than rewritten so "flag off = the game
    Wyatt has been playing" is a property of the code's shape, not a claim about a conditional.

@@ -101,7 +101,21 @@ try {
   // commit that recipe (the second tap is the same card — the Bake this! pill is inert and the
   // tap falls through to it)
   await C.ev(`(()=>{const b=document.querySelector('#actionPanel .apBtn');if(b){b.click();return true}return false})()`);
-  await sleep(2500);
+  /* THE ONE NEW LINE — "where did my recipe go?", his own ask. Sampled in a poll rather than after
+     a fixed sleep: it is a narration with a reading-speed hold, so a single timed read would be a
+     probe that measures whether I guessed the delay right. */
+  let stowed = "", blinked = false;
+  for (let i = 0; i < 24; i++) {
+    await sleep(250);
+    const got = await C.ev(`JSON.stringify({
+      n: [...document.querySelectorAll('#pp4Fx,#narr,.pp4Bubble,#actionPanel')].map(e=>e.textContent||'').join(' | '),
+      f: !!document.querySelector('.pp4StowFlash')})`);
+    const o = JSON.parse(got);
+    if (o.f) blinked = true;
+    if (/stowed below/i.test(o.n)) { stowed = "yes"; await shot("03b-recipe-stowed.png"); break; }
+  }
+  say(`  the stowed line -> ${stowed || "NOT SEEN"} · the captains box blinked -> ${blinked}`);
+  await sleep(1500);
 
   /* ── 3. THE SAIL PROMPT, at rung 0.
      GETTING THERE NEEDS THE MANUAL'S 4a: there is NO separate flip button — the flippenator coin
