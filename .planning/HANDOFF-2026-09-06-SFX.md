@@ -184,8 +184,17 @@ gated), `docs/AUDIO.md`'s three false claims corrected, build stamped `2026.09.0
    fetched — the Drive MCP returns base64 into context, which is ~4.7 M characters and unusable.
    **Same track and same length; the in-point is a guess.** The page says so in its own words.
    Level and pan taken from it are good; the loop point is not settled.
-2. Wire the ambience with his numbers (loop points inside the buffer — MP3 padding clicks; its own
-   load path so a 365 KB bed does not silence every other sound on a phone).
+2. ~~Wire the ambience with his numbers~~ **DONE 2026-09-07.** The bed plays for as long as the
+   board is on screen. His nine tuned values are named constants in `src/ui/audio.js`; the loop
+   points are scanned off the decoded samples rather than typed; the twelve clips load on their own
+   path and are kept OUT of `SFX_FILES`; mute stops the bed outright rather than silencing it.
+   **ONE SEAM — `showGameView()` starts it, `showHome()`/`showRoom()` stop it** (src/ui/lobby.js's
+   three screen functions, whose own header says every route passes through them). No host path, no
+   guest path, nothing to drift. `scripts/qa/ambience_one_seam_check.mjs` is gate 105 in `npm test`
+   and fails if a second seam, a leaked clip, or a changed value of his ever appears.
+   **Full write-up: `docs/AUDIO.md` §1b**, including what was measured in a live voyage.
+   ⚠ **Music is still NOT wired** — see item 6; his `MUSIC_LEVEL` 0.141 and `MUSIC_PAN` −0.7 are
+   recorded in the module so nobody re-derives them by ear.
 3. The drumroll, per §3.
 4. The 3-phase sound button (Music+SFX → SFX only → mute → back; 2-minute gap before the music
    repeats). **A new feature, not a sound swap — its own consistency sweep.**

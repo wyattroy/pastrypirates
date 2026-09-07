@@ -141,6 +141,76 @@ through — give them explicit entries either way.
 
 ---
 
+## 1b. THE AMBIENCE BED IS WIRED — 2026-09-07, with his own numbers
+
+**It plays.** Luis's ocean loop with his gulls and creaks scattered over it, running for as long as
+the board is on screen. Twelve clips, `sfx/ocean-loop.mp3` + `gull-1..5` + `creak-1..6`, 917 KB.
+
+**The numbers are Wyatt's, dialled by hand and not to be improved on.** He tuned them in the
+**Sea Bed Tuner** — https://claude.ai/code/artifact/4623cd73-2340-4611-832f-522ebbf33442 — and
+pasted the block out with *"THIS IS AWESOME BUILD IT NOW"*.
+
+| | his setting | as a gain |
+|---|---|---|
+| Sea level | −4.5 dB | `AMBIENCE_SEA` 0.596 |
+| Gull level | −15.5 dB | `AMBIENCE_GULL` 0.168 |
+| Creak level | +1.0 dB | `AMBIENCE_CREAK` 1.122 |
+| Gull rate | every 10s (mean) | `AMBIENCE_GULL_MEAN_SEC` |
+| Creak rate | every 13s (mean) | `AMBIENCE_CREAK_MEAN_SEC` |
+| Stereo spread | 70% | `AMBIENCE_SPREAD` 0.7 |
+| Liveliness | 35% | `AMBIENCE_LIVELINESS` 0.35 |
+
+`scripts/qa/ambience_one_seam_check.mjs` fails the build if any of them drifts.
+
+### The four things that are load-bearing, and why
+
+1. **⛔ NOT IN `SFX_FILES`, and it must never go in.** §3 below predicted this exact failure before
+   the files existed: `initAudio()` awaits `Promise.all` over that array, so a 917 KB bed in it
+   would silence the coin flip, the cannon and the your-turn bell until the whole sea downloaded —
+   worst on the phone least able to afford it. `initAmbience()` is a separate path that fades in
+   whenever it arrives. **The gate fails if a clip ever appears in both arrays.**
+2. **ONE SEAM: the screen, never the tier.** `showGameView()` starts it; `showHome()` and
+   `showRoom()` stop it — the three functions in `src/ui/lobby.js` whose own header says *"every
+   route to these screens goes through them and a route added later cannot forget."* Solo,
+   pass-and-play, host, guest and the reload-resume path therefore cannot drift apart. This is
+   §3's drumroll ruling (*"DO NOT ARCHITECT DRIFTABLE CODE OR I WILL FIRE YOU"*) applied in
+   advance; the gate fails if a second seam appears anywhere under `src/`.
+3. **One creak slider works across six creaks** because `AMBIENCE_TRIM` is COMPUTED from measured
+   loudness, not typed. The six arrive 8.3 dB apart; creak 6 takes a ×2.03 boost or it is
+   inaudible at any setting. A re-export from Luis changes one number in `AMBIENCE_LUFS`.
+4. **Mute STOPS the bed**, it does not merely silence it. `play()`'s own mute guard cannot help a
+   source started minutes ago and still looping, and a silent-but-running bed would hold Safari's
+   tab audio indicator lit for the whole voyage — which is the complaint that produced his
+   *"make mute skip the sound entirely"* ruling in the first place. `setMuted()` calls the one
+   reconciler, `syncAmbience()`.
+
+### Measured in a live solo voyage, not asserted
+
+Red-proofed first: **with the bed stopped, zero buffer sources start**, so the green below counts.
+
+- the sea starts as **one looping source of 16.71s** — the file's own measured length
+- **five scattered clips** fired across 25s, each at a **different playback rate** (the liveliness
+  jitter is real, not a constant)
+- **10/10 game sounds still decoded** and `audioDiagnosis()` returned `ok` — the separate load path
+  does what it claims
+- **12 seconds muted: zero sources started**, and the sea restarted on unmute
+
+*(Counts, not rates — the measuring tab was hidden, and §8b of `DRIVING-THE-GAME.md` forbids
+quoting a duration measured there.)*
+
+### Still open on the ambience
+
+- **Music is NOT wired.** His levels are recorded in `src/ui/audio.js` as `MUSIC_LEVEL` (0.141,
+  −17 dB) and `MUSIC_PAN` (−0.7, 70% to port) so nobody re-derives them by ear. It needs two things
+  this work did not have: **his own "short 1" edit** (on Drive; the tuner played a cut of the full
+  master instead, and says so on its own page) and the **three-phase sound button**, which is a new
+  feature with its own consistency sweep. His pan is a strong one — worth a headphone check when
+  it lands.
+- **The bed does not duck** under a cannon or a drumroll. Nobody has asked for it; noted so the
+  next session knows it is absent by omission, not by decision.
+
+---
+
 ## 2. The audio contradicts the script
 
 The battles are written entirely as gunpowder. Counted across `4/src` and `index.html`:
