@@ -65,12 +65,30 @@ textarea{width:100%;margin-top:9px;min-height:0;height:38px;padding:8px 10px;bor
 textarea:focus{outline:2px solid var(--accent);outline-offset:1px;height:84px}
 textarea.has{height:84px;background:var(--card)}
 .saved{color:var(--muted);font-size:12.5px}
+/* THE HALT BANNER. Above the sticky header on purpose: this is the one thing that must be read
+   BEFORE anything else on the page, and a sheet that describes a build the address is not serving
+   is exactly the failure the whole "publish to staging first" rule exists to prevent -- arriving
+   here from a direction neither of us controlled. */
+.halt{background:#7d1d2b;color:#ffe9ec;padding:13px 18px;font-size:14.5px;line-height:1.5}
+.halt code{background:rgba(255,255,255,.16);padding:1px 5px;border-radius:5px}
+.halt .ok{display:block;margin-top:7px;color:#ffd9de;opacity:.9;font-size:13.5px}
 dialog{border:none;border-radius:12px;padding:0;max-width:680px;width:92vw;box-shadow:var(--shadow);background:var(--card);color:var(--ink)}
 dialog::backdrop{background:rgba(6,20,26,.55)}
 dialog .in{padding:16px}
 dialog textarea{height:46vh;font:13px/1.45 ui-monospace,SFMono-Regular,Menlo,monospace}
 @media print{header{position:static}.acts,button{display:none}.item{break-inside:avoid}}
 </style>
+
+<div class="halt"><div class="wrap">
+  <strong>⛔ DON'T TEST THIS YET — staging is not serving this build.</strong>
+  Another session (the SFX/ambience one) published over the same address a few minutes ago.
+  Staging now serves <code>2026.09.07.1-staging@4bca119c</code>, which has <em>none of the tutorial in it</em> —
+  I checked the wire: <code>src/ui/pilot.js</code> and <code>src/ui/course.js</code> both 404 there.
+  <strong>Every item below would read as broken, and none of it would be your fault or mine.</strong>
+  Nothing is lost — the build is one command from going back — but <strong>two sessions are
+  contending for one address and which one it serves is your call, not ours.</strong>
+  <span class="ok">Real players are fine: production is untouched at 2026.09.06.2.</span>
+</div></div>
 
 <header><div class="wrap">
   <h1>Pastry Pirates — staging checklist · The Pilot</h1>
