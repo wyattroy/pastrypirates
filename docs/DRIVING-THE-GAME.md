@@ -820,17 +820,36 @@ reached for a step later than it should have been. Reach for it first.
 last run. A gate that launched Chrome on a FIXED debug port and a FIXED profile directory
 alternated pass/fail on identical source, three ways:
 
-- **a fixed profile dir** — `localStorage` lives in it, so "a device that has never played" became
-  a property of that DIRECTORY rather than of the code. Deleting it at startup did NOT fix it: the
-  previous run's dying Chrome flushed its storage back in *after* the deletion.
-- **a fixed debug port** — `attach()` found the PREVIOUS run's Chrome, still shutting down, still
-  holding a profile that had already played.
+- **a fixed debug port — THIS IS THE HALF WITH THE MEASUREMENT.** `attach()` found the PREVIOUS
+  run's Chrome, still shutting down, still holding a profile that had already played. Making the
+  port unique is what took that gate from alternating to 5-for-5; a per-run profile alone had not.
+- **a fixed profile dir** — `localStorage` lives in it, so "a device that has never played" becomes
+  a property of that DIRECTORY rather than of the code. ⚠ **Deleting it at startup did not appear
+  to fix it, and the tempting explanation — that the dying Chrome flushes its storage back in
+  after the deletion — WAS NEVER ISOLATED.** The port explained the alternation on its own. Treat
+  the flush as a plausible second race, not an established mechanism, until somebody measures it;
+  it is written here as a suspicion precisely because it first travelled as a fact.
+  `freshProfileDir()` (`scripts/lib/cdp.mjs`) is the fix for this half regardless — it verifies the
+  wipe actually happened and hands back a timestamped sibling when it cannot.
 - **a lost CDP reply** — `send` resolves on a matching id; a navigation mid-call means the reply
   never arrives, the promise never settles, and node exits **13** with *"Detected unsettled
   top-level await"*. That is a HANG, not a failure, and it is the worst of the three.
 
 **The fix is not to win the race. It is to not have one:** derive the port and the profile
 directory from the pid, sweep old ones, and put a deadline on every eval.
+
+### ⚠ AND ONE GATE IN `npm test` HAD EXACTLY THIS SHAPE — the audits that said none were wrong
+
+`scripts/qa/sail_window_single_check.mjs` is the ONLY gate in the chain that starts a browser, and
+it carried both halves: `DBG = 9479` and a fixed `pp4-sail-window-check` profile. Its own comment
+said *"this gate's own ports, never shared"* — **true of other gates and false of its own previous
+run**, which is exactly why nobody looked twice. Fixed 2026-09-07; both now derive from the pid.
+
+**Two sessions independently parsed this chain for browser-driving gates and BOTH reported zero.**
+Both greps looked for `launch(` and `--user-data-dir`; this file spells it
+`openChrome({ profileDir })`. **An audit that greps a spelling measures the spelling.** If you are
+sweeping for this fault, enumerate the chain from `package.json` and follow each gate's imports —
+`openChrome`, `launch`, and a bare `spawn` of Chrome are three spellings of one thing.
 
 ### The runner poisoning the run — reap between runs
 
