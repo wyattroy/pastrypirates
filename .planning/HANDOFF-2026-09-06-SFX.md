@@ -196,11 +196,24 @@ gated), `docs/AUDIO.md`'s three false claims corrected, build stamped `2026.09.0
    ⚠ **Music is still NOT wired** — see item 6; his `MUSIC_LEVEL` 0.141 and `MUSIC_PAN` −0.7 are
    recorded in the module so nobody re-derives them by ear.
 3. The drumroll, per §3.
-4. The 3-phase sound button (Music+SFX → SFX only → mute → back; 2-minute gap before the music
-   repeats). **A new feature, not a sound swap — its own consistency sweep.**
+4. ~~The 3-phase sound button~~ **DONE 2026-09-07**, and he restated it himself: *"Make sure The
+   audio/mute switch is 3-way— sound+music, sound, mute— repeat again from sound+music."* The
+   sweep was done: `isMuted()` is unchanged for all its callers, `aria-pressed` is gone from the
+   button (binary attribute, three-state control), the menu row names all three states from the one
+   `data-audio` attribute, and `pp_muted` migrates to `pp_soundMode`.
+   ⚠ **THE GAP IS A MINUTE, NOT TWO.** His 2026-09-07 wording — *"it should wait a minute"* — is
+   later than this page's "2-minute" note and wins. `MUSIC_GAP_SEC = 60`.
 5. Levelling everything once, at the end.
-6. Music: **the 3.4 MB track is on Drive only, not on this machine**, and it is `.m4a` — needs
-   converting. He approved pulling it from Drive.
+6. ~~Music~~ **WIRED 2026-09-07** as `sfx/music-ocean.mp3` (34.5s, mono, 540 KB), on the bed's
+   own load path, at his tuned level and pan, ending and waiting a minute rather than looping.
+   ⛔ **STILL NOT HIS EDIT.** It is a cut of the 6:53 master that was already on the Mac. His
+   *"short 1"* (Drive id `105jLnp6dFiLPboo4MTyvBaKSBEjb7CyU`) could not be fetched: the Chrome
+   extension was not connected, and the Drive connector returns ~4.7 M characters of base64 into
+   the session rather than writing a file. **His level and pan were judged against this exact
+   audio**, so they mean what he heard — but the in-point is a guess. Swapping his edit in is one
+   file and no code change.
+   **Credits: Fiddlers Plus and Muster Field Farms**, at his instruction, added to the modal in
+   `index.html` (never to `credits.html`, which is generated from it) and regenerated.
 
 ---
 

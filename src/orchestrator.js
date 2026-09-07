@@ -76,7 +76,7 @@ import {
   rulesFacts, // A-7: the one source of every number the How-to-Play page teaches
   subjectOf,  // Q-18: the ONE rule both seats run — never a decision one seat ships to the other
 } from "./shared/index.js";
-import { initAudio, playForEvent, playWinScreen, playBattleEngage, playCannon, isMuted, setMuted, audioRunning } from "./ui/audio.js";
+import { initAudio, playForEvent, playWinScreen, playBattleEngage, playCannon, isMuted, cycleSoundMode, audioRunning } from "./ui/audio.js";
 import {
   netSetFlip, netWatchFlip,
   netDeleteRoom,
@@ -167,8 +167,13 @@ export function watchFlip(){
 /* broadcastClock() stood here (the clock write), then togglePause()/watchPause() (the whole-table
    pause) — the clock left with the shot-clock removal, pause with Wyatt's A-10, both 2026-08-28. */
 /* toggleTimer() stood here — the ⏱ off/on toggle, every mode. Left with the clock 2026-08-28. */
+/* THE SOUND CONTROL IS A THREE-WAY CYCLE, not a toggle — Wyatt, 2026-09-07: "Make sure The
+   audio/mute switch is 3-way— sound+music, sound, mute— repeat again from sound+music."
+   The name stays `toggleMute` because index.html binds this by name and the row is still "the
+   sound control"; what it does is now one step around SOUND_MODES, which owns the order and the
+   wrap. setClockUI() repaints the row, exactly as before. */
 export function toggleMute(){
-  setMuted(!isMuted());
+  cycleSoundMode();
   setClockUI();
 }
 /* expireShotClock() and watchClock() stood here — the 30s auto-skip (turnExpired, the forced

@@ -198,16 +198,44 @@ Red-proofed first: **with the bed stopped, zero buffer sources start**, so the g
 *(Counts, not rates — the measuring tab was hidden, and §8b of `DRIVING-THE-GAME.md` forbids
 quoting a duration measured there.)*
 
-### Still open on the ambience
+### The music, and the three-way switch that gates it — both built 2026-09-07
 
-- **Music is NOT wired.** His levels are recorded in `src/ui/audio.js` as `MUSIC_LEVEL` (0.141,
-  −17 dB) and `MUSIC_PAN` (−0.7, 70% to port) so nobody re-derives them by ear. It needs two things
-  this work did not have: **his own "short 1" edit** (on Drive; the tuner played a cut of the full
-  master instead, and says so on its own page) and the **three-phase sound button**, which is a new
-  feature with its own consistency sweep. His pan is a strong one — worth a headphone check when
-  it lands.
-- **The bed does not duck** under a cannon or a drumroll. Nobody has asked for it; noted so the
-  next session knows it is absent by omission, not by decision.
+**The song is "Out on the Ocean" by Fiddlers Plus**, credited on the Credits page at his
+instruction (*"we need to add Fiddlers Plus, and Muster Field Farms to the credits for the
+music"*). `sfx/music-ocean.mp3`, 34.5s, mono, 540 KB, at his `MUSIC_LEVEL` 0.141 (−17 dB) and
+`MUSIC_PAN` −0.7 (70% to port). Mono is not a defect to fix — a mono source is exactly what pans
+cleanly, and the pan moves all of it.
+
+**IT DOES NOT LOOP.** Wyatt: *"the song shouldn't immediately restart after it finishes— it should
+wait a minute."* So the track runs to its end, `onended` fires, and `MUSIC_GAP_SEC` (60) brings it
+back. A `loop = true` would make that constant dead code, which is what the gate checks for.
+⚠ **A minute, not two.** The handoff of 2026-09-06 recorded "2-minute gap"; **2026-09-07 is the
+later ruling and it wins.** Written down rather than quietly reconciled, so nobody restores 120
+from the older page believing it is live.
+
+**THE SOUND CONTROL IS A THREE-WAY CYCLE:** sound+music → sound → mute → sound+music. `isMuted()`
+still means exactly what it always meant, so not one of its callers changed; what is new is that
+"sound is on" now has two answers and only the music separates them. The row names all three from
+`data-audio` — panel.js's own rule, *"ONE ATTRIBUTE CARRIES THE WHOLE TRUTH, so the menu row and
+the icon cannot disagree"* — and `aria-pressed` was **removed** from that button, because it is a
+binary and would announce "on" or "off" for a state that is neither.
+
+`pp_soundMode` is the new key; a player who muted the game on an older build is migrated on first
+read, and `pp_muted` is kept in step so a rollback does not lose their choice.
+
+**Measured live, three taps from `full`:** tap 1 → `sfx` and nothing restarts (the sea keeps
+running, the song stops); tap 2 → `mute`, silence; tap 3 → `full`, and both return — one **looping**
+16.71s source and one **non-looping** 34.47s source. Three taps land back where they started.
+
+### Still open
+
+- **The music is a cut of the full master, not his own "short 1" edit.** That edit is on Drive and
+  could not be fetched (the Chrome extension was not connected; the Drive connector returns base64
+  into the session rather than to disk). **His level and pan were judged against this exact audio**
+  in the tuner, so the numbers mean what he heard. Swapping his edit in later is one file, no code.
+- **The bed does not duck** under a cannon or a drumroll, and the music does not duck under either.
+  Nobody has asked; noted so the next session knows it is absent by omission, not by decision.
+- **His pan is a strong one** (70% to port on a mono track). Worth a headphone check.
 
 ---
 
@@ -310,10 +338,13 @@ cowbells, bell trees and waiters' bells — none is a bell hung in a rolling sea
 1. **Does "your turn" break the hear-the-whole-table rule?** `audio.js` D-07 says every captain is
    audible to everyone. A your-turn cue only works if it plays for the reader alone. He has not
    ruled.
-2. **Three-state cycle instead of two switches?** He asked whether a single control could cycle
-   *everything → effects only → mute*. My recommendation was **yes** — the states form a ladder
-   rather than a grid, it adds no new control to a screen where placing the mute button already
-   cost several rounds, and it needs one new icon instead of a new surface. He has not ruled.
+2. ~~**Three-state cycle instead of two switches?**~~ **RULED AND BUILT, 2026-09-07.** His words:
+   *"Make sure The audio/mute switch is 3-way— sound+music, sound, mute— repeat again from
+   sound+music."* The cycle it is, and **the order is part of the ruling**. `SOUND_MODES` owns it;
+   the row names all three states from `data-audio`; `scripts/qa/ambience_one_seam_check.mjs` holds
+   the order, the wrap and the three labels. **No new icon was needed after all** — the two
+   megaphones still carry on/off and the row's words carry the middle position, so the screen where
+   placing the mute button cost several rounds gained nothing new to place.
 3. **Where a second audio control would live**, if he takes the two-switch route.
 
 ---
