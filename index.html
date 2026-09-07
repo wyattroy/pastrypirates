@@ -2465,8 +2465,55 @@
   /* the helper line sits under the stage button, on the dim sea — light text so it reads there */
   #pp4Prompt.pp4Center .apSub { color:#fffdf2; opacity:.9; text-align:center; font-size:13px;
     text-shadow:0 1px 8px rgba(0,0,0,.6); }
-  body.pp4Stage #actionPanel .apBtns:has(.recipeList) { display:grid; grid-template-columns:1fr 1fr; gap:7px; }
-  body.pp4Stage #actionPanel .apBtns:has(.recipeList) .apBtn { min-width:0; box-sizing:border-box; padding:5px 5px 6px; }
+  /* ── ONE CARD AT A TIME, ON A VISIBLE STACK OF TWO ──────────────────────────────────────────
+     His ruling 18: the card must show "visually that it is a stack of two, which didn't say one of
+     two in numbers." So the two cards share ONE grid cell; the back one is offset, shrunk and
+     dimmed so the stack is legible as an object rather than as a counter. There is deliberately no
+     "1 of 2" anywhere in this block — the picture IS the count.
+     A SIDE-BY-SIDE PAIR IS WHAT THIS REPLACES, and the subgrid alignment that went with it goes
+     too: two cards can only fall out of step with each other while they are both on screen. */
+  /* ⚠ THE FRONT CARD STAYS IN NORMAL FLOW AND THE BACK ONE IS TAKEN OUT OF IT.
+     The first version stacked both with `grid-area:1/1`, which LOOKED right and measured wrong: the
+     row reported 167px while the panel's scrollHeight saw only 199 for the whole picker, so the row
+     overflowed the panel by 53px and the ingredient icons were clipped off the bottom of the card —
+     with empty screen below it. Measured, not guessed: row bottom 732 against panel bottom 679.
+     One card in flow means the row is exactly as tall as the card the captain is looking at, and
+     every height the panel computes downstream is honest. */
+  body.pp4Stage #actionPanel .apBtns:has(.recipeList) {
+    display:block; position:relative; padding:4px 30px 2px; touch-action:pan-y; }
+  body.pp4Stage #actionPanel .apBtns:has(.recipeList) .apBtn {
+    width:100%; max-width:250px; min-width:0; box-sizing:border-box; margin:0 auto;
+    padding:6px 6px 8px; transition:transform .22s cubic-bezier(.2,.9,.3,1.05), opacity .22s; }
+  /* the card behind, sized to the front one by its own inset rather than by a typed height.
+     pointer-events:none is load-bearing: without it the hidden card is still a tap target over the
+     visible one's edge, and the wrong recipe gets chosen. */
+  /* ⚠ THE SELECTOR CARRIES THE FULL PREFIX ON PURPOSE. A shorter one lost: the "Bake this!" pill
+     needs a positioning context, so `…:has(.recipeList) .apBtn { position:relative }` already
+     exists and outranks a plainer `.apBtn[data-rcpos="back"]`. The back card therefore stayed in
+     normal flow, the row measured 298px for a 146px card, and the stack was two cards tall with the
+     second one invisible under the fold. Specificity, not a missing property. */
+  body.pp4Stage #actionPanel .apBtns:has(.recipeList) .apBtn[data-rcpos="back"] {
+    position:absolute; top:4px; bottom:2px; left:0; right:0;
+    transform:translate(9px,9px) scale(.955) rotate(1.4deg); opacity:.5; z-index:1;
+    pointer-events:none; filter:saturate(.7); overflow:hidden; }
+  body.pp4Stage #actionPanel .apBtns:has(.recipeList) .apBtn[data-rcpos="front"] { position:relative; transform:none; opacity:1; z-index:2; }
+  /* the arrows. They sit OUTSIDE the card, in the padding reserved above, so they never cover the
+     artwork the card exists to show. */
+  /* ⚠ THE ARROWS ARE BROWN ON CREAM, NOT WHITE ON TRANSLUCENT. The first version borrowed the
+     ribbon chips' rule — white on rgba(255,255,255,.16) — which is invisible on this panel's cream
+     ground. They measured as present and correctly placed (30x44 at both edges) and could not be
+     seen in the screenshot, which is the whole reason to look at the picture as well as the numbers.
+     The palette is the card's own: #3a2600 ink on #f5a623, already this codebase's pairing. */
+  .pp4RcArrow { position:absolute; top:50%; transform:translateY(-50%); z-index:4;
+    width:30px; height:44px; display:flex; align-items:center; justify-content:center;
+    border:2px solid #c9821a; border-radius:9px; background:#f5a623; color:#3a2600;
+    font-size:20px; font-weight:800; line-height:1; cursor:pointer; padding:0;
+    box-shadow:0 2px 8px rgba(0,0,0,.25); }
+  .pp4RcArrow.prev { left:0; } .pp4RcArrow.next { right:0; }
+  .pp4RcArrow:active { background:#e0951a; transform:translateY(-50%) scale(.94); }
+  @media (prefers-reduced-motion: reduce) {
+    body.pp4Stage #actionPanel .apBtns:has(.recipeList) .apBtn { transition:none; }
+  }
   /* D-46 fault 5 — THE TWO RECIPES ARE ONE TABLE, SO THEIR ROWS LINE UP.
      Measured at 390x664: "Vanilla Bean Crème Brûlée" wraps to two lines, "Mexican Chocolate Torte"
      to three, and the two ingredient lists therefore start 7.8px apart — so Hot Cinnamon sits half
@@ -2480,22 +2527,42 @@
      here and the "Bake this!" pill is position:absolute, so neither is a track.
      @supports-gated, so a browser without subgrid (Safari before 16) gets exactly today's layout
      rather than a broken one — this is a cosmetic alignment, never a reason to risk the picker. */
-  @supports (grid-template-rows: subgrid) {
-    body.pp4Stage #actionPanel .apBtns:has(.recipeList) { grid-template-rows:auto auto 1fr; }
-    body.pp4Stage #actionPanel .apBtns:has(.recipeList) .apBtn {
-      display:grid; grid-row:span 3; grid-template-rows:subgrid; align-content:start; }
-  }
+  /* THE SUBGRID BLOCK THAT STOOD HERE IS RETIRED, and D-46 fault 5 is retired with it rather than
+     regressed: it existed so two cards SIDE BY SIDE would line their ingredient rows up when one
+     title wrapped to three lines and the other to two. One card at a time cannot fall out of step
+     with a card that is not on screen, and the ingredient rows it aligned are icons now, not rows.
+     Deleted rather than left inert — a rule that no longer applies is the next reader's wrong
+     answer about why the layout works. */
   body.pp4Stage #actionPanel .apBtn .recipeTitle { font-size:12.5px; line-height:1.2; }
   body.pp4Stage #actionPanel .apBtn .recipeThumb { height:54px; width:auto; display:block; margin:0 auto 2px; }
   body.pp4Stage #actionPanel .apBtn .recipeDesc { display:none; }
   /* playtest 21 item 5: every ingredient of both recipes has to be readable WITHOUT SCROLLING, now
      that the hint line sits above the cards as well. The savings are taken from padding and leading
      — the type size is untouched, because a recipe nobody can read is not a fix. */
-  body.pp4Stage #actionPanel .apBtn .recipeList { padding:2px 8px 3px; }
-  body.pp4Stage #actionPanel .apBtn .recipeList li { font-size:10.5px; line-height:1.3; padding:2px 0; gap:6px; }
-  body.pp4Stage #actionPanel .apBtn .recipeList .ri img { width:17px; height:17px; }
-  body.pp4Stage #actionPanel .apBtn .recipeList .rc { display:none; }
-  body.pp4Stage #actionPanel .apBtn.pp4Focus { outline:3px solid #f5a623; }
+  /* R2's icon row. The five ingredients now read as one line of pictures rather than ten lines of
+     text — his own ruling, and the reason the card can be a single column at all. Sized so all five
+     fit at 320px without wrapping; `flex-wrap` is still on, because a six-ingredient recipe is a
+     config change away and a clipped row would be the bug. */
+  .recipeIcons { display:flex; flex-wrap:wrap; justify-content:center; align-items:center;
+    gap:6px; padding:6px 8px 2px; }
+  .recipeIcons .ri { width:auto; flex:0 0 auto; line-height:0; }
+  .recipeIcons .ri img { width:30px; height:30px; object-fit:contain; display:block; }
+  body.pp4Stage #actionPanel .apBtn .recipeIcons { padding:5px 6px 2px; gap:5px; }
+  body.pp4Stage #actionPanel .apBtn .recipeIcons .ri img { width:26px; height:26px; }
+  /* THE FOCUSED CARD RESERVES A STRIP FOR THE PILL, rather than the pill covering whatever is
+     underneath it. Moving it off the artwork (O2) only pushed the problem onto the ingredient
+     icons — a smaller crime, still a crime, and visible in the very next screenshot. The card
+     grows by exactly the pill's own height when it is selected, so the pill lands in space that
+     belongs to it and covers nothing at all.
+     The growth is on .pp4Focus only, so an unselected card is the size it always was. */
+  /* ⚠ FULL PREFIX, AND THIS IS THE SECOND TIME THE SAME TRAP BIT IN ONE SITTING.
+     `body.pp4Stage #actionPanel .apBtns:has(.recipeList) .apBtn` sets the card's padding, and it
+     outranks a plainer `.apBtn.pp4Focus` — so the reserved strip silently did not exist and the
+     pill went on covering the ingredient icons, exactly as it had covered the artwork. The rule was
+     right; the selector lost. Anything overriding a property that block sets has to carry the same
+     prefix. */
+  body.pp4Stage #actionPanel .apBtns:has(.recipeList) .apBtn.pp4Focus {
+    outline:3px solid #f5a623; padding-bottom:40px; }
   /* playtest 19 item 2: the "Bake this!" pill, over the pastry art of the tapped card (Wyatt's
      pick). It is a SPAN dressed as a button and deliberately INERT — the card is itself the
      <button>, so a nested one is invalid HTML and gets hoisted out, and pointer-events:none means
@@ -2513,17 +2580,25 @@
      Ink and edge are NOT invented here: #3a2600 on #f5a623 with a #c9821a border is already this
      codebase's pairing for text on this orange (.btl-col .windTag.dw, the downwind battle tag).
      White would have been the obvious choice and fails contrast on it (~2.2:1). */
-  .pp4Bake { position:absolute; left:50%; top:35px; z-index:2; pointer-events:none;
+  /* ⚠ O2 — THE PILL NO LONGER COVERS THE ARTWORK. This is one of the four he was offered and left
+     unticked, so it is MY BEST GUESS pending his word, and it is flagged for him rather than
+     folded in quietly. It got worse rather than better when the picker became one big card: at
+     top:35px the pill sat squarely over the pastry the card exists to show.
+     It now straddles the card's BOTTOM EDGE, where it covers a border and a few pixels of padding
+     instead of the picture. Everything else about it is untouched — still a SPAN dressed as a
+     button, still pointer-events:none so the tap falls through into the second-tap confirm that
+     already exists, still his own #f5a623/#3a2600 pairing. */
+  .pp4Bake { position:absolute; left:50%; top:auto; bottom:5px; z-index:3; pointer-events:none;
     background:#f5a623; color:#3a2600; border:2px solid #c9821a; border-radius:999px;
     padding:7px 13px; font-size:13px; font-weight:800; letter-spacing:.02em; white-space:nowrap;
     box-shadow:0 4px 14px rgba(0,0,0,.45);
     animation:pp4BakeIn .22s cubic-bezier(.2,.9,.3,1.15) both; }
   @keyframes pp4BakeIn {
-    from { opacity:0; transform:translate(-50%,-50%) scale(.8); }
-    to   { opacity:1; transform:translate(-50%,-50%) scale(1); }
+    from { opacity:0; transform:translate(-50%,0) scale(.8); }
+    to   { opacity:1; transform:translate(-50%,0) scale(1); }
   }
   @media (prefers-reduced-motion: reduce) {
-    .pp4Bake { animation:none; transform:translate(-50%,-50%); }
+    .pp4Bake { animation:none; transform:translate(-50%,0); }
   }
   #choicePassPlay.pp4Off { filter:grayscale(.75) brightness(.92); position:relative; cursor:default; }
   .pp4OffNote { font-size:11.5px; font-weight:700; color:#fff; opacity:.95; margin-top:6px; font-style:italic; }

@@ -998,20 +998,14 @@ export async function recipeDraftNet(){
     // @copy misc.draftwait.recipechosen
     // a wait line: it holds until the crew actually finishes, not for 2.5 seconds (item 19)
     const draftWait=pending.length>1?"⚓ Recipe chosen! Waiting for the rest of the crew…":null;
-    /* THE PILOT'S HELPER LINE AT THE DRAFT. He rejected adding TEXT to this moment — "The recipe
-       choice moment has a lot of text in it already, and it's pretty overwhelming -- even as is.
-       Adding more text is not the solution to this." — so this ladder is short and the real
-       teaching here is the dotted course (src/ui/course.js), which is a picture. The shipped line
-       ("Tap a recipe to highlight its docks") is passed IN, so at the bottom rung it is what
-       renders, unchanged. */
-    const draftSub=()=>{
-      const line=pilotMsg("recipe.draft","Tap a recipe to highlight its docks");
-      pilotSee("recipe.draft");
-      return line;
-    };
+    /* NO HELPER LINE FROM HERE. The recipe.draft ladder drives the .pp4RecipeHint element that
+       already sits at this moment (src/ui/stage.js) — putting one here as well gave the picker two
+       sentences saying nearly the same thing, above and below the card. His own rule for this
+       screen is the reason it matters: "The recipe choice moment has a lot of text in it already,
+       and it's pretty overwhelming -- even as is. Adding more text is not the solution to this."
+       draftDispatch keeps its optional `subFor` — it is the right seam and costs nothing unused. */
     const results=await draftDispatch({seats:pending.map(player=>player.idx),isPublic:false,
-      msgFor:i=>msgFor(byIdx[i]),optsFor:i=>optsFor(byIdx[i]),waitMsg:draftWait,announce,
-      subFor:draftSub});
+      msgFor:i=>msgFor(byIdx[i]),optsFor:i=>optsFor(byIdx[i]),waitMsg:draftWait,announce});
     for(const player of pending){picks[player.idx]=results[player.idx];logDecision(results[player.idx]);}
   }
   appState.game.players.forEach(player=>{if(player.recipeChoices)player.recipe=player.recipeChoices[picks[player.idx]];});

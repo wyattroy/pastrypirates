@@ -92,9 +92,14 @@ export const LADDERS = {
   // it's pretty overwhelming -- even as is. Adding more text is not the solution to this." So this
   // ladder is SHORT and the real teaching at this moment is the dotted course (src/ui/course.js),
   // which is a picture rather than a paragraph.
+  /* ⚠ SHORTENED AFTER LOOKING AT IT. Rung 0 was two sentences and wrapped to THREE LINES above the
+     card — on the one screen he singled out for having too much text already. That is not a length
+     I get to defend; it is his ruling being broken by my own copy. The dropped clause (every
+     captain's hold sits below) is not lost: recipe.stowed says it a moment later, at the instant
+     the hold actually appears, which is where it belongs. */
   "recipe.draft": [
-    "Tap a recipe to chart its docks. Whichever ye pick, those five crates are what ye must gather — and every captain's hold sits below.",
-    "Tap a recipe to chart its docks — every captain's hold sits below.",
+    "Tap a recipe to chart its docks — those five are what ye must gather.",
+    "Tap a recipe to chart its docks.",
     null,
   ],
 

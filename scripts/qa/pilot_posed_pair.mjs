@@ -86,7 +86,50 @@ try {
 
   /* ── 2. THE RECIPE PICKER. The FIRST tap charts the course; the second commits. */
   await waitFor(`!!document.querySelector('#actionPanel .recipeList')`, 20000, "the recipe picker");
+  await sleep(700);
+  const stack = await C.ev(`JSON.stringify((()=>{
+    const row=[...document.querySelectorAll('#actionPanel .apBtns')].find(r=>r.querySelector('.recipeList'));
+    if(!row) return {no:'row'};
+    const cards=[...row.querySelectorAll('.apBtn')].filter(b=>b.querySelector('.recipeList'));
+    const arrows=[...row.querySelectorAll('.pp4RcArrow')];
+    return {cards:cards.length, pos:cards.map(c=>c.dataset.rcpos||'-'),
+      arrows:arrows.length,
+      arrowBox:arrows.map(a=>{const r=a.getBoundingClientRect();return [Math.round(r.left),Math.round(r.top),Math.round(r.width),Math.round(r.height)]}),
+      rowPos:getComputedStyle(row).position,
+      hints:[...document.querySelectorAll('.pp4RecipeHint,#actionPanel .apSub')].map(e=>(e.textContent||'').slice(0,44)),
+      icons:row.querySelectorAll('[data-ing]').length};
+  })())`);
+  say("  the picker -> " + stack);
+  const boxes = await C.ev(`JSON.stringify((()=>{
+    const R=e=>e?{t:Math.round(e.getBoundingClientRect().top),b:Math.round(e.getBoundingClientRect().bottom),h:Math.round(e.getBoundingClientRect().height)}:null;
+    const box=document.getElementById('pp4Prompt'), ap=document.getElementById('actionPanel');
+    const row=[...document.querySelectorAll('#actionPanel .apBtns')].find(r=>r.querySelector('.recipeList'));
+    const card=row&&row.querySelector('.apBtn[data-rcpos="front"]');
+    return {vh:innerHeight, box:R(box), ap:R(ap), apScroll:ap?ap.scrollHeight:0,
+      apMax:ap?ap.style.maxHeight:'', row:R(row), card:R(card),
+      icons:R(card&&card.querySelector('.recipeIcons')),
+      boxTop:box?box.style.top:''};
+  })())`);
+  say("  boxes -> " + boxes);
   await shot("02-recipe-before-tap.png"); say("shot 02 — the picker, before any tap");
+
+  /* R3 + his ruling 18: the arrow flips the card AND re-draws the dotted course. Read the FRONT
+     card's title and its charted marks before and after, so "it flipped" is not just a class
+     changing — the board has to answer too. */
+  const snapFront = `JSON.stringify({
+    title:((document.querySelector('#actionPanel .apBtn[data-rcpos="front"] .recipeTitle')||{}).textContent||'').trim(),
+    marks:[...document.querySelectorAll('.pp4CourseMark')].map(m=>m.dataset.gx+','+m.dataset.gy).sort().join(' '),
+    dashes:document.querySelectorAll('.pp4Course path').length })`;
+  const before = JSON.parse(await C.ev(snapFront));
+  await C.ev(`(()=>{const a=document.querySelector('.pp4RcArrow.next');if(a){a.click();return true}return false})()`);
+  await sleep(700);
+  const after = JSON.parse(await C.ev(snapFront));
+  say(`  the arrow -> "${before.title}" then "${after.title}"`);
+  say(`  the course re-charted -> ${before.marks !== after.marks} (${before.dashes} dashes then ${after.dashes})`);
+  await shot("02b-recipe-flipped.png"); say("shot 02b — flipped to the other recipe");
+  // and back, so the rest of the run photographs the first card as before
+  await C.ev(`(()=>{const a=document.querySelector('.pp4RcArrow.prev');if(a){a.click();return true}return false})()`);
+  await sleep(600);
   await C.ev(`(()=>{const b=document.querySelector('#actionPanel .apBtn');if(b){b.click();return true}return false})()`);
   await sleep(900);
   const chart = await C.ev(`JSON.stringify({
