@@ -802,6 +802,58 @@ DAY 2 with no environment variable in sight.
 
 ---
 
+## 8d. THE PROBE WAS FINE AND THE WAY YOU RAN IT WAS NOT — two shapes of the same fault
+
+**Earned 2026-09-07, by two sessions, in one afternoon, three times between them.** Each time a
+browser check reported that working code was broken, and each time the code was innocent. Written
+here rather than in two session transcripts, because the next person to drive Chrome from a script
+will hit one of these two ends of it.
+
+**THE PATTERN, and it is the reusable part:** *we are both faster at suspecting the code than the
+instrument.* CLAUDE.md already says "when a check condemns something known to work, suspect the
+check first" — every one of these three was caught by reaching for that line, and every one was
+reached for a step later than it should have been. Reach for it first.
+
+### The run poisoning the NEXT run — do not share the resource
+
+**`killAll()` does not wait.** So anything that waits for a shared resource races the corpse of the
+last run. A gate that launched Chrome on a FIXED debug port and a FIXED profile directory
+alternated pass/fail on identical source, three ways:
+
+- **a fixed profile dir** — `localStorage` lives in it, so "a device that has never played" became
+  a property of that DIRECTORY rather than of the code. Deleting it at startup did NOT fix it: the
+  previous run's dying Chrome flushed its storage back in *after* the deletion.
+- **a fixed debug port** — `attach()` found the PREVIOUS run's Chrome, still shutting down, still
+  holding a profile that had already played.
+- **a lost CDP reply** — `send` resolves on a matching id; a navigation mid-call means the reply
+  never arrives, the promise never settles, and node exits **13** with *"Detected unsettled
+  top-level await"*. That is a HANG, not a failure, and it is the worst of the three.
+
+**The fix is not to win the race. It is to not have one:** derive the port and the profile
+directory from the pid, sweep old ones, and put a deadline on every eval.
+
+### The runner poisoning the run — reap between runs
+
+**A back-to-back loop over a browser check measures the backlog, not the code.** Five consecutive
+runs of a freshly-FIXED gate gave `0, 0, 1, 13, 13` and very nearly had the fix reported as failed.
+From a clean slate with a reap between runs it was 3 for 3. Every run had been starting against the
+dying Chromes of the runs before it — the same race as above, arriving through the loop instead of
+through the script.
+
+```bash
+node scripts/qa/stray_probe_check.mjs   # what is actually up, before you believe a red run
+```
+
+### And a gate that HANGS does not belong in `npm test` at all
+
+Worse than a red one: the next session reads the timeout as a machine problem and re-runs until it
+goes green. **Gate the logic without a browser** — a stubbed `globalThis.location` is enough for
+anything URL-shaped, exactly as `scripts/dev_flag_gate_check.js` drives `devHost()` — and keep the
+browser run beside it as an underscored one-off (`scripts/qa/_pilot_url_flag_probe.mjs` is the
+worked example) that a person runs when they want it.
+
+---
+
 ## 9. Never verify against production
 
 `playpastrypirates.com` serves whatever last merged to `main`. It can never prove anything about
