@@ -1201,7 +1201,26 @@ export async function animateRimSweepIfAny(ev){
   const to=ev.state[seat]&&ev.state[seat].pos;
   const from=prev.state[seat]&&prev.state[seat].pos;
   if(!to||!from||!g.onRim(from))return false;
-  return animateRimSweepRun(seat,from,to);
+  const rode=await animateRimSweepRun(seat,from,to);
+  /* THE TRADE-WIND LADDER, AFTER THE RIDE RATHER THAN BEFORE IT.
+     The rim carrying a ship most of the way across the sea is the most startling thing that
+     happens to a first-time captain, and nothing says why — the tradewind bubble that used to
+     stand here was withdrawn. Spoken once the ride has been WATCHED, because the sentence explains
+     something that just happened; said first it would be a rule about a thing not yet seen.
+     ⚠ NOT GATED ON WHOSE SHIP IT IS, and the mode-fork gate is what talked me out of that. My
+     first version only spoke when the swept captain was local — a conditional on WHO IS PLAYING,
+     inside code that draws, which is exactly the class of thing that gate exists to stop. It was
+     also worse teaching: watching a BOT get carried across the sea explains the rim just as well
+     as being carried yourself, and the spec's own observation about the opening is that a
+     first-timer sits through two bot turns before touching anything. So it fires on the first
+     sweep this DEVICE witnesses, whoever is aboard. The count is per device either way, and
+     nothing here rides the wire. */
+  if(rode){
+    const learn=pilotMsg("rim.sweep","");
+    pilotSee("rim.sweep");
+    if(learn)await flash(learn);
+  }
+  return rode;
 }
 // /4 (Wyatt's playtest, storm rides): the SAME guarded ride, callable with an explicitly known
 // entry cell. A swept storm step emits nothing between stepping onto the rim and tradewind()

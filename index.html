@@ -897,6 +897,12 @@
   @media (prefers-reduced-motion: reduce) {
     .pp4StowFlash { animation: none; box-shadow: 0 0 0 3px rgba(245,166,35,.85); }
   }
+  /* A PILOT RUNG RIDING INSIDE A NARRATION LINE. It reads as the helper text it is — the same
+     italic, lighter voice .apSub uses — rather than as a second sentence of the game's own
+     narration. Used by the storm ladder, which appends to the round header instead of taking a
+     beat of its own. */
+  .apSubInline { font-style:italic; font-size:.88em; opacity:.85; display:inline-block;
+    margin-top:3px; }
   #courseHost { position: absolute; inset: 0; pointer-events: none; z-index: 1; }
   /* the wrapper holds the static tilt and NEVER animates; the art breathes inside it. Written on
      one element the keyframe overwrites the rotate every frame — the same failure as the compass
