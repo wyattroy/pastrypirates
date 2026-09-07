@@ -1,0 +1,12 @@
+shot 01 — the fork: 'Do ye know how to play?'
+shot 02 — the picker, before any tap
+  charted on the first tap -> {"dashes":60,"marks":5,"rings":0,"host":true}
+shot 03 — the dotted course + pulsing X, drawn from the recipe card
+  PILOT ON  -> {"msg":"Wyatt: Tap a gold square to sail — head for a dock.","sub":"Sailin' into the wind is slower — half sail, half the squares.","dashes":60,"marks":5,"cells":13,"ribbonHelp":true}
+shot 04 — the sail prompt, rung 0, with the course
+  PILOT OFF -> {"dashes":0,"marks":0,"cells":13}
+shot 05 — the parrot switched off
+  RIBBON @320 -> {"inner":320,"scrollW":320,"clientW":320,"overflow":0,"furthestRight":312,"kids":[{"id":"pp4Round","right":54},{"id":"pp4Boats","right":149},{"id":"pp4FF","right":0},{"id":"pp4Chat","right":0},{"id":"pp4Help","right":191},{"id":"pp4Menu","right":312}]}
+shot 06 — the ribbon at 320px with the ? present
+
+shots in .planning/posed/pilot/

@@ -71,6 +71,9 @@ import {
 import { passGate, requireName, showStep, openNameModal, confirmName, wireNameModal, setNameWarning } from "./lobby.js";
 import { playBakeoffLive } from "./bakeoff.js";
 import { netHandlers } from "./handlers.js";
+import { pilotLine, pilotMsg, pilotSee, pilotRung, pilotDepth, pilotFirstTime,
+  pilotStartFromTheTop, pilotSkipToVeteran } from "./pilot.js";
+import { showCourseFor, clearCourse } from "./course.js";
 
 const $=id=>document.getElementById(id);
 // ⏩ fast-forward: every flow beat (storm steps, rim sweeps, bot beats, battle pauses) collapses
@@ -401,12 +404,20 @@ export function sailSelfCheck(player,cells){
    (holdVerb(), src/ui/stage.js:445) is private to that module, so there is no shared way to say
    tap-or-click from here. Re-testing `matchMedia("(pointer: coarse)")` in this file would be a
    second copy of the same rule to keep in step. Export holdVerb() and both lines can read it. */
-export function sailPickMsg(seat,cells){
+export function sailPickMsg(seat,cells,base="tap to sail"){
   // v2 rule 2: sailing is FREE, so the (−1🌕) parenthetical is gone.
   const g=appState.game;
   const swept=!!(g&&g.onRim&&(cells||[]).some(c=>c&&g.onRim(c)));
+  /* `base` IS THE ONLY THING THE PILOT REPLACES, and its DEFAULT is the shipped clause — so every
+     existing caller, and the wire payload, get byte-for-byte the line this built before.
+     The captain's name and the swept clause are composed here at every rung: they are situational
+     facts rather than teaching, and a first-timer needs them more than anyone. */
+  /* The swept clause becomes its own sentence when the rung already ended in one, or two em-dashes
+     collide ("— head for a dock. — blue squares take two taps"). With the DEFAULT base there is no
+     terminal stop, so the original form is what renders — identical by construction. */
+  const tail=swept?(/[.!?]$/.test(base)?" Blue squares take two taps.":" — blue squares take two taps"):"";
   // /4 playtest 6: one line — the card must stay small
-  return `${pn(seat)}: tap to sail${swept?" — blue squares take two taps":""}`;
+  return `${pn(seat)}: ${base}${tail}`;
 }
 /* THE SAIL CARD, BUILT ONCE. 02.15-01, the narrow half — see renderPickPrompt (02.15-02 Task 3,
    THE TRACER) for the wide one, which converged the ORCHESTRATION around this same builder.
@@ -434,8 +445,20 @@ export function sailPanelHTML(msg,hint){
      2026-08-25 (silent on a real board; fires on an impossible square). What is gone is the
      player-facing red text. `hint` stays in the signature and on the wire so the spec shape and
      the guest payload are unchanged. */
+  /* THE HINT SLOT DRAWS AGAIN — but it is no longer the red shout, and that distinction is the
+     whole of this change. Wyatt deleted the shout's TEXT on 2026-08-25 ("I don't care about the
+     red shout at all — it's not useful any more") while the parameter was deliberately kept on the
+     wire so the spec shape and the guest payload stayed unchanged. That dormant, already-crossing-
+     the-wire field is now the Pilot's helper line — no new field, no new parity risk, and the
+     guest reads exactly what the host composed.
+     sailSelfCheck() still runs and still console.error()s; what it produces no longer rides here,
+     so a self-check failure can never again become player-facing red text. See pickCell().
+     LAST IN THE MARKUP, per the standing top-to-bottom reveal rule for #actionPanel: back button,
+     message, buttons, helper text. */
+  const sub=hint?`<div class="apSub">${hint}</div>`:"";
   return `<div class="apMsg">${msg}</div>`+
-    `<div class="apBtns"><button class="apBtn" id="apStay" style="display:none">Stay put</button></div>`;
+    `<div class="apBtns"><button class="apBtn" id="apStay" style="display:none">Stay put</button></div>`+
+    sub;
 }
 /* THE WIND HINT IS GONE (Wyatt, 2026-08-25): "Remove the sail prompt saying wind blows east
    entirely because the game calculates this for you." It was ALREADY invisible — `sailWindHint()`
@@ -583,7 +606,7 @@ export function renderPickPrompt(spec,answer){
   clearSailWindow();
   const svg=$("board"),hs=[];
   appState.currentPrompt=spec;
-  const teardown=()=>{hs.forEach(h=>h.remove());panel("");appState.currentPrompt=null;};
+  const teardown=()=>{hs.forEach(h=>h.remove());panel("");appState.currentPrompt=null;clearCourse();};
   const done=v=>{teardown();answer(v);};
   const cellPx=boardCell();
   /* ITEM 21: the yellow flashing square UNDER the captain's own boat — "to indicate that they may
@@ -618,7 +641,28 @@ export function renderPickPrompt(spec,answer){
   // reverse), which docs/GIT-AND-DEPLOY.md's mid-session ship-to-live model makes a real scenario.
   // Pure plumbing: no currently-reachable call passes a falsy spec.msg, so today's rendered text is
   // unchanged.
-  panel(sailPanelHTML(spec.msg||sailPickMsg(appState.mySeat),spec.hint),true);
+  /* ── THE PILOT SPEAKS HERE, on the device that is actually looking ──────────────────────────
+     This renderer runs on whichever machine draws the prompt, for both tiers, which is exactly the
+     property the Pilot needs: the count is per device, so a first-time guest gets rung 0 while a
+     veteran host reads the line it always read.
+     AT THE BOTTOM RUNG NOTHING IS RECOMPOSED — spec.msg, straight off the wire, byte-identical.
+     Only above it does this device build its own longer line, and `sailPickMsg` composes it from
+     the same parts (the name, the swept clause) so the two can never drift. */
+  const seat=spec.seat!=null?spec.seat:(appState.mySeat??0);
+  const rung=pilotLine("sail.pick","tap to sail");
+  const teaching=pilotRung("sail.pick")<pilotDepth("sail.pick")-1;
+  const msg=teaching?sailPickMsg(seat,spec.cells,rung.msg):(spec.msg||sailPickMsg(seat,spec.cells));
+  panel(sailPanelHTML(msg,rung.sub||null),true);
+  /* THE ONWARD GUIDE RETIRES ON THE SAME DIAL AS THE WORDS — no second thing to remember to turn
+     off. While the sail ladder still has a rung to give the course is drawn; when it reaches the
+     bottom it stops with it. Drawn for the captain whose prompt this is, from the position the
+     SPEC carries — never this client's own players[].pos, which on a guest is a stale render
+     shell (the same rule the stay square already follows). */
+  const who=appState.game&&appState.game.players?appState.game.players[seat]:null;
+  if(teaching&&who&&spec.pos)
+    showCourseFor(appState.game,{...who,pos:spec.pos},svg,cellPx);
+  else clearCourse();
+  pilotSee("sail.pick");
   $("apStay").onclick=()=>done(null);
   /* THE CAMERA REQUEST RIDES WITH THE SQUARES — rule 23's converge move, and the missing half of a
      guest's sail prompt. camFitSail() had exactly ONE caller: pickCell(), which runs on the machine
@@ -698,7 +742,25 @@ export function pickCell(player,cells){
   // guest's game.players[].pos is a stale render shell and must never be read for this.
   // `cells` is handed to sailPickMsg for W2-8: the line says a blue square takes two taps only
   // when one of THESE squares is a blue one. Same list the renderer is about to colour.
-  const spec={kind:"pick",cells,msg:sailPickMsg(player.idx,cells),hint:bug||null,pos:[player.pos[0],player.pos[1]]};
+  /* `bug` no longer rides on the wire. It was `hint:bug||null` and NOTHING RENDERED IT — the
+     player-facing red text went on 2026-08-25 and the parameter was kept only to hold the payload
+     shape steady. Now that sailPanelHTML draws `hint` again, leaving the shout in it would quietly
+     restore the very text he deleted, on the one path he would never see it coming. sailSelfCheck
+     still runs above and still console.error()s, which is the whole of what he kept. */
+  if(bug)console.warn("sailSelfCheck:",bug);
+  /* ⚠ NOTHING THE PILOT SAYS GOES ON THE WIRE, AND THAT IS A RULE RATHER THAN A TIDINESS.
+     The spec below is built on the machine running the ENGINE — the HOST in a crew game. If the
+     rung were chosen here, a veteran host would silence a first-time guest: the whole point of the
+     Pilot being per device is that a guest who has never sailed gets help the host does not need.
+     So the wire carries the SHIPPED line, exactly as it does today, and each device applies its
+     own rung in renderPickPrompt — the one renderer both tiers already share.
+     That also makes gate 3 ("no rung string reaches netSetNarr") true literally rather than by
+     argument, and it keeps D-35 intact: the guest still RENDERS what the host authored, then adds
+     a presentation layer of its own that emits no event.
+     `seat` is stamped so the renderer can re-compose the line without guessing whose turn it is;
+     remotePrompt() in orchestrator.js already stamps the same field, so the payload shape is
+     unchanged. */
+  const spec={kind:"pick",seat:player.idx,cells,msg:sailPickMsg(player.idx,cells),hint:null,pos:[player.pos[0],player.pos[1]]};
   const base=decisionIsLocal(player.idx)?localPickCell(player,spec)
     :netHandlers().onRemotePrompt(player.idx,spec);
   return base.then(c=>{netHandlers().onLogDecision(c);return c;});
@@ -1697,7 +1759,13 @@ export async function humanDock(player,port){
          string and the greyed Buy button's tap-why THE SAME STRING, so the line under the pill was
          a second copy of a sentence the button says while pointing at itself. The price and the
          barter alternative are both on the two buttons' own labels. */
-      const sub=null;
+      /* THE PRICE CLIMBS, AND ONLY THE PILOT SAYS SO. Wyatt ruled this ladder IN on 2026-09-02.
+         The Buy button already states the price; what nothing states is that the number rises as
+         the island empties (v2 rule 11: 6 minus the crates left, so 3 -> 3\u{1F315}, 2 -> 4, 1 -> 5),
+         which is the whole reason getting there first matters. Legal under the editorial law: the
+         button names the price, never that it moves. */
+      const sub=pilotMsg("dock.buy",null)||null;
+      if(sub)pilotSee("dock.buy");
       /* W2-4 (Wyatt, 2026-08-27): "Money must be explicit wherever it changes hands."
          This prompt is the ONE place in the dock flow that had gone quiet about it. The line
          BEFORE the flip already names both payouts (:1394) and the recap AFTER it already names
@@ -2233,6 +2301,23 @@ export async function humanTrade(player){
   liveRender();
   return true;
 }
+/* WHICH LADDER SPEAKS AT THE ACT MENU — one helper slot, four teachable buttons.
+   FIRST SIGHTING, NOT TURN COUNT. The ladder with the most rungs still to give wins, so a captain
+   offered their first battle on day nine still meets its rung 0 — whenever that is. Nothing here
+   needs to know how experienced a player is; the counts already know, moment by moment.
+   A GREYED CIRCLE IS SKIPPED: it teaches nothing a captain can act on, and it already carries its
+   own `why`. That is also what keeps this from ever colliding with the anchored reasons. */
+const ACT_LADDERS=[["dock","act.menu"],["attack","act.attack"],["trade","act.trade"],["pass","act.muse"]];
+function actLadder(opts){
+  let best=null,bestLeft=0;
+  for(const [val,id] of ACT_LADDERS){
+    const o=(opts||[]).find(x=>x&&x.value===val);
+    if(!o||o.disabled)continue;
+    const left=pilotDepth(id)-1-pilotRung(id);
+    if(left>bestLeft){bestLeft=left;best=id;}
+  }
+  return best;
+}
 export async function humanAct(player,sailCtx){
   applyActiveSeat(player.idx);
   const port=appState.game.adjPort(player);
@@ -2458,7 +2543,25 @@ export async function humanAct(player,sailCtx){
      one another. It is now enforced where it belongs, on the options themselves — Attack's why and
      Trade's why are separate strings on separate buttons, so neither can swallow the other by
      construction, which is stronger than the two independent `if`s this replaced. */
-  const sub=null;
+  /* ⚠ THE PILOT PUTS A LINE BACK IN THIS SLOT, AND THAT RUNS STRAIGHT INTO THE RULING ABOVE.
+     Worth stating plainly rather than burying, because he deleted the last thing that lived here.
+
+     WHAT HE DELETED was a DUPLICATE: every sentence it showed was already on the control it
+     described, as that option's own `why`, anchored to the button with a tail. He was right, and
+     nothing here restores it — each button's `why` is still the only place a greyed circle
+     explains itself, and the two can never collide because a greyed option is skipped below.
+
+     WHAT THIS SHOWS is a RULE the buttons do not state: that a hail reaches the whole table, that
+     a broadside is one flip each and the winner takes a crate. That is the editorial law he set on
+     the same day — A RUNG MAY NOT RESTATE ITS OWN BUTTON — and it is what tells the two apart.
+     It also deletes itself: two sightings of Attack and the line is gone for good.
+
+     I am flagging it for his eye in playtesting rather than treating "different enough" as
+     settled. If he reads it as the tooltip coming back, the fix is one line: drop these four
+     ladders and let the act menu teach nothing. */
+  const helpId=actLadder(opts);
+  const sub=helpId?(pilotMsg(helpId,null)||null):null;
+  if(helpId)pilotSee(helpId);
   const prompt=`${pn(player.idx)}, what'll ye do:`;
   // @copy prompt.act.menu
   const v=await ask(prompt,opts,null,sub);
@@ -3018,6 +3121,29 @@ export async function showAhoyIntro(){
   // gather for. The leading ⚓ is KEPT again here: D-16 requires removal stated in words, and he
   // named no icon. D-53 (a `--` becomes an em dash) is a no-op check on this string — it has none.
   const msg=`⚓ Ahoy! Choose a recipe, gather each ingredient, then sail home first to win!`;
+  /* ── THE FORK, and it is a STARTING RUNG rather than a yes/no ──────────────────────────────
+     Shown only on a device that has never played — the absence of the Pilot's one storage key IS
+     the "never played" test, so one key answers both questions it needs to.
+
+     ASKED LOCALLY, ON PURPOSE, AND IT NEVER TOUCHES THE WIRE. The Pilot is per device, not per
+     table: a first-time guest must be able to get help the veteran host does not need. That makes
+     this a Decider in docs/INTENDED-BEHAVIOUR.md §3's sense, and it is safe for the one reason
+     that file gives — IT EMITS NO EVENT. localAsk draws a panel and resolves a promise; nothing
+     reaches netSetNarr, nothing reaches the event stream, no RNG is drawn.
+     The barrier that follows is the sync point, so a table whose captains answer at different
+     speeds still converges before anybody sails.
+
+     This card already draws any number of circles, so making it two costs one argument.
+     Wyatt's own framing, which matters for later: if testing says some captains want a middle
+     setting, that is a THIRD CIRCLE AND A NUMBER — not a new system. */
+  if(pilotFirstTime()){
+    // @copy misc.introbarrier.pilotfork — DRAFT COPY, his to rewrite.
+    const knows=await localAsk(`🦜 Do ye know how to play?`,[
+      {label:"Yaargh!",value:0,cls:"primary",stage:true},
+      {label:"Nah",value:1,cls:"primary",stage:true},
+    ]);
+    if(knows===1)pilotStartFromTheTop(); else pilotSkipToVeteran();
+  }
   // NARR-01/D-25 (Wyatt-approved 2026-07-29): button trimmed to just "Arrgh!" — icon kept (D-16).
   // @copy misc.introbarrier.ahoy
   await netIntroBarrier(msg,"⚓ Arrgh!");

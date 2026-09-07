@@ -21,6 +21,8 @@ import { narrationHoldMs, vwPx, vhPx, isDisabledBtn, fixedOrigin, fixedRect, ref
 import { typewriterReveal } from "./panel.js";
 import { HEXCOL, emojify, DIRS, STORM_PUSH, BOAT_IMG } from "../shared/index.js";
 import { showsThinkingIndicator } from "../shared/visibility.js";
+import { pilotToggle, pilotIsOn } from "./pilot.js";
+import { showCourseFor, paintMarks, clearCourse } from "./course.js";
 
 const $ = id => document.getElementById(id);
 const AR = { N: "↑", S: "↓", E: "→", W: "←" };
@@ -473,7 +475,11 @@ function boatUXY(i){
 // write is skipped when the value hasn't changed, so an idle stage costs almost nothing.
 // The HTML overlays that are mapped to board coordinates and must therefore carry the camera.
 // See where it is applied below for why this is a list rather than two named consts.
-const CAM_HTML_LAYERS = ["rippleHost", "sailHost", "rimHost"];
+// "courseHost" is the onward guide's marker layer (src/ui/course.js). It is board-mapped, so it
+// belongs here — BOARD-RENDERING §3 calls adding it "the step that gets forgotten", and #rimHost
+// was forgotten exactly this way: the current stayed parked on the full-board layout while the
+// water zoomed away beneath it. A LIST, not named consts, for the same reason.
+const CAM_HTML_LAYERS = ["rippleHost", "sailHost", "rimHost", "courseHost"];
 let ribHCache = 48, ribHAt = -1e9, lastVB = "", lastRipT = "";
 /* THE TOP BAND — where the board's top edge goes: the bottom of the ribbon, or of the wind pill
    when that sits lower (playtest 17, Wyatt: "the wind/forecast pip covers the top of the trade
@@ -1298,6 +1304,18 @@ function pillTick(){
   if (p.style.display !== want) p.style.display = want;
 }
 
+/* THE PARROT CHIP'S OWN STATE, in one place. It is the only control in the ribbon whose look
+   depends on something stored rather than on the live game, so it is synced on the toggle and at
+   build time rather than every ribbonTick — a per-frame localStorage read to draw an opacity would
+   be paying a real cost for nothing. */
+function syncHelpChip(){
+  const b = $("pp4Help"); if (!b) return;
+  const on = pilotIsOn();
+  b.classList.toggle("off", !on);
+  b.setAttribute("aria-pressed", String(on));
+  b.title = on ? "Yer parrot's watchin'" : "Yer parrot's restin'";
+}
+
 /* ================= ribbon ================= */
 function ribbonTick(){
   // D-31: a captain's held ingredients change every turn, which changes the captains card's own
@@ -2053,19 +2071,45 @@ function recipeGuard(){
          exact question, and it costs one comparison. */
       if (focusBtn !== btn) return;
       const ids = names.map(n => Object.entries(sh.ING_NAME || {}).find(([k, v]) => v === n)?.[0]).filter(Boolean);
-      ids.forEach(ing => {
-        const c = (g.dockOf && g.dockOf[ing]) || (g.islandOf && g.islandOf[ing]); if (!c) return;
-        const el = document.createElementNS("http://www.w3.org/2000/svg", "circle");
-        el.setAttribute("cx", (c[0] + 0.5) * cp); el.setAttribute("cy", (c[1] + 0.5) * cp);
-        // playtest 12 (2.4): a tight ring on the dock square itself, not a splash over the island
-        el.setAttribute("r", cp * 0.55); el.setAttribute("fill", "#f5a623"); el.setAttribute("fill-opacity", "0.18");
-        el.setAttribute("stroke", "#f5a623"); el.setAttribute("stroke-width", 3);
-        el.classList.add("pp4Glow"); svg.appendChild(el);
-      });
+      /* ── THE THIN ORANGE RING IS GONE, EVERYWHERE, FOR EVERYBODY ────────────────────────────
+         Wyatt, 2026-09-02: "I think what looks better is the pulsing x. That way, the players will
+         already have seeing the X marks the spot when they start sailing, and it'll kind of be a
+         learning moment before they even start."
+         So this is NOT a tutorial-only marker and it is not gated on a rung: the whole game's dock
+         preview becomes his X, at every rung, for every captain. That also answers his separate
+         standing complaint about these circles — "those dock circles should look substantially
+         different -- they need a UI redesign" — on all three counts at once. They were thin,
+         STATIC and ORANGE: orange is the game's `act now` colour, already spent on the gold squares
+         and the confirm pills, so a ring in it read as chrome rather than as the way in. The X
+         moves, is not orange, and carries meaning of its own.
+         ⚠ THE "Bake this!" PILL IS STILL #f5a623 AND STILL CORRECT. His playtest-21 ruling was
+         "the same bright color as the rings around the island" — the pill was matched TO the rings,
+         not the other way round. Retiring the rings does not retire the pill's colour, and the
+         index.html comment that ties them together is updated in this same commit rather than left
+         describing a pairing that no longer exists.
+         ── AND THE COURSE, at the moment he asked for it ──────────────────────────────────────
+         "that Dotted course should appear during the recipe choice phase to help them make a
+         decision." One continuous tour from the captain's own boat through every dock this card
+         would send them to — so the two cards are compared as VOYAGES, not as word lists. */
+      /* THE SEAT IS THE ACTIVE ONE, NOT `mySeat`, and the gate is right to insist.
+         `appState.mySeat` is the seat of whoever is WATCHING; on a pass-and-play device the picker
+         walks every captain in turn behind the pass screen, so mySeat would chart the wrong boat's
+         voyage for three of the four. S.activeSeat is the seat whose prompt is actually up — the
+         same source ribbonTick already reads — so this draws one captain's course from one rule
+         rather than forking on who is looking. (scripts/qa's mode-fork gate caught this on the
+         first run; it is exactly the class of thing that gate exists for.) */
+      const seat = (S.activeSeat != null) ? S.activeSeat : appState.curSeat;
+      const me = (seat != null && g.players) ? g.players[seat] : null;
+      if (me) showCourseFor(g, me, svg, cp, ids);
+      else paintMarks(ids.map(ing => (g.dockOf && g.dockOf[ing]) || (g.islandOf && g.islandOf[ing])).filter(Boolean), cp);
     }).catch(() => {});
   }, true);
 }
-function clearGlow(){ document.querySelectorAll(".pp4Glow").forEach(e => e.remove()); }
+/* THE ONE TEARDOWN. It still removes .pp4Glow — nothing draws those on the picker any more, but
+   the class is used elsewhere and a teardown that forgets a thing it used to own is how the rings
+   outlived their card once already (found 2026-08-20: orange rings still on the water two days
+   into a crew game). clearCourse() takes the dashes AND the markers. */
+function clearGlow(){ document.querySelectorAll(".pp4Glow").forEach(e => e.remove()); clearCourse(); }
 function clearBake(){ document.querySelectorAll(".pp4Bake").forEach(e => e.remove()); }
 
 /* ========== the trade-wind ride preview (playtest 20, Mando's three lost turns) ========== */
@@ -2164,8 +2208,39 @@ function buildStage(){
     <span class="pp4Boats">${order.map(i => `<img class="pp4Boat" src="${BOAT_IMG[i]}">`).join("")}</span>
     <button id="pp4FF" type="button" title="Skip to yer next turn">⏩</button>
     <button id="pp4Chat" type="button" title="Scuttlebutt">💬<span id="pp4ChatDot"></span></button>
+    <button id="pp4Help" type="button" title="Yer parrot">🦜?</button>
     <button id="pp4Menu" type="button">☰</button>`;
   document.body.appendChild(rib);
+  /* THE PARROT IS A TWO-STATE TOGGLE — his ruling, chosen over a three-step, because an
+     unlabelled three-state control gets pressed at random. ON puts every ladder back to the top
+     and says so; OFF silences it. One line of narration each way, drawn through flash() so it
+     arrives in the box the game already speaks from — nothing here is a tooltip (he killed one of
+     those for the Muse button on 2026-08-27 and the ruling is respected, not argued with). */
+  $("pp4Help").onclick = () => {
+    const on = pilotToggle();
+    syncHelpChip();
+    /* OFF MEANS OFF, THIS INSTANT. Measured on the posed pair: without this the words stopped at
+       the next prompt but the course stayed drawn on the board, so the control looked broken for a
+       whole turn — a toggle that does not visibly do anything is worse than no toggle. Switching
+       ON does not draw a course here on purpose: the guide belongs to a prompt, and it arrives with
+       the next one rather than appearing over whatever is on screen now. */
+    if (!on) clearCourse();
+    // @copy misc.pilot.toggle — DRAFT COPY, his to rewrite.
+    // It speaks through stageFlash, i.e. the narration box the game already talks from. Nothing
+    // in this feature is a tooltip: he killed a hover tooltip for the Muse button on 2026-08-27
+    // ("don't build the tooltip, ignore this and let the idea go") and that ruling is respected
+    // rather than argued with.
+    /* ⚠ NOT WHILE A PROMPT IS UP. Measured on the posed pair at 320px: the toggle's line drew
+       straight over the sail prompt's own helper line and half of each was unreadable — two boxes
+       in one place, which is the collision the narration channel exists to prevent.
+       The chip dims either way, so the control is never silent; the sentence is a courtesy and it
+       waits for a moment that has room for it. */
+    const promptUp = !!document.querySelector("#actionPanel .apMsg");
+    if (S.active && !promptUp)
+      stageFlash(on ? "🦜 Yer parrot's watchin' — he'll start from the top."
+                    : "🦜 Yer parrot settles down. Fair winds, captain.");
+  };
+  syncHelpChip();
   // FAST-FORWARD (Wyatt's spec, 2026-08-12): ONE tap arms ONE skip — everything paces instantly
   // until the next prompt that involves him (his sail, a flip, a battle call, an offered trade),
   // which ends the skip at normal speed and never re-arms it (flow.js ffEndNow is the other half:

@@ -875,6 +875,37 @@
   #rimHost { position: absolute; inset: 0; pointer-events: none; z-index: 1; }
   #rimHost > div { position: absolute; }
   #rimHost img { display: block; width: 100%; height: 100%; }
+  /* THE ONWARD GUIDE'S MARKER LAYER (src/ui/course.js). The dotted course itself is STATIC, so it
+     is SVG inside #board and the camera carries it for free on the viewBox. Only the treasure X
+     pulses, and a continuously animated thing has to be HTML — Chrome does not composite an SVG
+     transform animation at all (~62 layouts/sec as SVG, ZERO as HTML, measured twice on this
+     project). So the marker gets this layer, and #courseHost is registered in CAM_HTML_LAYERS.
+     z-index 1, LEVEL WITH #rimHost AND BELOW #sailHost(2), and that is the rule rather than a
+     preference: the course is scenery, the gold squares are a choice, and scenery must never
+     cover a choice. */
+  #courseHost { position: absolute; inset: 0; pointer-events: none; z-index: 1; }
+  /* the wrapper holds the static tilt and NEVER animates; the art breathes inside it. Written on
+     one element the keyframe overwrites the rotate every frame — the same failure as the compass
+     chip whose CSS animation silently erased its SVG transform attribute. */
+  .pp4CourseMark { position: absolute; transform: rotate(-4deg); }
+  .pp4CourseMarkArt { display: block; width: 100%; height: 100%;
+    filter: drop-shadow(0 1px 3px rgba(0,25,35,.55));
+    animation: pp4CourseBreathe 1.2s ease-in-out infinite; }
+  /* THE SWELL IS THE PULSE, AND THERE IS NO RING. Wyatt, 2026-09-03: "I want the x to pulse,
+     remove the ring." That reverses his own two earlier rulings to keep the slow white ripple —
+     the later one wins, and it is written down here so nobody restores a ring from the older
+     comment. Depth 0.15 and period 1.2s are his dialled numbers (pd/ps in COURSE), traced round
+     the sine the tuner drew rather than eyeballed: 1 → 1.15 → 1 → 0.85 → 1. */
+  @keyframes pp4CourseBreathe {
+    0%   { transform: scale(1); }
+    25%  { transform: scale(1.15); }
+    50%  { transform: scale(1); }
+    75%  { transform: scale(0.85); }
+    100% { transform: scale(1); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .pp4CourseMarkArt { animation: none; }
+  }
   /* the wrapper holds the tangent rotation and NEVER animates; the img drifts along that rotated
      local axis, so each arrow travels its own stretch of channel rather than all of them sliding
      the same way across the board */
@@ -2575,9 +2606,35 @@
      two-hand-synced-numbers trap this project keeps paying for. */
   /* (#pp4Clock shared this box rule until the shot clock left, 2026-08-28 — its chip rules and
      the pp4ClockFlash keyframes went with it.) */
-  #pp4FF, #pp4Chat { box-sizing:border-box; align-items:center; justify-content:center;
+  #pp4FF, #pp4Chat, #pp4Help { box-sizing:border-box; align-items:center; justify-content:center;
     min-width:34px; padding:3px 8px; line-height:18px; border:none; border-radius:8px;
     background:rgba(255,255,255,.16); color:#fff; font-family:inherit; text-align:center; }
+  /* THE PARROT AND THE QUESTION MARK — Wyatt, 2026-09-02: "Parrot + ? so that it hints at what it
+     does. could that work?" The bird for the desire to tap it, the glyph so it says what it does.
+     It shares the ONE box rule above with ⏩ and 💬 rather than being a third hand-written box,
+     which is playtest 21 item 8's own ruling.
+     SIDE BY SIDE, NOT A CORNER BADGE: a badge would borrow the chat unread-dot's language and read
+     as a permanent notification.
+     The parrot ALSO keeps the turn-order Start button and that is not a collision — his call:
+     "keep the parrot on the start button -- it makes it seem like the parrot is the one talking to
+     you, which is perfect and feels consistent with parrot being your helper!" One voice in two
+     places, which is what makes the tutorial a character rather than a system. */
+  #pp4Help { display:inline-flex; font-size:14px; cursor:pointer; letter-spacing:-.5px; }
+  #pp4Help.off { opacity:.5; }
+  /* THE RIBBON FITS AT 320px. Measured before a line of the tutorial existed: the row is clean at
+     430/390/360 and runs 21px off the edge at 320 once the ? is added — red-proofed both ways, so
+     the button is the cause and not an existing fault being blamed on it.
+     THE FIX BELONGS TO THE RIBBON, NOT TO THE TUTORIAL. #pp4Ribbon is a flex row and flex-shrink
+     already absorbs the extra character everywhere else; what actually binds is the four captain
+     circles at a fixed 111px, which cannot shrink. So the circles become the elastic element —
+     which is why the number did not move between button variants, and why this block would be
+     worth shipping even if the ? never did. */
+  @media (max-width: 359px) {
+    #pp4Ribbon { gap:6px; padding-left:8px; padding-right:8px; }
+    .pp4Boats { gap:3px; }
+    .pp4Boat { width:20px; height:20px; }
+    #pp4FF, #pp4Chat, #pp4Help { min-width:30px; padding:3px 6px; }
+  }
   /* ⏩ fast-forward: appears in the ribbon only while a bot holds the wheel (stage.js ribbonTick);
      lights orange while a one-shot skip runs so a second tap can't double-arm */
   #pp4FF { display:none; font-size:15px; cursor:pointer; }
