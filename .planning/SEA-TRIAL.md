@@ -1,36 +1,6 @@
-# Sea trial v2 — build `2026.09.04.2` (tree `69f3cc0bfb86`)
+# Sea trial v2 — build `2026.09.06.2` (tree `a03c55b7dd08`)
 
-**NOTHING SAILED** — 0 of 0 voyage(s) sailed  ·  2026-09-06T21:20:53.972Z  ·  2 min  ·  gear **COSMETIC**  ·  sailed on **win32 (Wy-Blade)**
+**IN PROGRESS — no verdict yet.**  ·  started 2026-09-07T06:32:41.036Z  ·  gear **FULL**  ·  sailed on **local Mac (Wyatts-MacBook-Air.local)**
 
-> Gear chosen because: **CHOSEN ON THE COMMAND LINE**, overriding the mechanical picker, which said **FULL** (behaviour can change in: package.json)
->
-> **Depth: COSMETIC. The mechanical picker said FULL.** A person chose this depth. Their reason, verbatim: **T-222 fix is a QA gate + package.json chain/ceiling bookkeeping only (scripts/qa/t222_chartkeeper_no_duplicate_handle_check.mjs, gates.total/ceiling 144->145); gear.mjs flags any package.json diff FULL by construction (known blind spot, T-205), same precedent as T-264's own gate addition. index.html/src/ untouched, no game behaviour changed.**
->
-> Sailed by **sea trial v2** — the eyes see EVERY distinct screen (no judge
-> cap), five to a call, and each leg says how many of its screens were actually looked at. A report
-> from an older trial version looked at less; do not compare their silences.
-
-## What ran
-
-| | |
-|---|---|
-| checks with no browser (`npm test`) | PASS |
-| **can the vision judge see?** | yes — checked just before sailing — the judge opened a real screenshot and described it |
-| voyages played with a real mouse | none |
-| **voyages that did NOT run** | none |
-
-
-
-## The voyages, in full
-
-```
-(none run)
-```
-
-Screenshots and contact sheets: `sea-trial-shots/` (not committed — 100MB+ per run).
-
----
-*Written by `scripts/sea_trial.mjs`. To check whether a sea trial was actually run for what is
-live, compare the build stamp above with the one in the game's ☰ menu. The tree hash beside it is
-the game files' own content identity (T-009) — a repo-side cross-check, not something the menu
-shows; two reports with the same stamp but a different tree hash sailed different code.*
+If this is still what the file says, the trial did not finish. **A trial that did not finish is not
+a trial that passed.** Nothing here has been proven about build `2026.09.06.2` (tree `a03c55b7dd08`).

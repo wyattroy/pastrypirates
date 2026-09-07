@@ -67,12 +67,13 @@ import {
   RIM_SWEEP_MS_PER_CELL, RIM_SWEEP_MIN_MS, RIM_SWEEP_MAX_MS, isDisabledBtn,
   SHIP_GLIDE_MS, SAIL_ROUTE_TICK_MS, MOTION_BRIDGE_TICKS, MAX_NAME_LEN, getLastName,
   vwPx, fixedRect,
+  clearSoloState, clearSession,   // ?pilot=new starts a NEW voyage; these own the two saved blobs
 } from "./util.js";
 import { passGate, requireName, showStep, openNameModal, confirmName, wireNameModal, setNameWarning } from "./lobby.js";
 import { playBakeoffLive } from "./bakeoff.js";
 import { netHandlers } from "./handlers.js";
 import { pilotLine, pilotMsg, pilotSee, pilotRung, pilotDepth, pilotFirstTime,
-  pilotStartFromTheTop, pilotSkipToVeteran, pilotDecayOnLaunch } from "./pilot.js";
+  pilotStartFromTheTop, pilotSkipToVeteran, pilotDecayOnLaunch, pilotApplyUrlFlag } from "./pilot.js";
 import { showCourseFor, clearCourse } from "./course.js";
 
 const $=id=>document.getElementById(id);
@@ -3170,8 +3171,27 @@ export async function showAhoyIntro(){
      grow back mid-game, and two voyages in one evening behave identically.
      Skipped on a replay: a host refresh re-runs this path, and decaying again would hand a captain
      back rungs they had already spent purely because their browser reloaded. */
+  /* THE URL FLAG IS READ BEFORE ANYTHING ELSE TOUCHES THE COUNTS — ?pilot=new has to be able to
+     un-answer the fork, and one line below is where the fork asks. */
+  if(!appState.replaying){
+    const flag=pilotApplyUrlFlag();
+    /* ⚠ "new" MEANS A NEW VOYAGE, and without this the flag silently did nothing on any device
+       that had played. boot() RESUMES an interrupted solo game before the opening ever runs, so
+       the captain was dropped straight back into a voyage in progress — past the fork, past every
+       rung — with no error and no hint. Measured rather than reasoned: five of six modes came back
+       reading "Wyatt, choose yer recipe" off a resumed game.
+       CLEARED THROUGH THE FUNCTIONS THAT OWN THOSE BLOBS, never by removing keys by hand — the
+       first attempt hardcoded `pp_solo`/`pp_sess`, which is what docs/DRIVING-THE-GAME.md §2 still
+       calls them, and the real keys have been `pp4_solo`/`pp4_sess` for some time. A second copy of
+       a name is a second thing to keep in step, and this one was already out of step. */
+    if(flag==="new"){clearSoloState();clearSession();}
+  }
   if(!appState.replaying)pilotDecayOnLaunch();
-  if(pilotFirstTime()){
+  /* NOT ON A REPLAY. netIntroBarrier below self-skips when appState.replaying is set, because a
+     host refresh re-runs this whole path — and a localAsk here would put a card on screen and wait
+     for a tap that is never coming, hanging the rebuild. The fork inherits the same guard rather
+     than relying on nobody noticing. */
+  if(!appState.replaying&&pilotFirstTime()){
     // @copy misc.introbarrier.pilotfork — DRAFT COPY, his to rewrite.
     const knows=await localAsk(`🦜 Do ye know how to play?`,[
       {label:"Yaargh!",value:0,cls:"primary",stage:true},

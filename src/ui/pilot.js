@@ -25,6 +25,8 @@
 //
 // Read .claude/memory/DECISIONS.md "THE TUTORIAL" for the 29 rulings behind the copy.
 
+import { devHost } from "../shared/host.js";
+
 const KEY = "pp4_pilot";
 const VERSION = 1;
 
@@ -291,6 +293,39 @@ export function pilotDecayOnLaunch(now){
      tapping the parrot. A voyage merely happening is not either of those. */
   write();
   return back;
+}
+
+/* ================= THE ENTRY POINT ================= *
+ * ?pilot=new · ?pilot=off · ?pilot=vet
+ *
+ * WHY THIS EXISTS AT ALL, and it is not developer convenience. Every rung in this file is spent
+ * the first time it is seen, so "show me rung 0" means "find a device that has never played" —
+ * which on a phone means clearing site data, and Wyatt reads on a phone. Without a flag, checking
+ * one line of copy costs him a settings trip and a reload, and the checklist item that asks for it
+ * quietly becomes an item he skips.
+ *
+ *   new  every ladder back to the top AND the fork un-answered, so "Do ye know how to play?"
+ *        appears again. This is the first-time captain's whole voyage.
+ *   vet  every ladder at the bottom: today's game exactly, with no fork.
+ *   off  the parrot silenced, as if he had tapped it off.
+ *
+ * devHost() GATED, deliberately and with its cost understood: on the live domain this does nothing
+ * at all, silently. That is the right trade — flags in a player's URL bar are a way to break a real
+ * game — and STAGING COUNTS AS A DEV HOST (src/shared/host.js), which is where he plays work in
+ * progress. Any checklist item using it must point at staging, never at the live domain.
+ */
+export function pilotApplyUrlFlag(){
+  let mode = null;
+  try {
+    if (!devHost()) return null;
+    const m = /[?&]pilot=(new|off|vet)\b/.exec(location.search);
+    mode = m && m[1];
+  } catch (e) { return null; }
+  if (!mode) return null;
+  if (mode === "new"){ pilotStartFromTheTop(); const s = read(); s.met = false; write(); }
+  else if (mode === "vet") pilotSkipToVeteran();
+  else if (mode === "off"){ const s = read(); s.off = true; s.met = true; write(); }
+  return mode;
 }
 
 /** Test seam only — never called by the game. Lets the gates pose a state without a browser. */
