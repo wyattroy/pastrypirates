@@ -1660,7 +1660,7 @@ async function pickBarterCrates(player,ing){
     opts.push({label:"← Back",back:true,value:"__back__"});
     // @copy misc.blackmarket.pick1 / pick2 — draft, Wyatt rewrites
     const msg=first===null
-      ?`The black market'll take any 2 crates fer ${dockFlavorIcon(ing)} — what's the first?`
+      ?`The black market'll take any 2 ingredients fer ${dockFlavorIcon(ing)} — what's the first?`
       :`Givin' ${ilabelImg(first)} an' one more fer ${dockFlavorIcon(ing)} — what's the second?`;
     /* THE LAST SHARED HELPER LINE IS GONE (Wyatt, 2026-08-25). It read "Both crates leave the
        Sugar Seas fer good." on the first pick and "Tap it an' the bargain's struck — both crates
@@ -1696,7 +1696,7 @@ export async function humanDock(player,port){
   // already puts explanatory text (and, per the standing top-to-bottom rule, is revealed last).
   // @copy misc.paramprompt.dockflip
   const h=await humanFlip(player,`Docking at ${iconImg(ING_IMG[ing])} ${dockPlace(ing)} — dig for treasure!`,true,
-    `⚪ HEADS strikes buried treasure <span class="nobrk">(+${g.cfg.dockHeads}🌕)</span> · ⚫ TAILS is a turn workin' the docks <span class="nobrk">(+${g.cfg.dockTails}🌕)</span>. Either way, ye may then buy a crate.`);
+    `⚪ HEADS strikes buried treasure <span class="nobrk">(+${g.cfg.dockHeads}🌕)</span> · ⚫ TAILS is a turn workin' the docks <span class="nobrk">(+${g.cfg.dockTails}🌕)</span>. Either way, ye may then buy an ingredient.`);
   if(h==="back")return "back";
   player.coins+=h?g.cfg.dockHeads:g.cfg.dockTails;
   let got=h?"treasure":"dockhand";
@@ -1747,8 +1747,8 @@ export async function humanDock(player,port){
           why:shortWhy},
       ];
       // @copy misc.blackmarket.barterbtn — draft, Wyatt rewrites
-      if(black)opts.push({label:`Trade any 2 crates fer ${ilabelImg(ing)}`,short:`2 crates → ${iconImg(ING_IMG[ing])}`,value:"barter",disabled:!canBarter,
-        why:`The barter takes 2 crates off yer hands, and ye're carryin' ${player.ing.length}.`});
+      if(black)opts.push({label:`Trade any 2 ingredients fer ${ilabelImg(ing)}`,short:`2 → ${iconImg(ING_IMG[ing])}`,value:"barter",disabled:!canBarter,
+        why:`The barter takes 2 ingredients off yer hands, and ye're carryin' ${player.ing.length}.`});
       opts.push({label:"Nah",value:false});
       // @copy misc.blackmarket.whisper — draft, Wyatt rewrites
       /* HIS COPY PASS, 2026-08-25. The black-market whisper said in a sentence what the two
@@ -1922,7 +1922,7 @@ async function counterOffer(q,player,offer){
     const opts=theirs.map(i=>crateOpt(player.ing,i));
     // coin-only is still a legal counter — it is what the old flow could do, kept rather than lost
     opts.push({label:`💰 Coin instead`,short:`💰 Coin`,value:"__coinsonly__",disabled:room<1,
-      why:`${pn(player.idx)} has no coin at all — it must be a crate.`});
+      why:`${pn(player.idx)} has no coin at all — it must be an ingredient.`});
     opts.push({label:`${iconImg(CANCEL_X_IMG)} Deny`,value:"__deny__"});
     opts.push({label:"← Back",back:true,value:"__back__"});
     // @copy prompt.trade.counterwant — APPROVED as written, Wyatt 2026-08-14 ("draft copy is fine")
@@ -2091,7 +2091,7 @@ export async function humanTrade(player){
       const canOfferCoins=player.coins>0;
       const ingOpts=[...new Set(player.ing)].map(i=>crateOpt(player.ing,i));
       ingOpts.push({label:"— coins only —",value:"__coinsonly__",disabled:!canOfferCoins,
-        why:`Yer purse is empty — ye've no coin to offer, so it must be a crate.`});
+        why:`Yer purse is empty — ye've no coin to offer, so it must be an ingredient.`});
       ingOpts.push({label:"← Back",back:true,value:"__back__"});
       // no shared helper line: the greyed "— coins only —" option already carries "Yer purse is
       // empty — ye've no coin to offer, so it must be a crate." (2026-08-25)
