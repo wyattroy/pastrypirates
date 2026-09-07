@@ -15,10 +15,28 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { serve, launch, attach, killAll, sleep } from "../mp_rig.mjs";
 
+import fs from "node:fs";
 const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "..");
 const PORT = 8493, DBG = 9393;                 // a port not used by the other probes
 const base = serve(PORT);
-launch(DBG, path.join(REPO, ".tmp-pilot-flag"));
+/* ⚠ A PROFILE NOBODY ELSE COULD HAVE TOUCHED, and this gate took three tries to get right.
+   Chrome keeps localStorage in its profile directory, so "a device that has never played" is a
+   property of that directory, not of the code. Two wrong answers before this one:
+     v1 reused one fixed directory. It passed the first time and FAILED the second on identical
+        code, because the second run inherited a device that had already played — a gate whose
+        answer depends on whether anyone ran it before is not a gate.
+     v2 deleted that directory at startup. STILL ALTERNATED pass/fail, and the reason is a race
+        rather than a mistake: killAll() does not wait, so the PREVIOUS run's dying Chrome flushes
+        its storage back into the directory AFTER the next run has deleted it.
+   v3 removes the race instead of trying to win it: a unique directory per process. Nothing that is
+   still shutting down can contaminate a path it has never heard of. Old ones are swept at the end
+   so the tree does not fill up with them. */
+const PROFILE = path.join(REPO, `.tmp-pilot-flag-${process.pid}-${Date.now()}`);
+for (const d of fs.readdirSync(REPO)) {
+  if (!d.startsWith(".tmp-pilot-flag")) continue;
+  try { fs.rmSync(path.join(REPO, d), { recursive: true, force: true }); } catch {}
+}
+launch(DBG, PROFILE);
 const C = await attach(DBG);
 await C.send("Emulation.setDeviceMetricsOverride", { width: 390, height: 844, deviceScaleFactor: 2, mobile: true });
 
@@ -39,7 +57,15 @@ const waitFor = async (expr, ms, label) => {
 async function run(flag, { wipe }){
   await C.ev(`location.href=${JSON.stringify(base)}`).catch(() => {});
   await sleep(1800);
-  if (wipe) await C.ev(`localStorage.clear()`);
+  if (wipe) {
+    /* CLEARED, THEN CHECKED. localStorage.clear() on the wrong origin returns quietly and does
+       nothing, which is exactly how this probe once tested a device that had already played and
+       reported the GAME broken. Assert the key is really gone; if it is not, the probe says so
+       instead of producing a confident wrong answer. */
+    await C.ev(`localStorage.clear()`);
+    const left = await C.ev(`(()=>{try{return localStorage.getItem('pp4_pilot')}catch(e){return 'THREW'}})()`);
+    if (left !== null) throw new Error("localStorage.clear() did not take (pp4_pilot still " + left + ") — the probe is on the wrong origin, not the game misbehaving");
+  }
   /* CLEAR THE SAVED VOYAGE BUT KEEP WHAT THE PILOT REMEMBERS. DRIVING-THE-GAME §2: a leftover
      `pp4_solo` silently RESUMES an interrupted game instead of showing the welcome screen, so
      without this every run after the first tested a resumed voyage and never reached the opening
@@ -104,6 +130,8 @@ try {
   ok("the probe ran to completion", false, e.message);
 } finally {
   killAll();
+  // leave nothing behind — the next run must start from a device that has never played
+  try { fs.rmSync(PROFILE, { recursive: true, force: true }); } catch {}
 }
 console.log(`\n${fails ? "FAILED" : "PASSED"} — ${fails} failing check(s)`);
 process.exit(fails ? 1 : 0);
