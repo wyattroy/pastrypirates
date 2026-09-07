@@ -72,7 +72,7 @@ import { passGate, requireName, showStep, openNameModal, confirmName, wireNameMo
 import { playBakeoffLive } from "./bakeoff.js";
 import { netHandlers } from "./handlers.js";
 import { pilotLine, pilotMsg, pilotSee, pilotRung, pilotDepth, pilotFirstTime,
-  pilotStartFromTheTop, pilotSkipToVeteran } from "./pilot.js";
+  pilotStartFromTheTop, pilotSkipToVeteran, pilotDecayOnLaunch } from "./pilot.js";
 import { showCourseFor, clearCourse } from "./course.js";
 
 const $=id=>document.getElementById(id);
@@ -3136,6 +3136,16 @@ export async function showAhoyIntro(){
      This card already draws any number of circles, so making it two costs one argument.
      Wyatt's own framing, which matters for later: if testing says some captains want a middle
      setting, that is a THIRD CIRCLE AND A NUMBER — not a new system. */
+  /* ── DECAY IS EVALUATED HERE, ONCE, AND NOWHERE ELSE ────────────────────────────────────────
+     Every voyage passes through this card, before a single rung has been read, which is the one
+     property the schedule needs: under 7 days nothing changes · 7-30 back one rung · 30-90 back
+     two · over 90 back to the top.
+     EVALUATED BETWEEN VOYAGES, NEVER DURING ONE, and that is what makes it predictable — it
+     answers the objection the spec raised against decay in its own first draft. Words can never
+     grow back mid-game, and two voyages in one evening behave identically.
+     Skipped on a replay: a host refresh re-runs this path, and decaying again would hand a captain
+     back rungs they had already spent purely because their browser reloaded. */
+  if(!appState.replaying)pilotDecayOnLaunch();
   if(pilotFirstTime()){
     // @copy misc.introbarrier.pilotfork — DRAFT COPY, his to rewrite.
     const knows=await localAsk(`🦜 Do ye know how to play?`,[
