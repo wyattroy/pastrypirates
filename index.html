@@ -598,7 +598,15 @@
   @keyframes apWhyIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
   @media (prefers-reduced-motion: reduce) { .apWhy { animation: none; } }
   /* #5c: helper line under the action buttons */
-  .apSub { margin-top: 8px; font-size: 12.5px; opacity: .8; font-style: italic; }
+  /* ⭐ BIGGER, IN ALL THREE PLACES IT IS DRAWN — Wyatt, 2026-09-07 playtest item 3: "the helper
+     text is too small to read. Increase the size of the helper text font."
+     THE HELPER LINE IS WHERE THE PILOT SPEAKS. Every `sub` rung in src/ui/pilot.js lands in this
+     slot, so "too small to read" is not a cosmetic note — it is the tutorial being unreadable at
+     the one moment it is teaching. 12.5px italic at 80% opacity on a phone was asking a lot.
+     Raised to 15px and the opacity lifted with it; italic still separates this voice from the
+     game's own. The radial and centre-stage variants below move by the same proportion rather
+     than being left behind — one line, three surfaces, and a player must not meet three sizes. */
+  .apSub { margin-top: 8px; font-size: 15px; opacity: .9; font-style: italic; }
   /* small, consistent "back" affordance for every back-able decision — deliberately lower-key
      than the real choices below it (a chevron-in-a-circle, iOS-nav-bar style), not another
      button competing for attention in the main row */
@@ -909,23 +917,25 @@
      chip whose CSS animation silently erased its SVG transform attribute. */
   .pp4CourseMark { position: absolute; transform: rotate(-4deg); }
   .pp4CourseMarkArt { display: block; width: 100%; height: 100%;
-    filter: drop-shadow(0 1px 3px rgba(0,25,35,.55));
-    animation: pp4CourseBreathe 1.2s ease-in-out infinite; }
+    filter: drop-shadow(0 1px 3px rgba(0,25,35,.55)); }
   /* THE SWELL IS THE PULSE, AND THERE IS NO RING. Wyatt, 2026-09-03: "I want the x to pulse,
      remove the ring." That reverses his own two earlier rulings to keep the slow white ripple —
      the later one wins, and it is written down here so nobody restores a ring from the older
-     comment. Depth 0.15 and period 1.2s are his dialled numbers (pd/ps in COURSE), traced round
-     the sine the tuner drew rather than eyeballed: 1 → 1.15 → 1 → 0.85 → 1. */
-  @keyframes pp4CourseBreathe {
-    0%   { transform: scale(1); }
-    25%  { transform: scale(1.15); }
-    50%  { transform: scale(1); }
-    75%  { transform: scale(0.85); }
-    100% { transform: scale(1); }
-  }
-  @media (prefers-reduced-motion: reduce) {
-    .pp4CourseMarkArt { animation: none; }
-  }
+     comment.
+     ⭐ THE ANIMATION ITSELF NOW LIVES IN THE ATTENTION VOCABULARY BLOCK, and the private
+     @keyframes that stood here is DELETED — Wyatt, 2026-09-07 playtest item 19: "The X's aren't
+     pulsing smoothly — they're pausing at the halfway point between small and large size;
+     instead, they should pulse smoothly from small to big according to the same motion as the
+     action prompt buttons (reuse that function if possible to reduce drift and maintain
+     consistency)."
+     HE DIAGNOSED IT EXACTLY. The old keyframes ran 1 → 1.15 → 1 → 0.85 → 1 across FIVE stops with
+     `ease-in-out`, and ease-in-out decelerates into and out of EVERY stop — so the 50% keyframe,
+     sitting at scale(1) in the middle of the cycle, produced a visible halt at true size twice a
+     second. That is the pause he saw, and it was a property of having written a second keyframe
+     at all. The button's pp4Grow is two stops, one swell, no halt — and the same 1.15 peak, so
+     his dialled depth is unchanged. One gesture, one definition (rule 8). */
+  /* (the reduce-motion guard for this element moved into the attention block with the animation
+     itself — it MUST sit after the rule it overrides, and it now does.) */
   /* the wrapper holds the tangent rotation and NEVER animates; the img drifts along that rotated
      local axis, so each arrow travels its own stretch of channel rather than all of them sliding
      the same way across the board */
@@ -1952,7 +1962,7 @@
      elsewhere; on phone (no transformed ancestor) `%` resolves against the true viewport, same as
      `vw` did — no change there (D-18). */
   #pp4Prompt.radial .apSub { display:block; position:fixed; background:rgba(255,253,242,.9);
-    border-radius:9px; padding:4px 10px; font-size:11px; font-style:italic; color:#4a3223;
+    border-radius:9px; padding:5px 11px; font-size:13.5px; font-style:italic; color:#4a3223;
     width:max-content; max-width:80%; box-shadow:0 4px 12px rgba(0,0,0,.25); margin:0; }
   #pp4Prompt.radial .apBack { display:flex; position:fixed; width:38px; height:38px;
     border-radius:50%; align-items:center; justify-content:center; pointer-events:auto;
@@ -2477,7 +2487,7 @@
      compact card, since it is the recipe's first and only unhurried read */
   #pp4Prompt.pp4Center .apMsg .bkoCard li { font-size:13.5px; }
   /* the helper line sits under the stage button, on the dim sea — light text so it reads there */
-  #pp4Prompt.pp4Center .apSub { color:#fffdf2; opacity:.9; text-align:center; font-size:13px;
+  #pp4Prompt.pp4Center .apSub { color:#fffdf2; opacity:.95; text-align:center; font-size:15.5px;
     text-shadow:0 1px 8px rgba(0,0,0,.6); }
   /* ── ONE CARD AT A TIME, ON A VISIBLE STACK OF TWO ──────────────────────────────────────────
      His ruling 18: the card must show "visually that it is a stack of two, which didn't say one of
@@ -2749,6 +2759,31 @@
      places, which is what makes the tutorial a character rather than a system. */
   #pp4Help { display:inline-flex; font-size:14px; cursor:pointer; letter-spacing:-.5px; }
   #pp4Help.off { opacity:.5; }
+
+  /* ═══════════════ POLLY'S BOX — the parrot switch answering out loud ═══════════════
+     Wyatt, 2026-09-07 playtest item 9: "when parrot is enabled/disabled, there should be a little
+     helper box (it should look like a narration box but we can call it something different so you
+     don't get confused in the code) that says 'Polly's helping!' when on, and 'Polly's not
+     helping'." Named for what he called it, at his instruction — it is NOT a narration and must
+     never be routed through the narration channel.
+
+     WHY IT HAS ITS OWN PLACE INSTEAD OF THE NARRATION COLUMN. The line this replaces went through
+     stageFlash and had to be SUPPRESSED whenever a prompt was up, because at 320px it drew over
+     the sail prompt's own helper line and made both unreadable. That left the control silent at
+     exactly the moment a player is most likely to press it. Pinned directly under the ribbon,
+     centred, above the board and below the chip it belongs to, it collides with nothing — so it
+     can speak every single time.
+
+     pointer-events:none so it can never swallow a tap meant for the board underneath, and opacity
+     alone carries the fade (a compositor-only property — no layout, no repaint of the sea). */
+  #pp4Polly { position:fixed; left:50%; margin-left:-140px; width:280px; box-sizing:border-box;
+    top:calc(52px + env(safe-area-inset-top)); z-index:60; text-align:center;
+    background:rgba(255,253,242,.96); color:#4a3223; border:2.5px solid #177; border-radius:11px;
+    padding:8px 12px; font-size:15px; font-style:italic; font-weight:700; line-height:1.3;
+    box-shadow:0 6px 18px rgba(0,0,25,.3); pointer-events:none;
+    opacity:0; transition:opacity .18s ease; }
+  #pp4Polly.show { opacity:1; }
+  @media (prefers-reduced-motion: reduce) { #pp4Polly { transition:none; } }
   /* THE RIBBON FITS AT 320px. Measured before a line of the tutorial existed: the row is clean at
      430/390/360 and runs 21px off the edge at 320 once the ? is added — red-proofed both ways, so
      the button is the cause and not an existing fault being blamed on it.
@@ -2920,6 +2955,25 @@
     animation: pp4GrowSoft 1.1s ease-in-out infinite; }
   #pp4Prompt.radial #actionPanel:not(.pendingReveal) .apBtn:not(.apDisabled):not(:disabled):not([aria-disabled="true"]) {
     animation: pp4Grow 1.1s ease-in-out infinite; }
+  /* ⭐ THE TREASURE X ON THE CHARTED COURSE — added here rather than beside the marker's own CSS,
+     because that is what this block's opening rule requires: "To make a new surface glow or grow,
+     add its selector here — never write a new @keyframes or a per-surface animation rule
+     elsewhere." It had a private copy and the copy had drifted (see .pp4CourseMarkArt above); this
+     is that drift being closed, on his instruction to "reuse that function".
+     THE FULL SWELL, NOT THE SOFT ONE: an X about half a square across, over open water, is the
+     same read-at-arm's-length problem as the radial petals — and 1.15 is the depth he dialled for
+     it anyway. No ring, per his 2026-09-03 ruling; the glow list above deliberately excludes it. */
+  .pp4CourseMarkArt { animation: pp4Grow 1.1s ease-in-out infinite; }
+  /* ⚠ AND ITS REDUCE-MOTION GUARD, DIRECTLY BELOW THE RULE IT OVERRIDES. This guard used to live
+     ~2000 lines up, beside the marker's own CSS — which was correct only while the animation lived
+     there too. Both selectors are a bare `.pp4CourseMarkArt` (0,1,0), so the cascade is decided by
+     SOURCE ORDER, and moving the animation down here without moving the guard would have silently
+     re-animated the X for every player who has asked their device to stop moving things. Caught by
+     reading the cascade rather than by a probe, which would not have been running with the setting
+     on. The X goes STILL rather than swapping to the glow the buttons use — his 2026-09-03 ruling
+     ("I want the x to pulse, remove the ring") means a ring is not an option here, even as a
+     reduced-motion substitute. */
+  @media (prefers-reduced-motion: reduce) { .pp4CourseMarkArt { animation: none; } }
 
   /* Hover pauses the pulse (a transform in a running keyframe beats anything :hover sets — the
      sail squares' own lesson). REDUCE MOTION swaps the grow for the STILL glow rather than for
@@ -2985,6 +3039,17 @@
 <div id="legalFooter">
   <a href="privacy.html">Privacy Policy</a>
   <a href="about.html">About</a>
+  <!-- ⭐ CREDITS MOVED HERE FROM INSIDE THE MODAL — his playtest item 16, 2026-09-07: "the line at
+       the bottom ... which should be removed: 'These credits live at....'". He was reading the
+       credits when it told him where the credits are.
+       IT COULD NOT SIMPLY BE DELETED. That sentence carried the ONLY <a href="credits.html"> on
+       the page, and scripts/qa/credits_page_check fails without one: the footer control is a
+       <button>, so with the sentence gone the credits page was unreachable to a crawler following
+       links from the homepage — the page would still exist and Google would never be told.
+       THIS ROW IS THE RIGHT HOME AND IT IS HIS OWN PATTERN: qid:t206-privacy-line, 2026-09-04 —
+       "two small links at the bottom of the screen, never inside the popup modal." It is three
+       now, which is the one part of this he has not ruled on; it is on his sheet. -->
+  <a href="credits.html">Credits</a>
 </div>
 
 <!-- ===================== WELCOME MODAL ===================== -->
@@ -3132,7 +3197,13 @@
       <p><b>⛵ Sail.</b> Sailing is <b>free</b>. Move up to <b data-rule="sailRange"></b> squares in any mix of directions — but the moment yer route bites into the wind, even for one square, the whole move is capped at <b data-rule="sailUpwind"></b>. Across the wind doesn't count against ye. Sail past other ships, but don't end on one.</p>
       <p><b>⚓ Act</b> — choose one:</p>
       <p><b>Dock</b> — tie up at an island's dock (one ship at a time!) and flip for yer fortune: <b>heads</b> ye strike buried treasure and take <b data-rule="dockHeads"></b>🌕; <b>tails</b> ye spend the turn workin' the docks for <b data-rule="dockTails"></b>🌕. Either way ye may then <b>buy</b> an ingredient, with the coin ye just earned. Stay as long as ye like and keep flipping.</p>
-      <p><b>💰 Crate prices rise.</b> A crate costs <b data-rule="crateBase"></b>🌕 <b>minus however many are left on that island</b> — so the first off a full island is <b data-rule="priceFirst"></b>🌕, the next <b data-rule="priceNext"></b>🌕, and the last one <b data-rule="priceLast"></b>🌕. Get there first, or pay for dawdling. Ye may buy crates that aren't on yer recipe — they make excellent trade bait...</p>
+      <!-- His rewrite, 2026-09-07 playtest item 23. The formula clause ("A crate costs 6🌕 minus
+           however many are left on that island") is GONE at his instruction: the three prices that
+           follow it already say what it says, and the word "crate" is now "ingredient" throughout
+           the game. Two slips in his pasted replacement are corrected — "the first ingredient a
+           full island" is missing its "off", and "ingedients" — and flagged to him rather than
+           silently kept. `data-rule="crateBase"` leaves this sentence with it. -->
+      <p><b>💰 Ingredient prices rise.</b> The first ingredient off a full island is <b data-rule="priceFirst"></b>🌕, the next <b data-rule="priceNext"></b>🌕, and the last one <b data-rule="priceLast"></b>🌕. Get there first, or pay for dawdling. Ye may buy ingredients that aren't on yer recipe — they make excellent trade bait...</p>
       <p><b>🕯️ The black market.</b> A sold-out island always has ONE more ingredient under the counter — a flat <b data-rule="blackMarket"></b>🌕, forever. Steep, but no recipe is ever truly dead. Skint? The black market'll also take <b>any two ingredients</b> from yer hold in trade for it — even two of the same.</p>
       <p><b>Attack</b> — fight an adjacent ship! Pay <b data-rule="powder"></b>🌕 for powder, then <b>one broadside each</b>. Heads beats tails. Both heads? The captain firing <b>downwind</b> lands the shot — a crosswind clash and the cannonballs collide. Both tails and the defender may slip away, <b>free</b>. If the shot doesn't tell, the attacker may pay <b data-rule="refire"></b>🌕 to load another broadside and fire alone — heads and it lands — as often as they can pay. Break off and the battle ends with <b>nobody gaining a thing</b>. The winner takes <b>one ingredient</b> of their choosing. Nobody changes squares. <b>Every dock is raidable</b> — a berth protects nobody. <span data-engine-rule="sanctuary">But once a captain's ovens are lit they're beyond yer reach — rob 'em on the way home, or not at all.</span> Ye can't attack a ship with an empty hold; there's nothing to take.</p>
       <p><b>🔭 Callin' the fight.</b> Any captain not in it may call the winner from the crow's nest. It's <b>free</b>, it costs ye nothing to be wrong, and ye get <b data-rule="callBounty"></b>🌕 from the bank if yer right. Nobody's paid on a battle that ends with no winner.</p>
@@ -3180,7 +3251,10 @@
          equivalent line. It sits OUTSIDE .modalByline, so scripts/lib/credits_page.mjs's narrow
          .modalByline selector never pulls it into the generated page — no data-page-omit marker
          needed the way rules.html needed one, because the extraction never reaches this div. -->
-    <p style="text-align:center;font-size:12.5px;opacity:.75;margin-top:14px">These credits live at <a href="credits.html">playpastrypirates.com/credits.html</a> — a page you can send to a collaborator.</p>
+    <!-- "These credits live at playpastrypirates.com/credits.html — a page you can send to a
+         collaborator." DELETED, his playtest item 16. He asked whether it was staging-only; it was
+         not — it shipped on every build. It told a reader already reading the credits where the
+         credits are. -->
     <!-- KOFI-01: after the credits text, per the requirement. A button onto the SAME #kofiModal the
          footer opens — one embedded panel, two doors — so neither route leaves the game. -->
     <div style="text-align:center;margin-top:16px">

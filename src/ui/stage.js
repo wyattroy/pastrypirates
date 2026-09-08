@@ -22,7 +22,7 @@ import { typewriterReveal } from "./panel.js";
 import { HEXCOL, emojify, DIRS, STORM_PUSH, BOAT_IMG } from "../shared/index.js";
 import { showsThinkingIndicator } from "../shared/visibility.js";
 import { pilotToggle, pilotIsOn, pilotMsg, pilotSee } from "./pilot.js";
-import { showCourseFor, paintMarks, clearCourse } from "./course.js";
+import { showCourseFor, paintMarks, clearCourse, forgetCourse, redrawCourse } from "./course.js";
 
 const $ = id => document.getElementById(id);
 const AR = { N: "↑", S: "↓", E: "→", W: "←" };
@@ -1304,6 +1304,33 @@ function pillTick(){
   if (p.style.display !== want) p.style.display = want;
 }
 
+/* ═══════════════ POLLY SPEAKS ═══════════════
+   His item 9's little box. Deliberately NOT stageFlash and NOT the narration channel: it is the
+   parrot switch reporting on itself, it must appear even while a prompt is up, and it is named
+   `polly` rather than `narr` at his explicit instruction so the two can never be confused in the
+   code. One element, created on first use and reused after that — a toggle that gets pressed
+   repeatedly must not litter the DOM.
+   THE REFLOW POKE IS LOAD-BEARING: without it, pressing the chip twice quickly re-adds a class
+   the element already has, no transition fires, and the second press looks like it did nothing —
+   which is the exact complaint this whole item exists to fix. */
+let pollyTimer = null;
+function pollySay(text){
+  let el = document.getElementById("pp4Polly");
+  if (!el){
+    el = document.createElement("div");
+    el.id = "pp4Polly";
+    el.setAttribute("role", "status");     // announced by a screen reader without stealing focus
+    el.setAttribute("aria-live", "polite");
+    document.body.appendChild(el);
+  }
+  el.textContent = text;
+  el.classList.remove("show");
+  void el.offsetWidth;                      // restart the fade on a repeat press
+  el.classList.add("show");
+  if (pollyTimer) clearTimeout(pollyTimer);
+  pollyTimer = setTimeout(() => { el.classList.remove("show"); }, 1900);
+}
+
 /* THE PARROT CHIP'S OWN STATE, in one place. It is the only control in the ribbon whose look
    depends on something stored rather than on the live game, so it is synced on the toggle and at
    build time rather than every ribbonTick — a per-frame localStorage read to draw an opacity would
@@ -2188,7 +2215,7 @@ function chartFrontRecipe(card){
   else paintMarks(ids.map(i => (g.dockOf && g.dockOf[i]) || (g.islandOf && g.islandOf[i])).filter(Boolean), cellPx());
 }
 
-function clearGlow(){ document.querySelectorAll(".pp4Glow").forEach(e => e.remove()); clearCourse(); }
+function clearGlow(){ document.querySelectorAll(".pp4Glow").forEach(e => e.remove()); forgetCourse(); }
 function clearBake(){ document.querySelectorAll(".pp4Bake").forEach(e => e.remove()); }
 
 /* ========== the trade-wind ride preview (playtest 20, Mando's three lost turns) ========== */
@@ -2303,21 +2330,28 @@ function buildStage(){
        whole turn — a toggle that does not visibly do anything is worse than no toggle. Switching
        ON does not draw a course here on purpose: the guide belongs to a prompt, and it arrives with
        the next one rather than appearing over whatever is on screen now. */
-    if (!on) clearCourse();
-    // @copy misc.pilot.toggle — DRAFT COPY, his to rewrite.
-    // It speaks through stageFlash, i.e. the narration box the game already talks from. Nothing
-    // in this feature is a tooltip: he killed a hover tooltip for the Muse button on 2026-08-27
-    // ("don't build the tooltip, ignore this and let the idea go") and that ruling is respected
-    // rather than argued with.
-    /* ⚠ NOT WHILE A PROMPT IS UP. Measured on the posed pair at 320px: the toggle's line drew
-       straight over the sail prompt's own helper line and half of each was unreadable — two boxes
-       in one place, which is the collision the narration channel exists to prevent.
-       The chip dims either way, so the control is never silent; the sentence is a courtesy and it
-       waits for a moment that has room for it. */
-    const promptUp = !!document.querySelector("#actionPanel .apMsg");
-    if (S.active && !promptUp)
-      stageFlash(on ? "🦜 Yer parrot's watchin' — he'll start from the top."
-                    : "🦜 Yer parrot settles down. Fair winds, captain.");
+    /* ⭐ THE TOGGLE ANSWERS IN BOTH DIRECTIONS NOW — Wyatt, 2026-09-07 playtest item 9: "when i
+       click parrot on again, the dotted line doesn't return — it should though! re-enabling parrot
+       should immediately restore all the hint state."
+       The comment that stood here defended the old behaviour ("the guide belongs to a prompt, and
+       it arrives with the next one rather than appearing over whatever is on screen now"). That
+       was my call and he has overruled it, for the reason that killed the original one-way
+       version: a control that visibly does nothing when you press it reads as broken. redrawCourse
+       re-derives the tour from the LIVE game, so what comes back is where the captain must go now.
+       The WORDS still arrive with the next prompt — pilotToggle() has just put every ladder back
+       to rung 0 — and that half was never the complaint. */
+    if (on) redrawCourse(); else clearCourse();
+    /* ⭐ POLLY SAYS WHICH WAY THE SWITCH WENT, AND SHE SAYS IT EVERY TIME.
+       His item 9, second half: "when parrot is enabled/disabled, there should be a little helper
+       box (it should look like a narration box but we can call it something different so you don't
+       get confused in the code) that says 'Polly's helping!' when on, and 'Polly's not helping'".
+       ⚠ THIS REPLACES A stageFlash THAT WAS SUPPRESSED WHENEVER A PROMPT WAS UP. That suppression
+       was real and measured — at 320px the toggle's line drew straight over the sail prompt's own
+       helper line and half of each was unreadable — but it meant the control was silent at exactly
+       the moment he was most likely to press it. Polly gets her own element and her own place
+       (pinned under the ribbon, never in the narration column), so there is nothing left to
+       collide with and the suppression can go. Named `polly`, not `narr`, at his instruction. */
+    pollySay(on ? "🦜 Polly's helping!" : "🦜 Polly's not helping");
   };
   syncHelpChip();
   // FAST-FORWARD (Wyatt's spec, 2026-08-12): ONE tap arms ONE skip — everything paces instantly

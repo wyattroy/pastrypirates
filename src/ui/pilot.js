@@ -56,7 +56,10 @@ export const LADDERS = {
   // deliberately kept on the wire when the red debug shout was deleted on 2026-08-25, so the spec
   // shape and the guest payload are unchanged. No new field, no new parity risk.
   "sail.pick": [
-    { msg: "Tap a gold square to sail — head for a dock.", sub: "Sailin' into the wind is slower — half sail, half the squares." },
+    /* ⭐ HIS WORDS, 2026-09-07 playtest item 3, replacing my draft ("Sailin' into the wind is
+       slower — half sail, half the squares"). He kept the rung and rewrote the sentence: the old
+       one made a player parse two halves to reach one fact. */
+    { msg: "Tap a gold square to sail — head for a dock.", sub: "Sailin' into the wind only gets ye half the distance." },
     { msg: "Tap a gold square to sail toward a dock." },
     { msg: "Tap a gold square to sail." },
     null,
@@ -219,6 +222,17 @@ export function pilotLine(id, shipped){
 
 /** Convenience for the many call sites that only ever want the prompt line. */
 export function pilotMsg(id, shippedMsg){ return pilotLine(id, shippedMsg).msg; }
+
+/** Is the Pilot actually saying anything at this moment right now?
+ *  TRUE only while a live rung is left — false at the bottom rung, for a veteran, and whenever the
+ *  parrot is off. Callers use it to decide whether a moment is worth interrupting AT ALL, before
+ *  they spend anything on it (flashing the captains box, dimming the board, holding the turn).
+ *  Asking pilotLine() for a string and testing it for emptiness answers the same question, but it
+ *  makes every call site re-derive "empty means silent", which is the kind of thing that drifts. */
+export function pilotSpeaks(id){
+  const l = LADDERS[id];
+  return !!l && l[pilotRung(id)] != null;
+}
 
 /** This moment has now been shown. Advances that ONE count by one. */
 export function pilotSee(id){
