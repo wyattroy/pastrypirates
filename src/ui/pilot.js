@@ -42,6 +42,10 @@ const VERSION = 1;
  * circle reads "Muse +1🌕" and says nothing about doing nothing. "Attack costs two dubloons" is
  * not, because the circle already reads "Attack −2🌕".
  */
+/* ⚠ THE WORD IS "INGREDIENT", NOT "CRATE" — swept 2026-09-07 with his playtest item 23 ("Crate
+   prices rise" -> "Ingredient prices rise" on the rules page). These seven lines were written while
+   the rename was landing elsewhere and were missed by it: the Pilot is the FIRST voice a new
+   captain hears, so it was teaching a vocabulary the rest of the game had already dropped. */
 export const LADDERS = {
   // ---- the sail moment. The wind rule is the single most important sentence in the game, and
   // it rides HERE rather than getting a ladder of its own, because the sail prompt is the only
@@ -67,16 +71,16 @@ export const LADDERS = {
 
   // ---- the act menu: docking, and the fact that ye must
   "act.menu": [
-    "Crates come off the islands — tie up at a dock to take one aboard.",
-    "Tie up at a dock to take a crate aboard.",
+    "Ingredients come off the islands — tie up at a dock to take one aboard.",
+    "Tie up at a dock to take an ingredient aboard.",
     null,
   ],
 
   // ---- first sighting of each button. Driven by FIRST SIGHTING of that option, never by turn
   // count, so a captain offered their first battle on day nine still meets rung 0.
   "act.attack": [
-    "One broadside each — heads beats tails, and the winner takes a crate off the loser.",
-    "One broadside each — heads beats tails, winner takes a crate.",
+    "One broadside each — heads beats tails, and the winner takes an ingredient off the loser.",
+    "One broadside each — heads beats tails, winner takes an ingredient.",
     null,
   ],
   "act.trade": [
@@ -115,8 +119,8 @@ export const LADDERS = {
   // sentence saying `below` and a box that blinks are the same instruction twice, and the second
   // one works without being read.
   "recipe.stowed": [
-    "Yer recipe's stowed below, {name} — five crates to find. They stay greyed 'til ye hold 'em, and every captain's hold sits right beside yers.",
-    "Yer recipe's stowed below — five crates to find, greyed 'til ye hold 'em.",
+    "Yer recipe's stowed below, {name} — five ingredients to find. They stay greyed 'til ye hold 'em, and every captain's hold sits right beside yers.",
+    "Yer recipe's stowed below — five ingredients to find, greyed 'til ye hold 'em.",
     "Yer recipe's stowed below.",
     null,
   ],
@@ -138,7 +142,7 @@ export const LADDERS = {
   // says is that the number climbs as the island empties, which is why getting there first
   // matters. Legal under the editorial law: the button states the price, not that it moves.
   "dock.buy": [
-    "Crates come dearer as an island empties — the early bird pays least.",
+    "Ingredients come dearer as an island empties — the early bird pays least.",
     null,
   ],
 };
