@@ -129,6 +129,8 @@ removed · `X-Robots-Tag: noindex`. A production build has none of them. Both ha
 mention it at all.** Measured tonight:
 
 ```bash
+# Mac / Linux ONLY — `dig` ships with macOS but is absent from Git Bash on Windows and from
+# the cloud containers. On Wy-Blade use `nslookup -type=DS playpastrypirates.com`.
 dig DS playpastrypirates.com +noall +answer
 ```
 
@@ -149,6 +151,7 @@ while DNSSEC is active can cause your domain to become unreachable."*
 on the day" step. Disable DNSSEC at Squarespace, then wait until
 
 ```bash
+# Mac / Linux ONLY — see the note above for the Windows form.
 dig DS playpastrypirates.com +short
 ```
 

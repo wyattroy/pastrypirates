@@ -8,11 +8,16 @@ it. Most days the correct output is **nothing**, and a session that invents work
 is doing the damage it was sent to prevent.
 
 > **⚠ THIS BRIEF WAS ITSELF STALE WITHIN A DAY, WHICH IS THE POINT.** As written on 2026-09-06 it
-> told the session to run `4/scripts/doc_command_check.js` — a path the cutover deleted — and to
-> lower a `CEILING` constant that no longer exists in that file. It also cited a rules table that
-> the 2026-09-06 rewrite removed. **Three false claims, in the document whose whole job is finding
-> false claims.** Corrected 2026-09-06 in the same session that trimmed CLAUDE.md. If you find this
-> brief describing something that is gone, fix the brief first, then do the audit.
+> told the session to run `4/scripts/doc_command_check.js` — a path the cutover deleted — and it
+> cited a rules table that the 2026-09-06 rewrite removed. Corrected 2026-09-06 in the same session
+> that trimmed CLAUDE.md. If you find this brief describing something that is gone, fix the brief
+> first, then do the audit.
+>
+> **And the correction was itself wrong, which is even more the point.** It said the `CEILING`
+> constant "no longer exists". It does: `scripts/doc_command_check.js:531`, live and load-bearing —
+> it is the gate that answers question 4 below. A session reading that sentence goes looking for
+> nothing. Corrected 2026-09-08, the day CEILING was found sitting at 990 against a 227-line file.
+> **A claim that something is GONE needs the same measurement as a claim that it is there.**
 
 ---
 
@@ -34,6 +39,18 @@ this machine or be labelled with the machine it belongs to.
 wrong within the same hour — CLAUDE.md: never hand-type a number that can be counted.)*
 
 **If it is red, that is the whole job.** Fix it, open the PR, stop.
+
+> **`npm test` STOPS AT THE FIRST RED, AND IN A CLOUD CONTAINER IT NEVER REACHES THE DOC GATE.**
+> The chain is `&&`-joined, and `scripts/doc_command_check.js` is last. In the cloud there is no
+> Playwright npm package (no `~/.pw`, no `node_modules`, no global — only the *browsers*, at
+> `/opt/pw-browsers`), so `scripts/qa/trial_honesty_check.mjs` fails and everything after it,
+> including the doc gate, silently never runs. **That red is the container, not the repo, and it is
+> not this audit's to fix.** Run the doc gate on its own to get the count:
+> ```bash
+> node scripts/doc_command_check.js
+> ```
+> Then judge the two independently. On 2026-09-08 the container red masked a genuine doc red that
+> only the direct run revealed — reporting "npm test is red" and stopping would have missed it.
 
 ### 2. The judgement half — what no gate can see
 
