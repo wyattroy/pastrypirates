@@ -1,0 +1,234 @@
+<title>Sea Bed Playtest</title>
+<style>
+:root{
+  --ink:#12303a; --muted:#5b7580; --line:#d8e3e7; --card:#fffdf7; --bg:#eef4f6;
+  --pass:#1f9d6b; --fail:#d1495b; --accent:#0f7f96; --shadow:0 1px 2px rgba(16,48,58,.08),0 6px 18px rgba(16,48,58,.06);
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme=light]){
+  --ink:#e8f1f4; --muted:#93aab3; --line:#22414c; --card:#12262e; --bg:#0b1a20;
+  --pass:#3ec38c; --fail:#ff7085; --accent:#4fc3dd; --shadow:0 1px 2px rgba(0,0,0,.4),0 6px 18px rgba(0,0,0,.3);
+}}
+
+/* THE SAME DARK PALETTE AGAIN, and the duplication is deliberate rather than sloppy. The block
+   above only fires when the reader has made no explicit choice and their OS is dark; a reader who
+   taps a light/dark toggle gets data-theme stamped on the root instead, and a media query cannot
+   see that. Plain CSS has no way to give one palette two selectors across a media boundary, so
+   these two lists are ONE palette in two places: change a colour and change it in both. */
+:root[data-theme=dark]{
+  --ink:#e8f1f4; --muted:#93aab3; --line:#22414c; --card:#12262e; --bg:#0b1a20;
+  --pass:#3ec38c; --fail:#ff7085; --accent:#4fc3dd; --shadow:0 1px 2px rgba(0,0,0,.4),0 6px 18px rgba(0,0,0,.3);
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);
+  font:16px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;
+  padding:0 0 120px}
+header{position:sticky;top:0;z-index:10;background:var(--card);border-bottom:1px solid var(--line);
+  padding:14px 18px;box-shadow:var(--shadow)}
+.wrap{max-width:920px;margin:0 auto}
+h1{margin:0 0 2px;font-size:19px;letter-spacing:.2px}
+.sub{color:var(--muted);font-size:13.5px}
+.sub a{color:var(--accent)}
+.bar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:10px}
+.count{font-variant-numeric:tabular-nums;font-weight:700;font-size:13.5px}
+button{font:inherit;font-size:13.5px;padding:7px 13px;border-radius:9px;border:1px solid var(--line);
+  background:var(--card);color:var(--ink);cursor:pointer}
+button.primary{background:var(--accent);color:#fff;border-color:transparent;font-weight:600}
+button:active{transform:translateY(1px)}
+section{max-width:920px;margin:22px auto 0;padding:0 18px}
+h2{font-size:15px;text-transform:uppercase;letter-spacing:.9px;color:var(--muted);
+  margin:26px 0 10px;font-weight:700}
+.note{background:var(--card);border:1px solid var(--line);border-left:3px solid var(--accent);
+  border-radius:10px;padding:12px 14px;margin:0 0 14px;font-size:14.5px;box-shadow:var(--shadow)}
+.item{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px;
+  margin:0 0 12px;box-shadow:var(--shadow)}
+.item.pass{border-left:4px solid var(--pass)}
+.item.fail{border-left:4px solid var(--fail)}
+.top{display:flex;gap:11px;align-items:flex-start}
+.n{flex:0 0 auto;min-width:26px;height:26px;padding:0 7px;border-radius:7px;background:var(--bg);
+  color:var(--muted);font-size:12.5px;font-weight:700;display:flex;align-items:center;justify-content:center}
+.txt{flex:1 1 auto;min-width:0}
+.look{font-weight:650}
+.right{color:var(--muted);font-size:14.5px;margin-top:3px}
+.why{color:var(--muted);font-size:13px;margin-top:5px;font-style:italic;opacity:.85}
+.acts{display:flex;gap:7px;margin:11px 0 0;flex-wrap:wrap}
+.acts button{min-width:74px}
+.acts button[aria-pressed=true][data-v=pass]{background:var(--pass);color:#fff;border-color:transparent;font-weight:650}
+.acts button[aria-pressed=true][data-v=fail]{background:var(--fail);color:#fff;border-color:transparent;font-weight:650}
+textarea{width:100%;margin-top:9px;min-height:0;height:38px;padding:8px 10px;border-radius:9px;
+  border:1px solid var(--line);background:var(--bg);color:var(--ink);font:inherit;font-size:14.5px;resize:vertical}
+textarea:focus{outline:2px solid var(--accent);outline-offset:1px;height:84px}
+textarea.has{height:84px;background:var(--card)}
+.saved{color:var(--muted);font-size:12.5px}
+dialog{border:none;border-radius:12px;padding:0;max-width:680px;width:92vw;box-shadow:var(--shadow);background:var(--card);color:var(--ink)}
+dialog::backdrop{background:rgba(6,20,26,.55)}
+dialog .in{padding:16px}
+dialog textarea{height:46vh;font:13px/1.45 ui-monospace,SFMono-Regular,Menlo,monospace}
+@media print{header{position:static}.acts,button{display:none}.item{break-inside:avoid}}
+</style>
+
+<header><div class="wrap">
+  <h1>Pastry Pirates — the sea, the fiddle, and the 3-way sound switch</h1>
+  <div class="sub">Build <strong id="stamp">2026.09.07.1-staging@4bca119c</strong> ·
+   <a href="https://staging.playpastrypirates.com/" target="_blank" rel="noopener">https://staging.playpastrypirates.com/</a>
+   — the ☰ stamp must end <code>-staging@4bca119c</code>. Verified on the wire before this sheet was
+   written. A different stamp is a different build; stop and tell me.
+   <em>Almost everything here is audible in the first ten seconds of a solo game — no flags, no sailing.
+   Headphones or a decent speaker, please: half of this is stereo.</em></div>
+  <div class="bar">
+    <span class="count" id="count">0 / 0</span>
+    <button class="primary" id="copy">Copy my notes</button>
+    <button id="reset">Clear all</button>
+    <span class="saved" id="saved">saves as you type</span>
+  </div>
+</div></header>
+
+<section id="list"></section>
+
+<dialog id="out"><div class="in">
+  <p style="margin:0 0 8px"><strong>Paste this back to me.</strong> Only items you marked or commented on are included.</p>
+  <textarea id="outtxt" readonly></textarea>
+  <div style="display:flex;gap:8px;margin-top:10px">
+    <button class="primary" id="docopy">Copy to clipboard</button>
+    <button id="close">Close</button>
+  </div>
+</div></dialog>
+
+<script>
+const DATA = [
+ {h:"Before ye start"},
+ {note:"<strong>What ye are listening for.</strong> Luis's ocean loop with his five gulls and six creaks scattered over it, at the exact levels ye dialled in the Sea Bed Tuner — sea &minus;4.5&nbsp;dB, gulls &minus;15.5, creaks +1, a gull every ~10s, a creak every ~13s, 70% spread, 35% liveliness. Under it, <em>Out on the Ocean</em> by Fiddlers Plus at &minus;17&nbsp;dB and 70% to port. And the sound row is now a three-way cycle. <strong>The game is no longer silent between sounds.</strong>"},
+ {note:"<strong>⚠ I OVERWROTE ANOTHER SESSION'S STAGING BUILD TO PUT THIS HERE.</strong> Staging was serving <code>2026.09.07.2-staging@681a307b</code> — the stack fix from yer tutorial-system session — and I published over it without checking what was already there. That was mine, not a tool's. Nothing is lost: that commit is safe on its branch and one republish restores it, and I have messaged that session rather than bouncing the address back and forth. <strong>Two sessions want one staging address; which build sits here is yer call.</strong>"},
+ {note:"<strong>⛔ THE MUSIC IS MY CUT, NOT YER OWN EDIT.</strong> Yer <em>“short 1”</em> is on Drive and I could not fetch it — the Chrome extension was not connected, and the Drive connector hands back 4.7 million characters of base64 instead of writing a file. This is the same song, the same length, cut from the head of the 6:53 master already on the Mac. <strong>Yer level and pan were judged against this exact audio in the tuner, so they mean what ye heard</strong> — but where it starts is my guess. Drop the file in <code>~/Downloads</code> and it is a one-file swap with no code change. <em>Judge the level and the pan here; do not judge the loop point.</em>"},
+ {note:"<strong>Already known, so ye need not go finding it:</strong> the sea does not duck under a cannon or a drumroll, and neither does the music — nobody has asked for that, it is absent by omission not decision. The drumroll is still wired nowhere. <code>ClockTick</code> and <code>Alarm</code> still have no moment in the game. Production is untouched; this is three commits on a branch."},
+
+ {h:"The stamp, then the very first thing ye hear"},
+ {n:1,look:"Open " + "https://staging.playpastrypirates.com/" + " and open the ☰ menu. Read the build stamp.",right:"It ends -staging@4bca119c. The tab reads [STAGING].",why:"No build step here — a different stamp is a different build, and every item below is about this one."},
+ {n:2,look:"From " + "https://staging.playpastrypirates.com/" + " tap Play Solo, then “Aye, that's me name”. THE MOMENT the board appears, stop and listen. Do not touch anything.",right:"The sea is already there — a soft ocean bed, before ye take a single turn. Not silence, and not a sound that waits for yer first move.",why:"Yer words: “it should start playing from the MOMEMTN the gameboard is visible”. It rides showGameView(), the one function every route to the board goes through — solo, pass-and-play, host, guest and a reload all reach it there, so no two screens can drift."},
+ {n:3,look:"Keep listening for about half a minute. Do not play. Just count what ye hear.",right:"Gulls now and then, and lower creaks a bit more often. They should NOT arrive on a beat — sometimes two close together, sometimes a longer gap.",why:"Yer rates: a gull every ~10s, a creak every ~13s. They arrive on random gaps rather than a metronome, because a fixed interval is exactly what makes the ear find the loop."},
+ {n:4,look:"With headphones on, listen to WHERE each gull and creak lands — left, right, centre.",right:"Every one lands somewhere different across the stereo field, and none of them right at the edges.",why:"Measured on this build: 8 cries, 8 distinct positions, 4 to port and 4 to starboard, widest 0.678 — just inside the 70% ye set. Luis asked for the randomised stereo by name."},
+
+ {h:"Yer levels — these are DECISIONS, not defects"},
+ {n:5,look:"Judge the sea against the gulls. Is the sea too loud under them, or too quiet?",right:"Whatever ye say it is. This is the mix ye dialled — sea &minus;4.5&nbsp;dB, gulls &minus;15.5.",why:"HIS DECISION, not a defect. Raw, the gulls land 12&nbsp;dB ABOVE the sea; ye pulled them well under. If it wants moving, say the direction and I change one constant."},
+ {n:6,look:"Listen for the creaks specifically. Can ye hear ALL of them, or does one seem missing?",right:"Every creak audible. The quietest of the six should not vanish.",why:"The six creaks arrive 8.3&nbsp;dB apart. Creak 6 gets a ×2.03 boost computed from its measured loudness, or one flat creak knob would leave it inaudible at any setting. If one still disappears, that trim is wrong and I want to know."},
+ {n:7,look:"Headphones on. Where is the fiddle sitting?",right:"Well over to the left, under the sea, quiet.",why:"HIS DECISION — ye set the pan to 70% to port on a mono track, which is a strong one. Worth hearing on headphones specifically before ye keep it; on a speaker it reads as much milder."},
+
+ {h:"⏱ The minute — this one needs ye to leave it alone"},
+ {n:8,look:"From the moment the board appears, DO NOT TOUCH THE SOUND ROW for about two minutes. Note when the fiddle stops and when it comes back.",right:"The song plays about 35 seconds, goes quiet, and comes back roughly a minute later. It must NOT restart the instant it ends.",why:"Yer words: “the song shouldn't immediately restart after it finishes— it should wait a minute.” Measured on this build: it came back on its own at 95.0s against a predicted 94.47 (34.5s of song + yer 60s gap). Note: an earlier handoff said TWO minutes — yer 2026-09-07 wording is later and won."},
+
+ {h:"The three-way switch — three taps, and ye should end where ye started"},
+ {n:9,look:"☰ menu. Read the Sound row, then tap it ONCE.",right:"It went from “Sound: ON — with music” to “Sound: ON — no music”. The fiddle stops. The sea, gulls and creaks keep going, uninterrupted.",why:"Yer ruling: “3-way— sound+music, sound, mute— repeat again from sound+music.” Measured: on this tap nothing restarts — the sea is not interrupted, only the song stops."},
+ {n:10,look:"Tap the Sound row a SECOND time.",right:"“Sound: OFF”. Everything stops — sea, gulls, creaks and music.",why:"Mute STOPS the bed rather than just silencing it. A silent-but-running bed would hold Safari's tab audio indicator lit for a whole voyage, which is the complaint that made ye ask for mute to skip sounds entirely in the first place. Measured: twelve seconds muted, zero sounds started."},
+ {n:11,look:"Tap the Sound row a THIRD time.",right:"Back to “Sound: ON — with music”, and both the sea and the fiddle return.",why:"The wrap is the half of yer ruling most likely to be got wrong — a three-state control that sticks on the last state. Measured: three taps land back where they started."},
+ {n:12,look:"Read the wording of all three rows as ye cycle. Anything ye would say differently?",right:"“Sound: ON — with music” / “Sound: ON — no music” / “Sound: OFF”.",why:"HIS CALL — these are my words, not yers. Say the register is wrong and I change it. (I also fixed a spacing bug here: the row read “ON —with music”, no space; two neighbouring rows had shipped with the same fault.)"},
+
+ {h:"Does the bed drown the game?"},
+ {n:13,look:"With the sea running, play a few turns — sail, dock, and get into a battle.",right:"The coin flip, the crate loading, the cannon and the sword clash all still cut cleanly through the sea. Nothing sounds buried.",why:"The game's ten sounds are untouched at their shipped levels, and the bed was NOT put in the same load path — measured 10/10 still decoding, so the sea cannot make the game silent while it downloads. If anything sounds swallowed, that is a level to move and I want the name of it."},
+ {n:14,look:"Open " + "https://staging.playpastrypirates.com/" + "?endcard=1 and take it to the end card.",right:"The sea keeps running under the End of Voyage card — the ocean does not stop because the voyage ended.",why:"That flag jumps straight to the ending and works on staging (staging counts as a dev machine). Whether the sea SHOULD keep playing there is yer call — I made it keep going because it reads as the same place."},
+ {n:15,look:"☰ → Leave game, and confirm.",right:"The sound stops with the board. The lobby is silent.",why:"Leaving the board takes the sea with it — showHome() and showRoom() both stop it, so no route back to the lobby can leave the sea running underneath."},
+
+ {h:"The credit, and yer phone"},
+ {n:16,look:"Open " + "https://staging.playpastrypirates.com/" + "credits.html and read the paragraph.",right:"It says: “The music is by Fiddlers Plus and Muster Field Farms.” Plain voice, no pirate speak.",why:"Yer instruction, and credits sit outside the game world so they stay in yer own voice. The sentence is MY drafting inside yer paragraph — reword it however ye like; it is generated from the Credits modal in the game, so I change it in one place."},
+ {n:17,look:"Do items 2, 3 and 7 again on yer phone, with headphones.",right:"Same sea, same scatter, same music position.",why:"Everything above was measured in a desktop browser. The pan especially reads differently on a phone speaker versus headphones, and the phone is where ye mostly play."},
+];
+
+const KEY="pp4-staging-2026-09-07-sfx";
+/* EVERY TOUCH OF localStorage IS GUARDED, and it is not defensive habit. This sheet is opened as
+   a hosted page on his PHONE, where a private tab or blocked site data makes the accessor itself
+   THROW rather than return null -- and an unguarded read at the top of this script would take the
+   whole page down with it, leaving him a blank screen instead of a checklist. The marks are a
+   convenience; the sheet working is not. So a storage failure costs him his saved marks and
+   nothing else. */
+const store = {
+  read(){ try{ return JSON.parse(localStorage.getItem(KEY)||"{}"); }catch(e){ return {}; } },
+  write(v){ try{ localStorage.setItem(KEY,JSON.stringify(v)); return true; }catch(e){ return false; } },
+  drop(){ try{ localStorage.removeItem(KEY); }catch(e){} }
+};
+let state=store.read();
+const save=()=>{const ok=store.write(state);const s=document.getElementById("saved");s.textContent=ok?"saved ✓":"can’t save here — copy yer notes before ye leave";clearTimeout(save._t);save._t=setTimeout(()=>s.textContent="saves as you type",1200);tally();};
+const list=document.getElementById("list");
+
+for(const d of DATA){
+  if(d.h){const h=document.createElement("h2");h.textContent=d.h;list.appendChild(h);continue;}
+  if(d.note){const p=document.createElement("div");p.className="note";p.innerHTML=d.note;list.appendChild(p);continue;}
+  const it=document.createElement("div");it.className="item";it.id="i"+d.n;
+  it.innerHTML=`<div class="top"><div class="n">${d.n}</div><div class="txt">
+      <div class="look"></div>${d.right?'<div class="right"></div>':""}${d.why?'<div class="why"></div>':""}
+    </div></div>
+    <div class="acts">
+      <button data-v="pass" aria-pressed="false">Passed</button>
+      <button data-v="fail" aria-pressed="false">Problem</button>
+    </div>
+    <textarea placeholder="Notes on #${d.n}…"></textarea>`;
+  it.querySelector(".look").textContent=d.look;
+  if(d.right) it.querySelector(".right").textContent=d.right;
+  if(d.why) it.querySelector(".why").textContent=d.why;
+  const st=state[d.n]||{};
+  const ta=it.querySelector("textarea");
+  ta.value=st.c||""; if(ta.value) ta.classList.add("has");
+  if(st.v) it.classList.add(st.v);
+  it.querySelectorAll(".acts button").forEach(b=>{
+    if(st.v===b.dataset.v) b.setAttribute("aria-pressed","true");
+    b.onclick=()=>{
+      const cur=state[d.n]||{}; const v=cur.v===b.dataset.v?null:b.dataset.v;
+      state[d.n]={...cur,v};
+      it.classList.remove("pass","fail"); if(v) it.classList.add(v);
+      it.querySelectorAll(".acts button").forEach(o=>o.setAttribute("aria-pressed", String(o.dataset.v===v)));
+      save();
+    };
+  });
+  ta.oninput=()=>{state[d.n]={...(state[d.n]||{}),c:ta.value};ta.classList.toggle("has",!!ta.value);save();};
+  it._d=d; list.appendChild(it);
+}
+function tally(){
+  const items=DATA.filter(d=>d.n);
+  const done=items.filter(d=>(state[d.n]||{}).v).length;
+  const bad=items.filter(d=>(state[d.n]||{}).v==="fail").length;
+  document.getElementById("count").textContent=`${done} / ${items.length} checked${bad?` · ${bad} problem${bad>1?"s":""}`:""}`;
+}
+tally();
+/* W0-2 (Wyatt, 2026-08-27): "Copy my notes takes two clicks." It did — the first built the text
+   and opened the box, the second copied. On a phone, at the end of a playtest, that is one tap too
+   many at exactly the moment his hands are full. THE FIRST TAP NOW COPIES; the box becomes
+   confirmation of something that already happened rather than a second thing to do.
+
+   ORDER MATTERS AND IS NOT ARBITRARY. showModal() comes BEFORE the copy because the execCommand
+   fallback can only select a textarea that is actually on screen — copying first would leave the
+   fallback selecting a hidden element and silently doing nothing. The clipboard write still
+   happens inside the same user gesture, which is what the permission model requires.
+
+   AND IT NEVER CLAIMS A COPY IT DID NOT MAKE. If both routes fail (an insecure origin, a denied
+   permission) the button says so and the text is sitting selected in the box, ready to copy by
+   hand. A confirmation that lies is worse than the second tap it replaced. */
+function buildNotes(){
+  const L=[`Pastry Pirates playtest — build ${document.getElementById("stamp").textContent}`,""];
+  for(const d of DATA){ if(!d.n) continue; const s=state[d.n]||{}; if(!s.v && !(s.c||"").trim()) continue;
+    L.push(`#${d.n} [${s.v==="pass"?"PASSED":s.v==="fail"?"PROBLEM":"—"}] ${d.look}`);
+    if((s.c||"").trim()) L.push(`    ${s.c.trim().replace(/\n/g,"\n    ")}`);
+  }
+  const items=DATA.filter(d=>d.n), skipped=items.filter(d=>!(state[d.n]||{}).v).map(d=>d.n);
+  if(skipped.length) L.push("", `Not checked: ${skipped.join(", ")}`);
+  if(L.length<=2) L.push("(nothing marked yet)");
+  document.getElementById("outtxt").value=L.join("\n");
+}
+// ONE copy routine, used by the first tap and by the in-box button (rule 23: two things that must
+// behave the same are one thing, or they drift).
+async function copyNotes(){
+  const t=document.getElementById("outtxt"), b=document.getElementById("docopy");
+  t.select(); t.setSelectionRange(0,t.value.length);
+  let ok=false;
+  try{ await navigator.clipboard.writeText(t.value); ok=true; }
+  catch(e){ try{ ok=document.execCommand("copy"); }catch(e2){ ok=false; } }
+  b.textContent = ok ? "Copied ✓" : "Press ⌘/Ctrl+C — the text is selected";
+  setTimeout(()=>b.textContent="Copy to clipboard", ok?1800:4000);
+  return ok;
+}
+document.getElementById("copy").onclick=async()=>{
+  buildNotes();
+  document.getElementById("out").showModal();
+  await copyNotes();
+};
+document.getElementById("docopy").onclick=()=>copyNotes();
+document.getElementById("close").onclick=()=>document.getElementById("out").close();
+document.getElementById("reset").onclick=()=>{ if(!confirm("Clear every mark and note?"))return;
+  state={}; store.drop(); location.reload(); };
+</script>

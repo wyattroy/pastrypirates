@@ -2219,14 +2219,22 @@
      The ☰ menu speaks to the person holding the device, not to a captain. */
   #footerRow.pp4MenuList #btnMute::after { content:"Sound: ON"; position:static; width:auto;
     height:auto; transform:none; font:inherit; }
-  #footerRow.pp4MenuList #btnMute[aria-pressed="true"]::after { content:"Sound: OFF"; }
   /* THE ROW NOW TELLS THE TRUTH WHEN SOUND IS NOT WORKING. It said "Sound: ON" whether the engine
      was running, asleep, or had never loaded a sample — so a whole evening of "no sound in Safari"
      had exactly one word of evidence on screen, and every diagnosis was a guess. One attribute
      (data-audio, set from audioDiagnosis()) decides all four states, so nothing can disagree. */
+  /* THE EM DASH IS LITERAL, NOT \2014. A CSS hex escape is terminated by ONE whitespace
+     character AND THAT CHARACTER IS EATEN, so "\2014 with music" renders as "—with music".
+     Two of these rows shipped with that fault; caught on screen 2026-09-07.
+  /* THREE STATES SINCE 2026-09-07 (his ruling: "3-way— sound+music, sound, mute— repeat again
+     from sound+music"). Every one names itself, because a cycle with an unlabelled position is a
+     control the player cannot read. aria-pressed is gone from this button — it is binary and this
+     is not — so data-audio is now the ONLY thing that decides these words. */
+  #footerRow.pp4MenuList #btnMute[data-audio="ok"]::after { content:"Sound: ON — with music"; }
+  #footerRow.pp4MenuList #btnMute[data-audio="nomusic"]::after { content:"Sound: ON — no music"; }
   #footerRow.pp4MenuList #btnMute[data-audio="muted"]::after { content:"Sound: OFF"; }
-  #footerRow.pp4MenuList #btnMute[data-audio="blocked"]::after { content:"Sound: ON \2014 blocked by yer browser"; }
-  #footerRow.pp4MenuList #btnMute[data-audio="nosamples"]::after { content:"Sound: ON \2014 sound files not loaded"; }
+  #footerRow.pp4MenuList #btnMute[data-audio="blocked"]::after { content:"Sound: ON — blocked by yer browser"; }
+  #footerRow.pp4MenuList #btnMute[data-audio="nosamples"]::after { content:"Sound: ON — sound files not loaded"; }
   /* W4-1: and this one applies in EVERY mode, which is what made the fault architectural rather
      than a pass-and-play quirk. Same reason as the rule above — the panel is capped, so a zero
      horizontal margin pins it left. */
@@ -3162,7 +3170,7 @@
   <div class="modalCard" style="max-width:420px">
     <div class="modalTitle">🎗️ Credits</div>
     <div class="modalByline" style="text-align:left">
-      <p>This game was made by <a href="http://wyattroy.com" target="_blank" rel="noopener">Wyatt Roy</a>, a designer and overly enthusiastic noodle. It was inspired by two highschoolers, Luca and Amelia, who were taught by <a href="https://www.leskodesignwork.com/" target="_blank" rel="noopener">Nick Lesko</a> how to design their own board game. When I came to class and saw theirs, an amazing bridge-building game called <i>Seafarers</i>, something in me clicked. Or broke. Or both. For the next 8 days straight (and counting) I did nothing except eat pastry, talk like a pirate, and build Pastry Pirates.<br><br>The game owes an immense amount to <a href="https://www.luiszanforlin.com/" target="_blank" rel="noopener">Luis Zanforlin</a>, who spent his entire last day in Boston imagining mechanics for it in his head, and who later wrote every sound effect you hear, my father Robin and mother Cathy, two of its first multiplayer testers, and <a href="https://xavaar.com/" target="_blank" rel="noopener">Xavaar</a>, who came up with the idea for how the wind should affect your movements based on real sailing — as well as ways to make battles genuinely strategic, and playtesting it with an obsession that mirrored my own. And lastly, to my sweet partner Juju, who has tolerated me turning every conversation towards Pastry Pirates with the acceptance of a Buddhist monk.</p>
+      <p>This game was made by <a href="http://wyattroy.com" target="_blank" rel="noopener">Wyatt Roy</a>, a designer and overly enthusiastic noodle. It was inspired by two highschoolers, Luca and Amelia, who were taught by <a href="https://www.leskodesignwork.com/" target="_blank" rel="noopener">Nick Lesko</a> how to design their own board game. When I came to class and saw theirs, an amazing bridge-building game called <i>Seafarers</i>, something in me clicked. Or broke. Or both. For the next 8 days straight (and counting) I did nothing except eat pastry, talk like a pirate, and build Pastry Pirates.<br><br>The game owes an immense amount to <a href="https://www.luiszanforlin.com/" target="_blank" rel="noopener">Luis Zanforlin</a>, who spent his entire last day in Boston imagining mechanics for it in his head, and who later wrote every sound effect you hear, my father Robin and mother Cathy, two of its first multiplayer testers, and <a href="https://xavaar.com/" target="_blank" rel="noopener">Xavaar</a>, who came up with the idea for how the wind should affect your movements based on real sailing — as well as ways to make battles genuinely strategic, and playtesting it with an obsession that mirrored my own. The music is by Fiddlers Plus and Muster Field Farms. And lastly, to my sweet partner Juju, who has tolerated me turning every conversation towards Pastry Pirates with the acceptance of a Buddhist monk.</p>
     </div>
     <!-- T-101, his instruction of 2026-09-02 3:07 PM ET: "so I have a URL to send collaborators."
          A real <a>, not a <button> — the same reason rules.html needed one (T-100/CEO 171): a

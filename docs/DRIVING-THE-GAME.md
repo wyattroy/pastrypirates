@@ -802,6 +802,92 @@ DAY 2 with no environment variable in sight.
 
 ---
 
+## 8d. THE PROBE WAS FINE AND THE WAY YOU RAN IT WAS NOT — two shapes of the same fault
+
+**Earned 2026-09-07, by two sessions, in one afternoon, three times between them.** Each time a
+browser check reported that working code was broken, and each time the code was innocent. Written
+here rather than in two session transcripts, because the next person to drive Chrome from a script
+will hit one of these two ends of it.
+
+**THE PATTERN, and it is the reusable part:** *we are both faster at suspecting the code than the
+instrument.* CLAUDE.md already says "when a check condemns something known to work, suspect the
+check first" — every one of these three was caught by reaching for that line, and every one was
+reached for a step later than it should have been. Reach for it first.
+
+### The run poisoning the NEXT run — do not share the resource
+
+**`killAll()` does not wait.** So anything that waits for a shared resource races the corpse of the
+last run. A gate that launched Chrome on a FIXED debug port and a FIXED profile directory
+alternated pass/fail on identical source, three ways:
+
+- **a fixed debug port — THIS IS THE HALF WITH THE MEASUREMENT.** `attach()` found the PREVIOUS
+  run's Chrome, still shutting down, still holding a profile that had already played. Making the
+  port unique is what took that gate from alternating to 5-for-5; a per-run profile alone had not.
+- **a fixed profile dir** — `localStorage` lives in it, so "a device that has never played" becomes
+  a property of that DIRECTORY rather than of the code. ⚠ **Deleting it at startup did not appear
+  to fix it, and the tempting explanation — that the dying Chrome flushes its storage back in
+  after the deletion — WAS NEVER ISOLATED.** The port explained the alternation on its own. Treat
+  the flush as a plausible second race, not an established mechanism, until somebody measures it;
+  it is written here as a suspicion precisely because it first travelled as a fact.
+  `freshProfileDir()` (`scripts/lib/cdp.mjs`) is the fix for this half regardless — it verifies the
+  wipe actually happened and hands back a timestamped sibling when it cannot.
+- **a lost CDP reply** — `send` resolves on a matching id; a navigation mid-call means the reply
+  never arrives, the promise never settles, and node exits **13** with *"Detected unsettled
+  top-level await"*. That is a HANG, not a failure, and it is the worst of the three.
+
+**The fix is not to win the race. It is to not have one:** derive the port and the profile
+directory from the pid, sweep old ones, and put a deadline on every eval.
+
+### ⚠ AND ONE GATE IN `npm test` HAD EXACTLY THIS SHAPE — the audits that said none were wrong
+
+`scripts/qa/sail_window_single_check.mjs` is the ONLY gate in the chain that starts a browser, and
+it carried both halves: `DBG = 9479` and a fixed `pp4-sail-window-check` profile. Its own comment
+said *"this gate's own ports, never shared"* — **true of other gates and false of its own previous
+run**, which is exactly why nobody looked twice. Fixed 2026-09-07; both now derive from the pid.
+
+**Two sessions independently parsed this chain for browser-driving gates and BOTH reported zero.**
+Both greps looked for `launch(` and `--user-data-dir`; this file spells it
+`openChrome({ profileDir })`. **An audit that greps a spelling measures the spelling.** If you are
+sweeping for this fault, enumerate the chain from `package.json` and follow each gate's IMPORTS —
+`openChrome`, `launch`, and a bare `spawn` of Chrome are three spellings of one thing.
+
+**And one of those two audits was worse than a blind spot**, in its own author's words: it used two
+different patterns in the same session — a tree-wide one matching `launch(|openChrome(`, and a
+chain one matching only `launch(` — and quoted the narrower result as "verified independently,
+twice". The right instrument was already written, in the same file, minutes earlier. **Check that
+the check you are quoting is the check you built.**
+
+### The general form, and it is the most reusable thing here
+
+**A comment that is true against everyone except yourself is a very good way to stop two people
+looking twice.** *"This gate's own ports, never shared"* was true of every other gate in the
+repository and false of the only thing that gate actually races — its own previous run. Neither
+session re-read it, because it answered a real question convincingly; it just was not the question
+being asked. When a comment explains why something is safe, check what it is claiming safety
+FROM.
+
+### The runner poisoning the run — reap between runs
+
+**A back-to-back loop over a browser check measures the backlog, not the code.** Five consecutive
+runs of a freshly-FIXED gate gave `0, 0, 1, 13, 13` and very nearly had the fix reported as failed.
+From a clean slate with a reap between runs it was 3 for 3. Every run had been starting against the
+dying Chromes of the runs before it — the same race as above, arriving through the loop instead of
+through the script.
+
+```bash
+node scripts/qa/stray_probe_check.mjs   # what is actually up, before you believe a red run
+```
+
+### And a gate that HANGS does not belong in `npm test` at all
+
+Worse than a red one: the next session reads the timeout as a machine problem and re-runs until it
+goes green. **Gate the logic without a browser** — a stubbed `globalThis.location` is enough for
+anything URL-shaped, exactly as `scripts/dev_flag_gate_check.js` drives `devHost()` — and keep the
+browser run beside it as an underscored one-off (`scripts/qa/_pilot_url_flag_probe.mjs` is the
+worked example) that a person runs when they want it.
+
+---
+
 ## 9. Never verify against production
 
 `playpastrypirates.com` serves whatever last merged to `main`. It can never prove anything about
