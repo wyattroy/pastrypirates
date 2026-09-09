@@ -829,3 +829,43 @@ FULL report beside the newest one; refuse to overwrite a FAILED report with a le
 per-gear files and have `SEA-TRIAL.md` point at the strongest recent run.
 
 Not fixed here because it changes how the sea trial behaves, which is Wyatt's call.
+
+---
+
+## 🟠 WYATT'S 2026-09-09 PLAYTEST — the items not yet built
+
+**Written here rather than left in a chat reply**, because he said so: *"write all of these
+somewhere DURABLE."* Struck through as they land. Everything below is from his own playtest of
+`2026.09.07.3-staging@e959b0d8` plus his four screenshots.
+
+### The recipe picker — his item #1, seven parts
+He passed the choreography ("they do exactly what you say they should") and then asked for seven
+changes, of which **④ and ⑤ supersede the bottom-centre parking built the same day**:
+1. fade the cards in more slowly
+2. the self-swap happens after **1 second** (currently 0.42s)
+3. ease the downward move (currently one cubic-bezier, no ease-in)
+4. **hide the captains box for the whole pre-game while it is empty**, at every size; show it once a
+   recipe is chosen
+5. **put the picker where the captains box normally sits** (now invisible)
+6. make the attention-getting orange gradient larger
+7. **remove dragging, restore swipe-to-swap** — reverses the drag built 2026-09-09, now that the
+   cards no longer sit over the board
+
+### Elsewhere in the game
+- **The trade-wind helper fires too late.** It must appear the moment a captain ENTERS the trade
+  winds, BEFORE the rim sweep carries them — "so the player knows what to look for". Today it is
+  raised with the sweep.
+- **Polly mode should keep the dotted course for the whole game**, not let it fade out.
+- **A bot's dock coin-flip sound fires while the bot is still sailing.** His own read, and it is
+  right: the dock event reaches the drain before the boat's glide finishes. Same class as the s4
+  sail-sound fix — the cure is that the engine should not fire `dock` until the boat has arrived,
+  exactly as it works for a human.
+- **The viewport director is more zoomed out than it needs to be.** It should frame the SAILABLE
+  area plus one square of padding in every direction — more if needed so the narration box occludes
+  no square. Today it is too wide AND the narration box covers squares.
+- **⚠ AND A SECOND FAULT IN THE SAME SCREENSHOT HE DID NOT NAME:** the italic helper line
+  ("Sailin' into the wind only gets ye half the distance.") is drawn ON TOP OF the main narration
+  line — two lines overlapping, both unreadable. Phone, DAY 4 shot, 2026-09-09.
+- **A solo game restored from a closed tab puts every boat back at Tortuga.** They should be replayed
+  to their last position so the board is right immediately. Found while working around the audio
+  stall, so it is on the same evening's list.

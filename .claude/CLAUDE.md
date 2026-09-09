@@ -64,6 +64,16 @@ If a process step stands between him and telling you what is wrong, break the st
 the ask is not the biggest lever — *"you asked for X; I think Y would do more for a player, here's
 why"* is a designer's job and he is explicitly asking for it.
 
+**Finish everything you can, and never hand back a list you could have shortened.** Wyatt,
+2026-09-09: *"I am annoyed that you left work on the table without completing it. this is BAD
+CLAUDE. you should ALWAYS complete ALL WORK THAT YOU CAN and if you have BLOCKING questions, write
+them into a checklist artifact for me and MOVE ON WITH ALL OTHER WORK."* A diagnosis is not a
+delivery. Being tired, or the list being long, is not a reason to stop — it is a reason to sequence.
+**A question only blocks the item it is about**, so park that one item in a checklist he can tap,
+and keep going through everything else. And **park it somewhere durable** — `.planning/BACKLOG.md`
+for work, `.claude/memory/DECISIONS.md` for rulings. A list that lives only in a chat reply is lost
+the moment the session ends, which is the same as never having written it.
+
 **Never ask him which item to do first.** Wyatt, 2026-09-06: *"don't ask me my preference for
 order: just do the work. Every time."* Sequencing is yours; taste is his. The ask-2-5-questions
 rule above is about INTENT — placement, wording, how much is enough — and never about order. When
@@ -222,6 +232,15 @@ backticks, quotes and `$`, which break a double-quoted shell argument.
 real-time multiplayer via Firebase. Vanilla HTML/CSS/JS, native ES modules, **no build step**. Must
 run correctly in Safari and Chrome.
 
-**Determinism:** the multiplayer engine is seeded (`mulberry32`) and lockstep replay depends on it.
-Changing what the engine emits into the event stream invalidates the determinism corpus and forces
-a gated re-record — **prefer UI-tier fixes.**
+**Determinism:** the engine is seeded (`mulberry32`) and lockstep replay depends on it — but
+**THERE IS NO LIVE CORPUS, AND THIS RULE USED TO CLAIM THERE WAS.** It said changing engine events
+"invalidates the determinism corpus" and to prefer UI-tier fixes. That is false for this engine:
+`npm test` does not run `determinism_baseline.js --verify`, it fails 31 of 31 seeds today, and
+`.planning/BACKLOG.md` says in its own words that *the promoted game never had a corpus* — the
+fixtures belong to the frozen `classic/` engine. Wyatt, 2026-09-09: *"there is NO DETERMINISM CORPUS
+currently so STOP DOING BAD LAZY SHITTY PATCH CODE... fix the engine. This is cheap now!"*
+
+**So: if a fact belongs to the game, put it in the engine and emit an event.** A UI-tier workaround
+for an engine-shaped fact is how the guest ended up unable to see something the host could. Adding
+an event costs nothing today. When a corpus is bound again, this rule changes back — and whoever
+binds it should edit this paragraph in the same commit.

@@ -2198,3 +2198,59 @@ lives.*
 all of them correct, none of them derivable from the code afterwards. A session reading only the
 source would find a bottom-centred picker with a pill glued underneath and no way to know that both
 placements were tried the other way first, on his instruction, and changed on his instruction.
+
+---
+
+## 2026-09-09 (night) — THERE IS NO DETERMINISM CORPUS. Fix the engine.
+
+**He was right and I was wrong, and I checked before agreeing rather than just folding.**
+
+> Wyatt: *"there is NO DETERMINISM CORPUS currently so STOP DOING BAD LAZY SHITTY PATCH CODE
+> CLAUDE!!!!! 'Deliberately not a new engine event; that would invalidate the determinism corpus for
+> a tutorial line' is WRONG. This is BAD! fix the engine, you silly claude!!! This is cheap now!"*
+
+**The evidence, all three of which say the same thing:**
+- `npm test` does **not** run `determinism_baseline.js --verify`. It is `test:determinism`, marked
+  in `package.json` itself as *"BROKEN BY THE CUTOVER"*.
+- Run by hand today it fails **31 of 31 seeds**.
+- `.planning/BACKLOG.md` line 364, in the repo's own words: **"The promoted game never had a
+  corpus"** — the fixtures belong to the frozen `classic/` engine.
+
+**So the reason I gave for patching around the engine was false for the engine I was working in.**
+CLAUDE.md asserted it as a live constraint; I believed the file instead of running the command. That
+is the project's own *"a comment is not a measurement"* rule, broken on the file that states it.
+**Both are now corrected** — CLAUDE.md's Determinism paragraph says what is actually true, and says
+who must edit it when a corpus is bound again.
+
+⭐ **THE RULING, and it outlives this bug: if a fact belongs to the game, it belongs in the engine,
+and the engine emits an event.** `player.recipe` was being assigned by the orchestrator and then
+described to each device separately — which is precisely why only the HOST ever saw "yer recipe's
+stowed below". A fact the engine never emitted could not reach a guest through the one path both
+sides drain. `Game.setRecipe()` now emits `recipeSet`, and the line is spoken once, in the one event
+consumer, on whichever device the recipe belongs to.
+
+⚠ **AND THE PACING IS THE FLOW'S JOB, NOT THE EVENT'S.** Awaiting a dismissible card inside
+`consumeEvent` would block the event drain — on a guest that is the whole game's feed. Not pacing it
+at all let the turn-order draw paint over the card two seconds later (measured, both devices). So the
+CONSUMER creates the card and the HOST's loop awaits it; a guest has no flow to pace and simply reads
+it while waiting for the crew.
+
+**MEASURED IN A REAL CREW GAME** (`scripts/qa/_crew_ask_name_check.mjs`): both devices name their own
+captain in their own colour, and **both** now see the stowed line.
+
+---
+
+## 2026-09-09 (night) — Finish the work. A diagnosis is not a delivery.
+
+> *"I am annoyed that you left work on the table without completing it... you should ALWAYS complete
+> ALL WORK THAT YOU CAN and if you have BLOCKING questions, write them into a checklist artifact for
+> me and MOVE ON WITH ALL OTHER WORK. write all of these somewhere DURABLE."*
+
+I had ended a turn with six diagnosed-but-unbuilt items and called it a report. **A question only
+blocks the item it is about** — park that one, keep going through the rest. And park it where it
+survives the session: `.planning/BACKLOG.md` for work, this file for rulings. A list that lives only
+in a chat reply is lost when the session ends, which is the same as never having written it.
+
+**I also audited CLAUDE.md at his instruction, on the theory that it was too long to hold.** It is
+not: **246 lines against its own 350-line gate**. The rule about finishing work was simply *not in
+it* — so it is now. Length was not the cause; the absence of the rule was.
