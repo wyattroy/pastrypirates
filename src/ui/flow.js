@@ -2690,12 +2690,24 @@ export async function humanAct(player,sailCtx){
          captain clicks a sail square/BEGINS to sail -- instead, it seems to happen after they have
          started sailing/have arrived... also... the coin flip/anchor sounds of bot players happen
          CONCURRENTLY with the sail sound."
-         BOTH HALVES WERE ONE FAULT AND IT IS THIS LINE'S ORDER. Yesterday's fix moved playForEvent
-         to the TOP of consumeEvent, which made a HUMAN's sail sound instant — measured twice at
-         0-1ms from the tap. A BOT never got that, because this path rode the glide and only THEN
-         called liveRender(), the drain that reaches consumeEvent at all. So on a bot's turn the
-         sail sound landed as the boat ARRIVED — and the dock coin, which comes next, followed it
-         by 1-2ms. Measured on a real voyage (scripts/qa/_sfx_timeline.mjs, which wraps
+         BOTH HALVES WERE ONE FAULT AND IT IS THIS LINE'S ORDER: the turn loop awaited the
+         PRESENTATION and only then called liveRender(), the local drain that reaches consumeEvent
+         at all. So the boat was already gliding while its event sat undrained in the engine's
+         array, and the sound — which consumeEvent makes — landed as the boat ARRIVED, with the
+         dock coin following 1-2ms behind it.
+
+         ⚠ IT WAS NEVER A BOT-VERSUS-HUMAN DIFFERENCE, and my first write-up of it said it was.
+         Wyatt caught the claim: "All players, bot or human, are supposed to feed actions to an
+         engine, which feeds events back, which a different piece of code displays. Is that not
+         what you built here?" It is, and this fault never broke it — every sound in the game still
+         comes from playForEvent, whose only caller in the tree is consumeEvent.
+         THE REAL VARIABLE IS SAIL LENGTH. present() (src/shared/storyboard.js) returns NO beats for
+         a route under 3 squares — "a straight hop with no corner to draw" — so a short sail never
+         walked, animateSailRoute returned at once, and the drain followed within a millisecond. The
+         human sails in my first trace happened to be one-square hops, which is why they measured
+         instant; the bot sails that exposed it were long enough to glide. All THREE sites with this
+         shape — humanAct, humanTurn and botTurn — were identical and all three changed identically.
+         Measured on a real voyage (scripts/qa/_sfx_timeline.mjs, which wraps
          AudioBufferSourceNode.start and names each sound by its buffer duration):
              11169ms ship-move   11171ms coin-flip     (+2ms)
              21051ms ship-move   21052ms coin-flip     (+1ms)
@@ -2844,12 +2856,24 @@ export async function humanTurn(player){
          captain clicks a sail square/BEGINS to sail -- instead, it seems to happen after they have
          started sailing/have arrived... also... the coin flip/anchor sounds of bot players happen
          CONCURRENTLY with the sail sound."
-         BOTH HALVES WERE ONE FAULT AND IT IS THIS LINE'S ORDER. Yesterday's fix moved playForEvent
-         to the TOP of consumeEvent, which made a HUMAN's sail sound instant — measured twice at
-         0-1ms from the tap. A BOT never got that, because this path rode the glide and only THEN
-         called liveRender(), the drain that reaches consumeEvent at all. So on a bot's turn the
-         sail sound landed as the boat ARRIVED — and the dock coin, which comes next, followed it
-         by 1-2ms. Measured on a real voyage (scripts/qa/_sfx_timeline.mjs, which wraps
+         BOTH HALVES WERE ONE FAULT AND IT IS THIS LINE'S ORDER: the turn loop awaited the
+         PRESENTATION and only then called liveRender(), the local drain that reaches consumeEvent
+         at all. So the boat was already gliding while its event sat undrained in the engine's
+         array, and the sound — which consumeEvent makes — landed as the boat ARRIVED, with the
+         dock coin following 1-2ms behind it.
+
+         ⚠ IT WAS NEVER A BOT-VERSUS-HUMAN DIFFERENCE, and my first write-up of it said it was.
+         Wyatt caught the claim: "All players, bot or human, are supposed to feed actions to an
+         engine, which feeds events back, which a different piece of code displays. Is that not
+         what you built here?" It is, and this fault never broke it — every sound in the game still
+         comes from playForEvent, whose only caller in the tree is consumeEvent.
+         THE REAL VARIABLE IS SAIL LENGTH. present() (src/shared/storyboard.js) returns NO beats for
+         a route under 3 squares — "a straight hop with no corner to draw" — so a short sail never
+         walked, animateSailRoute returned at once, and the drain followed within a millisecond. The
+         human sails in my first trace happened to be one-square hops, which is why they measured
+         instant; the bot sails that exposed it were long enough to glide. All THREE sites with this
+         shape — humanAct, humanTurn and botTurn — were identical and all three changed identically.
+         Measured on a real voyage (scripts/qa/_sfx_timeline.mjs, which wraps
          AudioBufferSourceNode.start and names each sound by its buffer duration):
              11169ms ship-move   11171ms coin-flip     (+2ms)
              21051ms ship-move   21052ms coin-flip     (+1ms)
@@ -3073,12 +3097,24 @@ export async function botTurn(player){
          captain clicks a sail square/BEGINS to sail -- instead, it seems to happen after they have
          started sailing/have arrived... also... the coin flip/anchor sounds of bot players happen
          CONCURRENTLY with the sail sound."
-         BOTH HALVES WERE ONE FAULT AND IT IS THIS LINE'S ORDER. Yesterday's fix moved playForEvent
-         to the TOP of consumeEvent, which made a HUMAN's sail sound instant — measured twice at
-         0-1ms from the tap. A BOT never got that, because this path rode the glide and only THEN
-         called liveRender(), the drain that reaches consumeEvent at all. So on a bot's turn the
-         sail sound landed as the boat ARRIVED — and the dock coin, which comes next, followed it
-         by 1-2ms. Measured on a real voyage (scripts/qa/_sfx_timeline.mjs, which wraps
+         BOTH HALVES WERE ONE FAULT AND IT IS THIS LINE'S ORDER: the turn loop awaited the
+         PRESENTATION and only then called liveRender(), the local drain that reaches consumeEvent
+         at all. So the boat was already gliding while its event sat undrained in the engine's
+         array, and the sound — which consumeEvent makes — landed as the boat ARRIVED, with the
+         dock coin following 1-2ms behind it.
+
+         ⚠ IT WAS NEVER A BOT-VERSUS-HUMAN DIFFERENCE, and my first write-up of it said it was.
+         Wyatt caught the claim: "All players, bot or human, are supposed to feed actions to an
+         engine, which feeds events back, which a different piece of code displays. Is that not
+         what you built here?" It is, and this fault never broke it — every sound in the game still
+         comes from playForEvent, whose only caller in the tree is consumeEvent.
+         THE REAL VARIABLE IS SAIL LENGTH. present() (src/shared/storyboard.js) returns NO beats for
+         a route under 3 squares — "a straight hop with no corner to draw" — so a short sail never
+         walked, animateSailRoute returned at once, and the drain followed within a millisecond. The
+         human sails in my first trace happened to be one-square hops, which is why they measured
+         instant; the bot sails that exposed it were long enough to glide. All THREE sites with this
+         shape — humanAct, humanTurn and botTurn — were identical and all three changed identically.
+         Measured on a real voyage (scripts/qa/_sfx_timeline.mjs, which wraps
          AudioBufferSourceNode.start and names each sound by its buffer duration):
              11169ms ship-move   11171ms coin-flip     (+2ms)
              21051ms ship-move   21052ms coin-flip     (+1ms)
