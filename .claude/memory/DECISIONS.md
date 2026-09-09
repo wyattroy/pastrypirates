@@ -2121,3 +2121,48 @@ launch line. Not one attacked the VALUE in it.** A mutation set inherits the bli
 wrote it; three kills out of three felt like proof and was proof of the wrong thing. *When you
 red-proof a gate that exists to hold a DECISION, mutate the decision, not only the machinery around
 it.* `bell_check.mjs:101` now pins `claude-sonnet-5` by name, red-proofed with the CEO's own mutation.
+
+---
+
+## 2026-09-09 — The recipe picker FLIES. He reversed r7 himself, one day later.
+
+**He had ruled, on 2026-09-07 (r7) and again on 2026-09-08:** *"In desktop, the recipe picker is
+hard to see and awkward to find. can you make it overlap the board slightly, take up much more
+vertical space, and entirely cover up the captain's box?"*
+
+**He reversed it on 2026-09-09, in his own words:**
+
+> *"I'm not satisfied with our solution of the recipe picker covering the captain's box -- it feels
+> too unrelated to the board, and messily so. the challenge is that we need BOTH the player to be
+> able to see the board to make their decision about which recipe to choose, AND the player to
+> notice the recipe cards and not be distracted by the board. I actually think what we want is for
+> the recipe cards to appear over the very middle of the board, then swap themselves ONCE to show
+> that they can be swapped, then after about 0.5 seconds they should move up to the top right of
+> the board to reveal most of the gameboard with the dotted line map fully visible; and there
+> should be a small cream box above them that explains '{player}, pick which recipe you want to
+> bake'"*
+
+**THE RULING, AND IT IS A DESIGN PRINCIPLE, NOT A PLACEMENT.** The old picker bought noticeability
+with **area** — it covered a thing you have to read. The new one buys it with **time**: land in the
+middle, demonstrate the swap, leave. *Attention can be spent in time instead of in space, and when
+both halves of a tension are real, the time answer is often the one that resolves it rather than
+trading it.* Before writing a line, ask which currency an attention problem is being paid in.
+
+**What this settles, so it is not re-opened:**
+- The picker is anchored to the **drawn board** (`#board`), never to `#boardwrap` (taller than the
+  board) and never to a viewport fraction. No breakpoints — one anchor answers all three sizes.
+- The cream box carries the ask **in his words**, and the panel's own pirate-voice line
+  ("*Wyatt, choose yer recipe:*") is hidden. Two asks 40px apart is worse than one.
+- "Cover the captains box" is **retired**, along with the forced min-height and the
+  `justify-content:center` that height made necessary.
+
+**STILL HIS TO RULE, reported not traded away:** on a phone the parked sheet hides **40.3%** of the
+board (tablet 15.3%, desktop 12.6%) because the cards are large against a 390x568 board. His
+"reveal most of the gameboard" is met on tablet and desktop and is **not** met on phone.
+
+**⚠ AND THE INSTRUMENT LESSON, WHICH OUTLIVES THIS PICKER.** The probe that graded the previous
+design asked `front.b > captains.t` — a **vertical-edge** test — and answered *"overlaps the
+captains box: true"* for a sheet leaving 366px of a 768px box showing on either side. It reported a
+false pass to Wyatt; a CEO review caught it. **Any question of the form "does A cover B" is answered
+by intersecting rects and dividing by B's area, never by comparing one edge.** A one-axis test on a
+two-axis question is not a weak measurement, it is a wrong one.
