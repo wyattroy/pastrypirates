@@ -1790,6 +1790,9 @@ export async function consumeEvent(e){
      me to stop writing. It is one line, here, in the one event consumer, and each device answers for
      ITSELF because pilotSpeaks() counts rungs per device. Host, guest, solo and pass-play all reach
      this same line, which is the whole point of there being one consumer. */
+  // the captains box has been hidden while it was empty (his item 4); a chosen recipe is what
+  // fills it, and that is this event — so the one consumer tells the stage, on every device.
+  if(e.t==="recipeSet"&&window.__pp4&&window.__pp4.recipePicked)window.__pp4.recipePicked();
   if(e.t==="recipeSet"&&decisionIsLocal(e.p)&&!appState.replaying&&pilotSpeaks("recipe.stowed")){
     flashCaptainsBox();
     /* ⚠ CREATED HERE, AWAITED BY THE FLOW — and the difference matters, measured. Awaiting it here
