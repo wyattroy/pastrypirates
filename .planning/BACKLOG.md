@@ -838,7 +838,8 @@ Not fixed here because it changes how the sea trial behaves, which is Wyatt's ca
 somewhere DURABLE."* Struck through as they land. Everything below is from his own playtest of
 `2026.09.07.3-staging@e959b0d8` plus his four screenshots.
 
-### The recipe picker — his item #1, seven parts
+### ✅ DONE 2026-09-09 — the recipe picker, all seven (`6ffafcb9`)
+### ~~The recipe picker — his item #1, seven parts~~
 He passed the choreography ("they do exactly what you say they should") and then asked for seven
 changes, of which **④ and ⑤ supersede the bottom-centre parking built the same day**:
 1. fade the cards in more slowly
@@ -855,7 +856,9 @@ changes, of which **④ and ⑤ supersede the bottom-centre parking built the sa
 - **The trade-wind helper fires too late.** It must appear the moment a captain ENTERS the trade
   winds, BEFORE the rim sweep carries them — "so the player knows what to look for". Today it is
   raised with the sweep.
-- **Polly mode should keep the dotted course for the whole game**, not let it fade out.
+- ~~**Polly mode should keep the dotted course for the whole game**~~ — ✅ DONE: the draw condition
+  widened from `teaching` to `pilotIsOn()`, and the prompt teardown no longer wipes it while the
+  parrot is on. Both halves were needed; the second is why it "faded" between turns.
 - **A bot's dock coin-flip sound fires while the bot is still sailing.** His own read, and it is
   right: the dock event reaches the drain before the boat's glide finishes. Same class as the s4
   sail-sound fix — the cure is that the engine should not fire `dock` until the boat has arrived,
@@ -863,9 +866,12 @@ changes, of which **④ and ⑤ supersede the bottom-centre parking built the sa
 - **The viewport director is more zoomed out than it needs to be.** It should frame the SAILABLE
   area plus one square of padding in every direction — more if needed so the narration box occludes
   no square. Today it is too wide AND the narration box covers squares.
-- **⚠ AND A SECOND FAULT IN THE SAME SCREENSHOT HE DID NOT NAME:** the italic helper line
+- ~~**⚠ AND A SECOND FAULT IN THE SAME SCREENSHOT HE DID NOT NAME:**~~ — ✅ DONE: the italic helper line
   ("Sailin' into the wind only gets ye half the distance.") is drawn ON TOP OF the main narration
-  line — two lines overlapping, both unreadable. Phone, DAY 4 shot, 2026-09-09.
+  line — two lines overlapping, both unreadable. Phone, DAY 4 shot, 2026-09-09. The placement search
+  scored candidates by SQUARES COVERED ONLY, so a spot sitting on the message scored a perfect zero
+  and won. It now scores both, with the weights the file's own obstacle table already declares
+  (`.sailCell` 1000, `.apMsg` 40).
 - **A solo game restored from a closed tab puts every boat back at Tortuga.** They should be replayed
   to their last position so the board is right immediately. Found while working around the audio
   stall, so it is on the same evening's list.
