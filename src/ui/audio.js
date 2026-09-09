@@ -587,6 +587,40 @@ async function initAudio() {
    in. So the gain is re-applied once resume() actually RESOLVES — at that point the clock is
    moving again and a ramp means something. `resuming` stops a resume() being fired on every single
    sound while one is already in flight; Safari does not enjoy that. */
+/* ⭐ AND ONE MORE DOOR, BECAUSE resume() WAS NOT ENOUGH ON HIS MAC — Wyatt, 2026-09-08:
+   "when i first loaded staging for this playtest, the sound was not happening. nothing i clicked or
+   refreshed, or closed tab and reopened made it happen. then i had an idea -- i loaded youtube.com
+   and started playing a video. this must have reset something in safari -- because when i went back
+   to staging, now there was sound."
+
+   READ WHAT THAT RULES OUT. A reload builds a brand new AudioContext inside a fresh gesture, and a
+   reload did NOT fix it — so the thing that was asleep was not our context and not our code. What
+   fixed it was another PAGE playing audio through a MEDIA ELEMENT. That is Safari's audio session,
+   which sits underneath WebAudio: while it is not active, an AudioContext can report "running" and
+   still reach no speaker, and nothing in the WebAudio API will claim it.
+
+   AN <audio> ELEMENT WILL. Playing a real media element inside a user gesture is what the platform
+   accepts as "this page wants the audio session" — the same thing YouTube did for him by accident.
+   So the gesture unlock now plays half a tick of encoded silence, once, alongside resume(). It is
+   477 bytes inlined (no request, nothing to fail), volume 0, and it is deliberately NOT WebAudio —
+   routing it through our own graph would defeat the entire point.
+
+   ⚠ HONEST LIMIT: I could not reproduce his state, so this is the best-supported hypothesis rather
+   than a measured fix. It costs one silent element per page and cannot make anything worse; if his
+   next voyage is silent again, the next thing to try is rebuilding the AudioContext outright. */
+const SILENT_MP3 = "data:audio/mpeg;base64,SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjYyLjEyLjEwMQAAAAAAAAAAAAAA/+M4wAAAAAAAAAAAAEluZm8AAAAPAAAAAwAAAbAAqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq1dXV1dXV1dXV1dXV1dXV1dXV1dXV1dXV1dXV1dXV1dXV////////////////////////////////////////////AAAAAExhdmM2Mi4yOAAAAAAAAAAAAAAAACQC8AAAAAAAAAGw9wpEpwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA/+MYxAAAAANIAAAAAExBTUUzLjEwMFVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV/+MYxDsAAANIAAAAAFVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV/+MYxHYAAANIAAAAAFVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV";
+let sessionKicked = false;
+function kickAudioSession() {
+  if (sessionKicked || typeof Audio === "undefined") return;
+  sessionKicked = true;
+  try {
+    const a = new Audio(SILENT_MP3);
+    a.volume = 0;
+    const p = a.play();
+    if (p && p.catch) p.catch(() => { sessionKicked = false; });   // refused: let a later tap retry
+  } catch (e) { sessionKicked = false; }
+}
+
 let resuming = false;
 function wakeCtx() {
   if (!ctx || ctx.state === "running" || resuming) return;
@@ -1141,6 +1175,7 @@ function playBattleEngage() {
 
 export {
   SFX_DIR, SFX_FILES, SFX_VOLUME, MUTE_KEY, initAudio, playFlip, startFlipSpinSound, stopFlipSpinSound, isMuted, setMuted, audioRunning, audioDiagnosis,
+  kickAudioSession,
   /* wakeCtx is exported for ONE caller: the gesture listener in src/orchestrator.js. Safari only
      honours resume() inside a user-gesture call stack, and initAudio() cannot be that caller —
      it returns immediately once `ctx` exists, so every gesture after the first reached no wake at
