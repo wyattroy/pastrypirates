@@ -15,7 +15,7 @@
 // Everything here is render-side. The engine, its RNG, and the dlog are never touched.
 "use strict";
 import { appState } from "../state/index.js";
-import { boardShipEls } from "./board.js";
+import { boardShipEls, setFlipCoin } from "./board.js";
 import { narrationHoldMs, vwPx, vhPx, isDisabledBtn, fixedOrigin, fixedRect, refreshNameMarquees,
   waitLineIsSelfAddressed } from "./util.js";
 import { typewriterReveal } from "./panel.js";
@@ -1916,9 +1916,37 @@ function cerBandTick(){
    number to keep in step. A guest whose coin state arrives over the wire is simply the likeliest
    to hit the race; the rule does not know or care which side it is on. */
 let cerWatchdog = null;
+/* ⭐⭐ A VEIL OVER AN ARMED COIN IS NOT STUCK — IT IS WAITING FOR A PERSON.
+   Wyatt, 2026-09-08, and he called it a blocker: "when i was attacked by a bot, the stage didn't
+   appear... i had to refresh the page to continue the game, which is not okay." Then the detail
+   that identifies it exactly: "i was playing solo, it was a bot's turn, they were attacking me, I
+   wasn't watching the window, i was typing into the playtest window" — and, ruling out the obvious
+   wrong answer, "it was NOT hidden — i had both tabs open next to each other — the sound was still
+   audible." So: visible, unfocused, rAF running, nothing throttled. A real defect.
+
+   WHAT HAPPENED, IN SECONDS. A bot attacking a human ends at `hFlip("d", def)` — and a defend flip
+   is answered by THE COIN, not by a button (battleAsk's `isFlip` branch: setFlipActive, no
+   .btlBtn). setFlipActive raises this ceremony, and flipArmed() armed this watchdog on the very
+   instant the veil went UP — i.e. while it was waiting for a tap. CER_VEIL_WAIT_CAP_MS is
+   CER_FALLBACK_MS + CER_REVEAL_MS = 7100ms. Look away for seven seconds and the whole ceremony
+   tore itself down mid-question. The coin stayed armed, alone and chip-sized in the ribbon, and
+   the board looked like a game that had simply stopped. Refreshing is exactly what a player does.
+
+   THE WATCHDOG IS STILL RIGHT TO EXIST — a prompt that is cancelled must not leave a veil standing
+   forever. It was only ever wrong about ONE case, and the test is one line: is the coin still
+   ARMED? An armed coin means a question is still open and a person is still allowed to think about
+   it. Anything else — a landed face nobody retired, a cancelled prompt, a torn-down battle — is a
+   genuinely stuck veil and comes down on the deadline as before.
+
+   NO NEW CLOCK (rule 9): it re-arms the SAME cap rather than inventing a patience constant. */
 function cerArmWatchdog(){
   if (cerWatchdog) clearTimeout(cerWatchdog);
-  cerWatchdog = setTimeout(() => { cerWatchdog = null; cerTeardown(); }, CER_VEIL_WAIT_CAP_MS);
+  cerWatchdog = setTimeout(() => {
+    cerWatchdog = null;
+    const c = $("flipCoinWrap");
+    if (c && c.classList.contains("active") && c.onclick){ cerArmWatchdog(); return; }
+    cerTeardown();
+  }, CER_VEIL_WAIT_CAP_MS);
 }
 function cerTeardown(){
   if (cerWatchdog){ clearTimeout(cerWatchdog); cerWatchdog = null; }
@@ -1927,6 +1955,19 @@ function cerTeardown(){
   if (fp && row && fp.parentElement !== row) row.insertBefore(fp, row.firstChild);
   veil.remove();
   document.body.classList.remove("pp4Cer");
+  /* ⭐ AND THE VEIL TAKES THE FACE WITH IT — his ruling, 2026-09-08. setFlipCoin() defers a
+     blanking for as long as `pp4Cer` is on the body (see board.js), so this is the one call that
+     ends a ceremonial flip's picture. It runs AFTER the class is removed, or the guard there would
+     swallow this call too — order is load-bearing on these two lines.
+
+     ⚠ NEVER OVER AN ARMED COIN, AND THE RED-PROOF IS WHY THIS GUARD EXISTS. setFlipCoin() sets
+     `el.onclick = null` on its way through. While red-proofing the watchdog fix above — old
+     watchdog, new teardown — the probe measured `veil=false armed=FALSE` at t+8s and then threw a
+     TypeError calling a handler that was gone. That is strictly worse than the bug being fixed:
+     his build at least left an armed coin sitting in the ribbon, so a player who spotted it could
+     still answer. A teardown must never take away a question that is still open. */
+  const coin = $("flipCoinWrap");
+  if (!(coin && coin.classList.contains("active") && coin.onclick)) setFlipCoin("wait");
   if (window.__pp4) window.__pp4.flipMsg = null;   // a later ceremony never inherits these words
   S.cerHome = null;
 }
