@@ -875,3 +875,64 @@ changes, of which **④ and ⑤ supersede the bottom-centre parking built the sa
 - **A solo game restored from a closed tab puts every boat back at Tortuga.** They should be replayed
   to their last position so the board is right immediately. Found while working around the audio
   stall, so it is on the same evening's list.
+
+---
+
+## 🔵 THE THREE HOLES IN THE ONE-PIPE ARCHITECTURE (2026-09-09)
+
+Wyatt's own model, and it is the target: *one engine emits facts · one renderer draws them · the
+only differences are **host vs guest** (who runs the engine, and whether events drain locally or
+over the wire) and **human vs bot** (how the action is chosen).* The board already works this way.
+Diagram and evidence: the "Two Axes, Seven Channels" artifact.
+
+### ✅ HOLE 2 — CLOSED 2026-09-09. Two renderers became one.
+`watchDraftPrompt` hand-rolled its own `apMsg`/`apBtns` markup and re-derived the same
+`opts.some(o=>o.cls) -> " recipes"` rule `renderAskPrompt` uses. The guest now calls the SAME
+`localAsk()` the host calls and only differs in what it does with the answer — host resolves it
+locally, guest puts it on the wire. It inherited for free: the back button, greyed options that
+explain themselves, per-seat colours, the slider, the flip-coin path and the real teardown.
+Verified in a two-window crew game.
+
+### 🔴 HOLE 1 — questions are not events. SEVEN channels, not one.
+A guest subscribes to `watchEvents`, `watchPrompt`, `watchNarr`, `watchFlip`, `watchDraftPrompt`,
+`watchTurnOrder`, `watchRecoveryState`. Only the first is the engine's event stream; the other six
+are side-channels the host writes directly.
+
+**THE SHAPE OF THE FIX**, and it is one idea, not six: *an ask is a fact the engine emits, and an
+answer is an action fed back in.* The engine gains `ask(seat, spec)` which emits a `prompt` event
+carrying `{seat, msg, options, sub, slider}` — drained by the ONE consumer like everything else,
+which calls `raiseLocalPrompt(seat, …)` when the seat is local and does nothing when it is not.
+The answer returns through the same input door as any other action (hole 3). Then `watchPrompt`,
+`watchDraftPrompt` and `watchNarr` all collapse into `watchEvents`, and the remaining three
+(`watchFlip`, `watchTurnOrder`, `watchRecoveryState`) are re-examined one at a time — each is either
+an event or genuinely session plumbing, and the answer must be argued per channel, not assumed.
+**Order matters: hole 3 first, because the answer needs somewhere to go.**
+
+### 🔴 HOLE 3 — bots and humans do not share an input door.
+`player.strategy === "human" ? humanTurn(p) : botTurn(p)` — two functions, not one door with two
+choosers. In the recipe draft, bot picks are computed inline (`game.r() < .5`) while humans go
+through the dispatcher.
+
+**THE SHAPE OF THE FIX:** one `takeTurn(player)` that asks a **chooser** for an action and applies
+it. `humanChooser` raises a prompt and waits; `botChooser` runs the planner. The engine then sees
+one kind of input from everybody. **This is also the real cure for his bot-dock-sound bug**: with
+one door, a bot's `dock` cannot be emitted before its boat has arrived, because it goes through the
+same ordering a human's does. Fixing the sound alone would be treating the symptom.
+
+**WHY NEITHER WAS ATTEMPTED THE NIGHT HOLE 2 CLOSED:** both change the network path and the turn
+loop, and the only honest verification is the two-window rig plus complete voyages in all three
+modes. That is a session's work with a fresh head, not the tail of a long one. Hole 2 was closed
+first on purpose — it is the one that actually produced his bugs.
+
+---
+
+## 🟡 SMALL, FROM HIS 2026-09-09 LIST
+
+- **Add the recipe name to the bake-off**, under "{Player}'s Bake off" and above the first step.
+- **Add an "unluckiest" prize (most tails flipped) to every awards line-up** — and check that the
+  counter is counting TOTAL tails, not the longest streak. Two things: the award, and whether the
+  number behind it means what it says.
+- **His picker item 3, "cards 50% bigger on desktop", is BLOCKED ON A TASTE CALL** and the number is
+  why: the stack needs `card x 1.4 + 8`, and the captains column it now sits in is ~382px at 1280 —
+  which allows ~250, exactly what it already is. A 375px card wants ~553px. **Either the board stays
+  completely clear (0.0% hidden today) or the cards get bigger and reach left over it.** His call.
