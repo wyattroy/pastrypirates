@@ -2166,3 +2166,35 @@ captains box: true"* for a sheet leaving 366px of a 768px box showing on either 
 false pass to Wyatt; a CEO review caught it. **Any question of the form "does A cover B" is answered
 by intersecting rects and dividing by B's area, never by comparing one edge.** A one-axis test on a
 two-axis question is not a weak measurement, it is a wrong one.
+
+---
+
+## 2026-09-09 (later) — Two more reversals on the picker, both his, both within hours
+
+The r7 reversal above is not the whole of that day. He ruled twice more on the SAME picker, each
+time overturning something he had asked for a few hours earlier, and each time he was right.
+
+**1. It parks in the BOTTOM HALF, centred — not the top right.**
+His morning instruction was *"they should move up to the top right of the board."* By evening he had
+dragged the sheet down himself and sent the screenshot back: *"make the recipes appear in the bottom
+half of the game board, as in my second ss, before dragging."*
+⭐ **A demonstration outranks a description, and it is the strongest form a ruling takes here.** He
+did not say where; he showed where. Derived as "the middle of the lower half" rather than a typed
+fraction, so it holds at 568px of board and at 856 — it lands at 0.61, which is where his own drag
+put it.
+
+**2. The helper pill is LOCKED UNDER THE CARDS — not pinned over the sea.**
+He asked for *"a normal helper pill over the sea, not covering any of the islands"*, and it was
+built that way: a 2D search projecting every island square through toScreen() to find open water,
+measured at 0 island squares at all three sizes. He then asked for it *"locked underneath the recipe
+cards so it moves with them"*, and that deleted the whole search.
+⭐ **THE REASON IS WORTH MORE THAN THE RULING: the sheet became draggable in between.** A label
+pinned to the scenery is right only while the thing it describes cannot move. The moment the captain
+can carry the cards across the board, a helper anchored to the water is a label that has come off
+its object. *When something gains the ability to move, re-ask where everything attached to it
+lives.*
+
+**AND THE COST OF NOT WRITING THESE DOWN IS THE POINT.** Three reversals in one day on one control,
+all of them correct, none of them derivable from the code afterwards. A session reading only the
+source would find a bottom-centred picker with a pill glued underneath and no way to know that both
+placements were tried the other way first, on his instruction, and changed on his instruction.
