@@ -1,0 +1,33 @@
+{
+  "tablet-820x1180": {
+    "ok": true,
+    "viewport": {
+      "w": 820,
+      "h": 1180,
+      "dpr": 2
+    },
+    "promptVisible": true,
+    "promptClass": "pp4Recipes",
+    "capVisible": true,
+    "capRect": {
+      "top": 864,
+      "bottom": 1054,
+      "left": 0,
+      "right": 820,
+      "h": 190,
+      "w": 820
+    },
+    "cardRect": {
+      "top": 531,
+      "bottom": 954,
+      "left": 14,
+      "right": 806,
+      "h": 423,
+      "w": 792
+    },
+    "bandPx": 90,
+    "exposedPx": 28,
+    "cutRows": [],
+    "shot": "C:\\Users\\wyatt\\Projects\\pastrypirates\\.planning\\posed\\t142-captains-under-recipe-choice-tablet-820x1180.png"
+  }
+}

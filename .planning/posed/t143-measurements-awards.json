@@ -1,0 +1,223 @@
+{
+  "phone-390x664": {
+    "ok": true,
+    "viewport": {
+      "w": 390,
+      "h": 664,
+      "dpr": 2
+    },
+    "wrap": {
+      "top": 44,
+      "bottom": 652,
+      "left": 26,
+      "right": 365,
+      "h": 608,
+      "w": 339
+    },
+    "scroller": {
+      "top": 93,
+      "bottom": 563,
+      "left": 41,
+      "right": 350,
+      "h": 470,
+      "w": 309
+    },
+    "button": {
+      "text": "🔁 Play again!",
+      "rect": {
+        "top": 575,
+        "bottom": 637,
+        "left": 41,
+        "right": 350,
+        "h": 62,
+        "w": 309
+      }
+    },
+    "gapPx": 12,
+    "scrollTop": 0,
+    "scrollHeight": 946,
+    "clientHeight": 470,
+    "awards": [
+      {
+        "text": "The Silver-Tongued Ledger Struck more deals than a Tortuga f",
+        "rect": {
+          "top": 398,
+          "bottom": 619,
+          "left": 41,
+          "right": 191,
+          "h": 221,
+          "w": 150
+        },
+        "cutByScrollerPx": 56,
+        "overlapWithButtonPx": 0,
+        "layoutOverlapWithButtonPx": 44
+      },
+      {
+        "text": "The Lucky Streak Heads, then heads, then heads again — Lady ",
+        "rect": {
+          "top": 398,
+          "bottom": 619,
+          "left": 200,
+          "right": 350,
+          "h": 221,
+          "w": 150
+        },
+        "cutByScrollerPx": 56,
+        "overlapWithButtonPx": 0,
+        "layoutOverlapWithButtonPx": 44
+      },
+      {
+        "text": "The Open Purse Paid the harbourmaster more than any captain ",
+        "rect": {
+          "top": 628,
+          "bottom": 833,
+          "left": 41,
+          "right": 191,
+          "h": 206,
+          "w": 150
+        },
+        "cutByScrollerPx": 270,
+        "overlapWithButtonPx": 0,
+        "layoutOverlapWithButtonPx": 9
+      },
+      {
+        "text": "The Painted Target Somehow every cannon in the Caribbean swu",
+        "rect": {
+          "top": 628,
+          "bottom": 833,
+          "left": 200,
+          "right": 350,
+          "h": 206,
+          "w": 150
+        },
+        "cutByScrollerPx": 270,
+        "overlapWithButtonPx": 0,
+        "layoutOverlapWithButtonPx": 9
+      }
+    ],
+    "slicedByScrollerEdge": [
+      {
+        "tag": "div",
+        "text": "Davy Scones",
+        "top": 554,
+        "bottom": 580,
+        "h": 26,
+        "visiblePx": 9
+      },
+      {
+        "tag": "div",
+        "text": "Crustbeard",
+        "top": 539,
+        "bottom": 565,
+        "h": 26,
+        "visiblePx": 24
+      }
+    ],
+    "statsTableVisible": true,
+    "statsTableCutPx": 466,
+    "settled": true,
+    "shot": "C:\\Users\\wyatt\\Projects\\pastrypirates\\.planning\\posed\\t143-eov-phone-390x664-awards.png"
+  },
+  "tablet-820x1180": {
+    "ok": true,
+    "viewport": {
+      "w": 820,
+      "h": 1180,
+      "dpr": 2
+    },
+    "wrap": {
+      "top": 44,
+      "bottom": 1168,
+      "left": 14,
+      "right": 806,
+      "h": 1124,
+      "w": 792
+    },
+    "scroller": {
+      "top": 93,
+      "bottom": 1079,
+      "left": 29,
+      "right": 791,
+      "h": 986,
+      "w": 762
+    },
+    "button": {
+      "text": "🔁 Play again!",
+      "rect": {
+        "top": 1091,
+        "bottom": 1153,
+        "left": 29,
+        "right": 791,
+        "h": 62,
+        "w": 762
+      }
+    },
+    "gapPx": 12,
+    "scrollTop": 0,
+    "scrollHeight": 986,
+    "clientHeight": 986,
+    "awards": [
+      {
+        "text": "The Silver-Tongued Ledger Struck more deals than a Tortuga f",
+        "rect": {
+          "top": 355,
+          "bottom": 562,
+          "left": 29,
+          "right": 213,
+          "h": 207,
+          "w": 184
+        },
+        "cutByScrollerPx": 0,
+        "overlapWithButtonPx": 0,
+        "layoutOverlapWithButtonPx": 0
+      },
+      {
+        "text": "The Lucky Streak Heads, then heads, then heads again — Lady ",
+        "rect": {
+          "top": 355,
+          "bottom": 562,
+          "left": 222,
+          "right": 406,
+          "h": 207,
+          "w": 184
+        },
+        "cutByScrollerPx": 0,
+        "overlapWithButtonPx": 0,
+        "layoutOverlapWithButtonPx": 0
+      },
+      {
+        "text": "The Open Purse Paid the harbourmaster more than any captain ",
+        "rect": {
+          "top": 355,
+          "bottom": 562,
+          "left": 415,
+          "right": 598,
+          "h": 207,
+          "w": 184
+        },
+        "cutByScrollerPx": 0,
+        "overlapWithButtonPx": 0,
+        "layoutOverlapWithButtonPx": 0
+      },
+      {
+        "text": "The Painted Target Somehow every cannon in the Caribbean swu",
+        "rect": {
+          "top": 355,
+          "bottom": 562,
+          "left": 607,
+          "right": 791,
+          "h": 207,
+          "w": 184
+        },
+        "cutByScrollerPx": 0,
+        "overlapWithButtonPx": 0,
+        "layoutOverlapWithButtonPx": 0
+      }
+    ],
+    "slicedByScrollerEdge": [],
+    "statsTableVisible": true,
+    "statsTableCutPx": 0,
+    "settled": true,
+    "shot": "C:\\Users\\wyatt\\Projects\\pastrypirates\\.planning\\posed\\t143-eov-tablet-820x1180-awards.png"
+  }
+}
