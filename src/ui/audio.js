@@ -176,7 +176,16 @@ const MUSIC_FILE = "music-ocean";
    reconciled, so nobody restores 120 from the older page believing it is the live decision.
    The track therefore does NOT loop: it ends, this timer runs, and it starts again. A looping
    source would make this constant dead code, which is what the gate checks for. */
-const MUSIC_GAP_SEC = 60;
+/* ⭐ THREE MINUTES — Wyatt, 2026-09-08: "I want a bigger pause between the song plays -- make it 3
+   minutes". That supersedes his 60 of 2026-09-07, which itself superseded a 120 from the day
+   before; the newest ruling wins and the older two are recorded here so nobody restores one from
+   an older page.
+   AND THE SONG IS IMMEDIATE WHEN MUSIC COMES BACK ON: "reset that 3 minutes when someone cycles
+   through the sound playback (so if they get back to 'sound on - with music' the song starts up
+   immediately)". That already falls out of the design and is asserted rather than added —
+   musicStop() clears the pending timer and musicStart() calls musicPlayOnce() straight away, so a
+   cycle through mute and back cannot leave a captain listening to silence for three minutes. */
+const MUSIC_GAP_SEC = 180;
 
 /* Measured integrated loudness (EBU R128, ffmpeg), so ONE family level can control files that were
    delivered up to 8.3 dB apart. The trim is COMPUTED from this table below rather than typed
@@ -365,19 +374,19 @@ const LOCAL_ONLY_SOUND_EVENTS = new Set(["turn"]);
  * and this file imports nothing by design (leaf tier) — so the answer is handed to playForEvent
  * by its single caller instead. That keeps the whole map assertable under plain Node. */
 function soundForEvent(e) {
-  /* ⭐ THE STORM IS WEATHER NOW, NOT A DOORBELL. Wyatt, 2026-09-07 playtest (sound sheet item 13):
-     "I thought there was a longer storm track — what happened to that? it should play on top of
-     the ambience."
-     MEASURED ANSWER, because it is the honest one: there has never been a longer file. storm.mp3
-     is 8.0 seconds and it is the ONLY storm audio in any commit in this repo's history. What he
-     remembers as longer is almost certainly DEFECT-1/2, where three anchoring ships stacked three
-     unfadeable copies of it at ~3x level.
-     HIS RULING, given the measurement: "Loop the 8s one under the whole storm round." So the cue
-     stops being a one-shot announcement and becomes a bed that runs from the moment the storm
-     arrives until fadeStorm() retires it on the next `newround` or `end` — which is exactly the
-     lifetime the storm itself has. STORM_VOLUME (0.35) already puts it under the short sounds, and
-     it rides the ambience rather than replacing it: two buses, both into masterGain. */
-  if (e.t === "newround" && e.storm) return { name: "storm", bus: "storm", loop: true };
+  /* ⭐ THE STORM IS SCATTERED THUNDER — and this REPLACES the loop of one day earlier.
+     Wyatt, 2026-09-08, having heard the loop: "I'll work on a longer storm track -- in the mean
+     time, play the storm.mp3 once at the beginning of a storm and then an average of once every 20
+     seconds -- not every 8 seconds. the sound in its current form is thunder. scatter pan it too."
+     He is right about what the file IS: 8.007s, and its envelope is one broadband crack that decays
+     — a thunderclap, not a wash. Looping a thunderclap every 8 seconds is a metronome made of
+     lightning. Scattered around a 20-second mean, panned somewhere new each time, it reads as
+     weather happening around the ship.
+     THE MECHANISM IS THE SEA BED'S, NOT A SECOND ONE: exponential gaps and a random pan, exactly
+     as the gulls and creaks are scattered (ambSchedule/ambFireOne). It still rides the quiet storm
+     bus, so STORM_VOLUME governs it and fadeStorm() ends it.
+     `bus: "storm"` and no `loop`: playForEvent hands this to the scatter starter below. */
+  if (e.t === "newround" && e.storm) return { name: "storm", bus: "storm", scatter: true };
   const name = EVENT_SOUND[e.t];
   if (!name) return null;
   const out = { name, bus: "master" };
@@ -390,7 +399,8 @@ function soundForEvent(e) {
 let ctx = null;
 let masterGain = null;
 let stormGain = null; // D-11: storm's own quieter bus, still connected into masterGain
-let stormNode = null; // { src, gain } of the in-flight storm sound, or null — fadeStorm()'s target
+// (stormNode stood here — the single in-flight storm one-shot. The storm is a scatter now and
+//  `stormLive` below holds every clap still ringing; fadeStorm() retires all of them.)
 const buffers = {}; // stem name -> decoded AudioBuffer
 let visibilityHandlerAttached = false;
 // Seeded lazily, on first isMuted()/setMuted() call — never read at module load.
@@ -625,12 +635,12 @@ function play(name, opts) {
      node was still started on every cue: silent, but enough for Safari to light the tab's audio
      indicator — the toggle looked broken because the one visible signal said it had done nothing.
 
-     SAFE BECAUSE NOTHING TIMES OFF A SOUND. play()'s return value has exactly one consumer,
-     `stormNode`, and only fadeStorm() reads it — which is already written as "a no-op when no storm
-     node is in flight", so a muted storm makes it a true no-op rather than an error. No caller
-     awaits a sound or reads its duration; the cannon and drumroll beats are measured constants, not
-     audio callbacks. So a muted player and an unmuted one still run the game at identical pace,
-     which matters: in crew they are the same voyage on two screens.
+     SAFE BECAUSE NOTHING TIMES OFF A SOUND. play()'s return value now has NO consumer at all — it
+     used to feed `stormNode`, and the storm became a scatter on 2026-09-08 (stormFireOne keeps its
+     own list, and it carries the same mute guard this function does). No caller awaits a sound or
+     reads its duration; the cannon and drumroll beats are measured constants, not audio callbacks.
+     So a muted player and an unmuted one still run the game at identical pace, which matters: in
+     crew they are the same voyage on two screens.
 
      applyMasterGain() is deliberately UNCHANGED and still ramps the master bus. A long sound that
      was already in flight when he hits mute must still fall silent, and that is the path that does
@@ -643,23 +653,10 @@ function play(name, opts) {
   const gain = ctx.createGain();
   gain.gain.value = SFX_VOLUME[name] != null ? SFX_VOLUME[name] : 1;
   src.connect(gain).connect(bus);
-  /* opts.loop — a cue that runs until something retires it, rather than a one-shot. Only the storm
-     asks for this today (soundForEvent), and fadeStorm() is what ends it.
-     THE LOOP POINTS ARE MEASURED, NOT 0-TO-DURATION, and it is the same ambLoopPoints() the sea
-     bed uses rather than a second copy: docs/AUDIO.md §3 — "MP3 pads a sliver of silence onto both
-     ends of every file, so a naive MP3 loop clicks each time it comes round." An 8-second storm
-     looping across a whole round would come round often enough for that click to become the most
-     audible thing in the mix. (ambLoopPoints is declared further down the file; function
-     declarations hoist, and keeping it beside the bed it was written for beats moving it.) */
-  if (opts && opts.loop) {
-    const lp = ambLoopPoints(src.buffer);
-    src.loop = true;
-    src.loopStart = lp.start;
-    src.loopEnd = lp.end;
-    src.start(0, lp.start);
-  } else {
-    src.start();
-  }
+  /* (opts.loop stood here for one day, for the looping storm. His 2026-09-08 ruling replaced that
+     loop with scattered thunder — see stormScatterStart — and nothing else ever asked to loop, so
+     the branch is deleted rather than left as a feature with no caller.) */
+  src.start();
   return { src, gain };
 }
 
@@ -704,24 +701,86 @@ function stopFlipSpinSound() {
   if (flipLoopTimer) { clearTimeout(flipLoopTimer); flipLoopTimer = null; }
 }
 
-// D-09: a no-op when no storm node is in flight. Otherwise ramps the CURRENT gain value down to a
-// small epsilon over STORM_FADE_SEC — never to literal zero, which can throw or hitch in some
-// engines — then stops the source shortly after the ramp lands. Never stops the source without the
-// ramp: D-09 forbids both a hard cut and droning past the moment.
+/* ⭐ THE STORM IS SCATTERED THUNDER — Wyatt, 2026-09-08: "play the storm.mp3 once at the beginning
+   of a storm and then an average of once every 20 seconds -- not every 8 seconds. the sound in its
+   current form is thunder. scatter pan it too."
+   MEASURED, and he is right about the file: 8.007s whose envelope is one broadband crack that
+   decays away. Looping that every 8 seconds is a metronome made of lightning.
+   SAME MECHANISM AS THE SEA BED, deliberately — exponential gaps around a mean and a random pan,
+   exactly as gulls and creaks are scattered. A fixed 20-second interval would become audible as a
+   beat within a minute, which is the lesson ambSchedule already carries. AMBIENCE_SPREAD is
+   reused rather than a second spread constant: it is "how far to port or starboard a scattered
+   clip may land", and thunder is a scattered clip. */
+const STORM_MEAN_SEC = 20;          // average wait between claps, after the first
+let stormScatterTimer = null;
+let stormGen = 0;                    // bumped on every stop, so a timer from a past storm is dead
+let stormLive = [];                  // the claps still ringing, for fadeStorm to retire
+
+function stormFireOne(name) {
+  if (!ctx || !buffers[name] || isMuted()) return;
+  const src = ctx.createBufferSource();
+  src.buffer = buffers[name];
+  const g = ctx.createGain();
+  g.gain.value = SFX_VOLUME[name] != null ? SFX_VOLUME[name] : 1;
+  src.connect(g);
+  if (ctx.createStereoPanner) {
+    const p = ctx.createStereoPanner();
+    p.pan.value = (Math.random() * 2 - 1) * AMBIENCE_SPREAD;
+    g.connect(p).connect(stormGain);
+  } else {
+    g.connect(stormGain);            // no panner on this browser: centred thunder beats none
+  }
+  src.start();
+  const node = { src, gain: g };
+  stormLive.push(node);
+  src.onended = () => { stormLive = stormLive.filter(n => n !== node); };
+}
+
+function stormSchedule(name, gen) {
+  const dt = Math.max(2, -Math.log(1 - Math.random()) * STORM_MEAN_SEC);
+  stormScatterTimer = setTimeout(() => {
+    if (gen !== stormGen) return;    // a previous storm's timer is dead on arrival
+    stormFireOne(name);
+    stormSchedule(name, gen);
+  }, dt * 1000);
+}
+
+/** One clap the instant the storm arrives — his words — then scattered until fadeStorm(). */
+function stormScatterStart(name) {
+  stormScatterStop();
+  wakeCtx();
+  const gen = stormGen;
+  stormFireOne(name);
+  stormSchedule(name, gen);
+}
+function stormScatterStop() {
+  stormGen++;
+  if (stormScatterTimer) { clearTimeout(stormScatterTimer); stormScatterTimer = null; }
+}
+
+// D-09: a no-op when no thunder is in flight. Otherwise ramps each ringing clap's CURRENT gain down
+// to a small epsilon over STORM_FADE_SEC — never to literal zero, which can throw or hitch in some
+// engines — then stops it shortly after the ramp lands. Never stops a source without the ramp:
+// D-09 forbids both a hard cut and droning past the moment.
+// IT ALSO STOPS THE SCHEDULER, which is the half a one-shot storm never needed: retiring the claps
+// already ringing while leaving the timer armed would simply produce another clap 20 seconds into
+// a storm that is over.
 function fadeStorm() {
-  if (!stormNode) return;
-  const node = stormNode;
-  stormNode = null; // clear the held reference immediately, so a second call is a true no-op
-  if (!ctx) return;
-  const g = node.gain.gain;
+  stormScatterStop();
+  if (!ctx || !stormLive.length) { stormLive = []; return; }
+  const going = stormLive;
+  stormLive = [];                    // clear immediately, so a second call is a true no-op
   const now = ctx.currentTime;
-  g.cancelScheduledValues(now);
-  g.setValueAtTime(g.value, now); // anchor the ramp at the CURRENT value, not a stale target
-  g.linearRampToValueAtTime(0.0001, now + STORM_FADE_SEC);
-  try {
-    node.src.stop(now + STORM_FADE_SEC + 0.05);
-  } catch (e) {
-    // a source already stopped/ended on its own is not an error worth surfacing
+  for (const node of going) {
+    const g = node.gain.gain;
+    g.cancelScheduledValues(now);
+    g.setValueAtTime(g.value, now);  // anchor the ramp at the CURRENT value, not a stale target
+    g.linearRampToValueAtTime(0.0001, now + STORM_FADE_SEC);
+    try {
+      node.src.stop(now + STORM_FADE_SEC + 0.05);
+    } catch (e) {
+      // a source already stopped/ended on its own is not an error worth surfacing
+    }
   }
 }
 
@@ -1034,9 +1093,9 @@ function playForEvent(e, isLocalSeat) {
      a localOnly cue stays SILENT rather than leaking to the whole table when the answer is unknown
      — silence is the safe failure here, not sound. */
   if (s.localOnly && isLocalSeat !== true) return;
-  const bus = s.bus === "storm" ? stormGain : masterGain;
-  const node = play(s.name, { bus, loop: !!s.loop });
-  if (s.bus === "storm") stormNode = node || null;
+  /* The storm is not a one-shot and not a loop — it is a scatter that runs for the round. */
+  if (s.scatter) { stormScatterStart(s.name); return; }
+  play(s.name, { bus: masterGain });
 }
 
 // D-05's placeholder cue, tied to the win screen APPEARING, not to the `end`/`finish` events —

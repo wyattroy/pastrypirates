@@ -1323,7 +1323,15 @@ function pollySay(text){
     el.setAttribute("aria-live", "polite");
     document.body.appendChild(el);
   }
-  el.textContent = text;
+  /* ⭐ THE GAME'S PARROT, NEVER THE SYSTEM EMOJI — Wyatt, 2026-09-08: "Polly should always use the
+     game art, not the emoji!" and, on the ribbon chip, "Use the parrot game art icon, not the
+     emoji". Both were the same fault: emojify() already maps 🦜 to assets/icons/parrot.png and
+     panel() runs it over every prompt, so the parrot on every BUTTON was already the art. These two
+     places were the only ones that bypassed it — this one by writing textContent (which cannot hold
+     an image at all) and the chip by hand-writing innerHTML. Verified rather than assumed: emojify
+     was run over "⚓️ Yarrgh!", "🦜 Nah" and "🦜 Aye aye" and all three came back as <img>, variation
+     selector and all. */
+  el.innerHTML = emojify(text);
   el.classList.remove("show");
   void el.offsetWidth;                      // restart the fade on a repeat press
   el.classList.add("show");
@@ -2228,7 +2236,7 @@ function mountRecipeStack(ap){
      drift and none of them can forget to cancel the pending bake. `swapping` guards a double tap
      mid-animation, which would otherwise leave the row wearing .rcSwapping forever. */
   const REDUCED = typeof matchMedia === "function" && matchMedia("(prefers-reduced-motion: reduce)").matches;
-  const SWAP_MS = REDUCED ? 0 : 220;
+  const SWAP_MS = REDUCED ? 0 : 150;   // his "quicker"; matches the CSS transition exactly
   let swapping = false;
   const swap = () => {
     if (swapping || cards.length < 2) return;
@@ -2236,9 +2244,17 @@ function mountRecipeStack(ap){
     resetRecipeFocus();                      // his 6.7: a pending "Bake this!" is cancelled
     if (SWAP_MS) row.classList.add("rcSwapping");
     setTimeout(() => {
+      /* THE COMMIT LANDS WITH NO TRANSITION — see .rcSnap in index.html. Exchanging data-rcpos
+         changes each card's target transform, and with the transition live they animated a SECOND
+         time from where they had just arrived. That double run IS the pause he described. The
+         reflow poke between the writes is load-bearing: without it the browser coalesces the class
+         removal with the position swap and never sees the untransitioned state at all. */
+      row.classList.add("rcSnap");
       row.classList.remove("rcSwapping");
       front = (front + 1) % cards.length;
       paint();
+      void row.offsetWidth;
+      row.classList.remove("rcSnap");
       swapping = false;
     }, SWAP_MS);
   };
@@ -2252,7 +2268,11 @@ function mountRecipeStack(ap){
     const sw = document.createElement("button");
     sw.type = "button"; sw.className = "pp4RcSwap";
     sw.setAttribute("aria-label", "Show the other recipe");
-    sw.textContent = "↩";                                   // his 6.5, in a round circle
+    /* HIS OWN ARROW, DRAWN — never a glyph (see .pp4RcSwap svg in index.html for why a character
+       cannot be vertically centred). A return arrow: across, round, and back on itself. */
+    sw.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" ' +
+      'stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">' +
+      '<path d="M20 7H9a4.5 4.5 0 0 0 0 9h3"/><polyline points="15.5 3 20 7 15.5 11"/></svg>';
     sw.addEventListener("click", stop(swap));
     row.appendChild(sw);
 
@@ -2406,7 +2426,7 @@ function buildStage(){
     <span class="pp4Boats">${order.map(i => `<img class="pp4Boat" src="${BOAT_IMG[i]}">`).join("")}</span>
     <button id="pp4FF" type="button" title="Skip to yer next turn">⏩</button>
     <button id="pp4Chat" type="button" title="Scuttlebutt">💬<span id="pp4ChatDot"></span></button>
-    <button id="pp4Help" type="button" title="Yer parrot">🦜?</button>
+    <button id="pp4Help" type="button" title="Yer parrot">${emojify("🦜?")}</button>
     <button id="pp4Menu" type="button">☰</button>`;
   document.body.appendChild(rib);
   /* THE PARROT IS A TWO-STATE TOGGLE — his ruling, chosen over a three-step, because an
@@ -3032,6 +3052,7 @@ function enterCenterStage(){
   // sheet must never share the centre stage (see the strip bug above)
   const h1 = box.querySelector(".pp4PeekHint"); if (h1) h1.remove();
   if (ap.style.maxHeight) ap.style.maxHeight = "";
+  if (ap.style.minHeight) ap.style.minHeight = "";
   box.classList.remove("pp4Recipes");
   if (!box.classList.contains("pp4Center")){
     box.classList.add("pp4Center"); box.classList.remove("radial", "centered");
@@ -3173,6 +3194,7 @@ function promptTick(force){
     S.radKey = null;
     const h0 = box.querySelector(".pp4PeekHint"); if (h0) h0.remove();
     if (ap.style.maxHeight) ap.style.maxHeight = "";
+  if (ap.style.minHeight) ap.style.minHeight = "";
     if (box.style.paddingBottom) box.style.paddingBottom = "";
     return;
   }
@@ -3222,7 +3244,30 @@ function promptTick(force){
       const r = cap.getBoundingClientRect();
       return r.height > 0 ? Math.round(r.top) : null;
     })();
-    const top = capTop != null ? capTop : Math.round(vhPx() * 0.45);
+    /* ⭐ IT RIDES UP ONTO THE BOARD NOW, AND IT COVERS THE CAPTAINS BOX WHOLE.
+       Three of his notes are one instruction, and this line plus the min-height below is all of it:
+         item 26 follow-up : "In tablet/phone, this should entirely cover the captain's box."
+         item 29 follow-up : "Show me option 2 with the cards hovering over the bottom of the board
+                              -- that way, if they cover a little bit of the important gameplay
+                              it's okay."
+         2026-09-08, desktop: "the recipe picker is hard to see and awkward to find. can you make it
+                              overlap the board slightly, take up much more vertical space, and
+                              entirely cover up the captain's box?"
+       ANCHORED TO THE CAPTAINS BOX ITSELF, never to a viewport fraction, so the SAME two lines
+       produce the right answer at all three sizes: on a phone that box is the full-width strip
+       under the board, on desktop it is the right-hand column. Cover it and overlap whatever the
+       board's near edge happens to be — no breakpoint, no second rule.
+       The lift is clamped to topBandPx() so the sheet can never climb over the ribbon and the wind
+       pill, which is the one thing above the board that must stay readable. */
+    const capR = (() => {
+      const cap = $("pp4Cap");
+      if (!cap) return null;
+      const r = cap.getBoundingClientRect();
+      return r.height > 0 ? r : null;
+    })();
+    const CAP_OVERLAP_PX = 44;         // how far the sheet climbs onto the board — his "slightly"
+    const top = capR ? Math.max(topBandPx(), Math.round(capR.top - CAP_OVERLAP_PX))
+                     : (capTop != null ? capTop : Math.round(vhPx() * 0.45));
     box.style.top = top + "px";
     /* ⭐ AND ON A WIDE SCREEN IT MOVES OFF THE BOARD, ONTO THE CAPTAINS COLUMN — Wyatt, 2026-09-07
        playtest item 26: "In all three, they should hover over the captains box — in desktop
@@ -3248,6 +3293,16 @@ function promptTick(force){
     if (capBeside){
       box.style.left = Math.round(capBeside.left - 12) + "px";
       box.style.width = Math.round(capBeside.width + 24) + "px";
+      /* ⚠ THEN MEASURE, BECAUSE THE PANEL IS NOT THE BOX. Measured at 1280x900: box 872..1278
+         (correct, inside the screen) but #actionPanel 886..1292 — the panel is as wide as the box
+         and sits 14px inside it, so it ends 14px further right than the box does and ran off the
+         screen. Nudge the whole sheet left by whatever actually overflows.
+         ⚠ AND IT USES window.innerWidth, NOT vwPx(). My first attempt clamped with vwPx() and made
+         it far worse — the sheet ended up at 930..1594. vwPx() is the STAGE's own width (it
+         returned 1632 on a 1280 screen), not the viewport. When the question is "does this fit on
+         the glass", only the glass can answer. */
+      const over = Math.round(ap.getBoundingClientRect().right - (window.innerWidth - 8));
+      if (over > 0) box.style.left = Math.max(8, Math.round(capBeside.left - 12 - over)) + "px";
     } else {
       box.style.left = "8px";
       box.style.width = (vwPx() - 16) + "px";
@@ -3316,11 +3371,25 @@ function promptTick(force){
     }
     const apTop2 = ap.getBoundingClientRect().top;
     const capFrom = apTop2 > 0 ? apTop2 : top;
-    ap.style.maxHeight = Math.max(160, vhPx() - capFrom - 8) + "px";
+    const maxH = Math.max(160, vhPx() - capFrom - 8);
+    ap.style.maxHeight = maxH + "px";
+    /* ⭐ AND IT REACHES THE BOTTOM OF THE CAPTAINS BOX — the "entirely cover" and "much more
+       vertical space" halves of the same instruction. Derived from where that box actually ENDS
+       rather than from a typed height, so it stays true when the captains panel grows a row.
+       Clamped to the maxHeight above, which is the screen's own limit: asking for more than the
+       viewport can hold would put the sheet's own bottom off-screen, which is the D-42 fault this
+       block already exists to avoid. */
+    if (capR){
+      const wantH = Math.round(capR.bottom - (apTop2 > 0 ? apTop2 : top));
+      ap.style.minHeight = Math.max(0, Math.min(wantH, maxH)) + "px";
+    } else {
+      ap.style.minHeight = "";
+    }
     return;
   }
   if (hint) hint.remove();
   ap.style.maxHeight = "";
+  ap.style.minHeight = "";
   // N4 radial: choices bloom around the ship, right where the eyes are (the plan's own words).
   const menu = menuButtons(ap);
   const uu = boatUXY(appState.mySeat ?? 0);
@@ -3790,7 +3859,38 @@ function promptTick(force){
         sub.style.boxSizing = "border-box";
         const sw = Math.min(sub.offsetWidth || 200, vwPx() - 20);
         sub.style.left = Math.min(Math.max(cxS - sw / 2, 10), vwPx() - sw - 10) + "px";
-        sub.style.top = Math.min(Math.max(stackTop, floor), Math.max(floor, capT - 30)) + "px";
+        /* ⭐ AND IT DOES NOT LAND ON A SQUARE YE ARE BEING ASKED TO TAP — Wyatt, 2026-09-08:
+           "This is legible, but it's painted over a sailing square in a bad way."
+           MEASURED at 390x844 before the fix: the helper covered 4 of the 15 gold squares.
+           THE RULE ALREADY EXISTS IN THIS FILE and this placement simply never consulted it — the
+           obstacle table used by the bubble search weights `.sailCell` at 1000 against 40 for a
+           message and 15 for this very element, i.e. "cover anything before ye cover a square a
+           captain must hit". So the line now tries its natural home first and falls back upward,
+           to the band between the message card and the ribbon, when that home is on the squares.
+           IT NEVER MOVES WHEN IT DOES NOT HAVE TO: on a board whose squares are nowhere near the
+           pill this is the same position it always had, so nothing changes on most turns. */
+        const subH = sub.offsetHeight || 30, subL = parseFloat(sub.style.left) || 10;
+        const cells = [...document.querySelectorAll(".sailCell")].map(c => c.getBoundingClientRect());
+        const hits = t => cells.reduce((n, r) =>
+          n + ((r.right < subL || r.left > subL + sw || r.bottom < t || r.top > t + subH) ? 0 : 1), 0);
+        const home = Math.min(Math.max(stackTop, floor), Math.max(floor, capT - 30));
+        const msgR = (ap.querySelector(".apMsg") || {}).getBoundingClientRect
+          ? ap.querySelector(".apMsg").getBoundingClientRect() : null;
+        /* Candidates, best-first: where it has always gone; tucked under the message card with no
+           gap (so the two read as one object); and the top band just below the ribbon. */
+        const tries = [home];
+        if (msgR && msgR.height > 0){
+          tries.push(Math.round(msgR.bottom + 2));
+          tries.push(Math.round(Math.max(floor, msgR.top - subH - 4)));
+        }
+        tries.push(Math.round(floor));
+        let best = home, bestHits = hits(home);
+        for (const t of tries){
+          if (bestHits === 0) break;
+          const h = hits(t);
+          if (h < bestHits){ best = t; bestHits = h; }
+        }
+        sub.style.top = best + "px";
       }
     };
     stackUnderPill(stackCx != null ? stackCx : sx, stackAt != null ? stackAt : tSafe);

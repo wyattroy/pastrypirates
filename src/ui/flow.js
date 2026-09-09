@@ -1237,7 +1237,11 @@ export async function pilotGate(id,tweak){
   /* SEEN BEFORE SHOWN, deliberately. The count must advance even if this voyage ends mid-card —
      otherwise a captain who quits during a lesson meets the same lesson forever. */
   pilotSee(id);
-  await localAsk(text,[{label:"🦜 Aye aye",value:0,cls:"primary ahoyGlow",stage:true}],null,line.sub||null);
+  // `pp4AyeAye` exists only to size the bird — Wyatt, 2026-09-08: "Polly is too small on the Aye
+  // aye button -- make the bird bigger!" The parrot itself was already the game art (emojify maps
+  // 🦜 to assets/icons/parrot.png and panel() runs it over every prompt); it was arriving at
+  // .narrIcon's 18px, which is a footnote size on a full-stage circle.
+  await localAsk(text,[{label:"🦜 Aye aye",value:0,cls:"primary ahoyGlow pp4AyeAye",stage:true}],null,line.sub||null);
   return true;
 }
 export async function animateRimSweepIfAny(ev){
