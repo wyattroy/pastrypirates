@@ -2503,6 +2503,16 @@
      with empty screen below it. Measured, not guessed: row bottom 732 against panel bottom 679.
      One card in flow means the row is exactly as tall as the card the captain is looking at, and
      every height the panel computes downstream is honest. */
+  /* ⭐ THE SHEET IS TALLER NOW, SO THE STACK SITS IN THE MIDDLE OF IT.
+     He asked for "much more vertical space" and for the sheet to cover the captains box outright.
+     On a phone that box is 368px tall against ~220px of content, so covering it necessarily leaves
+     room over — and content pinned to the top of a tall box reads as a box that failed to fill,
+     not as a deliberate one. Centring the whole group makes the height look chosen.
+     ONLY WHEN THE PICKER IS UP (`.pp4Recipes`): every other prompt still lays out from the top,
+     which is what the top-to-bottom reveal order depends on. */
+  body.pp4Stage #pp4Prompt.pp4Recipes #actionPanel {
+    display:flex; flex-direction:column; justify-content:center; }
+
   /* ⭐ THE STACK REBUILT — Wyatt's playtest item 6, 2026-09-07, eight numbered changes.
      ⚠ WHY THE CARD WAS JAMMED LEFT (his 6.8: "the cards should be centered within the white box;
      not left justified"). `margin:0 auto` was here all along and could never work: the row is
