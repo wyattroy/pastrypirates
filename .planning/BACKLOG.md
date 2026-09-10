@@ -861,11 +861,11 @@ changes, of which **④ and ⑤ supersede the bottom-centre parking built the sa
 - ~~**Polly mode should keep the dotted course for the whole game**~~ — ✅ DONE: the draw condition
   widened from `teaching` to `pilotIsOn()`, and the prompt teardown no longer wipes it while the
   parrot is on. Both halves were needed; the second is why it "faded" between turns.
-- [ ] **A bot's dock coin-flip sound fires while the bot is still sailing.** His own read, and it is
+- [x] **A bot's dock coin-flip sound fires while the bot is still sailing.** ✅ 2026-09-09 — the drain was concurrent ("start-in-order, interleave-at-awaits"); both tiers now drain the timeline one event at a time. His own read, and it is
   right: the dock event reaches the drain before the boat's glide finishes. Same class as the s4
   sail-sound fix — the cure is that the engine should not fire `dock` until the boat has arrived,
   exactly as it works for a human.
-- [ ] **The viewport director is more zoomed out than it needs to be.** It should frame the SAILABLE
+- [x] **The viewport director is more zoomed out than it needs to be.** ✅ 2026-09-09 — the PAD was never the problem; a floor of `640/zoomCap(2.2)` (~7 cells) refused to let the frame be narrow. It should frame the SAILABLE
   area plus one square of padding in every direction — more if needed so the narration box occludes
   no square. Today it is too wide AND the narration box covers squares.
 - ~~**⚠ AND A SECOND FAULT IN THE SAME SCREENSHOT HE DID NOT NAME:**~~ — ✅ DONE: the italic helper line
