@@ -2254,3 +2254,30 @@ in a chat reply is lost when the session ends, which is the same as never having
 **I also audited CLAUDE.md at his instruction, on the theory that it was too long to hold.** It is
 not: **246 lines against its own 350-line gate**. The rule about finishing work was simply *not in
 it* — so it is now. Length was not the cause; the absence of the rule was.
+
+---
+
+## 2026-09-10 — THE CAPTAIN'S BOX REDESIGN: twelve rulings
+
+He answered all twelve questions on the redesign. These are settled; do not re-ask them.
+
+| # | The question | HIS RULING |
+|---|---|---|
+| 1 | Plaque or plain panel? | **The old shot-clock plaque's STYLE, but a NEW and better version of it, generated through the art-review process.** The plaque carries the information design of his mockup — *"i don't like the look of what I made"*, so the mockup is the STRUCTURE, never the visual reference. |
+| 2 | Frame around what? | **Round the whole stack.** One frame, many heights. |
+| 3 | Active captain? | **A heavy outline in their own colour.** |
+| 4 | Recipe on which row? | **OPEN — he wants options.** *"you only ever see your own recipe. if you can invent a better place for your recipe card to sit than in your row, show me 2-3 options."* |
+| 5 | Crates or bare icons? | **Crates. HE HAS ALREADY MADE THE CRATE ASSET** — find it, do not regenerate it (art-audit §0). **And use it for the end-game bake-off crates too.** |
+| 6 | A captain holding nothing? | **An empty crate silhouette**, matching the empty ingredient silhouettes an island shows once its crate is bought. |
+| 7 | More than one row of ingredients? | **The row grows to two lines.** |
+| 8 | The doubloon count? | **OPEN — he wants options.** Like the mockup, but *"research other similar games to pastry pirates and show me 3 options."* |
+| 9 | Phone? | **Same design, stretched.** One system, not two. |
+| 10 | Recipe visible to others? | **NEVER.** *"NO NEVER SHOW OTHERS YOUR RECIPE!!! I am so confused why you would ask this — we're redesigning the captain's box, not the entire game mechanic of hidden recipes."* **Hidden recipes are a settled game mechanic and are not in scope for a styling job.** A question that puts a core mechanic back on the table is a bad question, however politely it is asked — scope the question to the work. |
+| 11 | Height cap? | **Cap it and scroll.** The board does not give way. |
+| 12 | Art vs CSS? | **Frame + crates as art; tints, outline and layout as CSS.** |
+
+**Two things I got wrong in the asking, worth keeping so the next set of questions is better:**
+1. **Q10 asked whether to break hidden recipes.** It is a settled mechanic; the job was a box's
+   styling. Never widen a question past the work it belongs to.
+2. **Q4 assumed the recipe belongs in a row at all.** His answer was better than either option I
+   offered — the right move was to ask where it should live, not which of my two places.

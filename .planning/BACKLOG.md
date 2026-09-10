@@ -1101,4 +1101,37 @@ The box has to survive four captains, two rows of ingredients, three modes and t
 without a single stretched pixel. That is a system, and the art has to be cut for it before any of
 it can be built. Building first and cutting art to fit is how the current box got the way it is.
 
-**Nothing here starts until he has answered the twelve.**
+## HE ANSWERED THE TWELVE — 2026-09-10. The rulings are in `.claude/memory/DECISIONS.md`.
+
+Settled: the plaque's STYLE but a NEW generated version of it (his mockup is the information
+design, not the look — *"i don't like the look of what I made"*) · one frame round the WHOLE stack ·
+the active captain marked by a heavy outline in their colour · ingredients as CRATES · an empty
+captain shows an empty crate SILHOUETTE, matching the island holes · a second line when a hold
+overflows · the same design stretched to a phone · capped height with scrolling · frame and crates
+as ART, everything else CSS · **and a captain's recipe is NEVER visible to anyone else.**
+
+## Three things block the art brief, and only these three
+
+1. **WHERE IS THE CRATE ASSET?** He wrote: *"I already made the crate asset. I'd like you to use it
+   for the endgame bakeoff crates too."* **I looked and it is not in this repo.** `assets/` holds
+   `icons/crate-overboard.png` (a crate going over the side — a different picture) and nothing else
+   crate-shaped; no untracked image, nothing added on any branch in the last ten days. It is
+   probably on the Blade, or still in his downloads. **Do not regenerate it** — art-audit §0 exists
+   precisely so existing art is never re-made. Ask him for the file.
+2. **WHERE DOES THE RECIPE CARD SIT?** *"you only ever see your own recipe. if you can invent a
+   better place for your recipe card to sit than in your row, show me 2-3 options."*
+3. **WHAT DOES THE DOUBLOON COUNT LOOK LIKE?** *"research other similar games to pastry pirates and
+   show me 3 options."*
+
+## And the ONE ruling that is also a lesson about asking
+
+He answered Q10 — should a recipe be visible to other captains — with *"NO NEVER SHOW OTHERS YOUR
+RECIPE!!! I am so confused why you would ask this — we're redesigning the captain's box, not the
+entire game mechanic of hidden recipes."*
+
+He is right and the question should never have been asked. Hidden recipes are a settled mechanic
+with machinery built around them (pass-and-play's whole hand-over gate exists for it). **A question
+scoped wider than the work puts settled things back on the table and costs him the trust that the
+work is understood.** Ask about the thing being changed.
+
+**The art brief is written once those three are answered; everything else is decided.**
