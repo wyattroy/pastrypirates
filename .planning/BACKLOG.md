@@ -1225,3 +1225,28 @@ is never reached. Confirmed by the sweep: card heights are 278–353 against wid
 0.97–1.11 of width. It has been doing nothing since it was written; the height comes from the
 content. Left in place as a floor for a future short-content card rather than deleted, but it is
 NOT what makes the card tall and no one should read it as if it were.
+
+
+---
+
+# 🎚️ THE RECIPE CARD NUMBERS ARE HIS NOW — 2026-09-10
+
+**Wyatt:** *"Dude you're killing me with the recipe card tweaks... i have no faith in you. create an
+artifact with 20 sliders that I can use to choose the aspect ratio, image sizes, padding, etc. for
+all 3 screen sizes. I'll give you the exact numbers"*
+
+**https://claude.ai/code/artifact/6e1c84b1-cfc0-45ef-b33e-7d76e9eecc6e**
+
+Six sliders that apply to all three sizes, five for each size, three live cards drawn with the real
+art at the real widths. Every slider starts at **what the game does right now**, so "Back to what's
+live" is a real baseline and he can see what he is changing FROM.
+
+**Why it exists at all:** I guessed at these numbers four times in one day — the aspect ratio, the
+title reservation twice, the image inset twice — and two of those guesses were arithmetic I did not
+check against a browser. This is not a tool for me. **When his numbers arrive, wire exactly those
+and nothing else.**
+
+- [ ] wire his numbers into index.html the moment he sends them, and nothing beside them
+- [ ] the helper pill "Tap a recipe to see its route" is sitting ON TOP of the Sound row in his
+      2026-09-10 screenshot (he underlined it green) — a placement bug, not a number. Fix separately
+      from the slider values so a bad pill placement cannot be blamed on his numbers.
