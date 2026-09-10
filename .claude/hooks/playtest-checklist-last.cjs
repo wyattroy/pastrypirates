@@ -63,6 +63,23 @@
 // looking for the truth. The bullet points at the grep instead.
 // It fires ONCE per session — the same marker discipline qa-gear-first.cjs uses, so a session
 // cannot be trapped in a loop by a hook it has already answered.
+// ============================================================================
+//  AND THE SHEET HAS ONE SHAPE
+// ============================================================================
+// Wyatt, 2026-09-09: "make sure that the items parked with questions are added to our consistent
+// Playtest artifact -- this should be shown to me after all runs that need my approval on things;
+// with blocking questions at the top, and the playtestable items below with pass/fail/comments."
+//
+// So a sheet that satisfies this hook is not just "recent enough". It carries, IN THIS ORDER:
+//   1. every item PARKED ON HIM — `- [?]` in .planning/BACKLOG.md — as a QUESTION with options and
+//      a recommendation. A question has no pass and no fail; it has an answer, and until it has one
+//      a piece of work is stopped. Answers come out first when he copies his notes.
+//   2. then the playtestable items, each with pass / fail / comments.
+//
+// This hook checks freshness, which is what it can check mechanically. The SHAPE is stated here and
+// in CLAUDE.md because it is a rule about writing rather than about files — but a session that
+// writes a sheet with no questions block while `- [?]` items exist has skipped his instruction.
+
 const fs = require("node:fs");
 const path = require("node:path");
 const { execSync } = require("node:child_process");

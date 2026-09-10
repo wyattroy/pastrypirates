@@ -57,6 +57,12 @@ cannot size is a plan he cannot redirect.**
 **Restate every mid-flight instruction in your next reply** — one line. When he refers back to
 something he told you, **scroll up**; don't hunt through git.
 
+**One sheet, one shape: BLOCKING QUESTIONS AT THE TOP, then checks with pass/fail/comments.**
+Wyatt, 2026-09-09: *"items parked with questions [go] into our consistent Playtest artifact... with
+blocking questions at the top, and the playtestable items below."* A question is not a check — it
+has no pass, only an answer, and until it has one a piece of work is stopped. Give each one its
+options and your recommendation. Answers come out FIRST when he copies his notes.
+
 **Hand him a link he can tap, never a file path.** Anything he is meant to read, tick or use is
 published as a page. **A markdown file is not a deliverable.** If you cannot publish, say so and
 publish to staging instead.
