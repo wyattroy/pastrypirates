@@ -70,7 +70,7 @@ try { md = fs.readFileSync(file, "utf8"); } catch (e) { process.exit(0); }
    that reports 65 open tasks when there are eight is a hook nobody believes, and a hook nobody
    believes gets deleted. So the backlog now carries an explicit, machine-readable convention and
    this reads only that:
-       - [ ] open        - [x] done        - [?] parked on Wyatt
+       - [ ] open   - [x] done   - [?] parked on WYATT   - [~] blocked on a MACHINE (a trial, a build)
    Prose stays prose. Anything that wants to hold a session open has to say so in one character. */
 /* ⚠ AND IT READS ONLY WHAT IS FENCED. Two earlier versions of this hook cried wolf: matching every
    bullet under an emoji heading found 65 "items", most of them prose; matching every `- [ ]`
@@ -82,21 +82,51 @@ try { md = fs.readFileSync(file, "utf8"); } catch (e) { process.exit(0); }
    character. Nothing can drift into it by accident. */
 const fence = md.match(/<!--\s*OPEN-WORK\s*-->([\s\S]*?)<!--\s*\/OPEN-WORK\s*-->/);
 const body = fence ? fence[1] : "";
-const OPEN = /^\s*[-*]\s*\[ \]\s+(.+)$/;
-const PARK = /^\s*[-*]\s*\[\?\]\s+(.+)$/;
-const open = [], parked = [];
+/* ⚠ THREE STATES, NOT TWO, AND THE THIRD IS THE ONE THAT LET A SESSION STOP. `- [?]` means WYATT
+   has to answer — genuinely not the session's problem. `- [~]` means a MACHINE has to answer: a sea
+   trial, a build, a deploy. Those are not his and they are not permission to stop; they only block
+   THAT item, and the session should be doing something else while the machine works. Collapsing
+   them onto one marker is what made "waiting on a trial" read as "waiting on Wyatt". */
+const OPEN  = /^\s*[-*]\s*\[ \]\s+(.+)$/;
+const PARK  = /^\s*[-*]\s*\[\?\]\s+(.+)$/;
+const BLOCK = /^\s*[-*]\s*\[~\]\s+(.+)$/;
+const open = [], parked = [], blocked = [];
 for (const raw of body.split("\n")) {
   let m = raw.match(OPEN);
   if (m) { open.push(m[1].replace(/[*_`~]/g, "").trim()); continue; }
   m = raw.match(PARK);
-  if (m) parked.push(m[1].replace(/[*_`~]/g, "").trim());
+  if (m) { parked.push(m[1].replace(/[*_`~]/g, "").trim()); continue; }
+  m = raw.match(BLOCK);
+  if (m) blocked.push(m[1].replace(/[*_`~]/g, "").trim());
 }
 
+/* ⭐ AN EMPTY FENCE IS NOT AN EMPTY BACKLOG — Wyatt, 2026-09-09: "why did i need to ask you this?
+   how can you create a system for yourself that will cause you to automatically ask yourself that,
+   and then do it?"
+   ⚠ HE HAD TO ASK BECAUSE THE FIRST VERSION OF THIS HOOK STOPPED AT THE FENCE. The live list held
+   two items, both waiting on a sea trial, so it let the session end — while a crash that kills CREW
+   voyages, and a doc CLAUDE.md tells the next session to read FIRST that has been wrong for two
+   days, sat untouched in the sections above. "Nothing live" is not "nothing to do", and a hook that
+   confuses them is a hook that gives permission to stop.
+   SO WHEN THE FENCE IS EMPTY OR ENTIRELY BLOCKED, IT ESCALATES rather than releasing: it names the
+   🔴 sections of the wider backlog and asks for a reason, not a reminder. The exit is unchanged and
+   still honest — say which and why, and you may stop — but it has to be SAID. */
+const redSections = [...md.matchAll(/^##\s+🔴\s+(.+)$/gm)].map(m => m[1].replace(/[*_`~]/g, "").trim());
 if (!open.length) {
-  if (parked.length) {
-    console.error(`Backlog: nothing left you can do. ${parked.length} item(s) are parked on Wyatt — say so in your reply.`);
+  if (!redSections.length) {
+    if (parked.length || blocked.length) console.error(`Backlog: nothing left you can do. ${parked.length} parked on Wyatt, ${blocked.length} waiting on a machine — say so in your reply.`);
+    process.exit(0);
   }
-  process.exit(0);
+  const shortR = t => (t.length > 84 ? t.slice(0, 81) + "…" : t);
+  console.error(
+`The live list has nothing OPEN${parked.length ? ` (${parked.length} parked on Wyatt` : ""}${blocked.length ? `${parked.length ? ", " : " ("}${blocked.length} waiting on a machine` : ""}${parked.length||blocked.length ? ")" : ""} — but the backlog still carries ${redSections.length} 🔴 section(s):
+
+${redSections.slice(0, 6).map(t => "  · " + shortR(t)).join("\n")}
+
+An empty fence is not an empty backlog. Pick one, or say plainly which of these you are NOT doing
+and why. ⚠ "WAITING ON A TRIAL" COVERS THE FENCED ITEMS, NOT THESE — a machine working is not a
+reason for you to be idle.`);
+  process.exit(2);
 }
 
 const short = s => (s.length > 96 ? s.slice(0, 93) + "…" : s);

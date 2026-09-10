@@ -834,6 +834,17 @@ Not fixed here because it changes how the sea trial behaves, which is Wyatt's ca
 
 <!-- OPEN-WORK -->
 
+## 🟢 CLOSED 2026-09-09 — the crew storm crash, open since 2026-08-21
+
+- [x] **`stormSummary` reading `.length` of undefined killed CREW voyages.** Firebase RTDB does not
+  store an empty array, so a storm where (say) nobody anchored sent `held: []` and a guest received
+  `held: undefined` — and the narration's first line is `if(e.moved.length)`. It could only ever
+  happen in crew: a host reads the array it just built, and a solo game never crosses a wire, which
+  is why it survived four months. Repaired in `fixEv()` — the one seam that already did exactly this
+  for `state[].ing` — and gated by `storm_summary_buckets_check.mjs` (108), which reads the ENGINE's
+  own emit and requires `STORM_BUCKETS` to match it, so a sixth bucket cannot re-open it silently.
+
+
 ## 🟠 WYATT'S 2026-09-09 PLAYTEST — the items not yet built
 
 **Written here rather than left in a chat reply**, because he said so: *"write all of these
@@ -903,7 +914,7 @@ Verified in a two-window crew game.
   `optionButtonsHTML()`**. Red-proofed by adding a real second caller and watching it go red. A
   convergence with no gate lasts until the next person needs a prompt in a hurry — which is exactly
   what happened between 2026-08-28 and 2026-09-09.
-- [ ] **Hole 1 — the CHANNEL half.** An ask is still not an engine event, so a guest still
+- [~] **Hole 1 — the CHANNEL half.** An ask is still not an engine event, so a guest still
   subscribes to seven channels. The shape: `Game.ask(seat, spec)` emits a `prompt` event; the ONE
   consumer calls `raiseLocalPrompt(seat, …)` when the seat is local and does nothing when it is
   not; the answer returns through `takeTurn`'s door. Then `watchPrompt`, `watchDraftPrompt` and
@@ -932,7 +943,7 @@ an event or genuinely session plumbing, and the answer must be argued per channe
   active seat, the `turn` event) and delegating only the CHOOSING. Three `strategy==="human"?...`
   branches in the orchestrator became one. `decider_table_check.mjs` was re-anchored to the
   stronger property — *no caller picks person-or-bot for itself* — rather than deleted.
-- [ ] **Close hole 3 — THE INTERIORS.** humanTurn (99 lines, prompt-and-wait) and botTurn (111,
+- [~] **Close hole 3 — THE INTERIORS.** humanTurn (99 lines, prompt-and-wait) and botTurn (111,
   plan-and-animate) still hold their own preambles: a banner and a shot-clock flag against a
   thinking beat. Folding those together is a rewrite of the turn loop, not a convergence of it, and
   wants complete voyages in all three modes to verify.
