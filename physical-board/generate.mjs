@@ -1316,8 +1316,12 @@ function boardFivePiece() {
         if (on) { if (run) run.b = p; else run = { a: p, b: p }; } else flush(); } }
     flush(); }
   // the four whirlpools, engraved straight into the board — no tile, no pocket (his ruling, 2026-08-30)
-  const whirls = whirlpoolCells(rim).flatMap(c => tag(artToken("swirl", (c.x + .5) * CELL, (c.y + .5) * CELL, CELL * .84, { cut: false }), "whirlpool"));
-  const raster = [...tag(rimMarks(rim, "game"), "trade-winds"), ...whirls, ...tag(dotted, "tortuga-outline"), ...tag(rippleRings(), "ripples"), ...tag(compassMarks(C, Rmax), "compass"), ...tag(edgeBands(C, Rmax), "edge-band")];
+  const wpCells = whirlpoolCells(rim), wpKeys = new Set(wpCells.map(c => c.k));
+  const whirls = wpCells.flatMap(c => tag(artToken("swirl", (c.x + .5) * CELL, (c.y + .5) * CELL, CELL * .84, { cut: false }), "whirlpool"));
+  // Wyatt, 2026-09-10: "The board should not have trade wind arrows on the squares that have
+  // whirlpools." A whirlpool square carries the swirl alone. Each arrow is aimed from its own
+  // square's position, so leaving four out cannot move any other.
+  const raster = [...tag(rimMarks([...rim].filter(k => !wpKeys.has(k)), "game"), "trade-winds"), ...whirls, ...tag(dotted, "tortuga-outline"), ...tag(rippleRings(), "ripples"), ...tag(compassMarks(C, Rmax), "compass"), ...tag(edgeBands(C, Rmax), "edge-band")];
   const knobs = allKnobs(), grid = gridForQuadrants(valid, knobs), canon = poly(CU, quadrantPts(Rb)), canonNW = poly(CU, quadrantPts(Rb, true));
   // small engraved marks go to the quadrant that owns their centre; only the rim bands need clipping
   const assign = (it, q, k) => { const b = bbox([it]); if (b.w < 14 && b.h < 14) { const o = quadrantOf([(b.x0 + b.x1) / 2, (b.y0 + b.y1) / 2], knobs); return o === k ? it : (o === -2 ? clipItemQuadrant(it, q) : null); } return clipItemQuadrant(it, q); };
