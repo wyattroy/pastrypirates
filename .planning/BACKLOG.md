@@ -834,6 +834,32 @@ Not fixed here because it changes how the sea trial behaves, which is Wyatt's ca
 
 <!-- OPEN-WORK -->
 
+## 🟠 THE SEA TRIAL OF 2026-09-10 — 40 structural failures became 2
+
+Three runs. `f5b5091d` is the build the third one judged.
+
+| | run 1 | run 2 | run 3 |
+|---|---|---|---|
+| recipe card off the glass | 4 (passplay-phone) | 0 | **0** |
+| recipe card reported occluded | 36 | 40 | **0** |
+| other structural | 0 | 0 | **2** |
+
+- [?] **THE CHURN IS A DECISION AND IT IS HIS.** 4–14 screens per leg never settle before being
+  judged (longest 4.2s), and the trial fails on that alone. ⚠ **I TOLD HIM THIS WAS THE PICKER'S NEW
+  TIMINGS. IT IS NOT.** Every unsettled screen is a `radial` one — the action-circle fan — and the
+  cause was diagnosed on 2026-08-27 and written up in this very file: a narration bubble is anchored
+  to a captain's ship and re-placed as the board moves, `.pp4Bub` is in the settle probe's selector
+  list, so **while any bubble tracks its subject the screen cannot settle, by construction.** An
+  instrument fault, not a game fault. Three options are already written under "WHY 31% OF SCREENS
+  NEVER SETTLE"; none has been taken because it decides when EVERY screen is judged. On the sheet.
+- [ ] **`passplay-desktop`: overlapping controls "Dough Hook / Walk away"** — a trade prompt piling
+  two circles. One occurrence in ten legs.
+- [ ] **`crew-phone`: a sail square over the sail question** — `"sailCell" over "test2: Tap a gold
+  square to sa"`. D-38's class, one occurrence, and the placement search is supposed to yield.
+- [ ] **301 → screens queued for a vision pass and never cleared**, 18–59 per leg. The judge defers
+  them; nobody reads the queue. It carries its own rubric and instructions.
+
+
 ## 🟠 THE CAPTAINS BOX WEARS THE SHOT-CLOCK PLAQUE (Wyatt, 2026-09-09)
 
 > *"i want to replace the styling of the current captain's box with the styling of the old shot
