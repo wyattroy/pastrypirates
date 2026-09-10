@@ -2973,7 +2973,21 @@
      numbers those rules actually declare (26 -> 52, 54 -> 81), not from a guess at what is on
      screen. */
   body.pp4Stage #actionPanel .apBtn .recipeIcons .ri img { max-width:52px; }
-  body.pp4Stage #actionPanel .apBtn .recipeThumb { height:81px; margin:0 auto 6px; }
+  /* ⭐ THE ARTWORK FILLS THE CARD — Wyatt, playtest 2026-09-10: "there is far too much empty space
+     at the top and bottom of the card, which would be solved if you made the recipe image bigger —
+     make it as big as it can be while still leaving consistent padding around the tops and sides
+     of the card."
+     MEASURED BEFORE: at 1920 the card was 365x318 with an 88x81 pastry in it — 138px of dead space
+     on EACH SIDE and ~66px above and below. The card had been told to be half again as tall and
+     nothing had been told to fill it.
+     `width:100%` is the whole rule, and it is the version with no number in it: the art now spans
+     the card's content box exactly, so the space either side of it IS the card's own 9px padding,
+     and matching that above is a `margin-top:0` rather than a typed figure. The height follows the
+     artwork's own proportions instead of being asserted — which is why this cannot warp a pastry,
+     and why a squarer future illustration simply makes a squarer card.
+     `min-height` above stays as a FLOOR for a card whose art is unusually wide and short. */
+  body.pp4Stage #actionPanel .apBtn .recipeThumb {
+    width:100%; height:auto; max-width:100%; margin:0 auto 6px; }
   /* THE FOCUSED CARD RESERVES A STRIP FOR THE PILL, rather than the pill covering whatever is
      underneath it. Moving it off the artwork (O2) only pushed the problem onto the ingredient
      icons — a smaller crime, still a crime, and visible in the very next screenshot. The card

@@ -136,6 +136,13 @@ const go = async () => {
    created when the show ends, and a cancelled animation leaves getAnimations(), so an empty list
    IS the landing. The rect check after it is a belt. */
 const settle = async (ms=16000) => {
+  /* ⚠ WAIT FOR THE SHOW TO START BEFORE WAITING FOR IT TO END. Wyatt's 2026-09-10 ask put a
+     two-second lead-in before the picker arrives, and during that window there are no animations
+     at all — so "no animations" was true IMMEDIATELY and this settled before anything had
+     happened, measuring a card whose artwork had not finished loading. It reported the sound-icon
+     alignment as 74px out on a build where the game corrects it. Started, THEN finished. */
+  await waitFor(`(()=>{const b=document.getElementById('pp4Prompt');
+    return !!b && b.getAnimations().length>0})()`, ms).catch(()=>{});
   await waitFor(`(()=>{const b=document.getElementById('pp4Prompt');
     return !!b && b.getAnimations().length===0})()`, ms).catch(()=>{});
   const read = () => C.ev(`(()=>{const c=[...document.querySelectorAll('#actionPanel .apBtn')]
