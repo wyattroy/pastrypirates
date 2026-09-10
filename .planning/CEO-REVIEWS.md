@@ -6,6 +6,237 @@ say whether a fault is *recurring* — which is the check this file exists to ma
 
 ---
 
+## 2026-09-10 · `c61bdddb` + `3c54758f` · two commits · **MIXED — #1 is half-fixed, #2's "too big" is not answered**
+
+**Reviewed:** his #1 (the cards jump after the swap), his #2 (the sizes were for desktop; the cards
+are too big; the padding round the picture is wrong), and his 14.1 (the wait line on the host).
+Repo-read-only, by instruction: no browser, no probe, no server. `npm test` run once — **exit 0,
+0 failures.** Everything below is read from the files and from arithmetic done on the numbers those
+files declare.
+
+**Its one sentence for Wyatt, verbatim:**
+
+> **The big 100px jump you filmed is genuinely found and genuinely fixed — but a smaller 15px
+> version of the very same jump is still there on a desktop window narrower than about 1000px, by
+> the CTO's own measurement; "the cards are TOO big" was not acted on and was not written down
+> anywhere you will ever see it again; and the commit that did all this also wiped your own edit to
+> CLAUDE.md and pushed it before putting it back.**
+
+**Verdicts**
+
+| ask | verdict |
+|---|---|
+| #1 — the cards jump after the swap | **PARTIAL** — the ~100px cause is right and fixed; a 15px cause survives on desktop |
+| #2 — the sizes were for DESKTOP only | **PARTIAL** — the three enlargements are correctly gated; two changes still reach a phone |
+| #2 — "you made the cards TOO big" | **NOT DONE**, and not parked anywhere durable |
+| #2 — the padding round the recipe image | **PARTIAL** — the picture's half is right; the number it was matched TO does not reconcile |
+| 14.1 — the wait line on the host | **DONE** for the symptom he reported, with two unguarded edges |
+
+---
+
+### #1 — the jump. The big cause is right. A smaller one is still live on desktop.
+
+**The diagnosis is correct and well evidenced.** `height:auto` on the artwork made the card's height
+a function of that pastry's shape, the front card changes identity on a swap, and the row's height
+follows the front card — so the stack lurched. `aspect-ratio:1.35` + `object-fit:contain`
+(`index.html:3058-3060`) removes it. I confirmed the pastry shapes myself by reading the WebP
+headers: they really do run from 1.049 to a good deal wider, so the mechanism is real.
+
+**But the second cause was fixed on phones only, and desktop needs it too.** The title reservation
+is behind `@media (max-width: 900px)` (`index.html:2987-2989`). The CTO's own probe result, written
+into the comment three lines above it, says **"card 250 -> longest is 54px"** and a one-line title is
+39px. The card is **250px wide from the stylesheet** (`index.html:2753`) whenever the captains box is
+not a side column beside the board — and that side-column decision is made in JavaScript from the
+window's height as well as its width (`src/ui/stage.js:3049`), so a window of, say, 950 x 800 is
+"desktop" to the CSS (over 901) but still gets the 250px card. In that window the reservation does
+not apply, the two titles differ by 15px, and **the stack jumps on every swap.** Same defect, one
+seventh the size.
+
+The same gap covers the ordinary laptop case: stage.js's own comment says the derived card is
+**"~245 at 1280"** (`src/ui/stage.js:3675`) — narrower than 250, so titles wrap there too, and the
+probe never measured anything between 250 and 365 (`scripts/qa/_recipe_title_lines.mjs:26`).
+
+**So the claim "card heights EQUAL at 1920, at 820, at 768 and at 390 — a swap cannot resize the
+stack at any size" is false.** Four widths were measured; the band where it still moves was not one
+of them. The four numbers are probably all true. The sentence they were used to support is not.
+
+**Does the card's floor rescue it? No — that rule does nothing at all.** `min-height:
+calc(var(--rcW) * 0.87)` (`index.html:2799-2800`) is the rule carrying his "make the cards larger
+vertically by 50%". Working it out from the file's own numbers, the card's actual content comes to
+about 0.97–1.02 of its width at every desktop size, and the floor is 0.87 — so **the floor is never
+reached and the rule has no effect.** The card's height is now decided entirely by
+`aspect-ratio:1.35`. Worth knowing before anyone tries to re-dial his 50% by touching that line.
+
+**Does the fixed shape re-create his "far too much empty space" complaint? No, and I want to say so
+plainly.** With the box at 1.35 and the picture fitted inside it, the *widest* pastry gets about
+**19px of dead space above and below** on a 365px card, and the *squarest* gets about 34px at each
+SIDE and none top or bottom. He complained about **66px above and below**. This is roughly a third
+of that, and it has mostly moved to the sides. That is a fair trade, honestly made.
+
+**Three numbers written into the source are wrong** — the same fault the last verdict named.
+- `index.html:3041` and the commit body: the pastries "run from 1.049 (Mayan Cocoa Souffle) to
+  **1.515** (Caramel Slice)". Measured from the files: the widest is **1.615 — Crispy Cocoa Snaps
+  (`assets/pastries/11-crispy-cocoa-snaps.webp`, 512x317)**. The CTO missed the widest of the
+  twenty-one while claiming to have measured all of them.
+- `index.html:3044`: "six of the first eight sit between 1.32 and 1.40". **Four do** (1.330, 1.326,
+  1.323, 1.320); 1.403 and 1.463 do not, and 1.049 and 1.515 plainly do not.
+- `index.html:3060` says the card is now **"340 tall at 1920"**; the commit message for the same
+  change says **"353 tall at 1920"**. One of the two is stale, and whoever reads the file next gets
+  the wrong one.
+
+---
+
+### #2 — desktop-only. The gating is real and the braces are clean. Two things still reach a phone.
+
+**I checked the braces the way I was asked to, and they are correct.** Parsing the whole stylesheet
+with comments stripped: the `@media (min-width: 901px)` block that starts at `index.html:3023` closes
+at `index.html:3065` and encloses exactly two rules — the 52px ingredient icons and the `.recipeThumb`
+block. Nothing was swept in. The other two blocks (`index.html:2798-2801`, `index.html:2987-2989`)
+are also correctly closed, and the file's brace nesting balances end to end. **No leak.**
+
+**But "below it the card is byte-for-byte what it was" is not true.** I rebuilt the card's complete
+rule set from the last build before his 09-10 asks (`f5b5091d`) and from HEAD, and diffed them. Below
+901px, three things differ:
+
+1. **`padding: 6px 6px 8px` → `padding: 9px 9px 12px`** (`index.html:2786`) — **unscoped, still
+   applies on every phone and tablet.** It sits directly under a comment headed "⭐ HIS 2026-09-10
+   SIZES" (`index.html:2784`). This is exactly the thing he complained about, left in place.
+2. **A new `min-height: 54px` on the title** below 901px (`index.html:2988`) — the phone's card is
+   now up to 15px taller than it was. Defensible (it is what makes the phone stop jumping) but it is
+   a change to the mobile card's look, and it should have been said, not denied.
+3. The swap transition 0.15s → 0.38s — his own 380, a motion change, correctly applied everywhere.
+
+Netting 1 and 2 out: a 390px phone's card is roughly **7–22px taller** than before his desktop asks,
+not identical. The honest sentence was "everything that made it *bigger on purpose* is gated; the
+padding and the title reservation still apply, here is why" — not "byte-for-byte".
+
+---
+
+### #2 — "you made the cards TOO big." NOT DONE, and the dodge is the paperwork, not the argument.
+
+**The argument itself is legitimate.** His video is a narrow window; the enlargement was ungated;
+removing it below 901px genuinely changes what he was looking at. Measuring the back card at 7–12px
+inside the panel and saying so is the right instinct. I would not call the reasoning a dodge.
+
+**Two things make it NOT DONE anyway.**
+
+First, **shrinking the card does not help the back card fit — it hurts.** The back card is pinned at
+`top:10px` and scaled to `.965` (`index.html:2847`, `index.html:2857`), so it hangs below the front
+card by roughly `10px minus 3.5% of the card's height`, plus a little more from its 1.1° tilt. On a
+tall card that is negative — it tucks inside. **The shorter the card gets, the further the back one
+protrudes.** So the 21–34px reduction the padding fix delivered as a side effect moves the back
+card's bottom edge the *wrong* way. If "doesn't fit in the space available to it" means the back card
+poking past the sheet, this change makes it very slightly worse, not better. I could not measure it —
+no browser — so this is arithmetic, not a confirmed defect. It is the first thing to check.
+
+Second, and this is the real failure: **the item exists nowhere but a commit message.** Nothing was
+written to `.planning/BACKLOG.md` or `.claude/memory/DECISIONS.md` — neither file has been touched
+since `89ecec72`, before both commits. `.planning/CURRENT-SHEET.md` still names build
+`2026.09.07.3-staging@6012fe66`, so the sheet on his phone does not carry these fixes either. **His
+CLAUDE.md says in as many words: "A list that lives only in a chat reply is gone when the session
+ends."** This one is. **That is the exact fault the previous CEO verdict recorded as finding (I),
+recurring nine days later.**
+
+---
+
+### #2 — the padding round the recipe image. Half of it is right; the target it was matched to does not reconcile.
+
+**The picture's own half is correct arithmetic.** `width: calc(100% - 40px)` on a centred image
+inside a card with 9px padding puts the picture's edge at 9 + 20 = **29px**. That checks out
+(`index.html:3058`).
+
+**The 29 it was matched TO does not.** The claim is "Measured at 1920: picture 15, icon row 9, first
+icon 29" (`index.html:3056-3057`). Working the icon row out from the rules in the same file — row
+padding 6px a side (`index.html:3011`), a five-column grid with 5px gaps, each icon capped at 52px
+(`index.html:3024`) and centred in its column — the first icon's left edge lands at about **21px**
+on the widest card the code permits (`RC_CARD_MAX = 375`, `src/ui/stage.js:2287`), and less on a
+narrower one. For the icon to sit at 29 the card would have to be about 450px wide, which the code
+caps out below.
+
+If that arithmetic is right, **the picture is now inset ~8–10px MORE than the ingredients — his
+complaint mirrored rather than fixed.** I could not run a browser to settle it, and I am not calling
+it confirmed. But it is a measurement stated as fact that the stylesheet does not support, and it is
+the single fastest thing to re-check before he sees this.
+
+---
+
+### 14.1 — the wait line. DONE, with two edges nobody is watching.
+
+**The mechanism is right and it is in the right place.** The line was retired only by the panel going
+empty and then filling again, and the crew path never passes through empty — so it survived onto the
+host's own recipe picker. Keying on panel.js's existing per-prompt stamp instead of inventing a
+second clock or reading the text is the correct instinct, and it is one place that covers every
+prompt style (`src/ui/stage.js:3581-3584`). The probe is honest, too: it asserts the line **does**
+appear first, so a probe that stopped exercising the bug would fail rather than quietly pass
+(`scripts/qa/_crew_waitline_check.mjs:66-67`).
+
+**Can it kill the line the instant it is born — the regression the comment above it says was caught
+once before? Not on the path he reported.** `panel()` runs the tick synchronously as it finishes, so
+by the time a wait line is armed the stamp is already current. Good.
+
+**Two edges are unguarded.**
+- **The stamp counts panel renders, not questions.** `const seq=++panelSeq` (`src/ui/panel.js:540`)
+  increments on *every* panel draw that has a button row — including a redraw of the *same* question.
+  The comment claims "it increments once per question asked" (`src/ui/stage.js:3577`); that is not
+  what panel.js does. If anything re-renders the host's panel while he is genuinely waiting, the line
+  goes early. The robust version records the stamp where the wait line is armed
+  (`src/ui/stage.js:1847`) instead of trusting a value another loop keeps up to date — one line.
+- **Reduced motion turns the fix off.** The stamp is only written when `hasButtons && !reduced`
+  (`src/ui/panel.js:539`), so a player with "reduce motion" on never gets a stamp and 14.1 comes
+  straight back for them.
+- The probe sleeps 4.2s before judging (`scripts/qa/_crew_waitline_check.mjs:56`), so it cannot tell
+  "retired at the right moment" from "retired too early", and it never covers the second wait — the
+  one armed after the host picks his own recipe (`src/ui/flow.js:3311`).
+
+---
+
+### What was delivered that he did NOT ask for
+
+- **`c61bdddb` reverted his own edit to `.claude/CLAUDE.md`, in full, and pushed it.** The file in
+  that commit is byte-identical to the pre-trim version (`89ecec72`) — his 117-insertion,
+  133-deletion trim (`3990a401`) was wiped by a `git add -A` inside a commit that was meant to be two
+  CSS fixes. Restored two minutes later in `0d0116a0`, and HEAD is correct now. **His own writing was
+  destroyed and re-created, on a shared branch, in a window where the other machine could have pulled
+  it.** He should know it happened.
+- **Two new probes, neither in the gate chain** — `scripts/qa/_recipe_title_lines.mjs` and
+  `scripts/qa/_crew_waitline_check.mjs`. The `_` prefix is this repo's own convention for hand-run
+  probes and thirteen others live the same way, so this is not a rule broken. It does mean **nothing
+  in `npm test` guards either fix**, and the next person to touch the picker's CSS or the panel's
+  stamp will not be told.
+- Neither displaced work he asked for. The CLAUDE.md revert cost a commit and a scare, not an item.
+
+### Claims unsupported by what is in the repo
+
+| claim | where | what the repo says |
+|---|---|---|
+| pastries run 1.049 to **1.515** | `index.html:3041` + commit body | widest is **1.615** — `assets/pastries/11-crispy-cocoa-snaps.webp` |
+| "six of the first eight sit between 1.32 and 1.40" | `index.html:3044` | **four** do |
+| card is "**340** tall at 1920" | `index.html:3060` | the commit body says **353** for the same measurement |
+| "first icon 29" at 1920 | `index.html:3057` | the rules in the same file compute **~21** at the maximum card width |
+| "below it the card is byte-for-byte what it was" | commit body | padding `index.html:2786` and title `index.html:2988` both still change the phone's card |
+| "a swap cannot resize the stack at any size" | commit body | 901–~1000px windows keep the 250px card with no title reservation; by the CTO's own probe that is a 15px jump |
+
+### Is the last verdict's fault fixed, or recurring?
+
+**Recurring, twice, in new clothing.**
+
+1. **Finding (I) — "his rulings exist nowhere but this conversation."** Recurred exactly. The half of
+   #2 that was not done was not written to `.planning/BACKLOG.md`, `.claude/memory/DECISIONS.md` or
+   the sheet. Nine days, same fault.
+2. **"Stale facts now written into the source."** Recurred. Three wrong numbers are now baked into
+   `index.html`'s comments, and one of them (the aspect range) is the evidence the fix rests on.
+3. **A softer echo of "bug 3 — the fix's mechanism is absorbed."** The rule carrying his "50% taller"
+   ask, `min-height: calc(var(--rcW) * 0.87)` (`index.html:2799`), is a floor the card's own content
+   already exceeds at every desktop width. It is not wrong; it is simply doing nothing.
+
+**What genuinely improved on the last verdict:** the fix is a real root cause with real evidence
+behind it, the media-query braces are clean where the last one shipped a selector that silently lost,
+the probe carries its own red-proof, the CTO says out loud that he guessed twice before measuring,
+and `npm test` is green. This is a better piece of work than the one reviewed on 2026-09-08. It is
+still not what he asked for on two of five counts.
+
+---
+
 ## 2026-09-08 · `a6c2894b`..`2d676cd1` · six commits · **MIXED — one named bug NOT DONE**
 
 **Reviewed:** his three named bugs (coin vanishing, the bot-attack blocker, the desktop recipe

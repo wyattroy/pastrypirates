@@ -3578,7 +3578,16 @@ function promptTick(force){
      CHANGE in it is the honest form of "a new question has arrived", with no second clock and no
      guessing from text. The empty->non-empty test stays exactly as it was for the prompts that have
      no button row and therefore no stamp. */
-  const seq = ap.dataset.revealSeq || "";
+  /* ⚠ AND A FALLBACK IDENTITY, because the stamp is not always written — CEO review, 2026-09-10.
+     panel.js only stamps revealSeq when the prompt HAS BUTTONS and motion is not reduced, so a
+     reduced-motion captain got no stamp, this test never fired, and 14.1 came straight back for
+     them. The panel's own text is a serviceable identity when there is no stamp: it changes when
+     the question does, which is the whole thing being asked.
+     (The stamp counts panel RENDERS rather than questions strictly speaking — a re-render of the
+     same prompt bumps it. Harmless here: retiring a wait line while a real question is on screen is
+     the correct outcome either way, and it cannot fire at birth because panel() runs this tick
+     synchronously before the wait line is shown.) */
+  const seq = ap.dataset.revealSeq || ap.textContent.trim().slice(0, 60);
   const newQuestion = has && (!S.hadPrompt || (seq && seq !== S.lastSeq));
   if (newQuestion && S.waitFinish) S.waitFinish();
   S.lastSeq = seq;

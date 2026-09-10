@@ -1183,3 +1183,53 @@ name, active row outlined in the captain's colour, recipe as a header band on th
 a pass-and-play hand-over), two-line overflow, capped height with scroll, and the long-name marquee
 re-enabled on desktop **with an overflow threshold** — never `overflow > 0`, or "ough Hook" comes
 back.
+
+
+---
+---
+
+# 🃏 THE RECIPE PICKER — two things NOT done, 2026-09-10
+
+**Both were named by a CEO review, and the review's sharpest point was that neither existed anywhere
+durable — they lived only in a commit message, which is the recurrence of finding (I) from the
+2026-09-08 verdict.** So they are here.
+
+## 1. "you made the cards TOO big" — NOT ACTED ON
+
+His words: *"And you made the cards TOO big — so the back one doesn't fit in the space available to
+it, even on desktop."*
+
+**What I measured instead of acting:** the back card sits 7–12px INSIDE the panel at every size, and
+the swap circle 13–32px inside. So by measurement it fits, and I argued he was seeing the
+narrow-window case in his video (~820px), where the un-scoped enlargement had applied and is now
+gone. The card also shrank 374 → 353 at 1920 as a side effect of the padding fix.
+
+⚠ **The CEO found an argument against the side-effect reduction that I had not:** the back card is
+pinned `top:10px` at `scale(.965)` (`index.html` ~2847/2857), so it hangs below the front card by
+roughly `10px − 3.5% of card height`. **Shrinking the card therefore makes the back card protrude
+MORE, not less.** That is arithmetic off the stylesheet, not a measurement — it wants checking on a
+real screen before anyone acts on it.
+
+**What he has to settle:** is 353px tall × 365 wide at 1920 still too big, and is "doesn't fit" the
+protrusion above rather than the panel's edge? Both are on the checklist sheet.
+
+## 2. The image/ingredient alignment holds at ONE card width, not all of them
+
+His words: *"there's now less padding around that image than around the ingredients."*
+
+Fixed by insetting the picture 29px to match the first visible icon — **measured at 29/29 on a
+365px card.** But the icons are centred inside a five-column grid, so their inset MOVES with card
+width, and the picture's does not: measured on a 250px card, picture 29, first icon **24**. The
+mismatch is now 5px the other way at narrow desktop widths.
+
+**Why this is not just "use a smaller number":** matching at every width means the picture has to
+track the grid's own centring — `(cell − icon) / 2`, where the cell derives from `--rcW`, the row's
+padding and the gaps. A first attempt at that formula predicted 20.5px where the browser measured
+29, so the model of the CSS is wrong somewhere and a third guess is not the answer. **Measure the
+icon inset across the desktop `--rcW` range first, then derive.**
+
+## And the fourth wrong number, for the record
+
+`min-height: calc(var(--rcW) * 0.87)` — the rule carrying his "50% taller" ask — is **inert**. The
+CEO computed the card's content at ~0.97–1.02 of its width at every desktop size, so the 0.87 floor
+is never reached. It is doing nothing, and has been since it was written.

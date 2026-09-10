@@ -23,7 +23,7 @@ try{
     if(!names.length) return 'NO RECIPE_BOOK EXPORT';
     document.body.classList.add('pp4Stage');
     const res=[];
-    for (const cardW of [225, 250, 365]) {
+    for (const cardW of [225, 250, 275, 300, 320, 340, 355, 365, 375]) {
       // the title's own text box: card width minus the card's left+right padding (9 each)
       const host=document.createElement('div');
       host.style.cssText='position:fixed;left:-9999px;top:0;width:'+(cardW-18)+'px';
