@@ -2284,7 +2284,10 @@ let rcAnims = [];
    speed. "Glitchy" is what a correct sequence with no ease-in looks like. */
 /* His "50% bigger" as a ceiling rather than a target: 250 -> 375. The card only reaches it where
    the captains column is wide enough to hold the stack, which is derived per window. */
-const RC_CARD_MAX = 375;
+/* ⭐ HIS 2026-09-10 DESKTOP CARD WIDTH. The derivation below still measures the captains column and
+   still clamps to the glass — a card a captain cannot reach is the one outcome this project calls
+   unacceptable — but where there is room, this is the width he chose. */
+const RC_CARD_MAX = 400;
 /* ⭐ EVERY ONE OF THESE IS HIS, DIALLED ON THE TUNER AND PASTED BACK — 2026-09-10. They replace
    numbers I had guessed at, and the shape of what he chose is worth reading: a LONG entrance
    (1160ms) that starts BIGGER than final and settles down through a small overshoot, a full second
@@ -3714,7 +3717,20 @@ function promptTick(force){
          question is "does this fit on the glass", only the glass can answer. */
       const room = beside ? Math.min(capNow.width, vwPx() - 16) : 0;
       const avail = beside ? Math.round(room - pad(rcRow) - pad(ap) - pad(box) - 4) : 0;
-      const want = avail > 140 ? Math.max(160, Math.min(RC_CARD_MAX, Math.floor((avail - 8) / 1.4))) : 0;
+      /* ⚠ 1.4 WAS THE PEEK, HARDCODED, AND THE PEEK HAS MOVED. The row reserves card + a peek on
+         EACH side (see its min-width), which was 1 + 2x0.20 = 1.4 while the peek was 20%. Wyatt set
+         it to 18% on 2026-09-10, so the true factor is 1.36 and this was quietly costing the card
+         width he had asked for. Read it from --rcPeek instead of naming it twice — rule 9, and the
+         two can no longer disagree. */
+      const peekFrac = (() => {
+        const raw = getComputedStyle(rcRow).getPropertyValue("--rcPeek");
+        const px = parseFloat(raw) || 0;
+        const w0 = parseFloat(getComputedStyle(rcRow).getPropertyValue("--rcW")) || 0;
+        const f = (px > 0 && w0 > 0) ? px / w0 : 0.18;
+        return (f > 0.02 && f < 0.6) ? f : 0.18;      // a sane band; never let a bad read shrink the card
+      })();
+      const factor = 1 + peekFrac * 2;
+      const want = avail > 140 ? Math.max(160, Math.min(RC_CARD_MAX, Math.floor((avail - 8) / factor))) : 0;
       const now = parseFloat(rcRow.style.getPropertyValue("--rcW")) || 0;
       if (want && Math.abs(want - now) > 1) rcRow.style.setProperty("--rcW", want + "px");
       if (!want && now) rcRow.style.removeProperty("--rcW");   // no column to measure: back to the CSS
