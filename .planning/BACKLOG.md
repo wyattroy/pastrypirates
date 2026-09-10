@@ -191,7 +191,20 @@ and every prompt promise** (`docs/DISPLAY-RULES.md` Rule C) — which is where t
   below is answered. **Do not re-open it.**
 
 ---
-## 🔴 TOP OF THE LIST — sail squares a guest cannot tap
+## ✅ MEASURED FIXED 2026-09-10 — sail squares a guest cannot tap
+
+- [x] **Re-measured with the same probe that convicted it** (`scripts/qa/w14_guest_sail_reach.mjs`,
+      crew guest at 390×844, 8 minutes, one real two-window game): **0 of 10 judged captures offered
+      an unreachable square — 178 squares, none off-screen, none clipped, none covered at +400ms.**
+      On 2026-08-29 the same probe failed 6 of 7, every one off the LEFT edge. The camera
+      containment pass (`sailContainTick` in src/ui/stage.js) is what changed in between. 8 captures
+      had a square covered on the very first frame and clear by +400ms — the placement settling,
+      which the earlier ruling already accepts. ⚠ **Not tested: trade-wind squares** (0 offered in
+      this run) — his own lead, so a run that offers one would close it completely.
+      The probe's Chrome profiles were a Linux `/tmp` path (so it could not run on his Windows
+      laptop) and its ports were fixed; both now come off the repo root and the pid.
+
+## (the original entry, for the record) sail squares a guest cannot tap
 
 **Deferred at the cutover by Wyatt's explicit call, 2026-08-26, on the understanding that it is
 written down rather than forgotten. It is the first thing to pick up.**
@@ -1160,6 +1173,35 @@ He is right and the question should never have been asked. Hidden recipes are a 
 with machinery built around them (pass-and-play's whole hand-over gate exists for it). **A question
 scoped wider than the work puts settled things back on the table and costs him the trust that the
 work is understood.** Ask about the thing being changed.
+
+## ✅ THE CSS HALF IS BUILT — 2026-09-10 (the art half waits on his art round)
+
+Measured by `scripts/qa/_captains_box_check.mjs` at 390, 768, 1440, 1920 with an 18-character
+captain, and `scripts/qa/_pnp_band_handover.mjs` in a real four-captain pass-and-play voyage:
+- [x] **Q8 — one name column, so every coin starts at the same x.** Coin spread 0px at every size
+      (was 49px phone, 63px desktop). The column is the widest name at the table, capped at 36%.
+- [x] **Long names scroll on desktop too**, with a 3px overflow threshold so "ough Hook" cannot
+      come back. Measured: the 18-char name scrolls at 390 (122px column) and fits at 768+ (140px).
+- [x] **Q4 — your recipe is a header band across the top**: name (tap for the full card) and the
+      five ingredients, each ticked green once aboard. Every row — yours included — now shows the
+      same two facts: coins and crates. A spectator (no "you") keeps recipes in the rows.
+- [x] **Q4's duty — the band is never on screen at a hand-over.** 8 hand-overs, 4 reveals, 0 leaks.
+- [x] **Q11 — capped and it scrolls; the board does not give way.** Every row is one crate tall
+      even with an empty hold, the band keeps its place while blank, and the list caps at four
+      one-line rows. Posed three over-full holds: board height unchanged at all four sizes.
+      ⚠ COST, stated: on a 390px phone the board is 28px shorter than before the band existed.
+- [x] Q3 (heavy outline in their colour), Q7 (a second line), Q9 (same on phone) — already true of
+      the existing box; unchanged and checked in the shots.
+- [ ] **The art half**: the frame (Q1/Q2) and the crates (Q5/Q6/Q12) — the brief is written and
+      waits on his art round. The layout above is the one the art drops into.
+
+**Two real bugs found on the way, both fixed:**
+- [x] **"Check my recipe" did nothing in pass-and-play from 2026-08-28** — it called liveRender(),
+      which since W1 only drains new engine events; a tap on the button emits none, so the recipe
+      appeared only after the captain's next move. Now it redraws the board.
+- [x] **…and fixing it exposed a hand-over leak**: the outgoing captain's recipe stayed on the
+      "Pass the wheel to …" card (3 of 8 hand-overs) because passGate cleared the permission
+      without redrawing. passGate now redraws.
 
 ## ✅ ALL ANSWERED — AND THE ART BRIEF IS WRITTEN
 
