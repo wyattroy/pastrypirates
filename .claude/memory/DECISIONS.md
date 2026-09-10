@@ -2281,3 +2281,15 @@ He answered all twelve questions on the redesign. These are settled; do not re-a
    styling. Never widen a question past the work it belongs to.
 2. **Q4 assumed the recipe belongs in a row at all.** His answer was better than either option I
    offered — the right move was to ask where it should live, not which of my two places.
+
+**2026-09-10, two follow-ups on the same redesign:**
+
+- **A long captain name SCROLLS on desktop too**, not just on phone. Today `refreshNameMarquees`
+  returns early above 600px because the name column grows to fit; fixing that column so the coins
+  align (his Q8 ruling) is exactly what makes an 18-character name overflow there. ⚠ Re-enabling it
+  needs an overflow **threshold**, not `overflow > 0` — the early-return exists because a 2px
+  rounding overhang scrolled the first letter off, *"ough Hook"*, his report of 2026-08-21. 18 is
+  the width to survive: a live Firebase rule on `seats/$seat/name`, not a preference.
+- **He accepted the correction on the coin column** — measured, today's coins are ragged by 15px
+  with short names and 65px once one captain has an 18-character name, so his mockup is an
+  improvement on what ships rather than a restatement of it.

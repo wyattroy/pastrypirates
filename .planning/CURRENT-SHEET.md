@@ -15,3 +15,4 @@ BUILD: 2026.09.07.3-staging@6012fe66  (sheet renamed to "Pastry Pirates Checklis
 - Card-feel tuner — https://claude.ai/code/artifact/b6cfcdac-fa74-425c-9b1b-ba518af4e4fc
 - The Plaque (captains box plan) — https://claude.ai/code/artifact/8e2e8de9-0782-4124-979a-6e88f6fe8400
 - Two Axes, Seven Channels (architecture) — https://claude.ai/code/artifact/7b34c094-6012-4b04-bbdd-1a9882047f1f
+- The Plaque Art Brief (captain's box art) — https://claude.ai/code/artifact/7a51b394-c56b-455d-bc5e-858bf8cde072

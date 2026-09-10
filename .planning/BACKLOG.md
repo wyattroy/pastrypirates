@@ -1161,4 +1161,25 @@ with machinery built around them (pass-and-play's whole hand-over gate exists fo
 scoped wider than the work puts settled things back on the table and costs him the trust that the
 work is understood.** Ask about the thing being changed.
 
-**The art brief is written once those three are answered; everything else is decided.**
+## ✅ ALL ANSWERED — AND THE ART BRIEF IS WRITTEN
+
+**https://claude.ai/code/artifact/7a51b394-c56b-455d-bc5e-858bf8cde072** — the three prompts, the
+9-slice constraint, and the runbook steps, written against `.planning/art-audit.md` §1–§2.
+
+**The finding that shaped it:** `assets/clock/clock.webp` — the plaque he pointed at — is 384×196
+with gold studs at the four corners **and at the midpoint of every edge**. A mid-edge stud is
+exactly what a repeating border destroys: stretch it and the stud smears, tile it and the studs
+multiply at uneven intervals. So the "better version" he asked for is not a prettier picture, it is
+a **sliceable** one — ornament confined to the corners, a seamless rope run along the edges. That
+is the single most important line in the brief and it came from measuring the existing art rather
+than admiring it.
+
+**Order of work, once he approves the art:** frame → crate → crate hollow (generated LAST, from the
+approved crate, so the two register pixel-for-pixel; a slot that shifts three pixels when a captain
+buys something is a fault nobody reports and everybody feels).
+
+**Then the CSS half**, all of it already decided: fixed-width name column, coin + count beside the
+name, active row outlined in the captain's colour, recipe as a header band on the plaque (hidden at
+a pass-and-play hand-over), two-line overflow, capped height with scroll, and the long-name marquee
+re-enabled on desktop **with an overflow threshold** — never `overflow > 0`, or "ough Hook" comes
+back.
