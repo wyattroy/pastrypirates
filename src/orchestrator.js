@@ -93,7 +93,7 @@ import {
   netWatchEvents, netWatchPrompt, netWatchNarr,
   netSetDlog,
   netCreateRoom, netClaimSeat, netReadRoom, netWatchSeats, netWatchStatus,
-  netSetTurnOrder, netWatchTurnOrder, netWatchRecipes,
+  netWatchRecipes,
   netLeaveRoom, netSetFeedback, netReadDlog, netReadEv,
   netMarkHostGoneOnDisconnect, netClearHostGone,
   netForfeitOnDisconnect, netClearForfeitOnDisconnect,
@@ -1404,8 +1404,15 @@ export async function runLiveNet(){
   // "staggeredcoins" mode) to flatten the first-mover advantage without overcorrecting to favor
   // whoever goes last
   order.forEach((i,pos)=>{appState.game.players[i].coins=appState.game.cfg.startCoins+pos;});
-  appState.turnOrder=order.slice();buildPlayerRows();
-  if(!appState.replaying&&appState.db&&appState.room)netSetTurnOrder(appState.db,appState.room,order,netFail("turn order"));
+  /* ONE PIPE. This was `appState.turnOrder=…; buildPlayerRows();` followed by a write to
+     rooms/<C>/turnOrder that only a guest's watchTurnOrder ever read — the host doing the work AND
+     posting a note about it, and the guest doing the work again from the note. The engine says it
+     once now; consumeEvent applies it on every tier including this one.
+     ⚠ AWAITED, because the next thing that happens is showTurnOrderIntro, which READS
+     appState.turnOrder. The emit only queues the fact; the drain is what applies it. Same shape as
+     recipeDraftNet's drain of recipeSet, for the same reason. */
+  appState.game.setTurnOrder(order);
+  await liveRender();
   // G5 (Wyatt-approved 2026-07-30): *"Put the recipe selection step NEXT"* — immediately after the
   // Ahoy intro, before the turn-order intro. The player is told to choose a recipe and then asked
   // to choose one, with nothing in between.
@@ -1421,8 +1428,8 @@ export async function runLiveNet(){
   //   4. recipeDraftNet reads nothing from appState.turnOrder and iterates in SEAT-index order.
   // So r() consumption order (shuffle -> bot recipe picks) and logDecision order are both identical.
   //
-  // The silent setup above (:727-734 — shuffle, staggered coins, turnOrder, buildPlayerRows,
-  // netSetTurnOrder) was deliberately NOT moved. Nothing is on screen for it, so from a player's
+  // The silent setup above (shuffle, staggered coins, and the setTurnOrder emit that replaced the
+  // hand-written appState/buildPlayerRows/netSetTurnOrder trio) was deliberately NOT moved. Nothing is on screen for it, so from a player's
   // point of view it does not sit "between" the two intros at all — and moving it WOULD perturb
   // the RNG stream, which is the one thing this swap must not do.
   await recipeDraftNet();
@@ -1802,6 +1809,16 @@ export async function consumeEvent(e){
      this same line, which is the whole point of there being one consumer. */
   // the captains box has been hidden while it was empty (his item 4); a chosen recipe is what
   // fills it, and that is this event — so the one consumer tells the stage, on every device.
+  /* SAILING ORDER, ON THE ONE PIPE. Host, guest and a reloading host all reach this same line —
+     the host through liveRender()'s local drain, a guest through watchEvents. The two lines below
+     are exactly what the host used to run inline and what watchTurnOrder used to run again.
+     ⚠ Array.isArray, because Firebase Realtime Database has no array type: a dense integer-keyed
+     array survives the round trip, but the guard costs nothing and this file has been bitten by
+     that exact assumption before (see watchRecipes' note, and fixEv). */
+  if(e.t==="turnOrder"&&Array.isArray(e.order)&&e.order.length){
+    appState.turnOrder=e.order.slice();
+    buildPlayerRows();
+  }
   if(e.t==="recipeSet"&&window.__pp4&&window.__pp4.recipePicked)window.__pp4.recipePicked();
   if(e.t==="recipeSet"&&decisionIsLocal(e.p)&&!appState.replaying&&pilotSpeaks("recipe.stowed")){
     flashCaptainsBox();
@@ -2612,7 +2629,7 @@ export async function startGame(){
     const seed=Math.floor(Math.random()*1e9);
     pingStart(strategies.filter(s=>s==="human").length,"net");
     await netUpdateRoom(appState.db,appState.room,{status:"playing",cfg,seed,ev:null,prompt:null,response:null,narr:null,meta:null,
-      recipes:null,dlog:null,flip:null,battle:null,draftPrompts:null,draftResponses:null,clock:null,turnOrder:null,chat:null});
+      recipes:null,dlog:null,flip:null,battle:null,draftPrompts:null,draftResponses:null,clock:null,chat:null});
     /* THE HOST'S HAND ON THE WHEEL — Wyatt, 2026-08-20: "when the host leaves, the guest isn't told
        anything; the game simply stalls." Armed the moment the voyage actually starts, because a
        lobby that loses its host is already covered (the room is deleted and watchRoom's existing
@@ -2651,7 +2668,7 @@ export function beginGame(cfg,seed){
      stopped the game with an empty panel and, measured, NOTHING in the console. See
      voyageAground()'s note in util.js for why that is worse than a crash. */
   if(appState.isHost){runLiveNet().catch(e=>voyageAground(e,"runLiveNet"));}
-  else{watchEvents();watchPrompt();watchNarr();watchFlip();watchDraftPrompt();watchTurnOrder();watchRecoveryState();}
+  else{watchEvents();watchPrompt();watchNarr();watchFlip();watchDraftPrompt();watchRecoveryState();}
   /* EVERY CLIENT WATCHES THE BENCH NODE, THE HOST INCLUDED — watchChat's shape, one line below,
      and for the same reason (04-01 Task 3, MP-05). A bake-off bench is published by whoever is
      BAKING, and the baker may be a guest, so a host that only ever wrote to this node could never
@@ -2671,12 +2688,11 @@ export function beginGame(cfg,seed){
 }
 // non-host clients don't compute turn order themselves (only the host's runLiveNet does) — read
 // the host's synced copy instead, and reorder the captains panel once it arrives
-export function watchTurnOrder(){
-  netWatchTurnOrder(appState.db,appState.room,snap=>{
-    const v=snap.val();
-    if(v){appState.turnOrder=v;buildPlayerRows();}
-  });
-}
+/* ⛔ watchTurnOrder IS GONE — folded into the event stream (see Game.setTurnOrder). It was the
+   smallest of the six non-event channels and the clearest example of what is wrong with all of
+   them: it existed only so a guest could re-run two lines the host had already run, from a node
+   the host wrote purely to trigger it. Sailing order now arrives the way sails, docks and recipes
+   do. Six channels left; the pattern is the same for each. */
 // FIX-03/T-02-04 (02-02): Firebase Realtime Database has no native array type — the SDK hands
 // rooms/<C>/recipes back as a dense ARRAY, padded with null, only when the picked-seat/max-index
 // ratio is high enough to look array-like; a lone early pick (the normal shape of a draft still in
