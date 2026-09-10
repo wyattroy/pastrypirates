@@ -915,7 +915,15 @@ an event or genuinely session plumbing, and the answer must be argued per channe
 
 ### 🔴 HOLE 3 — bots and humans do not share an input door.
 
-- [ ] **Close hole 3** — one `takeTurn(player)` with a chooser; do this BEFORE hole 1.
+- [x] **Close hole 3 — THE DOOR** ✅ 2026-09-09. `takeTurn(player)` in `src/ui/flow.js` is now the
+  single entry every turn passes through, owning the three facts true of ANY turn (hand-over,
+  active seat, the `turn` event) and delegating only the CHOOSING. Three `strategy==="human"?...`
+  branches in the orchestrator became one. `decider_table_check.mjs` was re-anchored to the
+  stronger property — *no caller picks person-or-bot for itself* — rather than deleted.
+- [ ] **Close hole 3 — THE INTERIORS.** humanTurn (99 lines, prompt-and-wait) and botTurn (111,
+  plan-and-animate) still hold their own preambles: a banner and a shot-clock flag against a
+  thinking beat. Folding those together is a rewrite of the turn loop, not a convergence of it, and
+  wants complete voyages in all three modes to verify.
 
 `player.strategy === "human" ? humanTurn(p) : botTurn(p)` — two functions, not one door with two
 choosers. In the recipe draft, bot picks are computed inline (`game.r() < .5`) while humans go
