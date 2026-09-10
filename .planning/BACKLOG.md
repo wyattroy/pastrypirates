@@ -1188,48 +1188,40 @@ back.
 ---
 ---
 
-# 🃏 THE RECIPE PICKER — two things NOT done, 2026-09-10
+# 🃏 THE RECIPE PICKER — the two CEO items, now DONE, 2026-09-10
 
-**Both were named by a CEO review, and the review's sharpest point was that neither existed anywhere
-durable — they lived only in a commit message, which is the recurrence of finding (I) from the
-2026-09-08 verdict.** So they are here.
+**Wyatt, on finding them written up rather than fixed:** *"why did you not just fix them?? why are
+you telling me, instead of doing the work? you are violating claude.md"* — right, and both were
+mechanism rather than taste, so there was nothing to park. Measured and fixed in one sweep
+(`scripts/qa/_picker_geometry_sweep.mjs`, six desktop viewports, one browser).
 
-## 1. "you made the cards TOO big" — NOT ACTED ON
+## 1. "the back one doesn't fit" — MEASURED, AND IT DOES
 
-His words: *"And you made the cards TOO big — so the back one doesn't fit in the space available to
-it, even on desktop."*
+The CEO argued from the stylesheet that the back card is pinned `top:10px` at `scale(.965)`, so
+shrinking the front card would make it protrude FURTHER. That is arithmetic, and the measurement
+disagrees with it: at every desktop width the back card's bottom sits **1–3px ABOVE** the front
+card's bottom and its top **3–4px BELOW** the front card's top. It is entirely inside the front
+card vertically, and 7–12px inside the panel horizontally.
 
-**What I measured instead of acting:** the back card sits 7–12px INSIDE the panel at every size, and
-the swap circle 13–32px inside. So by measurement it fits, and I argued he was seeing the
-narrow-window case in his video (~820px), where the un-scoped enlargement had applied and is now
-gone. The card also shrank 374 → 353 at 1920 as a side effect of the padding fix.
+So there is no protrusion to fix. What he saw was the narrow-window case in his video (~820px),
+where the un-scoped enlargement had applied — and that is gone. **Whether 365x353 is still too big
+for his taste is the only part left, and that is his, not a defect.**
 
-⚠ **The CEO found an argument against the side-effect reduction that I had not:** the back card is
-pinned `top:10px` at `scale(.965)` (`index.html` ~2847/2857), so it hangs below the front card by
-roughly `10px − 3.5% of card height`. **Shrinking the card therefore makes the back card protrude
-MORE, not less.** That is arithmetic off the stylesheet, not a measurement — it wants checking on a
-real screen before anyone acts on it.
+## 2. The image/ingredient alignment — DERIVED, holds across the range
 
-**What he has to settle:** is 353px tall × 365 wide at 1920 still too big, and is "doesn't fit" the
-protrusion above rather than the panel's edge? Both are on the checklist sheet.
+It held at 365 (29/29) and drifted at 250 (29 vs 24) because the icons are CENTRED in a
+five-column grid: below the 52px cap an icon fills its cell and sits flush; above it the spare
+half-gap pushes it inward. So the icon's inset is `24 + (cell − 52) / 2`, with
+`cell = (--rcW − 50) / 5` — measured at 24 / 26 / 29 for cards of 250 / 338 / 365.
 
-## 2. The image/ingredient alignment holds at ONE card width, not all of them
-
-His words: *"there's now less padding around that image than around the ingredients."*
-
-Fixed by insetting the picture 29px to match the first visible icon — **measured at 29/29 on a
-365px card.** But the icons are centred inside a five-column grid, so their inset MOVES with card
-width, and the picture's does not: measured on a 250px card, picture 29, first icon **24**. The
-mismatch is now 5px the other way at narrow desktop widths.
-
-**Why this is not just "use a smaller number":** matching at every width means the picture has to
-track the grid's own centring — `(cell − icon) / 2`, where the cell derives from `--rcW`, the row's
-padding and the gaps. A first attempt at that formula predicted 20.5px where the browser measured
-29, so the model of the CSS is wrong somewhere and a third guess is not the answer. **Measure the
-icon inset across the desktop `--rcW` range first, then derive.**
+The picture now carries that same curve instead of a flat 40px. Measured after: the two are within
+**1px at every one of the six widths** (0,0,0,1,1,1 — the 1px is sub-pixel rounding on the halving).
 
 ## And the fourth wrong number, for the record
 
 `min-height: calc(var(--rcW) * 0.87)` — the rule carrying his "50% taller" ask — is **inert**. The
 CEO computed the card's content at ~0.97–1.02 of its width at every desktop size, so the 0.87 floor
-is never reached. It is doing nothing, and has been since it was written.
+is never reached. Confirmed by the sweep: card heights are 278–353 against widths of 250–365, i.e.
+0.97–1.11 of width. It has been doing nothing since it was written; the height comes from the
+content. Left in place as a floor for a future short-content card rather than deleted, but it is
+NOT what makes the card tall and no one should read it as if it were.

@@ -3088,9 +3088,20 @@
      arithmetic slip in the other direction. It also takes a little of the width he called too big:
      the card is 353 tall at 1920 now, against 374. (It said 340 for one commit: the figure was
      measured, then the width changed under it and the comment did not follow. CEO-caught.) */
+  /* ⭐ THE INSET TRACKS THE CARD, because the ingredient icons do — CEO review, 2026-09-10, and it
+     was right that my flat 40px could only be correct at one width. MEASURED across six desktop
+     viewports (scripts/qa/_picker_geometry_sweep.mjs), the first visible icon sits at:
+         --rcW 250 -> 24px      --rcW 338 -> 26px      --rcW 365 -> 29px
+     because the icons are CENTRED in a five-column grid: below the 52px cap an icon fills its cell
+     and sits flush, and above it the spare half-gap pushes it inward. So the icon's inset is
+     `24 + half the overhang`, and the overhang is `cell - 52` where `cell = (--rcW - 50) / 5`.
+     With a flat 40px the picture was inset 29 everywhere: dead level at 365, and 5px WIDER than the
+     icons at 250 — his original complaint, mirrored. This gives it the icons' own curve. */
+  body.pp4Stage #actionPanel .apBtns:has(.recipeList) .apBtn {
+    --rcIconIn: calc(24px + max(0px, ((var(--rcW) - 50px) / 5 - 52px) / 2)); }
   body.pp4Stage #actionPanel .apBtn .recipeThumb {
-    width:calc(100% - 40px); aspect-ratio:1.35; height:auto; object-fit:contain;
-    max-width:calc(100% - 40px); margin:0 auto 6px; }
+    width:calc(100% - 2 * (var(--rcIconIn) - 9px)); aspect-ratio:1.35; height:auto; object-fit:contain;
+    max-width:calc(100% - 2 * (var(--rcIconIn) - 9px)); margin:0 auto 6px; }
   }
   /* THE FOCUSED CARD RESERVES A STRIP FOR THE PILL, rather than the pill covering whatever is
      underneath it. Moving it off the artwork (O2) only pushed the problem onto the ingredient
