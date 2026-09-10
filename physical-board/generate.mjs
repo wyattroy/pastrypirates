@@ -32,7 +32,13 @@ const KERF = opt("kerf", 0.275);       // beam width, MEASURED from Wyatt's 2026
                                        // dock tab 8.7 of 9.00 drawn = 0.30 on outer cuts; island notch 9.4 of 9.15 =
                                        // 0.25 on holes. The average — the two errors cancel, so every joint lands on
                                        // its designed play. Every cut file is offset by half of this.
-const BED_W = opt("bedw", 600), BED_H = opt("bedh", 400), BED_MARGIN = 6;   // his laser bed
+// His stock, 2026-09-10: the 6 mm ply comes as 38 x 78 cm sheets, the 3 mm as 12" x 18".
+// One bed size no longer serves both, so the packer is told which material it is packing.
+const BED_MARGIN = 6;
+const BED  = { w: opt("bedw",  380), h: opt("bedh",  780) };        // 6 mm  — 380 x 780 mm
+const BED3 = { w: opt("bedw3", 304.8), h: opt("bedh3", 457.2) };    // 3 mm  — 12" x 18" = 304.8 x 457.2 mm
+const bedFor = m => (m === MAT3 ? BED3 : BED);
+const BED_W = BED.w, BED_H = BED.h;   // kept for the page preview's default
 const ONLY = (argv.includes("--versions") ? argv[argv.indexOf("--versions") + 1] : "v3").split(",");
 const GRID = 15;                        // engine: cfg.grid
 const CC   = (GRID - 1) / 2;            // engine: centre of the round world
@@ -1314,7 +1320,7 @@ function boardFivePiece() {
   const quadrants = QUAD.map((q, k) => ({ name: `quadrant-${q.id}`, mat: MAT, items: tag([...aboutCentre([k === 0 ? canonNW : canon], k), ...raster.map(it => assign(it, q, k)).filter(Boolean), ...grid[k]], `quadrant-${q.id}`) }));
   // Tortuga: ONE square with its four T-docks baked into the cut (Wyatt's remake, 2026-08-25 —
   // the + of five squares is retired). The island treatment of the nine, a big anchor, no name.
-  const plug = { name: "tortuga", mat: MAT, items: tag(xf(tortugaPiece(), { tx: -0.5 * CELL, ty: -0.5 * CELL }), "tortuga") };
+  const plug = { name: "tortuga", mat: MAT3, items: tag(xf(tortugaPiece(), { tx: -0.5 * CELL, ty: -0.5 * CELL }), "tortuga") };
   const assembledItems = [...QUAD.flatMap((q, k) => tag(aboutCentre([k === 0 ? canonNW : canon], k), `seam-${q.id}`)), ...raster, ...tag(gridLines(valid), "grid"), ...tag(xf(plug.items, { tx: C, ty: C }), "tortuga")];
   const assembled = { id: "board-assembled", title: "The board, assembled", kind: "design", items: xf(assembledItems, { tx: Rb - C, ty: Rb - C }), w: r3(2 * Rb), h: r3(2 * Rb), count: 5,
     notes: `Design view, no kerf. ${r3(2 * Rb)} mm across. Four quadrants lock with three puzzle knobs per seam; the north-west one carries the centre square. Tortuga is a ONE-square 6 mm island with its four T-docks baked into the cut — a big anchor in the middle, no name — sitting on the board over a dotted outline of its silhouette; ships berth broadside against the dock heads in the four squares around it, where the water now runs. Seams run along the grid lines, so every square is whole on one piece. Rim marks are the app's own wind chevron; the water is the art's brush strokes.` };
@@ -1371,8 +1377,8 @@ function kerfCompensate(items, k) {
   return out;
 }
 // ---- shelf-pack named parts onto bed-sized sheets, tallest first ----
-function packSheets(parts) {
-  const W = BED_W, H = BED_H, m = BED_MARGIN, g = GAP, sorted = parts.map(p => ({ ...p, b: bbox(p.items) })).sort((a, b) => b.b.h - a.b.h);
+function packSheets(parts, bed = BED) {
+  const W = bed.w, H = bed.h, m = BED_MARGIN, g = GAP, sorted = parts.map(p => ({ ...p, b: bbox(p.items) })).sort((a, b) => b.b.h - a.b.h);
   const sheets = []; // each: {items, parts, shelves:[{y, h, x}]}
   const place = (sh, shelf, p) => { sh.items.push(...tag(xf(p.items, { tx: shelf.x - p.b.x0, ty: shelf.y - p.b.y0 }), p.name)); sh.parts++; shelf.x += p.b.w + g; };
   for (const p of sorted) {
@@ -1641,14 +1647,20 @@ function buildVersion(V) {
   if (v === "v3") { five = boardFivePiece(); docs.push(five.assembled, five.onePiece); cutParts.push(...five.quadrants, five.plug); }
   else docs.push(board(v));
   // islands: the seven TET footprints, numbered as assets/islands/N.png
-  const islandParts = (v === "v3" ? ISLAND_SHAPES : TET).map((_, i) => part(`island-${i + 1}`, islandPiece(v, i))); cutParts.push(...islandParts);
-  docs.push(sheet("islands", v === "v3" ? "Island shapes (9)" : "Island shapes (7)", islandParts, { notes: v === "v3" ? "Every tetromino orientation: the seven footprints of the app plus the mirror images of the L and the S. Seven go out each voyage. Your second drawing: a straight-edged coast with 5 mm corners; a shore line and a grass line engraved inside it, 0.6 mm, each waving its own way, bare wood between them for the beach; a plain 9 × 2.5 mm notch in the middle of every outside edge, its floor just into the shore line so a dock touches the sand; one mark a square — the wind-blown palm on an end square, three stones and a tuft on the junction square, the game\u2019s grass tuft on the rest." : v === "v1" ? "Plain edges. Shoreline band and a palm engraved. 0.4 mm clearance per side so they sit inside the squares." : v === "v2" ? "A jigsaw socket is cut into the middle of EVERY outside edge, so a dock can click onto any side of any square." : "A 4.5 mm slot in the middle of every outside edge takes the mooring post of a dock." }));
+  // Wyatt, 2026-09-10: "i want the islands packed onto 3mm". They carry no joint — the docks are
+  // baked into the cut and nothing plugs into them — so thickness is free, and moving them off the
+  // 6 mm sheet is what lets the whole board fit one sheet of it.
+  const islandParts = (v === "v3" ? ISLAND_SHAPES : TET).map((_, i) => part(`island-${i + 1}`, islandPiece(v, i)))
+    .map(p => (v === "v3" ? { ...p, mat: MAT3 } : p)); cutParts.push(...islandParts);
+  docs.push(sheet("islands", v === "v3" ? "Island shapes (9)" : "Island shapes (7)", islandParts, { notes: v === "v3" ? "Every tetromino orientation: the seven footprints of the app plus the mirror images of the L and the S. Seven go out each voyage. Remade 2026-08-30: the CUT EDGE is the shoreline and waves on its own — no shore line is engraved any more — and ONE engraved line inside it divides bare-wood beach from grass. Each island carries its own T-dock, baked into the cut on a different edge per island, reaching 12.5 mm into the neighbouring square where a ship berths broadside. No palm, no stones, no tufts. 3 mm ply since 2026-09-10." : v === "v1" ? "Plain edges. Shoreline band and a palm engraved. 0.4 mm clearance per side so they sit inside the squares." : v === "v2" ? "A jigsaw socket is cut into the middle of EVERY outside edge, so a dock can click onto any side of any square." : "A 4.5 mm slot in the middle of every outside edge takes the mooring post of a dock." }));
   // docks
   const dp = ING.map(ing => dockPiece(v, ing));
-  const dockParts = dp.map((d, i) => part(`dock-${ING[i]}`, d.dock));
+  // RETIRED 2026-08-30: the deck is part of the island now ("they are part of the islands now"),
+  // and the notches they plugged into are gone. v3 cuts no loose docks at all.
+  const dockParts = v === "v3" ? [] : dp.map((d, i) => part(`dock-${ING[i]}`, d.dock));
   const dockExtras = dp.flatMap((d, i) => d.extra.length ? [part(v === "v1" ? `pier-top-${ING[i]}` : `mooring-post-${ING[i]}`, d.extra)] : []);
   cutParts.push(...dockParts, ...dockExtras);
-  docs.push(sheet("docks", "Docks (7)", [...dockParts, ...dockExtras], { notes: v === "v1" ? "Two layers: the square is the water cell (anchor engraved); the plank strip glues on top, flush with the island-facing edge, and overhangs onto the island by a third of a square. The overhang is what 'attaches' it." : v === "v2" ? "One piece. The nub on the pier side clicks into any island socket. Engraved pier with plank slits and two bollards." : "The cut-out T (Wyatt, 2026-08-25): the pier itself is the piece — 9 mm stem whose deck becomes the unchanged 9 × 2.5 mm tab (0.05 play), 12.5 mm total reach so the head's outer face sits on the square's midline, 18 × 3.5 mm head with 1 mm rounds and a straight berth face the 24 × 12 hull lies broadside against. Planks run onto the tab; the head's planks turn 90°. The four bollards are half-round lugs CUT into the stem's sides — his pen drawing." }));
+  if (v !== "v3") docs.push(sheet("docks", "Docks (7)", [...dockParts, ...dockExtras], { notes: "" }));
   // ingredient crates (4 per ingredient: 3 on the shelf + 1 black-market spare) and island markers
   const TOKEN_PAD = "cutC";   // Wyatt, 2026-08-25: "This is the correct amount of padding (C)"
   const crates = ING.flatMap(ing => [0, 1, 2, 3].map(n => part(`crate-${ing}-${n + 1}`, v === "v3" ? artToken(ing, 0, 0, TOKEN_MM, { pad: TOKEN_PAD }) : TOKEN[v].crate(ing, 0, 0))));
@@ -1705,12 +1717,12 @@ function buildVersion(V) {
     // the cutting sheets: every part, tallest first, on bed-sized sheets, kerf-compensated
     // one run of sheets per material: the board and its tokens in 6 mm, the thin parts in 3 mm
     const noGuide = p => ({ ...p, items: p.items.filter(i => i.layer !== GU) });
-    const thick = packSheets(cutParts.filter(p => (p.mat || MAT) === MAT).map(noGuide)), thin = packSheets(cutParts.filter(p => (p.mat || MAT) === MAT3).map(noGuide));
+    const thick = packSheets(cutParts.filter(p => (p.mat || MAT) === MAT).map(noGuide), BED), thin = packSheets(cutParts.filter(p => (p.mat || MAT) === MAT3).map(noGuide), BED3);
     const all = [...thick.map(sh => ({ sh, m: MAT })), ...thin.map(sh => ({ sh, m: MAT3 }))], N = all.length;
   const matByPart = new Map(cutParts.map(p => [p.name, p.mat || MAT]));
   KERF_FOR = name => (matByPart.get(name) === MAT3 ? KERF3 : KERF);   // thin parts get the thin kerf, everywhere
-    all.forEach(({ sh, m }, i) => docs.splice(1 + i, 0, { id: `sheet-${i + 1}`, title: `Cutting sheet ${i + 1} of ${N} — ${m} mm`, kind: "sheet", kerf: m === MAT3 ? KERF3 : KERF, mat: m, items: kerfCompensate(sh.items, KERF_FOR), w: BED_W, h: BED_H, count: sh.parts,
-      notes: `${BED_W} × ${BED_H} mm bed, ${m} mm material. Every red line is already pushed ${(m === MAT3 ? KERF3 : KERF) / 2} mm away from the wood that stays (kerf ${m === MAT3 ? KERF3 : KERF} mm), so cut exactly on the line. ${sh.parts} parts.` }));
+    all.forEach(({ sh, m }, i) => docs.splice(1 + i, 0, { id: `sheet-${i + 1}`, title: `Cutting sheet ${i + 1} of ${N} — ${m} mm`, kind: "sheet", kerf: m === MAT3 ? KERF3 : KERF, mat: m, items: kerfCompensate(sh.items, KERF_FOR), w: bedFor(m).w, h: bedFor(m).h, count: sh.parts,
+      notes: `${bedFor(m).w} × ${bedFor(m).h} mm sheet, ${m} mm material. Every red line is already pushed ${(m === MAT3 ? KERF3 : KERF) / 2} mm away from the wood that stays (kerf ${m === MAT3 ? KERF3 : KERF} mm), so cut exactly on the line. ${sh.parts} parts.` }));
   } else {
     const all = docs.filter(d => d.id !== "board"), allParts = all.map(d => part(d.id, d.items));
     docs.push(sheet("pieces-all", "All pieces on one sheet", allParts, { maxW: SHEET_W, notes: `Every piece except the board, nested in a ${SHEET_W} mm wide sheet.`, count: all.reduce((a, d) => a + d.count, 0) }));
@@ -1779,17 +1791,17 @@ function mockups(five, P) {
   docs.push(doc("mockup-crate", "Mockup: a cargo crate", isoScene(crateSlabs, { scale: 6 }), "Slatted sides with real gaps, corner posts. In play the ingredient tokens stand inside on edge, icons showing — cargo is public, as in the game (the tokens are on their own sheet)."));
   // the board on the table: quadrants, Tortuga on top, three islands with docks and tokens, two ships, a whirlpool
   const boardSlabs = (() => { const s = five.quadrants.map(q => flatAt(q.items, 0, 0, 0)); const C = CENTER;
-    s.push(flatAt(xf(five.plug.items, { tx: C, ty: C }), 0, 0, MAT));
-    const place = (i, cx, cy, dockSide) => { const isl = P.islandParts[i].items, b = bbox(isl.filter(x => x.layer === CU)); s.push(flatAt(xf(isl, { tx: cx - b.x0, ty: cy - b.y0 }), 0, 0, MAT));
+    s.push(flatAt(xf(five.plug.items, { tx: C, ty: C }), 0, 0, MAT3));
+    const place = (i, cx, cy, dockSide) => { const isl = P.islandParts[i].items, b = bbox(isl.filter(x => x.layer === CU)); s.push(flatAt(xf(isl, { tx: cx - b.x0, ty: cy - b.y0 }), 0, 0, MAT3));
       const cells = ISLAND_SHAPES[i]; cells.forEach(([a, b2], k) => { const ing = ING[(i * 3 + k) % 7], tk = artToken(ing, cx + (a + .5) * CELL, cy + (b2 + .5) * CELL); if (k < 3) s.push(flatAt(tk, 0, 0, 2 * MAT)); });
-      const d = byName(P.dockParts, `dock-${ING[i % 7]}`); s.push(flatAt(xf(d, { rot: dockSide.rot, tx: dockSide.x, ty: dockSide.y }), 0, 0, MAT)); };
+      void dockSide; };   // no loose dock: every island carries its own
     place(0, 3 * CELL, 4 * CELL, { rot: 180, x: 3 * CELL - CLR, y: 4 * CELL + CELL - CLR });        // I3, dock on its left end
     place(4, 9 * CELL, 2 * CELL, { rot: 90, x: 10 * CELL + CELL - CLR, y: 4 * CELL + CLR });         // L4, dock below its foot
     place(5, 4 * CELL, 9 * CELL, { rot: 0, x: 7 * CELL + CLR, y: 10 * CELL + CLR });                 // S, dock on its right end
     // no whirlpool tile in the mockup any more — the swirls are engraved into the board itself
     s.push(...shipSlabs(0, 6 * CELL + 1, 6 * CELL + 6, MAT), ...shipSlabs(3, 8 * CELL + 1, 7 * CELL + 6, MAT));
     return s; })();
-  docs.push(doc("mockup-board", "Mockup: the board on the table", isoScene(boardSlabs, { scale: 2.6 }), "The four quadrants locked, Tortuga sitting on top over its dotted outline, three islands with a dock plugged into each and their ingredients one per square, a whirlpool tile on the rim, two ships at Tortuga."));
+  docs.push(doc("mockup-board", "Mockup: the board on the table", isoScene(boardSlabs, { scale: 2.6 }), "The four quadrants locked, Tortuga sitting on top over its dotted outline, three islands with their docks baked in and their ingredients one per square, two ships at Tortuga."));
   return docs;
 }
 
