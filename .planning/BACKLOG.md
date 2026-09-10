@@ -834,6 +834,29 @@ Not fixed here because it changes how the sea trial behaves, which is Wyatt's ca
 
 <!-- OPEN-WORK -->
 
+## 🟠 THE CAPTAINS BOX WEARS THE SHOT-CLOCK PLAQUE (Wyatt, 2026-09-09)
+
+> *"i want to replace the styling of the current captain's box with the styling of the old shot
+> clock (it was an image we generated in an early version of the game) -- and i want you to design a
+> system that can accommodate all the different heights and widths that the captains box can be,
+> with this image behind it, but without stretching/warping the image at all -- including when a
+> captain has 2 rows of ingredients."*
+
+The art is `assets/clock/clock.webp` (384×196, alpha, tightly cropped) — teal outer frame, gold rope
+with round studs, wooden plank interior. Master at `art-review/clock/clock.png` (2752×1536).
+
+- [ ] **Build it.** The plan and a live demonstration are in the "Plaque" artifact; the mechanism is
+  CSS `border-image` with **`round`** repeat, not `stretch`. Corners never scale (the corner studs
+  stay circular), edges TILE rather than stretch (the rope keeps its pitch), and `round` scales each
+  tile so a whole number fits, so no stud is ever cut in half. Height and width then vary freely,
+  including a captain with two rows of ingredients.
+- [?] **Two things need his eye first** — both are on the artifact: whether the wood centre should
+  tile or stretch (the grain is horizontal planking, so tiling it vertically reads differently), and
+  whether the plaque wraps the WHOLE box or each captain's row.
+- [ ] **Ship a 2× asset.** 384×196 is a thin frame at 1×; on a 1920 desktop column the rope will be
+  soft. Re-cut from the master rather than upscaling the webp.
+
+
 ## 🟢 CLOSED 2026-09-09 — the crew storm crash, open since 2026-08-21
 
 - [x] **`stormSummary` reading `.length` of undefined killed CREW voyages.** Firebase RTDB does not
