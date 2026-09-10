@@ -1246,7 +1246,24 @@ title reservation twice, the image inset twice — and two of those guesses were
 check against a browser. This is not a tool for me. **When his numbers arrive, wire exactly those
 and nothing else.**
 
-- [ ] wire his numbers into index.html the moment he sends them, and nothing beside them
+- [ ] wire his FINAL numbers into index.html the moment he sends them, and nothing beside them.
+      His 2026-09-10 set is loaded into the tuner as its starting point, but he was explicit that
+      they are "as close as I can make your current structure represent my ideal" — approximations
+      limited by the tool, not the answer. **Do not wire them until he sends a set from the
+      restructured tuner.**
+
+**His four corrections to the tuner, 2026-09-10 — all done:**
+  1. phone and tablet are ONE card ("Phone & tablet", up to 900px)
+  2. the recipe image has its own width, per size
+  3. padding is ONE slider, equal on all four sides
+  4. his numbers are the starting point and the reset target
+
+**And the answer to the thing that puzzled him** — *"adjusting the side padding currently seems to
+change the recipe image size, but i don't know why"*: the image was `width:100%` of the card's
+CONTENT box, so every pixel of padding took two off the picture. Giving the image its own width
+breaks that link. Worth remembering when it is wired: **in the GAME the thumb is still
+`width: calc(100% - …)` of the content box**, so the same coupling is live there and must be
+replaced with his explicit width, not just mirrored.
 - [ ] the helper pill "Tap a recipe to see its route" is sitting ON TOP of the Sound row in his
       2026-09-10 screenshot (he underlined it green) — a placement bug, not a number. Fix separately
       from the slider values so a bad pill placement cannot be blamed on his numbers.
