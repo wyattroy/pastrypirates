@@ -2446,8 +2446,21 @@
      nothing else, a captain who typed forty characters would shove "pick yer recipe:" past the
      edge — the sentence is the part that has to survive, so the NAME is what gives way. 45% is of
      the ask's own box, so it holds at 339px of phone and 374 of desktop alike. */
-  .pp4RcAsk .pp4RcWho { font-weight:800; display:inline-block; max-width:45%;
-    overflow:hidden; text-overflow:ellipsis; vertical-align:bottom; }
+  /* ⭐ THE NAME TAKES WHATEVER THE SENTENCE DOES NOT NEED — Wyatt, 2026-09-10: "the text box
+     showing their name was unnecessarily narrow, so their name was cut off with a '...' — the
+     cutoff seemed unnecessarily slim."
+     THE OLD CAP WAS 45% OF THE ASK, AND THAT IS CIRCULAR: the ask is `width:max-content`, so its
+     width is decided by its content, and its content was a name being capped at a fraction of the
+     width it was helping decide. A twelve-character name ellipsised inside a box with room to
+     spare. Now the tail ("…, pick yer recipe:") is an unshrinkable flex item and the name is the
+     one that flexes, so the browser measures the leftover rather than me naming a percentage —
+     rule 9. `min-width:0` is what actually permits an overflowing flex item to shrink at all; the
+     default `auto` would let the name push the sentence off the glass, which is the failure the
+     45% was there to prevent, and the reason it can go. */
+  .pp4RcAsk { display:flex; align-items:baseline; justify-content:center; }
+  .pp4RcAsk .pp4RcSay { flex:0 0 auto; white-space:pre; }
+  .pp4RcAsk .pp4RcWho { font-weight:800; flex:0 1 auto; min-width:0;
+    overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
   .pp4RcAsk img { width:16px; height:16px; vertical-align:-3px; }
   /* ⭐ ITEM 1: NO CARD BEHIND THE CARDS. Wyatt: "remove the cream card behind the two recipes."
      The recipe cards are already parchment cards with their own edge and shadow — a second card

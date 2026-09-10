@@ -3915,7 +3915,15 @@ function promptTick(force){
          captains box, the narration bubbles — so the box agrees with all of them by using the same
          array rather than a colour chosen here. */
       const who = askSeat;
-      const askHtml = `<span class="pp4RcWho" style="color:${HEXCOL[who] || "#1f2d33"}">${pname(who)}</span>, pick yer recipe:`;
+      /* ⚠ THE TAIL IS ITS OWN SPAN, and that is what lets the name have every pixel the sentence
+         does not need. Wyatt, playtest 2026-09-10, on the guest's card: "the text box showing
+         their name was unnecessarily narrow, so their name was cut off with a '...' — the text box
+         should be allowed to be wider, the cutoff seemed unnecessarily slim."
+         It was capped at 45% of the ask's own width, which is circular: the ask is sized to
+         max-content, and its content includes a name being capped at a fraction of the result. As
+         two real flex items — an unshrinkable tail and a name that takes the rest — the split is
+         MEASURED by the browser instead of guessed by me, and "Wyargh phone" simply fits. */
+      const askHtml = `<span class="pp4RcWho" style="color:${HEXCOL[who] || "#1f2d33"}">${pname(who)}</span><span class="pp4RcSay">, pick yer recipe:</span>`;
       if (ask.dataset.rcAsk !== askHtml){ ask.dataset.rcAsk = askHtml; ask.innerHTML = emojify(askHtml); }
     }
     /* THE SEA HINT SITS OUT THE SHOW. peekHintTick() places this pill by dodging whatever else is
