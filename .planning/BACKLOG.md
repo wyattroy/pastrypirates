@@ -1112,12 +1112,14 @@ as ART, everything else CSS · **and a captain's recipe is NEVER visible to anyo
 
 ## Three things block the art brief, and only these three
 
-1. **WHERE IS THE CRATE ASSET?** He wrote: *"I already made the crate asset. I'd like you to use it
-   for the endgame bakeoff crates too."* **I looked and it is not in this repo.** `assets/` holds
-   `icons/crate-overboard.png` (a crate going over the side — a different picture) and nothing else
-   crate-shaped; no untracked image, nothing added on any branch in the last ten days. It is
-   probably on the Blade, or still in his downloads. **Do not regenerate it** — art-audit §0 exists
-   precisely so existing art is never re-made. Ask him for the file.
+1. **THE CRATE — FOUND, and the question is now its RESOLUTION.** It was `notes/crateref.png` in
+   the MAIN checkout; `notes/` is gitignored, so a worktree cannot see it and neither can any other
+   machine. **Copied to `.planning/art-refs/crate-reference.png`** so it cannot go missing again —
+   the same move art-audit.md itself had to make in August. Measured: **57×56 RGBA**, and the
+   ingredient icons alone already render up to 52px CSS in the picker, so a crate *around* one needs
+   ~120 real pixels to hold up at 2×. His own filename says "ref", so the reading is that it is the
+   art DIRECTION and the production crate is generated from it — but that is a judgement about his
+   intent, so it is on the sheet.
 2. **WHERE DOES THE RECIPE CARD SIT?** *"you only ever see your own recipe. if you can invent a
    better place for your recipe card to sit than in your row, show me 2-3 options."*
 3. **WHAT DOES THE DOUBLOON COUNT LOOK LIKE?** *"research other similar games to pastry pirates and
