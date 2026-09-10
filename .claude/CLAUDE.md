@@ -185,6 +185,7 @@ unworkable.)*
 | Browser or playtest automation | [`docs/DRIVING-THE-GAME.md`](../docs/DRIVING-THE-GAME.md) |
 | Git, deploying, the live domain | [`docs/GIT-AND-DEPLOY.md`](../docs/GIT-AND-DEPLOY.md) |
 | Testing or trusting any instrument | [`docs/QA-PROCESS.md`](../docs/QA-PROCESS.md) |
+| **Publishing ANY page for him** | [`docs/ARTIFACT-GUIDELINES.md`](../docs/ARTIFACT-GUIDELINES.md) — *commentable per section, pass/problem, and RE-USE the sheet. His standing asks, in one place* |
 | **Anything that looks like a host/guest bug** | [`docs/INTENDED-BEHAVIOUR.md`](../docs/INTENDED-BEHAVIOUR.md) — *the things that look wrong and are not. He has explained the same one three times* |
 | Everything, at session start | [`docs/HARD-WON-LESSONS.md`](../docs/HARD-WON-LESSONS.md) |
 

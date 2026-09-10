@@ -59,6 +59,18 @@ const SUBSYSTEMS = [
                 || /(^|\/)scripts\/lib\//.test(f),
   },
   {
+    id: "artifacts",
+    docs: ["docs/ARTIFACT-GUIDELINES.md"],
+    why: "publishing ANY page for him — commentable per section, pass/problem, and RE-USE the sheet",
+    /* ⚠ MATCHED ON THE ARTIFACT ITSELF, not on a keyword in the game's source. The failure this
+       prevents is not "edited the wrong file", it is publishing a page that makes him ask for the
+       same three things again — he has asked for commentable sections, pass/problem verdicts and
+       one re-used URL more than once each, which is why he asked for the doc at all on 2026-09-10.
+       Fires on the scratch .html a page is written into before it is published, and on the file
+       that records which sheet is live. */
+    match: (f) => /\.html$/.test(f) || /CURRENT-SHEET/.test(f),
+  },
+  {
     id: "ceo",
     docs: [".claude/CEO-BRIEF.md"],
     why: "reviewing work before Wyatt sees it (rule 25)",
