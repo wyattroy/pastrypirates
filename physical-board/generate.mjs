@@ -35,8 +35,12 @@ const KERF = opt("kerf", 0.275);       // beam width, MEASURED from Wyatt's 2026
 // His stock, 2026-09-10: the 6 mm ply comes as 38 x 78 cm sheets, the 3 mm as 12" x 18".
 // One bed size no longer serves both, so the packer is told which material it is packing.
 const BED_MARGIN = 6;
-const BED  = { w: opt("bedw",  380), h: opt("bedh",  780) };        // 6 mm  — 380 x 780 mm
-const BED3 = { w: opt("bedw3", 304.8), h: opt("bedh3", 457.2) };    // 3 mm  — 12" x 18" = 304.8 x 457.2 mm
+// Corrected 2026-09-10: "I misread my laser bed — it accepts up to 45cm * 80cm", then "the board I
+// put in will be likely 42-44cm wide". Packed to 420, the NARROW end, so any sheet he loads works.
+// The one-piece circle burns 409.8 mm (409.3 + the beam), leaving ~5 mm each side at 42 cm, so this
+// sheet's margin is 5, not 6.
+const BED  = { w: opt("bedw",  420), h: opt("bedh",  800), m: 5 };   // 6 mm
+const BED3 = { w: opt("bedw3", 304.8), h: opt("bedh3", 457.2), m: BED_MARGIN };    // 3 mm  — 12" x 18" = 304.8 x 457.2 mm
 const bedFor = m => (m === MAT3 ? BED3 : BED);
 const BED_W = BED.w, BED_H = BED.h;   // kept for the page preview's default
 const ONLY = (argv.includes("--versions") ? argv[argv.indexOf("--versions") + 1] : "v3").split(",");
@@ -1342,31 +1346,38 @@ function boardFivePiece() {
   for (const [d, s] of EDGE_A) ray.push(...mushroomPts([C + h, C - d], [0, 1], [-1, 0], JIGB.nub, s === "out" ? -1 : 1));
   ray.push([C + h, C - h]);
   const seamCuts = [];
-  for (let k = 0; k < 4; k++) seamCuts.push(...tag(aboutCentre([openPoly(CU, ray)], k), `seam-${QUAD[k].id}`));
+  for (let k = 0; k < 4; k++) seamCuts.push(...tag(aboutCentre([{ ...openPoly(CU, ray), noKerf: true }], k), `seam-${QUAD[k].id}`));
   // Tortuga's square belongs to the north-west piece, so three of its sides part it from the
   // neighbours; the fourth lies inside that piece and is not a cut.
-  seamCuts.push(...tag([openPoly(CU, [[C + h, C - h], [C + h, C + h], [C - h, C + h], [C - h, C - h]])], "seam-centre"));
+  seamCuts.push(...tag([{ ...openPoly(CU, [[C + h, C - h], [C + h, C + h], [C - h, C + h], [C - h, C - h]]), noKerf: true }], "seam-centre"));
   // the rim: the ONE outline that encloses kept wood, so it is the one line that gets compensated —
   // pushed out half a beam. The seams are NOT compensated (see the trade above), which is why this
   // file opts out of the automatic pass and does its own.
-  const rimCut = tag([circ(CU, C, C, Rb + KERF / 2)], "rim");
+  // the rim at its TRUE radius: the ordinary compensation pass pushes it out half a beam, on the
+  // standalone file and on the cutting sheet alike — one path, so the two can never disagree
+  const rimCut = tag([circ(CU, C, C, Rb)], "rim");
   // grid.flat(), NOT gridLines(valid): gridForQuadrants drops the runs that lie ON a seam, because
   // the cut itself draws that line. The plain version would engrave a grid line exactly where the
   // beam is about to travel — scorching both faces of the seam for no reason. Caught by looking at
   // the rendered board, where the seams are invisible precisely because they follow grid lines.
   const oneItems = [...raster, ...tag(grid.flat(), "grid"), ...seamCuts, ...rimCut];
-  const onePiece = { id: "board-one-piece", title: "The board, cut from one circle", kind: "insitu", mat: MAT, kerf: KERF,
+  const onePiece = { id: "board-one-piece", title: "The board, cut from one circle", kind: "cut", mat: MAT, kerf: KERF,
     kerfNote: `The RIM is kerf-compensated (pushed out ${KERF / 2} mm). The SEAMS are deliberately NOT — one cut line makes both faces, so the beam itself is the fit.`,
     items: xf(oneItems, { tx: Rb - C, ty: Rb - C }), w: r3(2 * Rb), h: r3(2 * Rb), count: 4,
     notes: `The whole board as ONE ${r3(2 * Rb)} mm circle, split in place, so the grain runs unbroken across every seam (Wyatt, 2026-08-25: "the wood grain doesn't match up between the four quarters"). Needs ${r3(2 * Rb)} mm in BOTH directions of the bed. CUT ORDER MATTERS: engrave first, then the four seams, then the rim LAST — the surrounding sheet holds every piece in register until that final cut, and cutting the rim early lets the quadrants shift mid-job. The seams carry no kerf compensation on purpose: one line cuts both faces, so the fit is exactly one kerf (${KERF} mm) of play — a puzzle fit, snug but not a press fit, and it cannot be tightened without cutting the pieces separately and losing the grain match. Tortuga is NOT in this file; it sits on top and is cut from its own wood (one-tortuga).` };
-  return { assembled, quadrants, plug, Rb, onePiece };
+  // the SAME items, as the part the 6 mm cutting sheet carries (Wyatt, 2026-09-10: "I want the entire
+  // board cut out of one circle on the 6mm board")
+  const boardPart = { name: "board", mat: MAT, items: oneItems };
+  return { assembled, quadrants, plug, Rb, onePiece, boardPart };
 }
 // ---- kerf: push every cut line half a beam away from the wood that stays ----
 function pointInPoly(p, pts) { let c = false; for (let i = 0, j = pts.length - 1; i < pts.length; j = i++) { const [xi, yi] = pts[i], [xj, yj] = pts[j]; if ((yi > p[1]) !== (yj > p[1]) && p[0] < (xj - xi) * (p[1] - yi) / (yj - yi) + xi) c = !c; } return c; }
 function kerfCompensate(items, k) {
   const kf = typeof k === "function" ? k : () => k;
   const out = [...items], byPiece = new Map();
-  items.forEach((it, i) => { if (it.layer !== CU) return; const key = it.piece || ("_" + i); if (!byPiece.has(key)) byPiece.set(key, []); byPiece.get(key).push({ it, i }); });
+  // noKerf: a line cut on its nominal path ON PURPOSE (the one-piece board's seams — one cut makes both
+  // faces). Offsetting it would also CLOSE it (polyCmds adds Z): a sliver cut out of every joint.
+  items.forEach((it, i) => { if (it.layer !== CU || it.noKerf) return; const key = it.piece || ("_" + i); if (!byPiece.has(key)) byPiece.set(key, []); byPiece.get(key).push({ it, i }); });
   for (const [, group] of byPiece) {
     const polys = group.flatMap(g => g.it.sub.map(sp => ({ sp, pts: flatten(sp, 12).pts })));
     for (const g of group) out[g.i] = { ...g.it, sub: g.it.sub.map(sp => {
@@ -1378,7 +1389,7 @@ function kerfCompensate(items, k) {
 }
 // ---- shelf-pack named parts onto bed-sized sheets, tallest first ----
 function packSheets(parts, bed = BED) {
-  const W = bed.w, H = bed.h, m = BED_MARGIN, g = GAP, sorted = parts.map(p => ({ ...p, b: bbox(p.items) })).sort((a, b) => b.b.h - a.b.h);
+  const W = bed.w, H = bed.h, m = bed.m ?? BED_MARGIN, g = GAP, sorted = parts.map(p => ({ ...p, b: bbox(p.items) })).sort((a, b) => b.b.h - a.b.h);
   const sheets = []; // each: {items, parts, shelves:[{y, h, x}]}
   const place = (sh, shelf, p) => { sh.items.push(...tag(xf(p.items, { tx: shelf.x - p.b.x0, ty: shelf.y - p.b.y0 }), p.name)); sh.parts++; shelf.x += p.b.w + g; };
   for (const p of sorted) {
@@ -1644,7 +1655,8 @@ const VERSIONS = [
 function buildVersion(V) {
   const v = V.id, docs = [], cutParts = [];
   let five = null;
-  if (v === "v3") { five = boardFivePiece(); docs.push(five.assembled, five.onePiece); cutParts.push(...five.quadrants, five.plug); }
+  if (v === "v3") { five = boardFivePiece(); docs.push(five.assembled, five.onePiece); cutParts.push(five.boardPart, five.plug); }   // ONE circle, split in place (his ruling, 2026-08-25, re-stated 2026-09-10)
+  // — the four quadrants are still built, but only to draw the mockup; they are never cut as separate pieces
   else docs.push(board(v));
   // islands: the seven TET footprints, numbered as assets/islands/N.png
   // Wyatt, 2026-09-10: "i want the islands packed onto 3mm". They carry no joint — the docks are
@@ -1721,7 +1733,8 @@ function buildVersion(V) {
     const all = [...thick.map(sh => ({ sh, m: MAT })), ...thin.map(sh => ({ sh, m: MAT3 }))], N = all.length;
   const matByPart = new Map(cutParts.map(p => [p.name, p.mat || MAT]));
   KERF_FOR = name => (matByPart.get(name) === MAT3 ? KERF3 : KERF);   // thin parts get the thin kerf, everywhere
-    all.forEach(({ sh, m }, i) => docs.splice(1 + i, 0, { id: `sheet-${i + 1}`, title: `Cutting sheet ${i + 1} of ${N} — ${m} mm`, kind: "sheet", kerf: m === MAT3 ? KERF3 : KERF, mat: m, items: kerfCompensate(sh.items, KERF_FOR), w: bedFor(m).w, h: bedFor(m).h, count: sh.parts,
+    all.forEach(({ sh, m }, i) => docs.splice(1 + i, 0, { id: `sheet-${i + 1}`, title: `Cutting sheet ${i + 1} of ${N} — ${m} mm`, kind: "sheet", kerf: m === MAT3 ? KERF3 : KERF, mat: m, items: kerfCompensate(sh.items, KERF_FOR),
+      kerfNote: sh.items.some(it => it.noKerf) ? `KERF-COMPENSATED (every cut pushed ${KERF / 2} mm off the kept wood) EXCEPT the board's four seams and the three sides of Tortuga's square, which are cut on their nominal line on purpose: one cut makes both faces, so the beam itself is the fit. Cut the board's rim LAST.` : undefined, w: bedFor(m).w, h: bedFor(m).h, count: sh.parts,
       notes: `${bedFor(m).w} × ${bedFor(m).h} mm sheet, ${m} mm material. Every red line is already pushed ${(m === MAT3 ? KERF3 : KERF) / 2} mm away from the wood that stays (kerf ${m === MAT3 ? KERF3 : KERF} mm), so cut exactly on the line. ${sh.parts} parts.` }));
   } else {
     const all = docs.filter(d => d.id !== "board"), allParts = all.map(d => part(d.id, d.items));
@@ -1864,6 +1877,11 @@ for (const V of VERSIONS.filter(V => ONLY.includes(V.id))) {
   const built = buildVersion(V), dir = path.join(HERE, V.dir);
   const dxfDocs = [];
   fs.mkdirSync(dir, { recursive: true });
+  // Sheets are NUMBERED, so when a repack needs fewer of them the old higher-numbered files would
+  // survive and look like live cut files — on 2026-09-10 a stale "sheet 4 of 4" sat beside a fresh
+  // "3 of 3" and would have been cut twice. Clear every sheet-N file before writing this run's.
+  // (Narrow on purpose: only generated sheet-N.svg/.dxf, never anything else in the folder.)
+  for (const f of fs.readdirSync(dir)) if (/^sheet-\d+\.(svg|dxf)$/.test(f)) fs.unlinkSync(path.join(dir, f));
   const groups = [];
   for (const doc of built.docs) {
     if (doc.kind === "mockup") { fs.writeFileSync(path.join(dir, `${doc.id}.svg`), doc.svg); groups.push({ id: doc.id, title: doc.title, kind: "mockup", mat: null, notes: doc.notes, w: 0, h: 0, count: 0, svg: doc.svg }); continue; }
@@ -1872,7 +1890,7 @@ for (const V of VERSIONS.filter(V => ONLY.includes(V.id))) {
     // is compensated; only the assembled-board design view is not. Page previews stay uncompensated.
     // "insitu" opts out too: the one-piece board compensates its own rim and leaves its seams bare
     // on purpose — one cut line makes both faces, so a blanket pass would be wrong on every seam.
-    const cuttable = doc.kind !== "sheet" && doc.kind !== "design" && doc.kind !== "insitu";
+    const cuttable = doc.kind !== "sheet" && doc.kind !== "design";
     const diskDoc = cuttable ? { ...doc, kerf: KERF, items: kerfCompensate(doc.items, KERF_FOR) } : doc;
     const svg = emitSVG(diskDoc, V), pageSvg = emitSVG(doc, V, true);
     fs.writeFileSync(path.join(dir, `${doc.id}.svg`), svg);
