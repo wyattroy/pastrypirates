@@ -1246,7 +1246,16 @@ title reservation twice, the image inset twice — and two of those guesses were
 check against a browser. This is not a tool for me. **When his numbers arrive, wire exactly those
 and nothing else.**
 
-- [ ] wire his FINAL numbers into index.html the moment he sends them, and nothing beside them.
+- [x] ✅ 2026-09-10 — wired, AS RATIOS (his ruling: "I don't care about the objective absolute
+      sizes. I just care about the ratios."). The card's width is a number (--rcWn) and every
+      dimension is his number x --rcK = width / the width he tuned at (360 phone & tablet, 400
+      desktop). Measured by scripts/qa/_picker_ratio_check.mjs at 390, 768, 1280, 1440, 1920:
+      every ratio 1.00, card height = his tuner card x k within 1px, no swap jump. Two places the
+      game did not draw what the tuner drew were found BY that measurement and fixed: the title's
+      old chrome (12px/9px padding, 10px margins) turned his 11px gap into 23px; and his 18% peek
+      (a slide in the tuner, 14.5% visible after the .965 scale) was still showing 20%.
+      Was-wired-but-stale line kept below for the record:
+- [x] wire his FINAL numbers into index.html the moment he sends them, and nothing beside them.
       His 2026-09-10 set is loaded into the tuner as its starting point, but he was explicit that
       they are "as close as I can make your current structure represent my ideal" — approximations
       limited by the tool, not the answer. **Do not wire them until he sends a set from the
@@ -1269,7 +1278,10 @@ replaced with his explicit width, not just mirrored.
       couple of hundred pixels higher up the same column and nothing in the calculation knew it was
       there. The floor is now whichever comes first, the glass or the menu's top, read off
       #footerRow. Measured: clear at 1920 and at 1440x900 (the size of his screenshot).
-- [?] **A 20px overlap SURVIVES at 1280x800, and where the pill goes then is HIS call.** Measured:
+- [x] ✅ 2026-09-10 — **GONE, by measurement, once the card became proportional.** 1280x800: pill
+      359–381, menu top 437 — clear by 56px (scripts/qa/_pill_clears_menu_check.mjs, all three
+      desktop sizes clear). No ruling needed. The original entry, for the record:
+      ~~A 20px overlap SURVIVES at 1280x800, and where the pill goes then is HIS call.~~ Measured:
       pill 435–457, menu top 437. The sheet is already lifted to the top band — the ribbon and the
       wind pill live above it — so the column genuinely cannot hold the ask, the card and the pill
       above the menu at that height. Only two ways out and both are taste, not mechanism:
