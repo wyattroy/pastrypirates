@@ -335,7 +335,10 @@ very winnable.** Say which one is being promised.
 A new player currently gets the *"Ahoy! Choose a recipe, gather each ingredient, then sail home
 first to win!"* line and then a board with no explanation of how anything works.
 
-- [ ] **Decide the shape first — this is Wyatt's call, not a mechanism question.** Options: a guided
+- [x] ✅ **DECIDED AND BUILT** — the parrot tutorial (src/ui/pilot.js), shaped by his rulings of
+      2026-09-02 (DECISIONS.md, "THE TUTORIAL — EIGHT RULINGS" and the two passes after it). This
+      entry predates them. The original:
+      ~~Decide the shape first — this is Wyatt's call, not a mechanism question.~~ Options: a guided
       first voyage; a short interstitial before the first game; contextual first-time-only hints on
       each new control; or a "How to play" that is actually read.
 - [ ] `How to play` exists in the menu — **find out whether anyone opens it** before building a
@@ -481,14 +484,28 @@ half needs Wyatt on `__pp4` specifically before any code changes.
 
 ## 🟠 Process debt
 
-- [ ] **The seeded-defect drill still cannot fail.** `scripts/qa/seed_drill.mjs:72` grades on the
+- [~] ✅ **FIXED 2026-08-26, and this entry predates it** — the drill now sails an UNSEEDED baseline
+      per leg and grades each seed only on failures the baseline did not have (its own header says
+      so). What has never been done is RUN it on today's build: ~25 min of browsers, queued behind
+      the 2026-09-10 sea trial so the two never share his laptop. The original entry:
+      ~~The seeded-defect drill still cannot fail.~~ `scripts/qa/seed_drill.mjs:72` grades on the
       leg's **exit status**, and the leg fails on its own for unrelated reasons — so every seed scores
       CAUGHT whether the bug is present or not. **Fix: run one UNSEEDED baseline first and grade each
       seed only on failures the baseline did not have.** ~15 lines.
       **Until this exists there is no evidence the sea trial catches Wyatt's bugs.**
 - [ ] **Nothing gates the push.** A ~15-line `pre-push` hook could refuse game code without a
       completed sea trial for that build stamp — and would also dodge the post-push gear blindness.
-- [ ] **`ui_contract_check --drill` fails on its own COIN-NOBRK fixtures** (pre-existing at
+- [x] ✅ 2026-09-10 — **FIXED, AND THE LIVE GAME IS GATED BY IT FOR THE FIRST TIME SINCE THE CUTOVER.**
+      The drill was the small half. The chain has run this gate `--tree=classic` only, so it never
+      read the live game, and run bare it failed FOUR assertions on it — every one instrument rot,
+      none a player-facing fault: coin anchors naming v1 text the v2 rules deleted (the flee toll,
+      coin-backed bets, the aground flip; fishing became the Muse); a greyed-button rule that
+      predated his 2026-08-25 "tap-why" convention (all five buttons it called dead DO explain
+      themselves); a voice exception for a notice that moved to privacy.html; and two globals the
+      allowlist never saw (a debug log, and __pp4, the stage's API — named as the one standing
+      exception). Each list is now per-game where the games differ; all 10 drills go red when they
+      should; and `node scripts/ui_contract_check.js` (the live game) is gate 111 in `npm test`.
+      The original entry: ~~`ui_contract_check --drill` fails on its own COIN-NOBRK fixtures~~ (pre-existing at
       9179ff66, verified via stash on 2026-08-28): drill 9's synthetic `battleflee`/`fish` fixtures
       no longer match what `checkCoinParentheticalNobrk` expects, so the drill reports DRILL
       FAILURE while the real-tree gate is green. The npm-test chain never runs `--drill`, so
@@ -500,7 +517,16 @@ half needs Wyatt on `__pp4` specifically before any code changes.
       make the mistake, not at session start. The rule-17 hook proves the pattern works.
 - [ ] **Volume**: `HARD-WON-LESSONS.md` is ~1316 lines and CLAUDE.md ~960, and every session is told
       to read both. CEO review 5 recommends collapsing §10c/e/f/g to one line each.
-- [ ] **38 browser-driving scripts hardcode a Linux-container `/tmp/...` Chrome profile path** —
+- [x] ✅ 2026-09-10 — **ALREADY FIXED AT THE SOURCE, and the last two holes closed.** mp_rig's
+      `launch()` has mapped a POSIX `/tmp/...` profile onto `os.tmpdir()` on Windows since
+      2026-09-03 (its own note, "one place, derived from the OS"), so every script going through it
+      was already alive on the Blade — this entry predates that. What it did NOT cover: the WebKit
+      mount and `openChrome()`, which come through `lib/cdp.mjs`'s `freshProfileDir()` — now mapped
+      the same way — and `w01_endgame_urls.mjs`'s dead Linux-container screenshot path, deleted
+      (it was declared and never used). The `/tmp` OUTPUT defaults in the `group_*` shot scripts
+      resolve to `C:\tmp\…` on Windows and are created on demand, so they work as written.
+      The original entry, for the record:
+      ~~38 browser-driving scripts hardcode a Linux-container `/tmp/...` Chrome profile path~~ —
       found 2026-09-01 fixing `w33_drumroll_order.mjs` (`grep -rl '"/tmp/' scripts/`). On Windows
       (the Razer) this makes `--user-data-dir` invalid, so Chrome exits before its DevTools listener
       comes up; `mp_rig.mjs`'s `launch()` runs with `stdio:"ignore"`, so the failure is silent and
@@ -524,7 +550,8 @@ half needs Wyatt on `__pp4` specifically before any code changes.
       approved copy strings lifted out of commit bodies.
 - [x] ~~**Tidy-up**: `v2/`, `v2bakeoff/` and `3/`~~ — deleted at the 2026-08-26 cutover (96 files,
       3.3MB, recoverable from git history).
-- [ ] **`scripts/` is the last thing left in `4/`.** The game moved to the root at the cutover but
+- [x] ✅ **DONE** — there is no `4/` any more (checked 2026-09-10); `scripts/` lives at the root.
+      The original: ~~`scripts/` is the last thing left in `4/`.~~ The game moved to the root at the cutover but
       the dev scripts stayed put, to avoid merging two `scripts/lib/` directories at midnight. Moving
       them to `scripts/` means resolving exactly two collisions — `lib/` and `no_undef_check.js` —
       and deciding what `lib_twin_check.js` compares once there is only one `lib/`. Until then `4/`
