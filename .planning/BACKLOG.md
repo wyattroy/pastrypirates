@@ -960,10 +960,11 @@ first on purpose — it is the one that actually produced his bugs.
 - [x] **Add an "unluckiest" prize (most tails flipped) to every awards line-up** ✅ 2026-09-09 — assigned first, before the greedy pass. The counter was ALREADY total tails (`flips - heads`), checked not assumed. — and check that the
   counter is counting TOTAL tails, not the longest streak. Two things: the award, and whether the
   number behind it means what it says.
-- [?] **His picker item 3, "cards 50% bigger on desktop", is BLOCKED ON A TASTE CALL** and the number is
-  why: the stack needs `card x 1.4 + 8`, and the captains column it now sits in is ~382px at 1280 —
-  which allows ~250, exactly what it already is. A 375px card wants ~553px. **Either the board stays
-  completely clear (0.0% hidden today) or the cards get bigger and reach left over it.** His call.
+- [x] **His picker item 3, "cards 50% bigger on desktop"** ✅ 2026-09-09 — and my "arithmetic"
+  refusing it was WRONG. I measured the captains column at 382px on a 1280x900 EMULATION and stated
+  it as a fact about his screen; his is 1920x1080, where the column is ~535. Derived from the
+  column now (which is NOT circular — its width owes nothing to the card, unlike the panel I tried
+  first): **365px at 1920, 252 at 1280, and the phone/tablet caps left alone.**
 
 
 <!-- /OPEN-WORK -->
