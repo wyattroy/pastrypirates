@@ -1122,8 +1122,33 @@ as ART, everything else CSS · **and a captain's recipe is NEVER visible to anyo
    intent, so it is on the sheet.
 2. **WHERE DOES THE RECIPE CARD SIT?** *"you only ever see your own recipe. if you can invent a
    better place for your recipe card to sit than in your row, show me 2-3 options."*
-3. **WHAT DOES THE DOUBLOON COUNT LOOK LIKE?** *"research other similar games to pastry pirates and
-   show me 3 options."*
+3. **THE DOUBLOON COUNT — SETTLED: coin + number beside the name, as his mockup.** And he caught me
+   in a false statement doing it. I offered his own design as *"familiar, but the numbers do not
+   line up"*. **In his mockup they DO line up** — the name occupies a fixed-width column, so every
+   coin starts at the same x. I was describing TODAY'S GAME while claiming to describe his drawing.
+
+   **MEASURED, because he asked me to verify — and both halves matter to the build:**
+
+   | | 4 short names | with an 18-char name |
+   |---|---|---|
+   | desktop 1440 | coins spread **15px** | coins spread **65px** |
+   | phone 390 | coins spread **15px** | coins spread **49px** |
+
+   Today every row sizes its own name (`nameW` 74→139) and the coin simply follows it, so the
+   column is ragged. **His mockup is a real improvement on what ships**, not a restatement of it.
+
+   ⚠ **AND THE FIXED COLUMN HAS A CONSEQUENCE HE SHOULD NOT DISCOVER LATE.** His claim was that a
+   too-long name *"will scroll according to pre-existing function"*. Verified: `refreshNameMarquees`
+   **fires on PHONE** — an 18-character name reports `marquee=true, clipped=true`. **It does NOT
+   fire on desktop, by design**: above 600px the function returns early because today the name
+   column GROWS to fit, so nothing ever overflows. The moment the column is FIXED — which is what
+   aligning the coins means — an 18-char name overflows it on desktop too, and the marquee has to be
+   allowed to run there.
+   That is not a one-line change: the desktop early-return exists because a 2px rounding overhang
+   tripped the marquee and scrolled the first letter off — *"ough Hook"*, his own report of
+   2026-08-21. Re-enabling it needs an overflow THRESHOLD (a few px), not `overflow > 0`.
+   **The 18-character cap is a live Firebase rule** (`seats/$seat/name`), not a preference, so 18 is
+   exactly the width the column must survive.
 
 ## And the ONE ruling that is also a lesson about asking
 

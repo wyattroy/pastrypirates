@@ -2263,14 +2263,14 @@ He answered all twelve questions on the redesign. These are settled; do not re-a
 
 | # | The question | HIS RULING |
 |---|---|---|
-| 1 | Plaque or plain panel? | **The old shot-clock plaque's STYLE, but a NEW and better version of it, generated through the art-review process.** The plaque carries the information design of his mockup — *"i don't like the look of what I made"*, so the mockup is the STRUCTURE, never the visual reference. |
+| 1 | Plaque or plain panel? | **The old shot-clock plaque's STYLE, but a NEW and better version of it, generated through the art-review process.** The crate is `notes/crateref.png` (copied to `.planning/art-refs/`), 57×56 — a REFERENCE, and he confirmed the production crate is generated from it, matching the timber. The plaque carries the information design of his mockup — *"i don't like the look of what I made"*, so the mockup is the STRUCTURE, never the visual reference. |
 | 2 | Frame around what? | **Round the whole stack.** One frame, many heights. |
 | 3 | Active captain? | **A heavy outline in their own colour.** |
-| 4 | Recipe on which row? | **OPEN — he wants options.** *"you only ever see your own recipe. if you can invent a better place for your recipe card to sit than in your row, show me 2-3 options."* |
+| 4 | Recipe on which row? | **A header band across the top of the plaque** — above all the captain rows. Coins and crates are facts about the table; a recipe is a fact about you. ⚠ Carries a duty: it must not be on screen when a pass-and-play device changes hands. |
 | 5 | Crates or bare icons? | **Crates. HE HAS ALREADY MADE THE CRATE ASSET** — find it, do not regenerate it (art-audit §0). **And use it for the end-game bake-off crates too.** |
 | 6 | A captain holding nothing? | **An empty crate silhouette**, matching the empty ingredient silhouettes an island shows once its crate is bought. |
 | 7 | More than one row of ingredients? | **The row grows to two lines.** |
-| 8 | The doubloon count? | **OPEN — he wants options.** Like the mockup, but *"research other similar games to pastry pirates and show me 3 options."* |
+| 8 | The doubloon count? | **Coin + number beside the name, as his mockup** — where the name sits in a FIXED column so every coin starts at the same x. ⚠ I told him his own design did not line up; it does, and I was describing today's game. Measured: today's coins are ragged by 15px with short names and **65px** with an 18-char one. |
 | 9 | Phone? | **Same design, stretched.** One system, not two. |
 | 10 | Recipe visible to others? | **NEVER.** *"NO NEVER SHOW OTHERS YOUR RECIPE!!! I am so confused why you would ask this — we're redesigning the captain's box, not the entire game mechanic of hidden recipes."* **Hidden recipes are a settled game mechanic and are not in scope for a styling job.** A question that puts a core mechanic back on the table is a bad question, however politely it is asked — scope the question to the work. |
 | 11 | Height cap? | **Cap it and scroll.** The board does not give way. |
