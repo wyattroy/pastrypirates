@@ -897,7 +897,19 @@ Verified in a two-window crew game.
 
 ### 🔴 HOLE 1 — questions are not events. SEVEN channels, not one.
 
-- [ ] **Close hole 1** — an ask becomes an engine event; three watch channels collapse into `watchEvents`.
+- [x] **Hole 1 — the RENDERER half is closed and now GATED** ✅ 2026-09-09.
+  `watchPrompt` was converged in August; `watchDraftPrompt` was the last hand-rolled one and is
+  done. `prompt_one_renderer_check.mjs` (gate 107) now holds it: **only `src/ui/flow.js` may call
+  `optionButtonsHTML()`**. Red-proofed by adding a real second caller and watching it go red. A
+  convergence with no gate lasts until the next person needs a prompt in a hurry — which is exactly
+  what happened between 2026-08-28 and 2026-09-09.
+- [ ] **Hole 1 — the CHANNEL half.** An ask is still not an engine event, so a guest still
+  subscribes to seven channels. The shape: `Game.ask(seat, spec)` emits a `prompt` event; the ONE
+  consumer calls `raiseLocalPrompt(seat, …)` when the seat is local and does nothing when it is
+  not; the answer returns through `takeTurn`'s door. Then `watchPrompt`, `watchDraftPrompt` and
+  `watchNarr` collapse into `watchEvents`, and the remaining three are argued one at a time —
+  each is either an event or genuinely session plumbing, and that must be shown, not assumed.
+  **Wants complete voyages in all three modes to verify; it changes the network path.**
 
 A guest subscribes to `watchEvents`, `watchPrompt`, `watchNarr`, `watchFlip`, `watchDraftPrompt`,
 `watchTurnOrder`, `watchRecoveryState`. Only the first is the engine's event stream; the other six
