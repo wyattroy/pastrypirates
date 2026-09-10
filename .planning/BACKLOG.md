@@ -832,6 +832,8 @@ Not fixed here because it changes how the sea trial behaves, which is Wyatt's ca
 
 ---
 
+<!-- OPEN-WORK -->
+
 ## 🟠 WYATT'S 2026-09-09 PLAYTEST — the items not yet built
 
 **Written here rather than left in a chat reply**, because he said so: *"write all of these
@@ -853,17 +855,17 @@ changes, of which **④ and ⑤ supersede the bottom-centre parking built the sa
    cards no longer sit over the board
 
 ### Elsewhere in the game
-- **The trade-wind helper fires too late.** It must appear the moment a captain ENTERS the trade
+- [x] **The trade-wind helper fires too late.** ✅ 2026-09-09 — spoken BEFORE the ride now. It must appear the moment a captain ENTERS the trade
   winds, BEFORE the rim sweep carries them — "so the player knows what to look for". Today it is
   raised with the sweep.
 - ~~**Polly mode should keep the dotted course for the whole game**~~ — ✅ DONE: the draw condition
   widened from `teaching` to `pilotIsOn()`, and the prompt teardown no longer wipes it while the
   parrot is on. Both halves were needed; the second is why it "faded" between turns.
-- **A bot's dock coin-flip sound fires while the bot is still sailing.** His own read, and it is
+- [ ] **A bot's dock coin-flip sound fires while the bot is still sailing.** His own read, and it is
   right: the dock event reaches the drain before the boat's glide finishes. Same class as the s4
   sail-sound fix — the cure is that the engine should not fire `dock` until the boat has arrived,
   exactly as it works for a human.
-- **The viewport director is more zoomed out than it needs to be.** It should frame the SAILABLE
+- [ ] **The viewport director is more zoomed out than it needs to be.** It should frame the SAILABLE
   area plus one square of padding in every direction — more if needed so the narration box occludes
   no square. Today it is too wide AND the narration box covers squares.
 - ~~**⚠ AND A SECOND FAULT IN THE SAME SCREENSHOT HE DID NOT NAME:**~~ — ✅ DONE: the italic helper line
@@ -872,7 +874,7 @@ changes, of which **④ and ⑤ supersede the bottom-centre parking built the sa
   scored candidates by SQUARES COVERED ONLY, so a spot sitting on the message scored a perfect zero
   and won. It now scores both, with the weights the file's own obstacle table already declares
   (`.sailCell` 1000, `.apMsg` 40).
-- **A solo game restored from a closed tab puts every boat back at Tortuga.** They should be replayed
+- [x] **A solo game restored from a closed tab puts every boat back at Tortuga.** ✅ 2026-09-09 — reproduced, then fixed: `endReplay()` now calls `renderLiveShips()`. They should be replayed
   to their last position so the board is right immediately. Found while working around the audio
   stall, so it is on the same evening's list.
 
@@ -894,6 +896,9 @@ explain themselves, per-seat colours, the slider, the flip-coin path and the rea
 Verified in a two-window crew game.
 
 ### 🔴 HOLE 1 — questions are not events. SEVEN channels, not one.
+
+- [ ] **Close hole 1** — an ask becomes an engine event; three watch channels collapse into `watchEvents`.
+
 A guest subscribes to `watchEvents`, `watchPrompt`, `watchNarr`, `watchFlip`, `watchDraftPrompt`,
 `watchTurnOrder`, `watchRecoveryState`. Only the first is the engine's event stream; the other six
 are side-channels the host writes directly.
@@ -909,6 +914,9 @@ an event or genuinely session plumbing, and the answer must be argued per channe
 **Order matters: hole 3 first, because the answer needs somewhere to go.**
 
 ### 🔴 HOLE 3 — bots and humans do not share an input door.
+
+- [ ] **Close hole 3** — one `takeTurn(player)` with a chooser; do this BEFORE hole 1.
+
 `player.strategy === "human" ? humanTurn(p) : botTurn(p)` — two functions, not one door with two
 choosers. In the recipe draft, bot picks are computed inline (`game.r() < .5`) while humans go
 through the dispatcher.
@@ -928,11 +936,14 @@ first on purpose — it is the one that actually produced his bugs.
 
 ## 🟡 SMALL, FROM HIS 2026-09-09 LIST
 
-- **Add the recipe name to the bake-off**, under "{Player}'s Bake off" and above the first step.
-- **Add an "unluckiest" prize (most tails flipped) to every awards line-up** — and check that the
+- [x] **Add the recipe name to the bake-off** ✅ 2026-09-09 — the recipe rides on the bake spec so watchers see it too., under "{Player}'s Bake off" and above the first step.
+- [x] **Add an "unluckiest" prize (most tails flipped) to every awards line-up** ✅ 2026-09-09 — assigned first, before the greedy pass. The counter was ALREADY total tails (`flips - heads`), checked not assumed. — and check that the
   counter is counting TOTAL tails, not the longest streak. Two things: the award, and whether the
   number behind it means what it says.
-- **His picker item 3, "cards 50% bigger on desktop", is BLOCKED ON A TASTE CALL** and the number is
+- [?] **His picker item 3, "cards 50% bigger on desktop", is BLOCKED ON A TASTE CALL** and the number is
   why: the stack needs `card x 1.4 + 8`, and the captains column it now sits in is ~382px at 1280 —
   which allows ~250, exactly what it already is. A 375px card wants ~553px. **Either the board stays
   completely clear (0.0% hidden today) or the cards get bigger and reach left over it.** His call.
+
+
+<!-- /OPEN-WORK -->

@@ -54,7 +54,7 @@
             "type": "command",
             "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/machine-handoff.cjs\" --arrive 2>/dev/null || true",
             "timeout": 30,
-            "statusMessage": "Sync this machine in — pull, or say why it could not"
+            "statusMessage": "Sync this machine in \u2014 pull, or say why it could not"
           }
         ]
       }
@@ -67,7 +67,7 @@
             "type": "command",
             "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/read-the-doc-first.cjs\" 2>/dev/null || true",
             "timeout": 10,
-            "statusMessage": "Checking CLAUDE.md §4 — read the doc first"
+            "statusMessage": "Checking CLAUDE.md \u00a74 \u2014 read the doc first"
           },
           {
             "type": "command",
@@ -79,7 +79,7 @@
             "type": "command",
             "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/staging-is-not-main.cjs\" 2>/dev/null || true",
             "timeout": 10,
-            "statusMessage": "Staging is a different repo — git ancestry cannot answer 'did it ship?'"
+            "statusMessage": "Staging is a different repo \u2014 git ancestry cannot answer 'did it ship?'"
           }
         ]
       }
@@ -87,6 +87,10 @@
     "Stop": [
       {
         "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/backlog-not-empty.cjs\" 2>/dev/null || true"
+          },
           {
             "type": "command",
             "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/playtest-checklist-last.cjs\" 2>/dev/null || true",
