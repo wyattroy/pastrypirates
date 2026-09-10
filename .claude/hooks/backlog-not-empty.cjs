@@ -1,7 +1,14 @@
 #!/usr/bin/env node
 // .claude/hooks/backlog-not-empty.cjs   —   fires on Stop
 //
-// A SESSION DOES NOT END WHILE THERE IS WORK IT COULD STILL DO.
+// A SESSION DOES NOT END WHILE THERE IS WORK IT COULD STILL DO —
+// AND WHEN IT DOES END, IT CLOSES PROPERLY.
+//
+// Two stages, in this order, because they are the same question asked twice:
+//   1. is there work left?            -> block, and name it
+//   2. was this a long turn?          -> block ONCE, and hand back the material to close with
+//
+// Stage 2 only ever runs when stage 1 is satisfied, so it can never nag mid-flight.
 //
 // ============================================================================
 //  Why this is a hook and not a rule
@@ -115,6 +122,7 @@ const redSections = [...md.matchAll(/^##\s+🔴\s+(.+)$/gm)].map(m => m[1].repla
 if (!open.length) {
   if (!redSections.length) {
     if (parked.length || blocked.length) console.error(`Backlog: nothing left you can do. ${parked.length} parked on Wyatt, ${blocked.length} waiting on a machine — say so in your reply.`);
+    if (CLOSE) { console.error(CLOSE.text); closeDone(); process.exit(2); }
     process.exit(0);
   }
   const shortR = t => (t.length > 84 ? t.slice(0, 81) + "…" : t);
@@ -125,9 +133,79 @@ ${redSections.slice(0, 6).map(t => "  · " + shortR(t)).join("\n")}
 
 An empty fence is not an empty backlog. Pick one, or say plainly which of these you are NOT doing
 and why. ⚠ "WAITING ON A TRIAL" COVERS THE FENCED ITEMS, NOT THESE — a machine working is not a
-reason for you to be idle.`);
+reason for you to be idle.` + closeText);
+  closeDone();
   process.exit(2);
 }
+
+/* ══════════════════════════════════════════════════════════════════════════════════════════════
+   STAGE 2 — CLOSE A LONG TURN PROPERLY.
+
+   Wyatt, 2026-09-10: "at the END of long turns, you should always present me with a summary of all
+   work + the artifact."
+
+   ⭐ THE ELEGANT PART IS THAT IT DOES NOT NAG — IT HANDS OVER THE MATERIAL. A reminder to summarise
+   is worth little: the failure is never forgetting that summaries exist, it is a long turn whose
+   early commits have fallen out of the front of my own attention by the time it ends. So this reads
+   the commits itself and prints them back, in order, with the sheet's URL beside them. The summary
+   is then a matter of writing, not of remembering — and it cannot silently omit the work done three
+   hours ago.
+
+   WHAT COUNTS AS LONG: two or more commits since the last time this fired. One commit is a turn that
+   speaks for itself; two is already more than a reader will reconstruct from a reply.
+
+   ⚠ IT RETURNS TEXT RATHER THAN PRINTING, and that is not a style choice. If stage 1 blocks, the
+   NEXT stop carries stop_hook_active and this file exits at its first line — so a stage 2 that
+   printed for itself would never fire on exactly the turns that had the most work in them. The
+   material is therefore folded into whichever message actually goes out, and there is only ever one.
+
+   THE MARKER lives in .claude/hooks/.last-close (git-ignored) and advances only when the material is
+   EMITTED, so the same commits are never demanded twice and never silently swallowed.
+
+   THE SHEET comes from .planning/CURRENT-SHEET.md — one line, updated in the same commit that
+   republishes it. Fifteen artifacts exist in this account; guessing which one he is using is how a
+   sixteenth gets made. */
+function longTurnMaterial() {
+  const { execSync } = require("child_process");
+  const git = a => { try { return execSync(`git ${a}`, { cwd: root, encoding: "utf8", stdio: ["ignore","pipe","ignore"] }).trim(); } catch (e) { return ""; } };
+  const head = git("rev-parse HEAD");
+  if (!head) return null;
+
+  const markFile = path.join(root, ".claude", "hooks", ".last-close");
+  let mark = "";
+  try { mark = fs.readFileSync(markFile, "utf8").trim(); } catch (e) {}
+  const range = mark && git(`cat-file -e ${mark}^{commit} && echo ok`) !== "" ? `${mark}..HEAD` : "-8";
+  const log = git(`log --format=%h\u0001%s ${range}`);
+  const commits = log ? log.split("\n").filter(Boolean).map(l => l.split("\u0001")) : [];
+  if (commits.length < 2) return null;               // a short turn speaks for itself
+
+  let sheet = "", build = "";
+  try {
+    const cur = fs.readFileSync(path.join(root, ".planning", "CURRENT-SHEET.md"), "utf8");
+    sheet = (cur.match(/^SHEET:\s*(\S+)/m) || [])[1] || "";
+    build = (cur.match(/^BUILD:\s*(\S+)/m) || [])[1] || "";
+  } catch (e) {}
+
+  const advance = () => { try { fs.mkdirSync(path.dirname(markFile), { recursive: true });
+    fs.writeFileSync(markFile, head + "\n"); } catch (e) {} };
+
+  const lines = commits.map(([h, subj]) => `  · ${subj}`).join("\n");
+  return { advance, text:
+`This turn landed ${commits.length} commits. Close it properly — his standing instruction:
+"at the END of long turns, you should always present me with a summary of all work + the artifact."
+
+WHAT YOU DID, in order — do not reconstruct this from memory, it is already written:
+${lines}
+
+${sheet ? `THE SHEET he uses: ${sheet}${build ? `\n   built against: ${build} — say so if staging now serves something else` : ""}` : "⚠ .planning/CURRENT-SHEET.md names no sheet. If this turn changed the game, he needs one."}
+
+Give him: what changed and what it means for a player · anything you got WRONG and corrected ·
+what is still open and whose it is · and that link. Then you may stop.` };
+}
+/* One call site, one emission. */
+const CLOSE = longTurnMaterial();
+const closeText = CLOSE ? "\n\n" + CLOSE.text : "";
+const closeDone = () => { if (CLOSE) CLOSE.advance(); };
 
 const short = s => (s.length > 96 ? s.slice(0, 93) + "…" : s);
 const list = open.slice(0, 8).map(s => "  · " + short(s)).join("\n");
@@ -143,5 +221,6 @@ ${list}${more}${parkedNote}
 
 His rule, in CLAUDE.md: "Finish everything you can, and never hand back a list you could have
 shortened." A question only blocks the item it is about. Do the next one, or — if every remaining
-item genuinely needs him — say which and why, and you may stop.`);
+item genuinely needs him — say which and why, and you may stop.` + closeText);
+closeDone();
 process.exit(2);

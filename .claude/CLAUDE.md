@@ -57,6 +57,13 @@ cannot size is a plan he cannot redirect.**
 **Restate every mid-flight instruction in your next reply** — one line. When he refers back to
 something he told you, **scroll up**; don't hunt through git.
 
+**Close a long turn with a summary and the sheet's link.** Wyatt, 2026-09-10: *"at the END of long
+turns, you should always present me with a summary of all work + the artifact."* What changed and
+what it means for a player · anything you got wrong and corrected · what is still open and whose it
+is · the link. The Stop hook reads the commits back to you so the list cannot omit work you did
+three hours ago, and it takes the URL from `.planning/CURRENT-SHEET.md` — **update that file in the
+same commit that republishes the sheet**, or the next session publishes a sixteenth artifact.
+
 **One sheet, one shape: BLOCKING QUESTIONS AT THE TOP, then checks with pass/fail/comments.**
 Wyatt, 2026-09-09: *"items parked with questions [go] into our consistent Playtest artifact... with
 blocking questions at the top, and the playtestable items below."* A question is not a check — it
