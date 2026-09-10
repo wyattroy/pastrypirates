@@ -3487,6 +3487,19 @@ function capEmptyTick(){
      exact moment he named — "make it appear after the recipe has been selected". It is raised by the
      one event consumer (so host, guest, solo and pass-play all get it identically) and cleared when
      a voyage begins, so it cannot carry over into the next game. */
+  /* ⚠ AND THE FLAG ALONE IS NOT ENOUGH ON A RESUME — Wyatt, playtest 2026-09-10, item 12: "When i
+     reloaded, there was no wind particle animation and no captain's box — but the ships were in the
+     right place."
+     `S.recipePicked` is set by CONSUMING a recipeSet event. A solo resume rebuilds the voyage by
+     replaying its decision log, and that replay does not re-run the live consumer — so the flag
+     stayed false for a game whose recipes were chosen twenty turns ago, and the captains box hid
+     itself for the rest of the voyage. A hide that depends on having WITNESSED a moment cannot
+     survive a reload; the moment has to be readable from the game.
+     The event stream IS that record, and it is rebuilt by the replay. Read it only while the flag
+     is false — which is only during the draft, when there are a handful of events — and latch it,
+     so this costs one scan of a short array and nothing at all thereafter. */
+  if (!S.recipePicked && appState.game && Array.isArray(appState.game.events)
+      && appState.game.events.some(e => e && e.t === "recipeSet")) S.recipePicked = true;
   const want = (appState.game && !S.recipePicked) ? "hidden" : "";
   if (cap.style.visibility !== want) cap.style.visibility = want;
 }

@@ -54,7 +54,7 @@ import {
   CUPCAKE_IMG, CHECKMARK_IMG, CANCEL_X_IMG, DICE_IMG, FLIP_HEADS_IMG, FLIP_TAILS_IMG, COIN_SPIN_IMG, ovensNowEnabled, bake2Enabled, endCardEnabled, BAKE_REWATCH_COST,
   buildRoster, emojify,
 } from "../shared/index.js";
-import { el, boardCell, setFlipActive, setFlipCoin, flipSpinLeftMs, FLIP_LAND_HOLD_MS, renderLiveShips, paintShipAt, setShipGlideMs, paintShipAtPoint, snapShipTo } from "./board.js";
+import { el, boardCell, setFlipActive, setFlipCoin, flipSpinLeftMs, FLIP_LAND_HOLD_MS, renderLiveShips, paintShipAt, setShipGlideMs, paintShipAtPoint, snapShipTo, render as renderBoard } from "./board.js";
 import {
   liveRender, panel, setNeedsAction, narrateLastEvent, flash, showNarration,
 } from "./panel.js";
@@ -3756,6 +3756,19 @@ export function endReplay(){
      own the boats.
      ONE LINE, AFTER `replaying` IS ALREADY FALSE, so the guard inside it passes. */
   renderLiveShips();
+  /* ⭐ AND THE BOARD ITSELF IS DRAWN ONCE, HERE — Wyatt, playtest 2026-09-10, item 12: "When i
+     reloaded, there was no wind particle animation and no captain's box — but the ships were in
+     the right place."
+     MEASURED, and it is bigger than either symptom he named: render() is called ZERO times after a
+     resume. Not once. The replay rebuilds every fact and drawBoard() lays the board out, but
+     render() — which draws the compass needle, the forecast chip, the storm state, the wind
+     particle field and the captain's log — never runs again until the next LIVE event, which on a
+     resumed voyage can be a whole turn away. "The ships were in the right place" is exactly the
+     tell: renderLiveShips() was added on this line for the same bug, one symptom at a time.
+     The line above is the boats; this is everything else on the board. One call, on the healthy
+     path only — the shortfall branch above returns before it, because a voyage that failed to
+     rebuild must show his restore-failure card rather than a confidently drawn wrong board. */
+  renderBoard();
 }
 
 // notes/edits BUG-03/D-07: the replay didn't rebuild the voyage. Explain which way it failed and
