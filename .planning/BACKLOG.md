@@ -1264,6 +1264,16 @@ CONTENT box, so every pixel of padding took two off the picture. Giving the imag
 breaks that link. Worth remembering when it is wired: **in the GAME the thumb is still
 `width: calc(100% - …)` of the content box**, so the same coupling is live there and must be
 replaced with his explicit width, not just mirrored.
-- [ ] the helper pill "Tap a recipe to see its route" is sitting ON TOP of the Sound row in his
-      2026-09-10 screenshot (he underlined it green) — a placement bug, not a number. Fix separately
-      from the slider values so a bad pill placement cannot be blamed on his numbers.
+- [x] the helper pill overlapping the Sound row — FIXED for the common case. The "does it fit"
+      lift measured the sheet against the VIEWPORT's bottom, and it always fit: the menu sits a
+      couple of hundred pixels higher up the same column and nothing in the calculation knew it was
+      there. The floor is now whichever comes first, the glass or the menu's top, read off
+      #footerRow. Measured: clear at 1920 and at 1440x900 (the size of his screenshot).
+- [?] **A 20px overlap SURVIVES at 1280x800, and where the pill goes then is HIS call.** Measured:
+      pill 435–457, menu top 437. The sheet is already lifted to the top band — the ribbon and the
+      wind pill live above it — so the column genuinely cannot hold the ask, the card and the pill
+      above the menu at that height. Only two ways out and both are taste, not mechanism:
+      SHRINK THE CARD (contradicts the exact numbers he is about to send) or MOVE THE PILL (his own
+      2026-09-09 ruling put it "locked underneath the recipe cards so it moves with them").
+      ⚠ His new numbers make the card TALLER, so this gets worse before it gets better — it is best
+      settled in the same breath as wiring them, not before. On the checklist sheet.

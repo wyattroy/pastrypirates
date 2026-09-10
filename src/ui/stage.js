@@ -4030,7 +4030,29 @@ function promptTick(force){
     if (apTop > 0){
       const want = ap.scrollHeight + (apTop - parseFloat(box.style.top || 0)) + 8;
       const floor = topBandPx();
-      const fitTop = Math.max(floor, vhPx() - want);
+      /* ⭐ THE MENU IS THE FLOOR, NOT THE SCREEN — Wyatt, 2026-09-10, green underline on his
+         screenshot: "Tap a recipe to see its route" was sitting ON TOP of the Sound row.
+         The helper pill is the sheet's LAST CHILD (his 2026-09-09 ruling — "locked underneath the
+         recipe cards so it moves with them"), so it adds its own height to the sheet. This lift
+         then asked whether the sheet fits above the VIEWPORT's bottom edge, and it always did:
+         the menu sits a couple of hundred pixels higher up the same column, and nothing in this
+         calculation knew it was there. So the sheet "fit" while its last child lay across
+         "Sound: ON".
+         The honest bottom is whichever comes first — the glass, or the top of the menu. Measured
+         from #footerRow rather than assumed, and only when the menu is actually laid out as a
+         column (on a phone it is elsewhere and its rect must not be allowed to squeeze the card). */
+      const bottom = (() => {
+        const f = $("footerRow");
+        if (!f || getComputedStyle(f).display === "none") return vhPx();
+        const r = fixedRect(f);
+        if (!(r.height > 2 && r.width > 2)) return vhPx();
+        const boxL = parseFloat(box.style.left || 0) || 0;
+        // the same column as the sheet? then it is a real floor. Otherwise it is somewhere else
+        // on the glass and cannot be in the way.
+        const sameColumn = r.left < boxL + (fixedRect(box).width || 0) && r.right > boxL;
+        return sameColumn ? Math.min(vhPx(), r.top - 8) : vhPx();
+      })();
+      const fitTop = Math.max(floor, bottom - want);
       if (fitTop < apTop - 1){
         box.style.top = Math.round(Math.min(parseFloat(box.style.top || 0), fitTop)) + "px";
       }
