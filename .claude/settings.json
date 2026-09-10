@@ -93,6 +93,10 @@
           },
           {
             "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/parked-work-is-mine.cjs\" || true"
+          },
+          {
+            "type": "command",
             "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/playtest-checklist-last.cjs\" 2>/dev/null || true",
             "timeout": 10,
             "statusMessage": "Did this session change the game? Wyatt needs a checklist"
