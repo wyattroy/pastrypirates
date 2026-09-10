@@ -914,6 +914,12 @@ export async function bakeoffPrompt(player,setup,fallback){
        spec exists: a watcher has no `player`, and a name resolved independently on two machines is two
        answers waiting to disagree. One field, built once, read by baker and watcher alike. */
     baker:pn(player.idx),
+    /* ⭐ AND THE RECIPE RIDES WITH IT, for exactly the reason `baker` does: a WATCHER has no
+       `player` to look it up from, so a name resolved separately on two machines is two answers
+       waiting to disagree. The bot's spec (orchestrator botBakePerform) has carried this since it
+       was asked for; the HUMAN's — this one — did not, which is why the line was blank on the one
+       screen he was looking at. */
+    recipe:(player.recipe||[]).slice(),
     coins:player.coins};
   // Spending a coin goes through the ENGINE, live, one at a time — so the purse on screen drops the
   // moment the player buys a look rather than after the whole prompt resolves. `canAfford` lets the

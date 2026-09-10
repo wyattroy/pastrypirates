@@ -1028,3 +1028,77 @@ first on purpose — it is the one that actually produced his bugs.
 
 
 <!-- /OPEN-WORK -->
+
+---
+---
+
+# 🎨 PROJECT — THE CAPTAIN'S BOX REDESIGN
+
+**Added 2026-09-10, at Wyatt's instruction**, as a PROJECT rather than an item: it has a defined
+first step, a deliverable before any code, and art that has to be generated before anything can be
+built. *"I want you to add this as a project on the backlog, which will start with you asking me 12
+questions about my design intention, then creating an artifact that describes the process for
+generating the new art for this captains box according to our art-audit.md process."*
+
+## What already exists, so nobody starts from nothing
+
+- **The plaque artifact** — https://claude.ai/code/artifact/8e2e8de9-0782-4124-979a-6e88f6fe8400
+  The first pass at this, built when he asked to *"replace the styling of the current captain's box
+  with the styling of the old shot clock"* and to *"design a system that can accommodate all the
+  different heights and widths... without stretching/warping the image at all — including when a
+  captain has 2 rows of ingredients."* It is the 9-slice / `border-image` approach.
+- **HIS OWN MOCKUP OF THE STRUCTURE**, sent 2026-09-10 in chat. Read it before anything else — it
+  answers layout questions the plaque artifact does not, and it is the more recent statement of
+  intent. What it shows, element by element:
+    · one ROW per captain, full width, with a soft tinted fill in that captain's own colour;
+    · the captain's NAME on the left in their colour, then a doubloon icon and the count;
+    · their ingredients as CRATE tokens, right-aligned, each in its own little wooden crate frame;
+    · **the ACTIVE captain's row is outlined** — a heavy rounded border in their colour, and that
+      row alone also carries their RECIPE: its name, underlined, above the full five-ingredient
+      row, with a green tick on the ingredients they already hold;
+    · the whole stack sits inside one rounded cream panel with a generous inner margin.
+  Note what is NOT in his mockup: the current box's per-row "empty hold" text, and the recipe
+  scroll icon. Do not assume they survive — ask.
+
+## The first step is HIS, and it is not code
+
+**Ask him TWELVE questions about design intention, with the question UI, before anything is built or
+drawn.** He named the number; it is larger than this project's usual 2–5 because the answers set the
+art brief, and art is expensive to redo. Every question must be one only he can answer — taste,
+hierarchy, and how much is enough — and every one that a measurement could settle must be measured
+first and the measurement put IN the question. A draft set, to be sharpened against his mockup
+rather than asked as-is:
+
+ 1. Is the plaque (the old shot-clock frame) still the target at all, or does the mockup's plain
+    rounded cream panel replace it?
+ 2. Is the frame around the WHOLE stack, around EACH row, or both?
+ 3. What marks the active captain — the outline in his mockup, a fill, a lift, or something else?
+ 4. Does the recipe appear only on the active row, or on every row?
+ 5. Ingredients as crate tokens in individual frames (his mockup) or as bare icons (today)?
+ 6. What does a captain with NOTHING look like now — his mockup has no "empty hold" text?
+ 7. What happens on the second row when a captain holds more than fits one line?
+ 8. Does the doubloon count keep its icon, and does it stay beside the name?
+ 9. On a phone this box is a strip under the board rather than a column — does the same design
+    apply, or is the phone its own answer?
+10. Should the recipe name be readable by the other captains, or is it secret until stowed?
+11. How much of the screen may this box take at its tallest — four captains, two rows each?
+12. Which pieces are ART (generated) and which are CSS? The crate frames in particular.
+
+## Then the deliverable, and it is an artifact, not a markdown file
+
+**An artifact describing the art-generation process for this box, following
+`.planning/art-audit.md`.** That runbook is the authority on how art gets made here — Gemini driven
+through Chrome, a review gallery before anything is cropped, `assets/` naming, and the §0 rule that
+existing art is never regenerated. The artifact must say, for this box specifically: exactly which
+new pieces are needed, the prompt for each, at what pixel size and on what background, how each is
+cropped and where it lands in `assets/`, and how a 9-slice piece is sliced so it can stretch to any
+height and width **without warping** — which is the constraint he stated first and has restated
+since.
+
+## Why this is a project and not a ticket
+
+The box has to survive four captains, two rows of ingredients, three modes and two orientations
+without a single stretched pixel. That is a system, and the art has to be cut for it before any of
+it can be built. Building first and cutting art to fit is how the current box got the way it is.
+
+**Nothing here starts until he has answered the twelve.**

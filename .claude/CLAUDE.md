@@ -80,6 +80,15 @@ and telling you what is wrong, break the step. And say when the ask is not the b
 
 **Do not build tooling when the ask is to fix the game.** Say so in one line and park it.
 
+**Anything you ask him to look at must be ONE TAP away, and you QA it first.** Wyatt, 2026-09-10,
+on an end-of-voyage check: *"I can't test this because it's too time consuming — you must give me a
+better way than running through a whole game myself. I need you to QA this, not me. If you need me
+to test something at the end of the game, provide me with a dev shortcut."* A URL that still costs
+four taps and a recipe pick is not a shortcut; and a shortcut that reaches the screen but empties it
+of the thing being checked (`?endcard=1` reached the card with every stat at zero, so no award could
+appear) is not a shortcut to that check. **Build the route, walk it yourself, and only then put it
+on his sheet.** Today: `?ovens=1`, `?bake2=1`, `?endcard=1` — each auto-starts solo and lands.
+
 **Before he walks away, make sure he can still reach the work from his phone.**
 - **Ask him to confirm the phone link works** when he says he is stepping away — the only reliable
   signal there is. **NEVER TELL HIM IT IS DOWN**: you cannot know that, and two sessions have told

@@ -67,7 +67,7 @@
 // every time (harmless, and needed so a genuine re-entry still sees the current room state).
 
 import { appState } from "./state/index.js";
-import { pilotSpeaks } from "./ui/pilot.js";
+import { pilotSpeaks, pilotSilence } from "./ui/pilot.js";
 import { pingVisit, pingStart, pingFin, usageGid } from "./ui/usage.js";
 import { Game, roundCfg, rollStorm } from "./engine/index.js";
 import { applyResult } from "./engine/bakeoff.js";
@@ -109,7 +109,7 @@ import {
   battleSnapshot, renderBattleFromSnap, battleFooter, coinHTML, pipsHTML,
   collectSideBets, settleSideBets, netIntroBarrier, showAhoyIntro, showTurnOrderIntro,
   reachable, pickCell, localAsk, pilotGate, takeTurn, runStormLive, renderPickPrompt, renderAskPrompt, clearSailWindow, draftDispatch, wireRestoreFail,
-  startPassAndPlay,
+  startPassAndPlay, startSinglePlayer,
   endReplay, animateRimSweepIfAny, animateSailRoute, stormCamForEvent, publishNow,
   showHome, showRoom, showGameView, renderSeatList, wireWelcome, buildPlayerRows, hideBootLoader,
   wireRecipeModal, recipeInfo, winRecipeSpan, recipeCardHTML, passGate,
@@ -988,6 +988,17 @@ export async function recipeDraftNet(){
     }
     pending.push(player);
   }
+  /* ⭐ ?endcard=1 DOES NOT STOP TO ASK WHICH PASTRY. The card he is trying to reach does not care
+     which recipe was drafted, and left unattended the draft waits on a human forever — measured:
+     the shortcut sat at "choose yer recipe" for forty seconds and went no further, which is why he
+     reported the whole route as untestable. `?ovens=1` is deliberately NOT included: there the
+     recipe IS the thing being baked, so choosing it is part of what the shortcut poses.
+     Seat 0's first card, logged like any other decision so a host-reload replay of a test game
+     still reconstructs it, and no r() is drawn — the seeded stream is byte-identical either way. */
+  if(pending.length&&testFlagOn("endcard",endCardEnabled)){
+    for(const player of pending){picks[player.idx]=0;logDecision(0);}
+    pending.length=0;
+  }
   if(pending.length){
     // G4 (Wyatt-approved 2026-07-30): one short line — the prompt's job is to ask, not re-teach.
     // Not an extracted @copy site: the message reaches the dispatcher via a variable. D-29 (`yer`).
@@ -1388,6 +1399,20 @@ async function skipToEndCard(){
     player.ing=[...player.recipe];
     g.ev({t:"testhold",p:player.idx});
     player.done=true;player.baking=false;
+    /* ⭐ AND IT POSES A COIN RECORD, so the awards are worth looking at — Wyatt, playtest
+       2026-09-10, item 11: "I can't test this because it's too time consuming... I need you to QA
+       this, not me."
+       MEASURED WITHOUT THIS: the card was reachable but EVERY captain got the same "Good Mate —
+       Pirated for the love of the game" fallback, because a voyage nobody sailed has no battles,
+       no trades, no distance and no flips. So the one thing he asked to look at — the Black Spot
+       of Bad Tides, "most tails flipped" — could not appear at all, and a shortcut that reaches a
+       screen but empties it of the thing being checked is not a shortcut to that check.
+       `flips`/`heads` are plain per-captain counters and `tails` is their difference, so posing
+       them is a fact, not a simulation. Distinct per seat, so there is an unambiguous unluckiest
+       captain; derived from idx so it draws NO random numbers, which is the constraint every other
+       line of this shortcut is written to (a seeded game must stay seeded). */
+    player.flips=(player.flips||0)+6+player.idx;
+    player.heads=(player.heads||0)+player.idx;      // tails = 6, so seat 0 is always the unluckiest
     if(g.finishOrder.indexOf(player.idx)<0)g.finishOrder.push(player.idx);
   }
   liveRender();
@@ -1395,7 +1420,14 @@ async function skipToEndCard(){
   return true;
 }
 export async function runLiveNet(){
-  await showAhoyIntro();
+  /* ⭐ ?endcard=1 WALKS PAST THE OPENING TOO. Measured 2026-09-10, and it was the LAST tap between
+     Wyatt and the card: with the lobby auto-started, the tutorial silenced and the draft
+     auto-answered, the route still sat on "Ahoy! Choose a recipe, gather each ingredient, then
+     sail home first to win!" indefinitely — showAhoyIntro is its own barrier, not part of the
+     Pilot, so silencing Polly never touched it. A URL that exists to remove taps must remove the
+     first one as well as the last.
+     Only endcard: ?ovens=1 poses a state a captain then PLAYS, so it keeps its opening. */
+  if(!testFlagOn("endcard",endCardEnabled))await showAhoyIntro();
   // turn order is randomized once here and never rotates — a one-time first-player advantage,
   // not something that cycles away round to round
   let order=appState.game.players.map((_,i)=>i);
@@ -2052,7 +2084,11 @@ export function watchPrompt(){
       // local screen would have titled the card "{Captain}'s Bake-Off" while a remote captain's
       // still read "The Bake-Off". A title is not load-bearing; the divergence would have been.
       const wireSpec={order:prompt.order||[],before:prompt.before||[],swaps:prompt.swaps||[],
-                      locked:prompt.locked||[],attempts:prompt.attempts||0,cost,baker:prompt.baker};
+                      locked:prompt.locked||[],attempts:prompt.attempts||0,cost,baker:prompt.baker,
+                      /* the same field the local branch reads — the parity gate above exists to
+                         catch precisely this kind of one-sided omission, and `baker` was the last
+                         one it caught. */
+                      recipe:prompt.recipe||[]};
       const seat=prompt.seat;
       /* MP-13 (04-01 Task 4) — A CAPTAIN WHO DROPS MID-BAKE DOES NOT STALL THE TABLE.
          The bake has no shot clock any more (Wyatt, 2026-08-18: the finish line gets as long as it
@@ -3089,6 +3125,21 @@ export function boot(){
     if(Array.isArray(rematch)&&rematch.length>=2&&rematch.length<=4&&rematch.every(n=>typeof n==="string"&&n.trim())){
       preloadAssets(); // same art the finished voyage just used — warm cache, not awaited
       startPassAndPlay(rematch);
+    }else if(ovensNowEnabled()||bake2Enabled()||endCardEnabled()){
+      /* ⭐ A TEST URL IS ONE TAP NOW — Wyatt, playtest 2026-09-10, on ?endcard=1: "I can't test this
+         because it's too time consuming — you must give me a better way than running through a
+         whole game myself."
+         MEASURED BEFORE: the shortcut worked, but it only skipped the VOYAGE. Reaching the card
+         still cost Play Solo, a captain name, the tutorial fork and a recipe pick — and left
+         unattended it simply sat at the draft forever, because the draft waits on a human. Four
+         taps between him and the thing he is meant to look at, on a phone, is four taps too many
+         for a URL whose entire purpose is removing them.
+         Solo, because every one of these flags poses a SOLO state; the captain name falls back to
+         the collision-safe default (requireName), so nothing is typed. Only on the journey where
+         no game is waiting — a real voyage mid-flight always outranks a test flag. */
+      preloadAssets();
+      if(endCardEnabled())pilotSilence();   // a route to the ENDING must not wait on the tutorial
+      startSinglePlayer();
     }else{
     // JOURNEY 1 — NOBODY'S GAME IS WAITING: paint the home screen NOW.
     // It needs the card's own CSS, the logo, and one 71KB backdrop still. The ~7.7MB of board art
