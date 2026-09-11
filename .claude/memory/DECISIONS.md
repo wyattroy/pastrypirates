@@ -2324,3 +2324,30 @@ time and say so.
 | The art round | **"Run the art round now, headless if possible or mcp if not."** Headless cannot reach Gemini (no login, and a password is never typed for him), so it runs in his Chrome. |
 | The sea trial | **"Start sea trial."** Started — his approval, per the standing rule. |
 | #6, the phone "too zoomed in" | He sent three phone screenshots. |
+
+---
+
+## 2026-09-11 — ⛔ THE "Bake this!" PILL COVERS THE CARD. ON PURPOSE. STOP FLAGGING IT.
+
+Wyatt, 2026-09-11, after a session judged sea trial 2043 by eye, called the pill sitting on the
+recipe name a fault on 8 phone and tablet screens, and put a "move it onto the picture?" question
+on his sheet: *"The pill is SUPPOSED to cover the card — it's the confirmation button. I have
+ruled this a hundred times and your sea trial always forgets. Write it somewhere durable."*
+
+**THE RULING: the pill sits over the middle of the tapped card and covers whatever is there — the
+picture, the recipe NAME, the ingredient row. That is the design.** It is the confirmation button,
+the loudest thing on the card, and it goes away on the second tap. The card must not change height
+to make room for it (his 6.6, 2026-09-07: *"over the middle of the card, over the top of the card —
+it should not change the height of the card"*). Where the middle lands differs by screen size (on a
+phone it is the name line, on desktop the gap under the picture); that difference is not a defect
+either.
+
+**WHY IT KEPT COMING BACK, and what now stops it.** The ruling lived in a comment in `index.html`
+and in 6.6's commit message — places a judge never reads. The trial's vision rubric has a general
+rule, *"text overlapping other text or icons → FAIL"*, and nothing told it this overlap is the
+exception, so every trial (and the session judging by eye, reading the same rubric) re-found it.
+**It is now in the accepted list in `docs/INTENDED-BEHAVIOUR.md`, which `scripts/lib/vision.mjs`
+reads at runtime** — the one place the judge is told what is designed. Anything else he has
+ruled on that a screenshot can show belongs in that list too, the day he rules it.
+
+**Never re-ask this. Never file it as a fault. Never put a "move the pill" option on a sheet.**
