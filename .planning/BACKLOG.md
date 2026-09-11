@@ -921,7 +921,9 @@ with round studs, wooden plank interior. Master at `art-review/clock/clock.png` 
   stay circular), edges TILE rather than stretch (the rope keeps its pitch), and `round` scales each
   tile so a whole number fits, so no stud is ever cut in half. Height and width then vary freely,
   including a captain with two rows of ingredients.
-- [?] **Two things need his eye first** — both are on the artifact: whether the wood centre should
+- [x] ✅ **ANSWERED 2026-09-10** — the plaque wraps the WHOLE box (his Q2), and the wood centre
+      TILES: it is its own seamless board texture now, repeated behind the rows (his note on the
+      art brief — see DECISIONS.md). The original: ~~Two things need his eye first~~ — both are on the artifact: whether the wood centre should
   tile or stretch (the grain is horizontal planking, so tiling it vertically reads differently), and
   whether the plaque wraps the WHOLE box or each captain's row.
 - [ ] **Ship a 2× asset.** 384×196 is a thin frame at 1×; on a 1920 desktop column the rope will be
@@ -1234,6 +1236,15 @@ captain, and `scripts/qa/_pnp_band_handover.mjs` in a real four-captain pass-and
 - [x] **…and fixing it exposed a hand-over leak**: the outgoing captain's recipe stayed on the
       "Pass the wheel to …" card (3 of 8 hand-overs) because passGate cleared the permission
       without redrawing. passGate now redraws.
+
+## 🎨 THE ART BRIEF, REVISED FROM HIS NOTES — 2026-09-10
+
+Four pieces now (brief: https://claude.ai/code/artifact/7a51b394-c56b-455d-bc5e-858bf8cde072):
+frame (Gemini) · **board** (Gemini, made seamless by me, proven tiled 3×3) · crate (Gemini, WITH his
+reference uploaded) · hollow (made by me from the approved crate — no Gemini).
+- [?] **The art round needs his go** — it drives HIS Chrome to Gemini for ~10 minutes and uploads
+      his crate reference there. On the checklist sheet. CANNOT MEASURE: it is his browser and his
+      account, not a measurement.
 
 ## ✅ ALL ANSWERED — AND THE ART BRIEF IS WRITTEN
 

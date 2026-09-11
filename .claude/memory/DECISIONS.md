@@ -2293,3 +2293,21 @@ He answered all twelve questions on the redesign. These are settled; do not re-a
 - **He accepted the correction on the coin column** — measured, today's coins are ragged by 15px
   with short names and 65px once one captain has an 18-character name, so his mockup is an
   improvement on what ships rather than a restatement of it.
+
+---
+
+## 2026-09-10 — the plaque art brief, his section notes (and a standing rule on sea trials)
+
+| # | Where | HIS RULING |
+|---|---|---|
+| 1 | Crate hollow | **"Crate hollow is a silhouette of the crate."** |
+| 2 | The plaque's centre | *"why do you say the center is thrown away? How are you going to generate the center texture that sits behind the captains rows?"* — **the wood behind the rows is part of the art.** The brief now has it as its own piece: the old plaque's honey-brown board (#ba7a40), generated as a SEAMLESS TILE, made seamless and proven tiled 3×3 before he sees it, and repeated behind the rows — never stretched (his first rule for this box). This also settles the parked "tile or stretch the wood centre?" question: tile. |
+| 3 | The crate | **"Feed in my reference image of a crate."** `.planning/art-refs/crate-reference.png` is uploaded with the prompt (at 8×, nearest-neighbour), and the prompt follows it — an inset panel of three planks, NOT the hollow middle the first brief asked for. |
+| 4 | The crate hollow | **"You can generate this asset yourself from the final crate without using Gemini again."** Made from the approved crate: its outline filled flat black, as `assets/ingredients/holes/*` are (measured: all-black silhouettes, shape in the alpha). |
+| 5 | Frame, process, CSS list | Marked LOOKS RIGHT as written. |
+
+**THE SEA TRIAL — a standing rule, 2026-09-10:** *"i want your sea trial to run on 10 browsers at
+once -- but don't start a sea trial without my approval."* It had just choked his laptop mid-work
+("pause your processes they're choking my computer"). **Keep the 10-at-once design; ASK before
+every start.** Single-browser probes of a minute or two are not sea trials — run them one at a
+time and say so.
