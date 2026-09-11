@@ -2351,3 +2351,29 @@ reads at runtime** — the one place the judge is told what is designed. Anythin
 ruled on that a screenshot can show belongs in that list too, the day he rules it.
 
 **Never re-ask this. Never file it as a fault. Never put a "move the pill" option on a sheet.**
+
+---
+
+## 2026-09-11 — his sheet answers, and the phone playtest of staging dd56bb96
+
+**The checklist questions:**
+
+| Question | HIS RULING |
+|---|---|
+| Q1 How close should the camera go on a phone? (his #6) | **"Keep today's."** 2.2× for fights, up to 4× for a short sail. The `?camcap` try-it switch is removed. |
+| Q2 "Play again!" over the award cards | **"it already works like this -- it IS pinned as a footer, and it looks great! the only thing i'd change is the coloring -- make the button gold and give it the attention orange gradient banner."** Gold (#f5a623 / ink #3a2600 / edge #c9821a) and the one shared pp4Glow ring. "The attention orange gradient" = his name for pp4Glow (playtest 6.4: "the standard orange attention-gradient flash"). |
+| Q3 Recipe name size | **"Match what I saw — 16.6px."** (the tuner's 19.5 in Zilla Slab = 16.6 in the game's Georgia) |
+| Q4 The art round | **"I've connected Chrome — go."** Ran 2026-09-11: two plaques, two crates, on the brief page for his pick. |
+| Check 9 (holds on a full phone table) | Passed — but **"I actually don't like the way this mechanic works though -- I want them to scroll within the same line, not go onto two lines -- ideally by bunching on top of each other, with less buffer room -- they can overlap a little bit, even up to 50%. show me what this would look like."** Shown as a page; not built until he picks. |
+
+**The playtest notes (phone, staging dd56bb96):**
+
+1. **The dotted line** must count the trade winds — *"both to calculate the true shortest route, and because the current dotted line asks me to sail through the trade winds as if they're a regular square"* — and *"should disappear the moment your boat starts animatedly sailing."*
+2. **Bot sounds while the bot sails** (muse, dock coin): *"the next event should not be triggered until the bot is able to choose it -- they should use the same engine as the players; meaning that they choose to sail, and only after they arrive do they get to then choose what to do."* Standing principle: nothing after a move is presented before the boat has arrived — for every captain, on every device.
+3. **"blue squares take 2 taps" is a tutorial rung, not always present.**
+4. **Turn order:** *"the captains box should show you, active player, at the top, then all other players in turn order. the top boat circles should show the turn order from the day start, left to right."* (This is the existing design — the report is that it had stopped holding.)
+5. **On a phone, the welcome card with the mode buttons is 10% smaller**, for breathing room around the privacy links.
+
+**And to the backlog:** a tiny coin flip above OTHER captains' boats when they dock, in time with the sound — *"create an artifact with 10-20 different sliders to let me tune this as i imagine -- with the landing coin, timing, animate in and animate out options."*
+
+**Standing constraint, same day:** *"don't run any heavy things now I'm going to be teaching for the next 2.5 hours."* No browsers, no sea trial, no full test run while he teaches.

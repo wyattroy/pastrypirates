@@ -15,6 +15,44 @@ whole reason the file exists.
 ---
 ---
 
+# 🧭 HIS PHONE PLAYTEST OF STAGING dd56bb96 — 2026-09-11
+
+His words and the sheet answers are in `.claude/memory/DECISIONS.md` (2026-09-11). He was teaching for
+2.5 hours right after sending them — *"don't run any heavy things now"* — so everything below was
+written in code and checked only by the no-browser gates that touch it; nothing is on staging yet.
+
+- [~] **Built, waiting on a browser** — CANNOT MEASURE: he asked for no browsers or heavy runs while he
+      teaches. When he is back: each of these posed and screenshotted, npm test, then staging.
+      1. the dotted line — rim-aware route (`Game.seaRoutes` / `seaRoute` / `rimRide`; flow.js's
+         `rimSweepPath` now reads `rimRide`) and it comes down when any boat's move starts to play
+         (`forgetCourse()` in `consumeEvent`);
+      2. bot sounds mid-sail — the drain is one timeline across calls (`panel.js` `_tail`/`_busy`), and
+         the consumer waits for `stageSettled()` after any move before the next event is shown;
+      3. "blue squares take two taps" is the `sail.twotap` ladder (2 sightings, then silence), added
+         per device by `withTwoTapRung()` in `renderPickPrompt`;
+      4. turn order — the rows and the circles read the ENGINE's record (`game.turnOrder`), which a
+         reload no longer loses; `endReplay()` rebuilds the rows once; `appState.turnOrder` is gone.
+         Suspected cause (read, not yet measured): a resumed voyage never re-consumed the turnOrder
+         event, so the screen's copy stayed empty;
+      5. the phone welcome card 10% smaller (logo and mode buttons zoomed .9, card 90% wide);
+      Q2 gold "Play again!" with the pp4Glow ring · Q3 recipe names at 16.6px · Q1 `?camcap` removed.
+- [?] **Crates on one line** (his check-9 note) — shown, not built:
+      https://claude.ai/code/artifact/0407b2b7-9440-4802-ba71-5b6e2aa91bbe — full gap while they fit,
+      squeeze evenly to his limit (50% in the pictures), then scroll sideways. His pick, on that page.
+- [?] **The dock coin above other captains' boats** — his backlog item. Tuner with 20 controls against
+      the real `coin-flip.mp3` (blip at 795ms): https://claude.ai/code/artifact/18342fb5-72a6-4094-be56-725b00c5247f
+      — his settings save to the page's own store (`read_db` collection `tuner`, doc `wyatt`). Build on
+      his numbers, for every tier (it belongs in the one consumer, off the `dock` event).
+- [?] **How many sightings for "blue squares take two taps"** — 2 today (a "why" rung, then his W2-8
+      words, then silence). How much is enough is his.
+- [ ] **The bots' planner still believes the rim is open water.** `Game.waterField()` (which the bots
+      score moves on) floods rim squares like any other; the dotted course now uses the rim-aware
+      `seaRoutes()`. Converging the two changes how every bot plays, so it wants the bot simulator run
+      before and after on the same seeds, and his word if the win rates move.
+
+---
+---
+
 # 🚩 THE CTO WORK LIST — Wyatt's playtest, 2026-08-27
 
 **Build played:** `2026-08-26k-CUTOVER-STAGING/aug26-night-fixes@b8d61e42`, on his phone, over

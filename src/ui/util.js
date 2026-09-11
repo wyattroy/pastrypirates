@@ -98,14 +98,15 @@ export function seatOrderFrom(head){
      dispatch — could not have fixed this: no delivery mechanism can deliver a value nobody has
      computed. The site is the fallback, and the reproduction names it (CLAUDE.md rule 6).
      The rotation is the same one rule, applied to whatever ordering is available. */
-  if(!appState.turnOrder||appState.turnOrder.length!==n){
+  const ord=appState.game.turnOrder;   // the engine's record — see consumeEvent's turnOrder note
+  if(!ord||ord.length!==n){
     const raw=appState.game.players.map((_,i)=>i);
     const r=raw.indexOf(head);
     return r<0?raw:raw.slice(r).concat(raw.slice(0,r));
   }
-  const at=appState.turnOrder.indexOf(head);
-  if(at<0)return appState.turnOrder.slice();
-  return appState.turnOrder.slice(at).concat(appState.turnOrder.slice(0,at));
+  const at=ord.indexOf(head);
+  if(at<0)return ord.slice();
+  return ord.slice(at).concat(ord.slice(0,at));
 }
 // PASS & PLAY (Wyatt, 2026-08-09): "resort the captains box with the currently active player at the
 // top during their turn, and the rest of the players sorted according to turn order... currently

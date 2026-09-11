@@ -131,6 +131,19 @@ export const LADDERS = {
     null,
   ],
 
+  // ---- the one square that takes two taps. Wyatt, 2026-09-11, playtest note 3: "'blue squares
+  // take 2 taps' should be a rung on the tutorial ladder -- not always present." It had been on
+  // every sail line that offered a blue square, for every captain, forever (W2-8). Like
+  // recipe.stowed, its bottom rung is SILENCE: nothing is said here at all once it has been
+  // learned, or with the parrot off. Counted by SIGHTING — only a sail line that actually offers a
+  // blue square shows it (and spends it). Rung 0 says why there are two taps; the words after it
+  // are his, unchanged from W2-8. How many sightings is his call, and it is on his sheet.
+  "sail.twotap": [
+    "Blue squares take two taps — the first shows ye the ride.",
+    "Blue squares take two taps.",
+    null,
+  ],
+
   // ---- the trade winds, taught the first time the rim actually carries somebody
   "rim.sweep": [
     // ⭐ HIS WORDS, 2026-09-08, replacing my draft — it names the rim, the direction AND where ye
