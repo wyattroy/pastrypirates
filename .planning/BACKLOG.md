@@ -911,8 +911,19 @@ Three runs. `f5b5091d` is the build the third one judged.
   two circles. One occurrence in ten legs.
 - [ ] **`crew-phone`: a sail square over the sail question** — `"sailCell" over "test2: Tap a gold
   square to sa"`. D-38's class, one occurrence, and the placement search is supposed to yield.
-- [ ] **301 → screens queued for a vision pass and never cleared**, 18–59 per leg. The judge defers
-  them; nobody reads the queue. It carries its own rubric and instructions.
+- [x] ✅ 2026-09-10 — **the queue was read.** Sea trial 2043's 322 queued screens were judged by a
+  session's own eyes and merged (`apply_judge_results.mjs`): 322 judged, 15 FAILED, 0 unjudged —
+  three faults, written up in `.planning/SEA-TRIAL.md`. The rubric's line about the captain's own
+  row showing the recipe was out of date (the recipe moved to the band) and is corrected at its one
+  source, `docs/INTENDED-BEHAVIOUR.md`'s accepted list.
+- [?] **The "Bake this!" pill sits on the recipe NAME on phones and tablets** (found in that pass,
+  8 of 8 phone/tablet picks). Measured by `scripts/qa/_bake_pill_name_check.mjs`: it covers 55–71%
+  of the name on a phone and 24% on a tablet, and sits clear on desktop. His 6.6 placed it "over the
+  middle of the card"; since his tuner numbers, the middle of a phone card IS the name line. A
+  candidate — centred on the picture's bottom edge, lifted until it clears the name by 3px — keeps it
+  off the name at all five sizes and does not change the card's height; on a phone it covers most of
+  the pastry picture instead, because a 142px card has no free space. Placement is his: on the sheet
+  with before/after pictures.
 
 
 ## 🟠 THE CAPTAINS BOX WEARS THE SHOT-CLOCK PLAQUE (Wyatt, 2026-09-09)

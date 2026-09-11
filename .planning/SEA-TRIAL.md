@@ -20,6 +20,22 @@
 | **voyages that did NOT run** | none |
 
 
+## The vision pass — done by a session's own eyes, 2026-09-10
+
+The trial's judge could not log in, so all **322** queued screens were looked at by the session
+instead (contact sheets, with full-size checks where a sheet was not enough), and merged with
+`node scripts/apply_judge_results.mjs sea-trial-shots`: **322 judged · 15 FAILED · 0 not judged.**
+The 15 are three faults, not fifteen:
+
+| Fault | Screens | Where it stands |
+|---|---|---|
+| A crew guest's own device asked *"Do ye know how to play?"* with one button | 2 (desktop + phone guest, first screen) | **Fixed** in `52560af8` — each device asks its own question, both circles |
+| On a phone, *Play again!* sits over the award cards at the end of a voyage | 5 (every phone end card) | **His call** — on the checklist sheet (footer, or at the end of the scroll) |
+| The *Bake this!* pill sits ON the recipe name | 8 (all 6 phone picks, both tablet picks; desktop clear) | **Measured** (`scripts/qa/_bake_pill_name_check.mjs`): covers 55–71% of the name on a phone, 24% on a tablet, 0 on desktop. A candidate that keeps it off the name at all 5 sizes is ready; the placement is his (his 6.6 said "the middle of the card") — on the sheet |
+
+Also seen, and already his: the camera's close zoom on act and trade prompts (phone, tablet, and
+desktop too) — his #6, on the sheet with the zoom line-up. Everything else passed.
+
 
 ## The voyages, in full
 
