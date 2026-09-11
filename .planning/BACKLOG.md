@@ -1324,6 +1324,14 @@ seamless from its own wood · the crate (Gemini, WITH his reference uploaded) ·
       `crate-1.jpeg`, `crate-2.jpeg` (his reference attached at 8×; crate 2 drifted pink/teal).
       Round 1 is at the top of the brief page with rough 9-slice previews and the crates at play
       size, empty silhouettes made from each.
+- [?] **His pick from the sugar cane purple round (2026-09-11).** His 2026-09-03 note — "boost up the
+      purple to make it stand out more and make it look more delicious/sumptuous" — was written into a v3
+      prompt and never run until today. Four shapes run in his Chrome: standing sheaf, crossed pair, tied
+      bundle, fanned billets (`art-review/ingredients-sugarcane/v3-*`). The game still draws the old white
+      cubes (`assets/ingredients/sugar.png`), which contradicts the name he settled. Review page, with each
+      cut out at 26/52/90px and the old green studies beside them:
+      https://claude.ai/code/artifact/082a0907-8946-463d-ba18-a91fe559042b — on his word: key it, crop to
+      the three sizes, make the empty silhouette the way the island holes are made, wire it in for staging.
 - [?] **His pick from round 1: one plaque, one crate — or another round.** Taste, so his. On the
       brief page (pass/problem per picture). On his word: cut the plaque into nine parts, make the
       board seamless from its own wood, key and crop the crate to 256, make the empty crate from it,
