@@ -101,7 +101,7 @@ and every prompt promise** (`docs/DISPLAY-RULES.md` Rule C) — which is where t
 |---|---|---|
 | ~~W1-1~~ | ✅ **MEASURED CONVERGED 2026-09-10** — `scripts/qa/_crew_motion_check.mjs`, a real two-window crew game: 11 sails by the other captain (routes of 2+ squares), each sailing ship's computed transform sampled per frame on BOTH screens — median 74 in-between positions on the host AND on the guest, fewest 42 on each. The guest walks the route (consumeEvent → animateSailRoute, the W7 convergence). Original: **Guest does not animate boats square by square** — host, solo and pass-and-play all do. | ✅ **MEASURED 2026-08-27.** The host glides the route (`src/ui/flow.js:1185`); `watchEvents` (`src/orchestrator.js:1572`) calls `animateRimSweepIfAny()`, gets `false` for an ordinary sail, and goes straight to `render()` — which snaps. |
 | ~~W1-2~~ | ✅ **MEASURED CONVERGED 2026-09-10** — `scripts/qa/_crew_storm_check.mjs`, a forced storm in a real two-window crew game, every ship's computed transform sampled per frame on BOTH screens: host GLIDE (34–37 in-between values, one move, 1.3–2.8s), guest GLIDE (42 values, one move, 2.0–2.8s). Neither steps, neither jumps — one glide to the end square, his pick. Original: **During a storm the host steps one square at a time; the guest jumps to the end point.** Two paths where there should be one. **And once converged, make the one function move directly to the end point** — Wyatt's explicit pick. | Not yet measured. Same family as W1-1. |
-| W1-3 | ⚠ **STILL UNMEASURED for the guest, 2026-09-10** — two `_crew_motion_check.mjs` runs (both seats taking every trade-wind square offered) got 4 rides and then 0, all by the HOST; the guest never rode. On the host's own screen the camera moved in 3 of 4 rides and the host's boat sat outside the board frame in 68 of 1,087 ride frames (6%) — worth a look in its own right. Original: **The director does not follow a guest's boat through the trade winds** — it correctly follows the host's. | ⚠️ **CAUSE UNKNOWN — an earlier guess was WRONG and is corrected here.** The rim sweep AND its camera call (`window.__pp4.sweepCam()`, `src/ui/flow.js` in `animateRimSweepRun`) are **already shared by both tiers**. So "the guest has no sweep animation" is false. Measure before theorising. |
+| ~~W1-3~~ | ✅ **PASS — MEASURED 2026-09-11, closed.** `_crew_motion_check.mjs` with the GUEST steering for the trade-wind ring (the missing piece: two runs had given the guest no rides at all): 3 guest rides, the camera moved with every one, and the guest's own boat was off the guest's board in **0 of 813** ride frames. The host, same run: 10 rides, 0 of 2,714 (the 6% seen 2026-09-10 did not recur). W1-1 passed in the same run (median 75 in-between positions per sail on the guest). Original: **The director does not follow a guest's boat through the trade winds.** | Closed by measurement — nothing to fix. |
 | W1-4 | **Sail squares a guest cannot tap** — cut off at the screen edge, first tap-to-sail, crew, phone. | ⚠️ **THE RECORDED CAUSE MAY BE THE WRONG ONE.** The standing entry below says *"sailCell covered by `#pp4Cap`"*. **In Wyatt's 2026-08-27 screenshot the captains panel is nowhere near the lowest sail square** — the failure is the board's left column cut by the screen edge, with a partial element sliced at the bezel. The known race (`flow.js:620` draws, asks the camera 180ms later; `stage.js:124` lets it refuse while a card is up) is still the best lead. **See the standing entry: "TOP OF THE LIST — sail squares a guest cannot tap".** |
 
 ## Wave 2 — the words (10) · cosmetic gear, safe, felt immediately
@@ -1262,9 +1262,16 @@ Three pieces (brief: https://claude.ai/code/artifact/7a51b394-c56b-455d-bc5e-858
 2026-09-10: "no one wants [a hollow center]"), cut by me into nine parts with its board made
 seamless from its own wood · the crate (Gemini, WITH his reference uploaded) · the empty crate
 (made by me from the approved crate — no Gemini).
-- [?] **The art round needs his go** — it drives HIS Chrome to Gemini for ~10 minutes and uploads
-      his crate reference there. On the checklist sheet. CANNOT MEASURE: it is his browser and his
-      account, not a measurement.
+- [x] ✅ 2026-09-11 — **the art round ran**, in his Chrome at his word ("opened chrome"): both
+      brief prompts word for word, twice each — `art-review/captains-box/plaque-1.jpeg`,
+      `plaque-2.jpeg` (2048², one full board, rope unbroken, studs at the corners only),
+      `crate-1.jpeg`, `crate-2.jpeg` (his reference attached at 8×; crate 2 drifted pink/teal).
+      Round 1 is at the top of the brief page with rough 9-slice previews and the crates at play
+      size, empty silhouettes made from each.
+- [?] **His pick from round 1: one plaque, one crate — or another round.** Taste, so his. On the
+      brief page (pass/problem per picture). On his word: cut the plaque into nine parts, make the
+      board seamless from its own wood, key and crop the crate to 256, make the empty crate from it,
+      and wire both in for staging.
 
 ## ✅ ALL ANSWERED — AND THE ART BRIEF IS WRITTEN
 

@@ -42,7 +42,7 @@ try{
     await waitFor(`!!document.querySelector('.pp4RcHelp')`);
     console.log(`\nsolo ${w}x${h}`);
     let last=""; const t0=Date.now();
-    let worst=0; while(Date.now()-t0<9000){ const m=await C.ev(M); if(m&&m!==last){ const o=JSON.parse(m); if(Date.now()-t0>1500) worst=Math.max(worst,o.gap); console.log(`  +${((Date.now()-t0)/1000).toFixed(1)}s gap ${o.gap} card ${o.cardTop}-${o.cardBottom} hint ${o.hintTop} board ${o.boardBottom} rows ${o.rows} typed ${o.typed}`); last=m; } await sleep(100); }
+    let worst=0, shot=false; while(Date.now()-t0<9000){ if(process.env.SHOTS&&!shot&&Date.now()-t0>2500){ shot=true; try{ const r=await C.send('Page.captureScreenshot',{format:'png'}); if(r.result?.data)(await import('node:fs')).writeFileSync(path.join(process.env.SHOTS,`hint-gap-${w}x${h}.png`),Buffer.from(r.result.data,'base64')); }catch{} } const m=await C.ev(M); if(m&&m!==last){ const o=JSON.parse(m); if(Date.now()-t0>1500) worst=Math.max(worst,o.gap); console.log(`  +${((Date.now()-t0)/1000).toFixed(1)}s gap ${o.gap} card ${o.cardTop}-${o.cardBottom} hint ${o.hintTop} board ${o.boardBottom} rows ${o.rows} typed ${o.typed}`); last=m; } await sleep(100); }
     console.log(`  WORST gap after the landing: ${worst}px`);
   }
 } catch(e){ console.log("PROBE FAILED: "+(e&&e.message||e)); } finally { await killAll(); }
