@@ -1734,6 +1734,45 @@ function buildVersion(V) {
     // one run of sheets per material: the board and its tokens in 6 mm, the thin parts in 3 mm
     const noGuide = p => ({ ...p, items: p.items.filter(i => i.layer !== GU) });
     const thick = packSheets(cutParts.filter(p => (p.mat || MAT) === MAT).map(noGuide), BED), thin = packSheets(cutParts.filter(p => (p.mat || MAT) === MAT3).map(noGuide), BED3);
+    // ---- TWO BOARDS ON ONE 42 x 84 cm SHEET (Wyatt, 2026-09-10: "can you get 2 boards onto a 42 x 84
+    // sheet? and squeeze the ingredients etc around its edges?") ----
+    // 420 is too narrow for two 409.8 mm circles abreast, so they stack, touching at one point with G
+    // clear. Everything else goes into what the circles leave: the four outer corners and the pinched
+    // waist either side of where they meet. The shelf packer can only fill rows, so this places each
+    // part's footprint directly against both discs, both ways round, first fit from the top.
+    // TWO SETS of the 6 mm small parts (tokens + hulls), since two boards means two games.
+    {
+      const SW = opt("twow", 420), SH = opt("twoh", 840), M = 5, G = 3;
+      const R = five.Rb + KERF;                          // compensated rim (Rb + K/2) plus the beam's half-width
+      const cx = SW / 2, yA = (SH - (4 * R + G)) / 2 + R, yB = yA + 2 * R + G, discs = [[cx, yA], [cx, yB]];
+      const boards = [yA, yB].flatMap((yc, i) => tag(xf(five.boardPart.items, { tx: cx - CENTER, ty: yc - CENTER }), i ? "board-b" : "board"));
+      const small = cutParts.filter(p => (p.mat || MAT) === MAT && p.name !== "board").map(noGuide);
+      const parts = [...small, ...small.map(p => ({ ...p, name: p.name + "-b" }))]
+        .map(p => { const b = bbox(p.items); return { ...p, area: b.w * b.h }; }).sort((a, b) => b.area - a.area);
+      const placed = [], rects = [], left = [];
+      const clear = (x, y, w, h) => {
+        if (x < M || y < M || x + w > SW - M || y + h > SH - M) return false;
+        for (const [ox, oy] of discs) { const px = Math.max(x, Math.min(ox, x + w)), py = Math.max(y, Math.min(oy, y + h));
+          if ((px - ox) ** 2 + (py - oy) ** 2 < (R + G) ** 2) return false; }
+        for (const r of rects) if (x < r.x1 + G && x + w + G > r.x0 && y < r.y1 + G && y + h + G > r.y0) return false;
+        return true; };
+      for (const p of parts) {
+        let best = null;
+        for (const rot of [0, 90]) {
+          const items = rot ? xf(p.items, { rot }) : p.items, b = bbox(items);
+          outer: for (let y = M; y + b.h <= SH - M; y += 1) for (let x = M; x + b.w <= SW - M; x += 1)
+            if (clear(x, y, b.w, b.h)) { if (!best || y < best.y || (y === best.y && x < best.x)) best = { x, y, items, b }; break outer; }
+        }
+        if (!best) { left.push(p.name); continue; }
+        rects.push({ x0: best.x, y0: best.y, x1: best.x + best.b.w, y1: best.y + best.b.h });
+        placed.push(...tag(xf(best.items, { tx: best.x - best.b.x0, ty: best.y - best.b.y0 }), p.name));
+      }
+      console.log(`two-boards: ${parts.length - left.length}/${parts.length} small parts placed around the circles` + (left.length ? `; DID NOT FIT: ${left.join(", ")}` : ""));
+      docs.push({ id: "two-boards", title: `Two boards on one ${SW / 10} × ${SH / 10} cm sheet — ${MAT} mm`, kind: "cut", mat: MAT, kerf: KERF,
+        kerfNote: `KERF-COMPENSATED (every cut pushed ${KERF / 2} mm off the kept wood) EXCEPT both boards' seams and the three sides of each Tortuga square, cut on their nominal line on purpose: one cut makes both faces. Cut each board's rim LAST.`,
+        items: [...boards, ...placed], w: SW, h: SH, count: 2 + parts.length - left.length,
+        notes: `${SW} × ${SH} mm, ${MAT} mm ply. Two whole boards, each one circle split in place, stacked — ${r3(4 * R + G)} mm of length. Around them, in the corners and the waist: two full sets of the 6 mm small parts (${small.length} each — 28 ingredient tokens and 4 ship hulls), ${G} mm apart.` + (left.length ? ` ${left.length} did not fit: ${left.join(", ")}.` : "") });
+    }
     const all = [...thick.map(sh => ({ sh, m: MAT })), ...thin.map(sh => ({ sh, m: MAT3 }))], N = all.length;
   const matByPart = new Map(cutParts.map(p => [p.name, p.mat || MAT]));
   KERF_FOR = name => (matByPart.get(name) === MAT3 ? KERF3 : KERF);   // thin parts get the thin kerf, everywhere
