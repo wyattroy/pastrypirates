@@ -3382,7 +3382,11 @@
      crates with his numbers — gap 3px, never more than 35% overlap — and past that turns on
      .holdScroll: the line scrolls sideways, starting from the left (a right-aligned row that
      overflows cannot be scrolled to its first crate), with a fade at the edge saying there is more. */
-  body.pp4Stage .prowTop .chips { flex:1 1 auto; min-width:0; display:flex; flex-wrap:nowrap; gap:3px; justify-content:flex-end;
+  /* flex-basis 0, NOT auto — measured 2026-09-11: .prowTop wraps its children, and with `auto` a
+     nowrap hold asks for its FULL width first, so a 10-crate hold jumped onto a line of its own and
+     the row grew from 32px to 54px before fitHold ever saw it. From 0 it takes the room that is left
+     on the captain's own line, which is exactly the room fitHold squeezes into. */
+  body.pp4Stage .prowTop .chips { flex:1 1 0; min-width:0; display:flex; flex-wrap:nowrap; gap:3px; justify-content:flex-end;
     overflow:hidden; }
   body.pp4Stage .prowTop .chips.holdScroll { justify-content:flex-start; overflow-x:auto; overflow-y:hidden; scrollbar-width:none;
     -webkit-mask-image:linear-gradient(90deg,#000 calc(100% - 14px),transparent); mask-image:linear-gradient(90deg,#000 calc(100% - 14px),transparent); }

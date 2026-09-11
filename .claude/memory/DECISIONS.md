@@ -2394,5 +2394,5 @@ ruled on that a screenshot can show belongs in that list too, the day he rules i
   RIGHT): size 16px at 1× zoom and grows with the camera · 11px above the boat · no sideways nudge ·
   arrives by RISING off the boat in 160ms, starting with the sound · FLIPS OVER at 6 flips/s with a 21px
   toss, landing on the blip (795ms) · landing bounce 22% · glow 6px · holds its face 800ms · shadow 13% ·
-  leaves by FADING in 140ms. His note: *"I can't see the arrival in the artifact preview"* — the tuner's
+  leaves by FADING in 140ms. **Retuned after the arrival preview was fixed: arrival 40ms (was 160).** His note: *"I can't see the arrival in the artifact preview"* — the tuner's
   resting pose showed the landed coin, so there was nothing to arrive from; fixed (a ghost at rest).

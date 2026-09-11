@@ -21,6 +21,16 @@ His words and the sheet answers are in `.claude/memory/DECISIONS.md` (2026-09-11
 2.5 hours right after sending them — *"don't run any heavy things now"* — so everything below was
 written in code and checked only by the no-browser gates that touch it; nothing is on staging yet.
 
+- [~] **Measured 2026-09-11 16:00–16:09 (scripts/qa/_playtest_0911_check.mjs, phone 390×844):** welcome
+      card 599→534px tall and 182→247px of room above the links · names 16.6px × scale · the course from
+      all 111 open-water starts rides the rim 293 times and never walks it · 0 of 23 dock/muse/coin sounds
+      started during any of 31 glides · rows and circles in sailing order before AND after a reload · the
+      two-taps rung speaks twice then stops. FAILED and fixed since: a 10-crate hold wrapped the row to
+      54px (`flex-basis:auto` in a wrapping row — now 0). Probe faults fixed: the course watcher started
+      before the page existed; the end-card check was hijacked by a saved voyage. CANNOT MEASURE until
+      his calls end: he asked for no heavy runs during them. Then: re-run the probe, npm test, staging.
+      Observed once, not yet measured: a white outline around empty space under the board while the
+      recipe picker is parked on a phone (0911-B-picker.png) — possibly older than today.
 - [~] **Built, waiting on a browser** — CANNOT MEASURE: he asked for no browsers or heavy runs while he
       teaches. When he is back: each of these posed and screenshotted, npm test, then staging.
       1. the dotted line — rim-aware route (`Game.seaRoutes` / `seaRoute` / `rimRide`; flow.js's
@@ -39,6 +49,14 @@ written in code and checked only by the no-browser gates that touch it; nothing 
 - [?] **Crates on one line** (his check-9 note) — shown, not built:
       https://claude.ai/code/artifact/0407b2b7-9440-4802-ba71-5b6e2aa91bbe — full gap while they fit,
       squeeze evenly to his limit (50% in the pictures), then scroll sideways. His pick, on that page.
+- [ ] **BUILD the dock coin — his numbers are in** (DECISIONS.md 2026-09-11: 16px, 11px up, rise in 40ms,
+      flip 6/s with a 21px toss, lands on the 795ms blip, 22% bounce, 6px glow, 800ms hold, 13% shadow,
+      fade 140ms). THE PLAN, one pipe: the `dock` event, drained by the one consumer on every device,
+      presents a flip that is not this device's decision — the spin sound and the small coin above that
+      captain's boat together, landing on the face the event carries — and the drain waits it out. Then
+      botDockCoin stops driving the flip side-channel for bots (one fewer of hole 1's channels). NOT a new
+      field on the flip wire: the crew server's rules are not in this repo, so a changed payload cannot be
+      checked before it ships. Wants host + guest, measured: sound start vs coin spin vs landing.
 - [?] **The dock coin above other captains' boats** — his backlog item. Tuner with 20 controls against
       the real `coin-flip.mp3` (blip at 795ms): https://claude.ai/code/artifact/18342fb5-72a6-4094-be56-725b00c5247f
       — his settings save to the page's own store (`read_db` collection `tuner`, doc `wyatt`). Build on
