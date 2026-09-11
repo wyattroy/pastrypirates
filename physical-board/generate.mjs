@@ -37,7 +37,7 @@ const KERF = opt("kerf", 0.275);       // beam width, MEASURED from Wyatt's 2026
 const BED_MARGIN = 6;
 // Corrected 2026-09-10: "I misread my laser bed — it accepts up to 45cm * 80cm", then "the board I
 // put in will be likely 42-44cm wide". Packed to 420, the NARROW end, so any sheet he loads works.
-// The one-piece circle burns 409.8 mm (409.3 + the beam), leaving ~5 mm each side at 42 cm, so this
+// The one-piece circle burned 409.8 mm at 25 mm squares — ~5 mm each side at 42 cm, hence this margin; since the 2026-09-10 scale it is ~383, so this
 // sheet's margin is 5, not 6.
 const BED  = { w: opt("bedw",  420), h: opt("bedh",  800), m: 5 };   // 6 mm
 const BED3 = { w: opt("bedw3", 304.8), h: opt("bedh3", 457.2), m: BED_MARGIN };    // 3 mm  — 12" x 18" = 304.8 x 457.2 mm
@@ -758,11 +758,14 @@ function ship3d(c) {
   // Wyatt: "model the ship off an old pirate ship, not a modern yacht ... rotate the hull notches 90 degrees so that the
   // sails can be perpendicular to the direction of the ship; make the sails square-ish; draw the game art skull and
   // crossbones on the sails" — assets/icons/sailboat.png is the reference: square sail, skull and bones, wooden hull.
-  const L = 24, B = 12, sw = MAT3 + .05, sl = 7, hull = [];   // slot play 0.05 — sails snap (Wyatt, 2026-08-25)
-  hull.push(item(CU, [{ cmds: [["M", 3, 0.8], ["L", 14, 0.8], ["C", 18.5, 0.8, 21.5, B * .22, L, B / 2], ["C", 21.5, B * .78, 18.5, B - .8, 14, B - .8], ["L", 3, B - .8], ["C", 0.6, B - .8, 0.6, 0.8, 3, 0.8], ["Z"]] }]));
-  hull.push(rect(CU, 7.5 - sw / 2, B / 2 - sl / 2, sw, sl), rect(CU, 15.5 - sw / 2, B / 2 - sl / 2, sw, sl));   // slots athwartships
-  for (const py of [B * .25, B * .5, B * .75]) hull.push(rect(RA, 3.2, py - .22, 16.5, .44));                       // deck planks
-  hull.push(rect(RA, 1.6, B / 2 - .3, 1.6, .6));                                                                   // tiller
+  // drawn 24 x 12 in design units, then scaled with the squares (2026-09-10) so a ship still lies
+  // broadside in half a square; the two slots are added AFTER, at full size — they fit the 3 mm sail
+  const L = 24, B = 12, sw = MAT3 + .05, sl = 7, S = GRID_SCALE, shape = [], hull = [];   // slot play 0.05 — sails snap (Wyatt, 2026-08-25)
+  shape.push(item(CU, [{ cmds: [["M", 3, 0.8], ["L", 14, 0.8], ["C", 18.5, 0.8, 21.5, B * .22, L, B / 2], ["C", 21.5, B * .78, 18.5, B - .8, 14, B - .8], ["L", 3, B - .8], ["C", 0.6, B - .8, 0.6, 0.8, 3, 0.8], ["Z"]] }]));
+  for (const py of [B * .25, B * .5, B * .75]) shape.push(rect(RA, 3.2, py - .22, 16.5, .44));                      // deck planks
+  shape.push(rect(RA, 1.6, B / 2 - .3, 1.6, .6));                                                                  // tiller
+  hull.push(...xf(shape, { s: S }));
+  hull.push(rect(CU, 7.5 * S - sw / 2, B * S / 2 - sl / 2, sw, sl), rect(CU, 15.5 * S - sw / 2, B * S / 2 - sl / 2, sw, sl));   // slots athwartships, full size
   const sail = (w, hgt, pat) => { const mh = hgt + 8, y0 = 2, y1 = 2 + hgt; const pts = [[0, 0], [2.6, 0], [2.6, mh], [tab_(sl) / 2 + 1.3, mh], [tab_(sl) / 2 + 1.3, mh + MAT], [-tab_(sl) / 2 + 1.3, mh + MAT], [-tab_(sl) / 2 + 1.3, mh], [0, mh], [0, y1 + 1.2], [-(w / 2 - 1.3), y1 + 2.2], [-(w / 2 - 1.3), y0], [-(w / 2 - 1.3) + 0, y0], [0, y0]];
     // one outline: mast, a square sail hung left AND right of the mast, its foot bellying down
     const sq = [[0, 0], [2.6, 0], [2.6, y0], [w / 2 + 1.3, y0], [w / 2 + 1.3, y1], [w / 2 - 1.5, y1 + 1.6], [1.3, y1 + 2.4], [-(w / 2 - 2.8), y1 + 1.6], [-(w / 2 - 1.3), y1], [-(w / 2 - 1.3), y0], [0, y0]];
@@ -862,7 +865,12 @@ function notchPolyline(ptsIn, m, along, hw, notchPts, offTol = 1.5) {
 // any engraving that would meet a notch is dropped, so no cut ever crosses ink.
 // One dock per island, and a DIFFERENT edge on each (Wyatt, 2026-08-30: "vary it per island"), so no
 // two of the nine read alike. Indices are into perimeterEdges() and wrap, so they are always valid.
-const DOCK_EDGE = [1, 3, 2, 0, 5, 4, 6, 2, 3];
+// An entry is a perimeterEdges() index, or [x, y] — the edge's midpoint in cell units, which pins it
+// to one exact side of one exact square. Wyatt, 2026-09-10, green marks on the sheet: "put the docks
+// where i marked in green instead" — both INSIDE the corner of an L, a sheltered harbour:
+//   island-2 (the three-square L): under the top arm's right square, dropping into the corner
+//   island-8 (the J): the hanging square's left side, pointing into the corner
+const DOCK_EDGE = [1, [1.5, 1], 2, 0, 5, 4, 6, [2, 1.5], 3];
 function islandFromArt(shapeIdx) {
   const cells = ISLAND_SHAPES[shapeIdx], artKey = shapeIdx === 7 ? "island5" : shapeIdx === 8 ? "island6" : `island${shapeIdx + 1}`, mirror = shapeIdx >= 7;
   return islandClean(cells, artKey, mirror, [], shapeIdx, { dockEdge: DOCK_EDGE[shapeIdx] });
@@ -1035,7 +1043,12 @@ function partedLine(linePts, edges, reach = 6, halfW = TDOCK.stem / 2 + 1.1) {
 function islandBody(cells, { docks = [], beach = BEACH, waveAmp = WAVE_AMP, seedBase = 17, deckIn = null } = {}) {
   const loop = traceCells(cells)[0].map(([x, y]) => [x * CELL, y * CELL]);
   const edges = perimeterEdges(cells).map(e => ({ ...e, m: [e.m[0] * CELL + e.inward[0] * CLR, e.m[1] * CELL + e.inward[1] * CLR] }));
-  const dockEdges = docks.map(i => edges[((i % edges.length) + edges.length) % edges.length]);
+  const raw = perimeterEdges(cells);
+  const dockEdges = docks.map(i => {
+    if (!Array.isArray(i)) return edges[((i % edges.length) + edges.length) % edges.length];
+    const k = raw.findIndex(e => e.m[0] === i[0] && e.m[1] === i[1]);
+    if (k < 0) throw new Error(`no outside edge of ${JSON.stringify(cells)} has its midpoint at ${JSON.stringify(i)}`);
+    return edges[k]; });
   // the coast waves, but goes quiet where a dock meets it — a T-stem must land on straight shore
   let pts = waveCoast(roundCorners(offsetPoly(loop, -CLR), ISLAND_R).cmds, dockEdges.map(e => e.m),
     { amp: waveAmp, lambda: 10, quiet: TDOCK.stem / 2 + 2, step: 0.5, phase: seedBase * 1.37, ripple: 0.35 });
@@ -1297,6 +1310,27 @@ function edgeBands(C, Rmax) {
   return out;
 }
 
+// ---- ONE SCALE FOR EVERYTHING SIZED TO THE GRID (Wyatt, 2026-09-10) ----
+// "scale everything -- gameboard, pieces, islands, etc. -- slightly smaller so that both boards will
+// fit onto an 80cm long printbed (perhaps make it fit onto 78cm of material, just so we have buffer).
+// we'll reprint everything." So the factor is SOLVED from the two-board sheet: two stacked circles
+// (each the board plus the beam), G apart, M from each end, must fit TWO.h. The real square is then
+// rounded DOWN to 0.05 mm. Everything is still DRAWN in 25 mm design units; what gets cut is scaled
+// by this one number, uniformly — so every ruling that is a proportion (the dock's head on the
+// square's midline, a ship broadside in half a square, the token on its square) stays true untouched.
+// NOT scaled, on purpose: anything sized to the MATERIAL or to a real object — slots, tabs, box
+// joints, kerf, the M3 pivot; the spinner (his millimetres); the chest and recipe cards (they hold
+// his real coins); the rules card.
+const TWO = { w: opt("twow", 420), h: opt("twoh", 780), M: 5, G: 3 };
+const GRID_SCALE = (() => {
+  const { valid } = seaCells(), C = CENTER; let Rmax = 0;
+  for (const k of valid) { const [x, y] = k.split(",").map(Number); for (const [cx, cy] of [[x, y], [x + 1, y], [x, y + 1], [x + 1, y + 1]]) Rmax = Math.max(Rmax, Math.hypot(cx * CELL - C, cy * CELL - C)); }
+  const S = ((TWO.h - 2 * TWO.M - TWO.G) / 4 - KERF) / (Rmax + 7);
+  return Math.floor(CELL * S * 20) / 20 / CELL;
+})();
+const CELL_REAL = CELL * GRID_SCALE;   // the square as cut, in mm
+const scaleAbout = (items, cx = 0, cy = 0, sc = GRID_SCALE) => xf(xf(items, { tx: -cx, ty: -cy }), { s: sc, tx: cx, ty: cy });
+
 function boardFivePiece() {
   const { valid, rim, DIRS } = seaCells(), C = CENTER;
   let Rmax = 0; for (const k of valid) { const [x, y] = k.split(",").map(Number); for (const [cx, cy] of [[x, y], [x + 1, y], [x, y + 1], [x + 1, y + 1]]) Rmax = Math.max(Rmax, Math.hypot(cx * CELL - C, cy * CELL - C)); }
@@ -1372,7 +1406,14 @@ function boardFivePiece() {
   // the SAME items, as the part the 6 mm cutting sheet carries (Wyatt, 2026-09-10: "I want the entire
   // board cut out of one circle on the 6mm board")
   const boardPart = { name: "board", mat: MAT, items: oneItems };
-  return { assembled, quadrants, plug, Rb, onePiece, boardPart };
+  // everything above is in DESIGN units; what is cut is scaled. The quadrants and plugDesign stay in
+  // design units because the mockup places them on a 25 mm grid — and a uniformly scaled scene draws
+  // identically, so the picture is still honest.
+  const rb = Rb * GRID_SCALE, dOld = String(r3(2 * Rb)), dNew = String(r3(2 * rb));
+  const scaledDoc = d => ({ ...d, items: xf(d.items, { s: GRID_SCALE }), w: r3(d.w * GRID_SCALE), h: r3(d.h * GRID_SCALE), notes: d.notes.split(dOld).join(dNew) });
+  return { assembled: scaledDoc(assembled), onePiece: scaledDoc(onePiece), quadrants, plugDesign: plug, Rb: rb,
+    plug: { ...plug, items: xf(plug.items, { s: GRID_SCALE }) },
+    boardPart: { ...boardPart, items: scaleAbout(boardPart.items, C, C) } };
 }
 // ---- kerf: push every cut line half a beam away from the wood that stays ----
 function pointInPoly(p, pts) { let c = false; for (let i = 0, j = pts.length - 1; i < pts.length; j = i++) { const [xi, yi] = pts[i], [xj, yj] = pts[j]; if ((yi > p[1]) !== (yj > p[1]) && p[0] < (xj - xi) * (p[1] - yi) / (yj - yi) + xi) c = !c; } return c; }
@@ -1471,13 +1512,15 @@ const planks = (x, y, w, h, pitch, vertical = false) => { const out = []; if (ve
 // an open cargo crate for a captain's hold: tokens stand on edge in it, icons showing (cargo is public in the game)
 // a slatted crate, like the classic wooden one (Wyatt's reference photo): three slats a side with real gaps cut
 // between them, solid corner posts engraved, a nail at each slat end
+// six tokens flat, 3 x 2, 1 mm apart and 1 mm from the walls, plus the walls: follows the token size
+function crateSize() { const tok = TOKEN_MM * GRID_SCALE, t = MAT3; return { Lo: r3(3 * tok + 4 + 2 * t), Wo: r3(2 * tok + 3 + 2 * t) }; }
 function cargoCrate(captain) {
   // Remade 2026-08-30. Wyatt: "the crate must be less tall, and more wide — it should fit 6
   // ingredients lying flat, and those should be easily visible over the top edge of the crate by
   // other players." Six 20 mm tokens FLAT in a 3 x 2 grid (his pick) with 1 mm gaps and a 1 mm
   // margin needs a 64 x 43 interior, so 70 x 49 outside; walls 10 mm (his number). Cargo stays
   // public, as in the game — now by lying face-up in a shallow tray rather than standing on edge.
-  const t = MAT3, Lo = 70, Wo = 49, H = 10, hw = H - t, parts = [], post = 5;
+  const t = MAT3, { Lo, Wo } = crateSize(), H = 10, hw = H - t, parts = [], post = 5;
   // ONE cut gap per side (his pick over three slats — at 10 mm there is no room for three, and a
   // 5 mm wall full of holes is fragile). The slot also lets a low eye see the icons through the wall.
   const slatted = (w, first) => { const it = wallPanel(w, hw, t, { start: first }), g = 2.2;
@@ -1532,7 +1575,12 @@ function treasureChest(captain) {
 function nestedSpinner() {
   // Wyatt, 2026-08-30: "the bottom tray needs to extend 0.5 inches radius further so that players can
   // grip it when they turn the dial" — 48 -> 60.7, a 121 mm disc with 25.7 mm of bare wood round the dial.
-  const RB = 60.7, RD = 35, RI = RD + 0.4, parts = [];
+  // Wyatt, 2026-09-10: the base grew to 60.7 so "there is an EXTRA extended layer of base circle that
+  // pokes out underneath" the ring — "i asked you to make the bottom circle bigger ... but you made the
+  // top circle bigger too, defeating the purpose". The ring had been sized FROM the base's radius, so
+  // it grew with it. It has its own radius now, back at 48: 12.7 mm of base shows all round as a lip
+  // to hold while the WIND NOW ring turns.
+  const RB = 60.7, RR = 48, RD = 35, RI = RD + 0.4, parts = [];
   parts.push(part("spinner-backing", [circ(CU, 0, 0, RB), circ(CU, 0, 0, 1.65), ring(RA, 0, 0, RD + .2, RD - .3)]));
   const dial = [circ(CU, 0, 0, RD), circ(CU, 0, 0, 1.65), ring(RA, 0, 0, 4.2, 3.4)];
   // the two scroll bands, broken where the medallions sit so no line ever crosses a letter
@@ -1559,9 +1607,9 @@ function nestedSpinner() {
   // differentiates it from the flat spun forecast". The ring carries a radial slot at its pointer; the vane's
   // tab drops through it and stands on the backing disc. Its pennant streams inward, toward the letter the
   // ring is set to — the way the wind blows — 25 mm above the flat needle, so the two can never be confused.
-  const VS = MAT3 + .05, VL = 7, vr = RB - 5;   // slot: material + 0.05 so the vane stands snug (same ruling as the sails), 7 long, centred at r = 43
-  const ringPart = [circ(CU, 0, 0, RB), circ(CU, 0, 0, RI), rect(CU, -VS / 2, -(vr + VL / 2), VS, VL), ring(RA, 0, 0, RB - 1, RB - 1.6), ...icon("fleur", 0, -(RI + 2.6), 5, 180), ...ftext(RA, "WIND NOW", 0, RB - 5, 3, { font: "avenir-next-demibold", align: "center" })];
-  for (let i = 0; i < 24; i++) { if (i >= 4 && i <= 8) continue; const rr = RB - 4; ringPart.push(xf([rect(RA, rr - 1.2, -.25, 2.4, .5)], { rot: i * 15 })[0]); }  // no ticks under the WIND NOW label
+  const VS = MAT3 + .05, VL = 7, vr = RR - 5;   // slot: material + 0.05 so the vane stands snug (same ruling as the sails), 7 long, centred at r = 43
+  const ringPart = [circ(CU, 0, 0, RR), circ(CU, 0, 0, RI), rect(CU, -VS / 2, -(vr + VL / 2), VS, VL), ring(RA, 0, 0, RR - 1, RR - 1.6), ...icon("fleur", 0, -(RI + 2.6), 5, 180), ...ftext(RA, "WIND NOW", 0, RR - 5, 3, { font: "avenir-next-demibold", align: "center" })];
+  for (let i = 0; i < 24; i++) { if (i >= 4 && i <= 8) continue; const rr = RR - 4; ringPart.push(xf([rect(RA, rr - 1.2, -.25, 2.4, .5)], { rot: i * 15 })[0]); }  // no ticks under the WIND NOW label
   parts.push(part("spinner-ring", ringPart));
   // the needle: a classic compass needle (Wyatt, 2026-08-25: the balanced double-fleur was symmetric — "it is not
   // clear which direction it is facing. change the shape to match a compass needle and raster one half of it").
@@ -1666,8 +1714,8 @@ function buildVersion(V) {
   // Wyatt, 2026-09-10: "i want the islands packed onto 3mm". They carry no joint — the docks are
   // baked into the cut and nothing plugs into them — so thickness is free, and moving them off the
   // 6 mm sheet is what lets the whole board fit one sheet of it.
-  const islandParts = (v === "v3" ? ISLAND_SHAPES : TET).map((_, i) => part(`island-${i + 1}`, islandPiece(v, i)))
-    .map(p => (v === "v3" ? { ...p, mat: MAT3 } : p)); cutParts.push(...islandParts);
+  const islandPartsDesign = (v === "v3" ? ISLAND_SHAPES : TET).map((_, i) => part(`island-${i + 1}`, islandPiece(v, i)));
+  const islandParts = islandPartsDesign.map(p => (v === "v3" ? { ...p, mat: MAT3, items: xf(p.items, { s: GRID_SCALE }) } : p)); cutParts.push(...islandParts);
   docs.push(sheet("islands", v === "v3" ? "Island shapes (9)" : "Island shapes (7)", islandParts, { notes: v === "v3" ? "Every tetromino orientation: the seven footprints of the app plus the mirror images of the L and the S. Seven go out each voyage. Remade 2026-08-30: the CUT EDGE is the shoreline and waves on its own — no shore line is engraved any more — and ONE engraved line inside it divides bare-wood beach from grass. Each island carries its own T-dock, baked into the cut on a different edge per island, reaching 12.5 mm into the neighbouring square where a ship berths broadside. No palm, no stones, no tufts. 3 mm ply since 2026-09-10." : v === "v1" ? "Plain edges. Shoreline band and a palm engraved. 0.4 mm clearance per side so they sit inside the squares." : v === "v2" ? "A jigsaw socket is cut into the middle of EVERY outside edge, so a dock can click onto any side of any square." : "A 4.5 mm slot in the middle of every outside edge takes the mooring post of a dock." }));
   // docks
   const dp = ING.map(ing => dockPiece(v, ing));
@@ -1679,7 +1727,7 @@ function buildVersion(V) {
   if (v !== "v3") docs.push(sheet("docks", "Docks (7)", [...dockParts, ...dockExtras], { notes: "" }));
   // ingredient crates (4 per ingredient: 3 on the shelf + 1 black-market spare) and island markers
   const TOKEN_PAD = "cutC";   // Wyatt, 2026-08-25: "This is the correct amount of padding (C)"
-  const crates = ING.flatMap(ing => [0, 1, 2, 3].map(n => part(`crate-${ing}-${n + 1}`, v === "v3" ? artToken(ing, 0, 0, TOKEN_MM, { pad: TOKEN_PAD }) : TOKEN[v].crate(ing, 0, 0))));
+  const crates = ING.flatMap(ing => [0, 1, 2, 3].map(n => part(`crate-${ing}-${n + 1}`, v === "v3" ? xf(artToken(ing, 0, 0, TOKEN_MM, { pad: TOKEN_PAD }), { s: GRID_SCALE }) : TOKEN[v].crate(ing, 0, 0))));
   cutParts.push(...crates);
   if (v === "v3") for (const [pad, label, mm] of [["cutC", "C", "about 1.7 mm"]])   // A and B removed (Wyatt, 2026-08-25: "I like c best")
     docs.push(sheet(`crates-${label.toLowerCase()}`, `Ingredient tokens — padding ${label}`, ING.map(ing => part(`token-${ing}`, artToken(ing, 0, 0, TOKEN_MM, { pad }))), { count: 7, notes: `Option ${label}: the cut line sits ${mm} outside the drawing's ink. Pick one; the cutting sheets currently carry option B.` }));
@@ -1701,7 +1749,7 @@ function buildVersion(V) {
     else { const s = shipStanding(v === "v1" ? "sloop" : "galleon", c); shipParts.push(part(`ship-${CAPTAINS[c]}`, s.profile), part(`ship-base-${CAPTAINS[c]}`, s.base)); }
   }
   cutParts.push(...shipParts);
-  docs.push(sheet("ships", "Ships (4)", shipParts, { count: 4, notes: "Four captains told apart in wood: CRUMBLE plain, BISCOTTI striped, GINGERSNAP dotted, SHORTBREAD checked (pink, teal, green, orange in the app — paint the sails if you like). " + (v === "v3" ? "An old pirate ship after the game's own sailboat art: a 6 mm hull seen from above (24 × 12 mm, deck planks, a tiller) with two slots ACROSS the beam; two 3 mm square sails on short masts whose tabs drop through the slots and sit flush underneath, the skull and crossbones (his reference, art/skull-ref.png) engraved big on each. About 24 mm tall. Paint the sails for the captain." : "Standing profiles: the tab under the hull drops into the slot in the base.") }));
+  docs.push(sheet("ships", "Ships (4)", shipParts, { count: 4, notes: "Four captains told apart in wood: CRUMBLE plain, BISCOTTI striped, GINGERSNAP dotted, SHORTBREAD checked (pink, teal, green, orange in the app — paint the sails if you like). " + (v === "v3" ? `An old pirate ship after the game's own sailboat art: a 6 mm hull seen from above (${r3(24 * GRID_SCALE)} × ${r3(12 * GRID_SCALE)} mm, deck planks, a tiller) with two slots ACROSS the beam; two 3 mm square sails on short masts whose tabs drop through the slots and sit flush underneath, the skull and crossbones (his reference, art/skull-ref.png) engraved big on each. About 24 mm tall. Paint the sails for the captain.` : "Standing profiles: the tab under the hull drops into the slot in the base.") }));
   // recipes
   const recipeParts = recipeCards(v).map((c, i) => ({ ...part(`recipe-${i + 1}`, c), mat: MAT3 })); cutParts.push(...recipeParts);
   docs.push(sheet("recipes", "Recipe cards (21)", recipeParts, { notes: "Every possible 5-of-7 recipe, exactly once — 21 cards, 64 × 20 mm (sized for the shallow chest lid: the card slides under the hinge strip and tips out of the open back with gravity). Deal two to each captain, keep one, as the app does." }));
@@ -1712,7 +1760,7 @@ function buildVersion(V) {
   if (v === "v3") {
     const crateParts = CAPTAINS.flatMap(c => cargoCrate(c)), chestParts = CAPTAINS.flatMap(c => treasureChest(c));
     cutParts.push(...crateParts, ...chestParts);
-    docs.push(sheet("crates-boxes", "Cargo crates (4)", crateParts, { count: 4, notes: "One open crate per captain, 70 × 49 × 10 mm in 3 mm ply — remade 2026-08-30: wide and shallow so six ingredient tokens lie FLAT in a 3 × 2 grid, face up, readable by everyone at the table. One cut gap per side, solid corner posts, box joints. Cargo is public, as in the game. Paint to mark whose it is." }));
+    docs.push(sheet("crates-boxes", "Cargo crates (4)", crateParts, { count: 4, notes: `One open crate per captain, ${crateSize().Lo} × ${crateSize().Wo} × 10 mm in 3 mm ply — remade 2026-08-30: wide and shallow so six ingredient tokens lie FLAT in a 3 × 2 grid, face up, readable by everyone at the table. One cut gap per side, solid corner posts, box joints. Cargo is public, as in the game. Paint to mark whose it is.` }));
     docs.push(sheet("chests", "Treasure chests (4)", chestParts, { count: 4, notes: "One per captain, 80 × 27 × 32 mm in 2.6 mm ply — half as deep since 2026-08-25 (players hold under 10 coins). Box-jointed body (20 mm) and lid (12 mm). The hinge is a FRICTION fit, no dowel and no holes: the lid's two tongues wedge between the body's three and the lid stays where you put it; the hinge strip runs a ply-thickness further at each end so it fills the corners against the side walls' teeth. Both big plates carry the planks and straps, so either can face up. The recipe card (64 × 20) slides UNDER the hinge strip into rails on the lid's end walls; the rails cover only the front 60 %, so tipping the open chest lets the card fall out of the lid's back. Straps line up from the plates down the front and back. Blue labels are read-only, never engraved: corners 1–4 clockwise from front-left (L1, L2 on the lid), a wall's bottom names the plate edge it meets, H = the hinge strip; the two RAIL strips glue inside the lid's end walls under the engraved line." }));
 
   // one-offs for scrap-by-scrap test cuts (Wyatt, 2026-08-25: "i'm printing these test runs on scraps of wood
@@ -1724,11 +1772,11 @@ function buildVersion(V) {
     docs.push(sheet("one-ship-sails", "One ship — sails (test cut, thin ply)", oneShip.filter(p => p.mat === MAT3), { notes: `One mainsail and one jib, ${MAT3} mm ply. Kerf-compensated — cut on the line.` }));
     docs.push(sheet("one-crate", "One cargo crate (test cut, thin ply)", cargoCrate(CAPTAINS[0]), { maxW: 110, notes: `A single crate, ${MAT3} mm ply: four slatted walls and the base. Kerf-compensated — cut on the line.` }));
     docs.push(sheet("one-chest", "One treasure chest (test cut, thin ply)", treasureChest(CAPTAINS[0]), { maxW: 175, notes: `A single chest, ${MAT3} mm ply: body, lid, hinge strip, two card rails. Blue labels are read-only, not engraved. Kerf-compensated — cut on the line.` }));
-    docs.push(sheet("one-tortuga", "Tortuga (test cut, thick ply)", [{ ...part("tortuga", tortugaPiece()), mat: MAT }], { notes: `The one-square Tortuga with its four baked T-docks (~50 × 50 mm), ${MAT} mm ply. Kerf-compensated — cut on the line.` }));
+    docs.push(sheet("one-tortuga", "Tortuga (test cut, thin ply)", [five.plug], { notes: `The one-square Tortuga with its four baked T-docks, ${MAT3} mm ply (moved with the islands, 2026-09-10). Kerf-compensated — cut on the line.` }));
   }
   }
   docs.push(sheet("extras", "Extras", extraParts, { notes: "A rules card with the numbers the app keeps for you. (The storm cloud and first-player wheel were cut on 2026-08-25 — the needle parked in a storm wedge is the forecast.)" }));
-  if (v === "v3") docs.push(...mockups(five, { islandParts, dockParts, crates, whirlParts, spParts, shipParts, crateParts: CAPTAINS.flatMap(c => cargoCrate(c)), chestParts: CAPTAINS.flatMap(c => treasureChest(c)), recipeParts }));
+  if (v === "v3") docs.push(...mockups(five, { islandParts: islandPartsDesign, dockParts, crates, whirlParts, spParts, shipParts, crateParts: CAPTAINS.flatMap(c => cargoCrate(c)), chestParts: CAPTAINS.flatMap(c => treasureChest(c)), recipeParts }));
   if (v === "v3") {
     // the cutting sheets: every part, tallest first, on bed-sized sheets, kerf-compensated
     // one run of sheets per material: the board and its tokens in 6 mm, the thin parts in 3 mm
@@ -1742,7 +1790,7 @@ function buildVersion(V) {
     // part's footprint directly against both discs, both ways round, first fit from the top.
     // TWO SETS of the 6 mm small parts (tokens + hulls), since two boards means two games.
     {
-      const SW = opt("twow", 420), SH = opt("twoh", 840), M = 5, G = 3;
+      const SW = TWO.w, SH = TWO.h, M = TWO.M, G = TWO.G;
       const R = five.Rb + KERF;                          // compensated rim (Rb + K/2) plus the beam's half-width
       const cx = SW / 2, yA = (SH - (4 * R + G)) / 2 + R, yB = yA + 2 * R + G, discs = [[cx, yA], [cx, yB]];
       const boards = [yA, yB].flatMap((yc, i) => tag(xf(five.boardPart.items, { tx: cx - CENTER, ty: yc - CENTER }), i ? "board-b" : "board"));
@@ -1837,7 +1885,7 @@ function mockups(five, P) {
     return s; })();
   docs.push(doc("mockup-spinner", "Mockup: the wind spinner, assembled", isoScene(spSlabs, { scale: 4 }), "Backing disc; the compass dial glued on it with the ring turning around it; the flat forecast needle on the pivot above; the WIND NOW vane standing in the ring's slot, pennant toward the letter the ring is set to."));
   // a cargo crate with tokens standing in it
-  const crateSlabs = (() => { const c = 2, g = n => byName(P.crateParts, `crate-${CAPTAINS[c]}-${n}`), t = MAT3, Lo = 70, Wo = 49, hw = 10 - MAT3;
+  const crateSlabs = (() => { const c = 2, g = n => byName(P.crateParts, `crate-${CAPTAINS[c]}-${n}`), t = MAT3, { Lo, Wo } = crateSize(), hw = 10 - MAT3;
     const s = [{ ...flatAt(g("base"), 0, 0, 0, t), bias: -40 }, slab(g("front"), { origin: [Lo - t, 0, t + hw], U: [-1, 0, 0], V: [0, 0, -1], T: t }), slab(g("back"), { origin: [t, Wo, t + hw], U: [1, 0, 0], V: [0, 0, -1], T: t }),   // the floor paints FIRST: a big flat face out-means standing walls in this projection
       slab(g("side-2"), { origin: [0, t, t + hw], U: [0, 1, 0], V: [0, 0, -1], T: t }), slab(g("side-1"), { origin: [Lo, Wo - t, t + hw], U: [0, -1, 0], V: [0, 0, -1], T: t })];
     // no tokens in this scene: five adversarial-review rounds showed the painter cannot draw "a standing piece
@@ -1847,7 +1895,7 @@ function mockups(five, P) {
   docs.push(doc("mockup-crate", "Mockup: a cargo crate", isoScene(crateSlabs, { scale: 6 }), "Slatted sides with real gaps, corner posts. In play the ingredient tokens stand inside on edge, icons showing — cargo is public, as in the game (the tokens are on their own sheet)."));
   // the board on the table: quadrants, Tortuga on top, three islands with docks and tokens, two ships, a whirlpool
   const boardSlabs = (() => { const s = five.quadrants.map(q => flatAt(q.items, 0, 0, 0)); const C = CENTER;
-    s.push(flatAt(xf(five.plug.items, { tx: C, ty: C }), 0, 0, MAT3));
+    s.push(flatAt(xf(five.plugDesign.items, { tx: C, ty: C }), 0, 0, MAT3));
     const place = (i, cx, cy, dockSide) => { const isl = P.islandParts[i].items, b = bbox(isl.filter(x => x.layer === CU)); s.push(flatAt(xf(isl, { tx: cx - b.x0, ty: cy - b.y0 }), 0, 0, MAT3));
       const cells = ISLAND_SHAPES[i]; cells.forEach(([a, b2], k) => { const ing = ING[(i * 3 + k) % 7], tk = artToken(ing, cx + (a + .5) * CELL, cy + (b2 + .5) * CELL); if (k < 3) s.push(flatAt(tk, 0, 0, 2 * MAT)); });
       void dockSide; };   // no loose dock: every island carries its own
@@ -1871,7 +1919,7 @@ function svgPathD(sub) {
 function emitSVG(doc, V, forPage = false) {
   const layers = [[RA, "RASTER", `fill="#000000" fill-rule="nonzero" stroke="none"`], [CU, "CUT", `fill="none" stroke="#ff0000" stroke-width="0.1"`], ...(forPage ? [[GU, "GUIDE", `fill="#1d63d6" fill-rule="nonzero" stroke="none"`]] : [])];
   let out = `<svg xmlns="http://www.w3.org/2000/svg" xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape" width="${doc.w}mm" height="${doc.h}mm" viewBox="0 0 ${doc.w} ${doc.h}">\n`;
-  out += `<title>Pastry Pirates — ${V.name} — ${doc.title}</title>\n<desc>${doc.notes.replace(/[<>&]/g, "")} Units: mm. ${CELL} mm squares, ${MAT} mm material. ${doc.kerfNote ? doc.kerfNote : doc.kerf ? `KERF-COMPENSATED: cut lines offset ${KERF / 2} mm away from the kept wood (kerf ${KERF} mm) — cut exactly on the line.` : "No kerf compensation — this is the assembled-board design view, not a cutting file."} RASTER = black fill (engrave), CUT = red hairline (cut). Generated by physical-board/generate.mjs.</desc>\n`;
+  out += `<title>Pastry Pirates — ${V.name} — ${doc.title}</title>\n<desc>${doc.notes.replace(/[<>&]/g, "")} Units: mm. ${r3(CELL_REAL)} mm squares, ${MAT} mm material. ${doc.kerfNote ? doc.kerfNote : doc.kerf ? `KERF-COMPENSATED: cut lines offset ${KERF / 2} mm away from the kept wood (kerf ${KERF} mm) — cut exactly on the line.` : "No kerf compensation — this is the assembled-board design view, not a cutting file."} RASTER = black fill (engrave), CUT = red hairline (cut). Generated by physical-board/generate.mjs.</desc>\n`;
   for (const [L, name, attrs] of layers) {
     out += `<g id="${name}" class="layer-${name.toLowerCase()}" inkscape:label="${name}" inkscape:groupmode="layer" ${attrs}>\n`;
     let curPiece = null;
@@ -1915,7 +1963,7 @@ function writeDXFs(dxfDocs) {
 /* =========================================================================================
    12. Main
    ========================================================================================= */
-const siteData = { cell: CELL, material: MAT, kerf: KERF, bed: [BED_W, BED_H], generated: new Date().toISOString().slice(0, 10), versions: [] };
+const siteData = { cell: CELL_REAL, material: MAT, kerf: KERF, bed: [BED_W, BED_H], generated: new Date().toISOString().slice(0, 10), versions: [] };
 for (const V of VERSIONS.filter(V => ONLY.includes(V.id))) {
   const built = buildVersion(V), dir = path.join(HERE, V.dir);
   const dxfDocs = [];
@@ -1945,4 +1993,4 @@ for (const V of VERSIONS.filter(V => ONLY.includes(V.id))) {
   console.log(`${V.dir}: ${built.docs.length} files x2 (svg+dxf)`);
 }
 fs.writeFileSync(path.join(HERE, "site-data.js"), "window.PB_DATA = " + JSON.stringify(siteData) + ";\n");
-console.log(`cell ${CELL} mm, material ${MAT} mm — site-data.js written`);
+console.log(`squares ${r3(CELL_REAL)} mm (design ${CELL} × scale ${GRID_SCALE}), material ${MAT} mm — site-data.js written`);
