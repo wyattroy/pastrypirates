@@ -100,7 +100,7 @@ and every prompt promise** (`docs/DISPLAY-RULES.md` Rule C) — which is where t
 | # | Item | Verified? |
 |---|---|---|
 | W1-1 | **Guest does not animate boats square by square** — host, solo and pass-and-play all do. | ✅ **MEASURED 2026-08-27.** The host glides the route (`src/ui/flow.js:1185`); `watchEvents` (`src/orchestrator.js:1572`) calls `animateRimSweepIfAny()`, gets `false` for an ordinary sail, and goes straight to `render()` — which snaps. |
-| W1-2 | **During a storm the host steps one square at a time; the guest jumps to the end point.** Two paths where there should be one. **And once converged, make the one function move directly to the end point** — Wyatt's explicit pick. | Not yet measured. Same family as W1-1. |
+| ~~W1-2~~ | ✅ **MEASURED CONVERGED 2026-09-10** — `scripts/qa/_crew_storm_check.mjs`, a forced storm in a real two-window crew game, every ship's computed transform sampled per frame on BOTH screens: host GLIDE (34–37 in-between values, one move, 1.3–2.8s), guest GLIDE (42 values, one move, 2.0–2.8s). Neither steps, neither jumps — one glide to the end square, his pick. Original: **During a storm the host steps one square at a time; the guest jumps to the end point.** Two paths where there should be one. **And once converged, make the one function move directly to the end point** — Wyatt's explicit pick. | Not yet measured. Same family as W1-1. |
 | W1-3 | **The director does not follow a guest's boat through the trade winds** — it correctly follows the host's. | ⚠️ **CAUSE UNKNOWN — an earlier guess was WRONG and is corrected here.** The rim sweep AND its camera call (`window.__pp4.sweepCam()`, `src/ui/flow.js` in `animateRimSweepRun`) are **already shared by both tiers**. So "the guest has no sweep animation" is false. Measure before theorising. |
 | W1-4 | **Sail squares a guest cannot tap** — cut off at the screen edge, first tap-to-sail, crew, phone. | ⚠️ **THE RECORDED CAUSE MAY BE THE WRONG ONE.** The standing entry below says *"sailCell covered by `#pp4Cap`"*. **In Wyatt's 2026-08-27 screenshot the captains panel is nowhere near the lowest sail square** — the failure is the board's left column cut by the screen edge, with a partial element sliced at the bezel. The known race (`flow.js:620` draws, asks the camera 180ms later; `stage.js:124` lets it refuse while a card is up) is still the best lead. **See the standing entry: "TOP OF THE LIST — sail squares a guest cannot tap".** |
 
@@ -191,6 +191,15 @@ and every prompt promise** (`docs/DISPLAY-RULES.md` Rule C) — which is where t
   below is answered. **Do not re-open it.**
 
 ---
+## ✅ HIS ITEM 15 VERIFIED END TO END — 2026-09-10
+
+`scripts/qa/_crew_storm_check.mjs`, a real two-window crew game with a storm forced on the host:
+the storm lesson ("A storm takes the whole crew…") reached the GUEST and stayed on screen 10.3s
+with nobody tapping it (the host's robot racing through its own card — the worst case). The first
+two runs said "never" and both were my instrument: the rig's driver answered "Yarrgh!" (which
+silences the parrot) and later tapped "Aye aye" before the line had finished typing, which innerText
+cannot see. Both fixed in the probe and written into it.
+
 ## ✅ MEASURED FIXED 2026-09-10 — sail squares a guest cannot tap
 
 - [x] **Re-measured with the same probe that convicted it** (`scripts/qa/w14_guest_sail_reach.mjs`,
@@ -1239,9 +1248,11 @@ captain, and `scripts/qa/_pnp_band_handover.mjs` in a real four-captain pass-and
 
 ## 🎨 THE ART BRIEF, REVISED FROM HIS NOTES — 2026-09-10
 
-Four pieces now (brief: https://claude.ai/code/artifact/7a51b394-c56b-455d-bc5e-858bf8cde072):
-frame (Gemini) · **board** (Gemini, made seamless by me, proven tiled 3×3) · crate (Gemini, WITH his
-reference uploaded) · hollow (made by me from the approved crate — no Gemini).
+Three pieces (brief: https://claude.ai/code/artifact/7a51b394-c56b-455d-bc5e-858bf8cde072):
+**the plaque — ONE full wooden plaque like the old shot clock, board and all** (Gemini; his ruling
+2026-09-10: "no one wants [a hollow center]"), cut by me into nine parts with its board made
+seamless from its own wood · the crate (Gemini, WITH his reference uploaded) · the empty crate
+(made by me from the approved crate — no Gemini).
 - [?] **The art round needs his go** — it drives HIS Chrome to Gemini for ~10 minutes and uploads
       his crate reference there. On the checklist sheet. CANNOT MEASURE: it is his browser and his
       account, not a measurement.
