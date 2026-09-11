@@ -2396,3 +2396,23 @@ ruled on that a screenshot can show belongs in that list too, the day he rules i
   toss, landing on the blip (795ms) · landing bounce 22% · glow 6px · holds its face 800ms · shadow 13% ·
   leaves by FADING in 140ms. **Retuned after the arrival preview was fixed: arrival 40ms (was 160).** His note: *"I can't see the arrival in the artifact preview"* — the tuner's
   resting pose showed the landed coin, so there was nothing to arrive from; fixed (a ghost at rest).
+
+**2026-09-11, evening — the art rounds, three rulings:**
+
+- **CRATE 1 IS APPROVED** ("Round 1 — crate 1 from Gemini [LOOKS RIGHT]"). `art-review/captains-box/crate-1.jpeg`
+  is the crate: pale sanded timber, plank top and bottom, a post each side, three planks in the middle,
+  drawn from his own reference. Crate 2 (pink/teal drift) is dead. Next on his word: key, crop to 256,
+  and make the empty crate from its own outline.
+- **A PREVIEW MUST BE THE REAL GAME, NEVER THE SOURCE SQUARE** — plaque B, [CHANGE IT]: *"These are
+  squares -- it's never square in the game. fix this artifact to actually display the plaque in the
+  real-game scenario with the current captain's box (as it's being designed with overlapping
+  ingredients)."* The brief now mocks the box at its measured sizes — phone 360×186 and laptop 540×233
+  for four captains, phone 360×110 for two — with the real band, names in captain colours, coins, and
+  holds bunched by fitHold's own rule. The square Gemini picture is demoted to a thumbnail labelled as
+  the source. **Apply this to every art page from now on: show it where it lives, at the size it lives.**
+- **THE TIED BUNDLE WINS THE SUGAR CANE ROUND, and it wins for a reason he named:** *"This is the winner
+  because it's vertical, but I want to see three more rounds based on it -- with the sugar more in front,
+  with more sugar (with bigger crystals), and another of your own choosing based off your research."*
+  Those three are PARKED: his Chrome had switched to the work Google account (wyatt@polycam.ai), whose
+  renders came out pale and dusty rather than royal purple and whose downloads never landed. They run on
+  his personal Pro account when it is available. Nothing was published from the work account.
