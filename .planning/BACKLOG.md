@@ -373,7 +373,8 @@ first to win!"* line and then a board with no explanation of how anything works.
       (the text class is fixed). Something moves >8px for 2.6s+. Diagnosable but undiagnosed.
 - [ ] **8 of Wyatt's 35 playtest items untouched**; 5 parked with written diagnoses.
       See `.planning/phases/02.3-the-two-hour-playtest/TRIAGE.md`.
-- [ ] **Large empty gap in the desktop right-hand column** at 1890x960 — pre-existing, taste, his call.
+- [x] ✅ **HE RULED 2026-09-10: leave it.** *"Leave the empty space in desktop above [the menu]."* Measured
+      before asking: 292px between the captain's box and the menu at 1890x960. Original: ~~Large empty gap in the desktop right-hand column~~ at 1890x960 — pre-existing, taste, his call.
 
 ## 🔴 THE DETERMINISM CORPUS IS UNBOUND — ⚠ AND A-1 (2026-08-28) REORDERED THE BAKE DAY, so the re-record must be against the one-phase loop; the 2026-07-26 fixtures can never verify again — removed from `npm test` at the cutover
 

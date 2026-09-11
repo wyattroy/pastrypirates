@@ -2312,3 +2312,15 @@ once -- but don't start a sea trial without my approval."* It had just choked hi
 ("pause your processes they're choking my computer"). **Keep the 10-at-once design; ASK before
 every start.** Single-browser probes of a minute or two are not sea trials — run them one at a
 time and say so.
+
+---
+
+## 2026-09-10 (evening) — four answers from the checklist sheet
+
+| Question | HIS RULING |
+|---|---|
+| The 292px of empty column above the menu on a big desktop screen | **"Leave the empty space in desktop above [the menu]."** Leave the air. Do not fill it, do not move the menu up. |
+| May the corrected engine/event sentence go back into CLAUDE.md? | **"Restore corrected sentence in Claude.md."** Done — the "If a fact belongs to the game, put it in the ENGINE" paragraph replaces the stale "invalidates the determinism corpus" one. |
+| The art round | **"Run the art round now, headless if possible or mcp if not."** Headless cannot reach Gemini (no login, and a password is never typed for him), so it runs in his Chrome. |
+| The sea trial | **"Start sea trial."** Started — his approval, per the standing rule. |
+| #6, the phone "too zoomed in" | He sent three phone screenshots. |

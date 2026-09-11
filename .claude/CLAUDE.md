@@ -205,6 +205,9 @@ backticks, quotes and `$`, which break a double-quoted shell argument.
 real-time multiplayer via Firebase. Vanilla HTML/CSS/JS, native ES modules, **no build step**. Must
 run correctly in Safari and Chrome.
 
-**Determinism:** the multiplayer engine is seeded (`mulberry32`) and lockstep replay depends on it.
-Changing what the engine emits into the event stream invalidates the determinism corpus and forces
-a gated re-record. 
+**If a fact belongs to the game, put it in the ENGINE and emit an event.** The engine is seeded
+(`mulberry32`), but **there is no live determinism corpus** — the verify is out of `npm test` and
+fails 31/31 seeds, and the fixtures belong to the frozen `classic/` engine. So a new event costs
+nothing, and a UI-tier workaround for an engine-shaped fact is how a guest ends up unable to see
+what the host can. *(Evidence and his ruling: `DECISIONS.md`, 2026-09-09. Whoever binds a corpus
+again edits this paragraph in the same commit.)*
