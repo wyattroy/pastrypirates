@@ -181,6 +181,34 @@ export function buildPlayerRows(){
 // captains list (which the comment below warns against — it would cancel any in-flight marquee).
 // names have a fixed column width to keep coins/hold aligned across every row — a name that
 // overflows it scrolls instead of blowing out the layout or truncating unreadably
+/* ⭐ EVERY HOLD ON ONE LINE — Wyatt, 2026-09-11, on check 9: "I want them to scroll within the same
+   line, not go onto two lines -- ideally by bunching on top of each other, with less buffer room --
+   they can overlap a little bit, even up to 50%." Shown as a page with sliders; his settings, read
+   back off it: most overlap 35%, gap 3px. The rule, in his page's words: if the crates fit, nothing
+   changes; if they don't, they slide together evenly, the newest on top with a soft edge; never past
+   his limit; past it, the line scrolls sideways with a fade at the edge. A row is therefore always
+   one crate tall, so the box's height is set by the number of captains alone.
+   MEASURED at fit time, never assumed: the room is the hold's own width after the name and coin
+   columns have taken theirs, and the crate's size is its drawn size (22px on a phone, 26 elsewhere). */
+export const HOLD_GAP_PX=3, HOLD_MAX_OVERLAP=0.35;
+export function fitHold(el){
+  if(!el)return;
+  const chips=[...el.children].filter(c=>c.classList&&c.classList.contains("chip"));
+  el.classList.remove("holdScroll");
+  chips.forEach(c=>{c.style.marginLeft="";c.classList.remove("ov");});
+  if(chips.length<2)return;
+  const cs=chips[0].offsetWidth, room=el.clientWidth, n=chips.length;
+  if(!(cs>0&&room>0))return;                              // not laid out yet — the next fit catches it
+  if(n*cs+(n-1)*HOLD_GAP_PX<=room)return;                 // they fit: the CSS gap is the whole answer
+  const floor=cs*(1-HOLD_MAX_OVERLAP);
+  let step=(room-cs)/(n-1), scroll=false;
+  if(step<floor){step=floor;scroll=true;}
+  // the container's own 3px gap still applies between crates, so the margin takes it back out
+  const ml=(step-cs-HOLD_GAP_PX).toFixed(2)+"px";
+  chips.forEach((c,i)=>{ if(i){ c.style.marginLeft=ml; if(step<cs)c.classList.add("ov"); } });
+  el.classList.toggle("holdScroll",scroll);
+}
+export function fitHolds(){ document.querySelectorAll("#players .chips").forEach(fitHold); }
 export function refreshNameMarquees(){
   const $=id=>document.getElementById(id);
   /* ⭐ ONE COLUMN FOR EVERY NAME — his Q8 ruling, 2026-09-10: the name sits in a FIXED column so
@@ -221,6 +249,8 @@ export function refreshNameMarquees(){
     // to need the scroll — drop the class and stop animating something with nothing left to reveal.
     else if(wrap.classList.contains("marquee")){wrap.classList.remove("marquee");wrap.style.removeProperty("--scrollDist");}
   }
+  /* the name column just moved, so every hold's room moved with it — re-fit them (his one-line holds) */
+  fitHolds();
 }
 // dock.png is authored facing right (+x, East) in a slightly perspective/isometric style —
 // rotating it 180° to face West flips it upside down and puts the anchor on the wrong side,

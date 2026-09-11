@@ -3361,14 +3361,14 @@
   /* ⭐ CAPPED, AND IT SCROLLS — his Q11 ruling, 2026-09-10: "Cap it and scroll. The board does not
      give way." The cap is the height of four captains on ONE line each — a row is a crate (26px)
      plus the row's padding (5px top and bottom) and border (2px top and bottom), and each row's 4px
-     bottom margin, which a flex column counts into what it scrolls — so an ordinary table never scrolls and never takes more than it does today; only a hold
-     big enough to wrap a row onto a second line makes the list scroll, instead of taking the height
-     from the board. Written from those parts rather than as one number, so a change to the crate
+     bottom margin, which a flex column counts into what it scrolls — so an ordinary table never scrolls and never takes more than it does today.
+     (Since 2026-09-11 no hold wraps at all — see ONE LINE, ALWAYS below — so with four captains the
+     list never scrolls; the cap stays as the guard it always was.) Written from those parts rather than as one number, so a change to the crate
      size carries through. The active row is kept in view by board.js (search "STAYS IN VIEW"). */
   /* EVERY ROW IS ONE CRATE TALL, even with an empty hold — measured, an "empty hold" row was 33px
      and grew to 40 the moment its captain bought a first crate, and on a phone that 7px came out of
-     the board. With every row the same height the list is exactly its captains, and only a hold
-     that wraps can ask for more — which is what the cap below turns into scrolling. */
+     the board. With every row the same height the list is exactly its captains — and since holds
+     stopped wrapping (2026-09-11), nothing can ask for more. */
   /* ⚠ flex-shrink:0 IS LOAD-BEARING. #players is a flex column with a max-height, and an explicit
      min-height replaces the flex item's automatic "never smaller than my content" floor — so the
      first run of this squashed three wrapped rows down to 40px each, crates spilling over the row
@@ -3377,7 +3377,20 @@
   body.pp4Stage #players { --rowH1:calc(26px + 2 * 5px + 2 * 2px); --rowGap:4px;
     max-height:calc(4 * (var(--rowH1) + var(--rowGap))); overflow-y:auto; overscroll-behavior:contain; }
   body.pp4Stage .prowTop .coinsWrap { flex:0 0 auto; }
-  body.pp4Stage .prowTop .chips { flex:1 1 auto; min-width:0; display:flex; flex-wrap:wrap; gap:3px; justify-content:flex-end; }
+  /* ⭐ ONE LINE, ALWAYS — his check-9 note, 2026-09-11 ("scroll within the same line, not go onto two
+     lines -- ideally by bunching on top of each other"). fitHold() (src/ui/util.js) squeezes the
+     crates with his numbers — gap 3px, never more than 35% overlap — and past that turns on
+     .holdScroll: the line scrolls sideways, starting from the left (a right-aligned row that
+     overflows cannot be scrolled to its first crate), with a fade at the edge saying there is more. */
+  body.pp4Stage .prowTop .chips { flex:1 1 auto; min-width:0; display:flex; flex-wrap:nowrap; gap:3px; justify-content:flex-end;
+    overflow:hidden; }
+  body.pp4Stage .prowTop .chips.holdScroll { justify-content:flex-start; overflow-x:auto; overflow-y:hidden; scrollbar-width:none;
+    -webkit-mask-image:linear-gradient(90deg,#000 calc(100% - 14px),transparent); mask-image:linear-gradient(90deg,#000 calc(100% - 14px),transparent); }
+  body.pp4Stage .prowTop .chips.holdScroll::-webkit-scrollbar { display:none; }
+  body.pp4Stage .prowTop .chips .chip { flex:0 0 auto; position:relative; }
+  /* a crate that overlaps the one before it lifts off it — the soft edge from his page, so a bunch
+     still reads as crates ye can count. Later crates sit on top by document order. */
+  body.pp4Stage .prowTop .chips .chip.ov { box-shadow:-2px 0 3px rgba(40,30,10,.22); }
   body.pp4Stage .chip { width:26px; height:26px; border-radius:6px; }
   /* ⭐ YOUR RECIPE, ACROSS THE TOP OF THE BOX — his Q4 ruling, 2026-09-10. The name (tap it for the
      full recipe card, the same link the captain's log uses) and the five ingredients, each ticked

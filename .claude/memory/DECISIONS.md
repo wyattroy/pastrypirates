@@ -2377,3 +2377,22 @@ ruled on that a screenshot can show belongs in that list too, the day he rules i
 **And to the backlog:** a tiny coin flip above OTHER captains' boats when they dock, in time with the sound — *"create an artifact with 10-20 different sliders to let me tune this as i imagine -- with the landing coin, timing, animate in and animate out options."*
 
 **Standing constraint, same day:** *"don't run any heavy things now I'm going to be teaching for the next 2.5 hours."* No browsers, no sea trial, no full test run while he teaches.
+
+**Later the same day — three more rulings:**
+
+- **Crates on one line — "Implement it."** His settings, read back off the page's own store: **most
+  overlap 35%, gap 3px** (15 crates, phone, when he set them). Both preview sections marked LOOKS RIGHT.
+  Rule: full gap while they fit; slide together evenly, newest on top with a soft edge; never past 35%;
+  past that the line scrolls sideways with a fade. Added to the judge's accepted list the same turn.
+- **The plaque, simpler** — *"we don't need such a complicated design any more, if the captains box is
+  just a couple sizes, right?"* Answered from the sizing code: height is fixed by the captain count (and
+  is one value for a whole voyage); width still follows the screen (~300–420 phone, 300–540 laptop
+  column, wall-to-wall tablet). So: ONE picture fitted by the browser's picture-frame (`border-image`) —
+  corners kept, rope repeated in whole twists — with the wood drawn behind from the same picture at one
+  even scale. No nine hand-cut pieces, no separate wood tile. His art pick from round 1 is still open.
+- **The dock coin above other captains' boats — his settings from the tuner** (every section LOOKS
+  RIGHT): size 16px at 1× zoom and grows with the camera · 11px above the boat · no sideways nudge ·
+  arrives by RISING off the boat in 160ms, starting with the sound · FLIPS OVER at 6 flips/s with a 21px
+  toss, landing on the blip (795ms) · landing bounce 22% · glow 6px · holds its face 800ms · shadow 13% ·
+  leaves by FADING in 140ms. His note: *"I can't see the arrival in the artifact preview"* — the tuner's
+  resting pose showed the landed coin, so there was nothing to arrive from; fixed (a ghost at rest).
