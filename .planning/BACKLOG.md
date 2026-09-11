@@ -1332,10 +1332,19 @@ seamless from its own wood · the crate (Gemini, WITH his reference uploaded) ·
       cut out at 26/52/90px and the old green studies beside them:
       https://claude.ai/code/artifact/082a0907-8946-463d-ba18-a91fe559042b — on his word: key it, crop to
       the three sizes, make the empty silhouette the way the island holes are made, wire it in for staging.
-- [?] **His pick from round 1: one plaque, one crate — or another round.** Taste, so his. On the
-      brief page (pass/problem per picture). On his word: cut the plaque into nine parts, make the
-      board seamless from its own wood, key and crop the crate to 256, make the empty crate from it,
-      and wire both in for staging.
+- [x] ✅ 2026-09-11 — **crate 1 approved** ("Round 1 — crate 1 from Gemini [LOOKS RIGHT]"). Crate 2 is
+      dead (it drifted pink and teal). On his word next: key it, crop to 256, make the empty crate from
+      its own outline, wire both in for staging.
+- [?] **His plaque pick, A or B.** He marked plaque B [CHANGE IT] — not the art, the PREVIEW: *"These are
+      squares -- it's never square in the game. fix this artifact to actually display the plaque in the
+      real-game scenario with the current captain's box (as it's being designed with overlapping
+      ingredients)."* Done: the brief now mocks the box at its measured sizes (phone 360×186, laptop column
+      540×233, phone with two captains 360×110) with the real band, names in captain colours, coins, and
+      holds bunched by fitHold's rule; the square picture is a labelled thumbnail. Awaiting A or B.
+- [~] **The three sugar cane variants he asked for** — sugar in front · bigger crystals · one of my own.
+      Blocked on his personal Pro Google account in Chrome: the work account (wyatt@polycam.ai) renders
+      pale rather than royal purple and its downloads never land. CANNOT MEASURE: it is his browser
+      profile, not a measurement.
 
 ## ✅ ALL ANSWERED — AND THE ART BRIEF IS WRITTEN
 
