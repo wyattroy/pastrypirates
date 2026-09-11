@@ -2982,8 +2982,10 @@
      nothing is left on the element to go stale. The outgoing front card drops back and dims as the
      incoming one rises; because the two elements simply exchange their data-rcpos, the CSS above
      carries them the rest of the way. */
+  /* the front card slides to exactly where the back card sits — the same derived sliver as the
+     back card's own transform, not the 20% the peek used to be */
   body.pp4Stage #actionPanel .apBtns:has(.recipeList).rcSwapping .apBtn[data-rcpos="front"] {
-    transform:translateX(20%) scale(.965); opacity:.55; }
+    transform:translateX(calc((var(--rcPeekFrac) + 0.0175) * 100%)) scale(.965); opacity:.55; }
   body.pp4Stage #actionPanel .apBtns:has(.recipeList).rcSwapping .apBtn[data-rcpos="back"] {
     transform:translateX(-50%) scale(1) rotate(0deg); opacity:1; }
   @media (prefers-reduced-motion: reduce) {
