@@ -1,0 +1,50 @@
+{
+  "tag": "flips-after",
+  "W": 1400,
+  "H": 900,
+  "mobile": false,
+  "scenes": {
+    "flips": {
+      "dock": [
+        1501.1,
+        1550.1,
+        1499
+      ],
+      "battle": [
+        1498.6,
+        1497.6,
+        1503.3
+      ],
+      "dockShot": "/tmp/f-flips-after/flips-after-flip-dock-spinning.png",
+      "dockTap": [
+        1515.2,
+        1564.3,
+        1513.5
+      ],
+      "battleRedProof": {
+        "canAttackBefore": false,
+        "canAttackAfter": true
+      },
+      "battleShot": "/tmp/f-flips-after/flips-after-flip-battle.png",
+      "battleTap": [
+        1513.5,
+        5260.8,
+        1511.8
+      ],
+      "frames": 1840
+    }
+  },
+  "consoleErrors": [],
+  "notes": [
+    "\n=== flips-after  — booting solo ===",
+    "booted.",
+    "dock flip 1: 1501.1 ms paint->result, 1515.2 ms TAP->result",
+    "dock flip 2: 1550.1 ms paint->result, 1564.3 ms TAP->result",
+    "dock flip 3: 1499 ms paint->result, 1513.5 ms TAP->result",
+    "battle pose RED-PROOF: canAttack before=false after=true",
+    "battle flips: [1498.6, 1497.6, 1503.3] ms paint->result",
+    "frames driven across the flip window: 1840 — a flat count would mean nothing was painting and every number above would be worthless",
+    "ALL FLIPS: min=1497.6 max=1550.1 spread=52.5ms",
+    "\nwrote /tmp/f-flips-after/result-flips-after.json"
+  ]
+}

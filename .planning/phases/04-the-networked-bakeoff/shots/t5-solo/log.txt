@@ -1,0 +1,34 @@
+
+=== 390x844  — booting a solo voyage at ?ovens=1 ===
+booted; ovens should be lit for every captain on day one.
+ovens: [{"baking":true,"done":false,"human":true},{"baking":false,"done":false,"human":false},{"baking":false,"done":false,"human":false},{"baking":false,"done":false,"human":false}]
+shot 01 — the 'ovens be roarin'' intro card
+shot 02 — the bench, in the study phase
+shot 03 — the bench, answerable
+open crates: [0,1,2,3,4]
+shot 04 — every crate named
+shot 05 — the reveal, mid-run: {"present":true,"visible":true,"w":310.6,"h":312.1,"t":265.9,"opacity":1,"hitIsBko":true,"stage":false,"hint":"Opening the crates…"}
+  +2.4s  bko=VISIBLE h312.1  stage=false  narr=""
+  +3.9s  bko=VISIBLE h328.1  stage=false  narr=""
+shot 06 — just after the attempt resolved
+  +5.4s  bko=VISIBLE h328.1  stage=false  narr=""
+  +6.9s  bko=gone  stage=undefined  narr=""
+  +8.4s  bko=gone  stage=undefined  narr=""
+  +9.9s  bko=gone  stage=undefined  narr=""
+shot 07 — two beats later
+  +11.4s  bko=gone  stage=undefined  narr=""
+  +12.9s  bko=gone  stage=undefined  narr=""
+  +14.4s  bko=gone  stage=undefined  narr=""
+  +15.9s  bko=gone  stage=undefined  narr=""
+  +17.4s  bko=gone  stage=undefined  narr=""
+  +18.9s  bko=gone  stage=undefined  narr=""
+  +20.4s  bko=gone  stage=undefined  narr=""
+  +21.9s  bko=gone  stage=undefined  narr=""
+  +23.4s  bko=gone  stage=undefined  narr=""
+  +24.9s  bko=gone  stage=undefined  narr=""
+
+VERDICT: {"everGone":true,"backAfterGone":false,"stillUpAt4s":true,"stillUpAt10s":false}
+  the shell left the screen at some point: true
+  the shell CAME BACK after leaving:       false
+  still up ~4s after the attempt:          true
+  still up ~10s after the attempt:         false

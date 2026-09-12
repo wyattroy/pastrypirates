@@ -11,38 +11,64 @@ cold session — or Wyatt, months later — can carry on without re-deriving any
   [round 2](https://claude.ai/code/artifact/464b56e4-70b7-4e0a-afcc-1b7237575dc1) ·
   [round 3](https://claude.ai/code/artifact/cc2f6a16-488a-46f8-ad9e-2140fa7b917f)
 
-The audio module itself is [`4/src/ui/audio.js`](../4/src/ui/audio.js). Its own header is excellent
+The audio module itself is [`src/ui/audio.js`](../src/ui/audio.js). Its own header is excellent
 and still accurate on *architecture* — one AudioContext, one master gain, a quieter storm bus, a
 fresh source node per play so repeats layer. **This document is about what that architecture is
 currently doing wrong, and what is meant to fill it.**
 
 ---
 
-## 1. Three defects that are live right now
+## 1. Three defects — TWO OF THEM WERE FIXED AT THE CUTOVER. This section was stale for weeks.
 
-**Fix these before buying or wiring a single new sound.** None needs a new asset. Two of them make
-the game actively worse than silence.
+> **⚠ CORRECTED 2026-08-31, and the correction matters more than the defects did.**
+> DEFECT-1 and DEFECT-2 were fixed by commit `fb74eedc` (the cutover). This page went on saying
+> they were "live right now" — and on 2026-08-31 a session read that heading, believed it, and told
+> Wyatt an eight-second storm was blasting at players. **It was not.** A doc that says LIVE is a
+> claim about runtime, and rule 6 applies to a document exactly as it applies to a comment: it is
+> intent by somebody who has since left the room. **Measure before repeating it.** Verified by
+> running the map: `soundForEvent({t:"anchorHold"})` returns `{name:"fishing", bus:"master"}`.
+>
+> **DEFECT-3 (the stems were never levelled) is UNVERIFIED either way** and stays below as written.
+>
+> **What was genuinely still open, and is now closed:** nothing guarded the fix. This page said at
+> the time *"worth adding both assertions with the fix, red first"* and nobody did.
+> `scripts/audio_mapping_test.js` now asserts `anchorHold` plays `fishing`, that `fishing` is
+> reachable at all, and — reading the SOURCE, because a finished object cannot show it — that
+> `EVENT_SOUND` declares no key twice.
+>
+> **And the suite that would have caught it has been DEAD SINCE 2026-08-28.** It imported
+> `SHOTCLOCK_SOUND_PLACEHOLDER`, which left with the shot clock, so the whole file crashed on load
+> — unnoticed because it lives in `test:v1`, parked by the cutover. **Every audio assertion in this
+> project has been unrun for weeks while `npm test` reported green about other things.** Repaired;
+> it runs again, and it immediately reported three real failures (below).
 
 ### DEFECT-1 — `fishing.mp3` can never play. One of six sounds is dead.
 
-`EVENT_SOUND` in `4/src/ui/audio.js` lists **`anchorHold` twice**. In a JavaScript object literal
+`EVENT_SOUND` in `src/ui/audio.js` lists **`anchorHold` twice**. In a JavaScript object literal
 the last one wins, so the intended `anchorHold: "fishing"` is silently overwritten by a later
 `anchorHold: "storm"`. The only other two events mapped to `fishing` — `fish` and `anchor` — are
 **not emitted anywhere in `4/src`** under the v2 rules.
 
-The engine states the intent in writing, at `4/src/engine/index.js:463`: *"the audio cues
+The engine states the intent in writing, at `src/engine/index.js:463`: *"the audio cues
 (windmove/blownOut -> ship-move, anchorHold -> fishing)"*. **The comment and the behaviour
 disagree.** Every game downloads and decodes a 55 KB file that nothing can trigger.
 
 Introduced in `0d3a71c` (the v2 ruleset), copied verbatim into `/3` and `/4`.
 
-**Fix: delete the second `anchorHold` line.** That is the whole change.
+~~**Fix: delete the second `anchorHold` line.** That is the whole change.~~
+**ALREADY DONE — see the correction box above.** There is no second line; `src/ui/audio.js:105` is
+the only `anchorHold` key left in the object literal. Left struck through rather than deleted,
+because this exact sentence read further down than the correction box is what put "delete the
+`anchorHold` line" back on the Helm as a live question on 2026-08-31 and got it ruled on a second
+time — the box at the top of this section was read; this one was not.
 
-**And `npm test` passes.** `scripts/audio_mapping_test.js` is a real, thorough suite — it asserts
+~~**And `npm test` passes.** `scripts/audio_mapping_test.js` is a real, thorough suite — it asserts
 the storm-cue pairing, the placeholders, the bus volumes — but it **never mentions `anchorHold` or
 `fishing` at all**, and nothing anywhere checks the literal for duplicate keys. So the green tick
 is not evidence: this check cannot fail on this defect. Worth adding both assertions with the fix,
-red first.
+red first.~~
+**DONE.** `scripts/audio_mapping_test.js` now asserts `anchorHold` plays `fishing`, that `fishing`
+is reachable at all, and that `EVENT_SOUND` declares no key twice — all four PASS.
 
 ### DEFECT-2 — Anchoring in a storm dumps 8 seconds of weather at full volume, once per ship
 
@@ -56,7 +82,27 @@ It fires once per ship: `noteStormOutcome()` is called per player. Three captain
 storm stacks three 8-second storms, on top of the storm cue that already played — and `fadeStorm()`
 cannot retire any of them, because `stormNode` is only set on the `newround` path.
 
-**Fix: the same single line.** This defect exists only because of DEFECT-1.
+~~**Fix: the same single line.**~~ **ALREADY FIXED, same commit as DEFECT-1** (`fb74eedc`) —
+this defect existed only because of DEFECT-1. `noteStormOutcome()` now plays `fishing`, not
+`storm`, so nothing lands on the master bus at full volume any more.
+
+### THREE ASSERTIONS THAT FAIL THE MOMENT THE SUITE RUNS AGAIN (2026-08-31, undiagnosed)
+
+Repairing the crash made these visible for the first time since the cutover. **They are recorded,
+not fixed, and NOT put into `npm test` while red — a red gate in the chain is a broken build, and
+quietly editing the numbers to make them pass is the thing the numbers exist to prevent.**
+
+```
+EVENT_NARRATION has exactly 25 keys (the shared inventory size)   got=9  want=25
+EVENT_SOUND has exactly 25 keys (matches EVENT_NARRATION)         got=33 want=25
+EVENT_SOUND invents no key of its own (every key also in EVENT_NARRATION)   got=false
+```
+
+Two readings, and nobody has separated them: either the sound map has drifted away from the
+narration map and some sounds are now unreachable — the same shape as DEFECT-1 — or the coupling
+was abandoned deliberately when v2 rewrote the event set, and these are **hand-typed counts that
+the game outgrew** (CLAUDE.md §5: *never hand-type a number that can be counted*). The 9-versus-25
+gap on the narration side suggests the second, but suggests is not measured.
 
 ### DEFECT-3 — The six stems were never levelled against each other
 
@@ -77,8 +123,11 @@ two extremes sit in the worst possible places:
 
 - `battle-swords` (loudest, **and distorted in the file itself**) is `SHOTCLOCK_SOUND_PLACEHOLDER` —
   it plays **when you run out of time**.
-- `store-ingredient` (quietest file in the game) is `WIN_SOUND_PLACEHOLDER` — it is the **victory**
-  sound.
+- ~~`store-ingredient` (quietest file in the game) is `WIN_SOUND_PLACEHOLDER` — it is the
+  **victory** sound.~~ **FIXED 2026-09-06 (T-073):** the victory sound is now `battle-won`
+  (Luis's `PP_SFX_BattleWon.mp3`), and the constant is `WIN_SOUND` — it stopped being a
+  placeholder, so it stopped carrying the word. `store-ingredient` still plays a crate being
+  loaded, which is what it is for.
 
 Turning `battle-swords` down fixes the balance but **not** the clipping, which is baked into the
 file. That one needs a fresh export regardless.
@@ -92,9 +141,114 @@ through — give them explicit entries either way.
 
 ---
 
+## 1b. THE AMBIENCE BED IS WIRED — 2026-09-07, with his own numbers
+
+**It plays.** Luis's ocean loop with his gulls and creaks scattered over it, running for as long as
+the board is on screen. Twelve clips, `sfx/ocean-loop.mp3` + `gull-1..5` + `creak-1..6`, 917 KB.
+
+**The numbers are Wyatt's, dialled by hand and not to be improved on.** He tuned them in the
+**Sea Bed Tuner** — https://claude.ai/code/artifact/4623cd73-2340-4611-832f-522ebbf33442 — and
+pasted the block out with *"THIS IS AWESOME BUILD IT NOW"*.
+
+| | his setting | as a gain |
+|---|---|---|
+| Sea level | −4.5 dB | `AMBIENCE_SEA` 0.596 |
+| Gull level | −15.5 dB | `AMBIENCE_GULL` 0.168 |
+| Creak level | +1.0 dB | `AMBIENCE_CREAK` 1.122 |
+| Gull rate | every 10s (mean) | `AMBIENCE_GULL_MEAN_SEC` |
+| Creak rate | every 13s (mean) | `AMBIENCE_CREAK_MEAN_SEC` |
+| Stereo spread | 70% | `AMBIENCE_SPREAD` 0.7 |
+| Liveliness | 35% | `AMBIENCE_LIVELINESS` 0.35 |
+
+`scripts/qa/ambience_one_seam_check.mjs` fails the build if any of them drifts.
+
+### The four things that are load-bearing, and why
+
+1. **⛔ NOT IN `SFX_FILES`, and it must never go in.** §3 below predicted this exact failure before
+   the files existed: `initAudio()` awaits `Promise.all` over that array, so a 917 KB bed in it
+   would silence the coin flip, the cannon and the your-turn bell until the whole sea downloaded —
+   worst on the phone least able to afford it. `initAmbience()` is a separate path that fades in
+   whenever it arrives. **The gate fails if a clip ever appears in both arrays.**
+2. **ONE SEAM: the screen, never the tier.** `showGameView()` starts it; `showHome()` and
+   `showRoom()` stop it — the three functions in `src/ui/lobby.js` whose own header says *"every
+   route to these screens goes through them and a route added later cannot forget."* Solo,
+   pass-and-play, host, guest and the reload-resume path therefore cannot drift apart. This is
+   §3's drumroll ruling (*"DO NOT ARCHITECT DRIFTABLE CODE OR I WILL FIRE YOU"*) applied in
+   advance; the gate fails if a second seam appears anywhere under `src/`.
+3. **One creak slider works across six creaks** because `AMBIENCE_TRIM` is COMPUTED from measured
+   loudness, not typed. The six arrive 8.3 dB apart; creak 6 takes a ×2.03 boost or it is
+   inaudible at any setting. A re-export from Luis changes one number in `AMBIENCE_LUFS`.
+4. **Mute STOPS the bed**, it does not merely silence it. `play()`'s own mute guard cannot help a
+   source started minutes ago and still looping, and a silent-but-running bed would hold Safari's
+   tab audio indicator lit for the whole voyage — which is the complaint that produced his
+   *"make mute skip the sound entirely"* ruling in the first place. `setMuted()` calls the one
+   reconciler, `syncAmbience()`.
+
+### Measured in a live solo voyage, not asserted
+
+Red-proofed first: **with the bed stopped, zero buffer sources start**, so the green below counts.
+
+- the sea starts as **one looping source of 16.71s** — the file's own measured length
+- **five scattered clips** fired across 25s, each at a **different playback rate** (the liveliness
+  jitter is real, not a constant)
+- **10/10 game sounds still decoded** and `audioDiagnosis()` returned `ok` — the separate load path
+  does what it claims
+- **12 seconds muted: zero sources started**, and the sea restarted on unmute
+
+*(Counts, not rates — the measuring tab was hidden, and §8b of `DRIVING-THE-GAME.md` forbids
+quoting a duration measured there.)*
+
+### The music, and the three-way switch that gates it — both built 2026-09-07
+
+**The song is "Out on the Ocean" by Fiddlers Plus**, credited on the Credits page at his
+instruction (*"we need to add Fiddlers Plus, and Muster Field Farms to the credits for the
+music"*). `sfx/music-ocean.mp3`, 34.5s, mono, 540 KB, at his `MUSIC_LEVEL` 0.141 (−17 dB) and
+`MUSIC_PAN` −0.7 (70% to port). Mono is not a defect to fix — a mono source is exactly what pans
+cleanly, and the pan moves all of it.
+
+**IT DOES NOT LOOP.** Wyatt: *"the song shouldn't immediately restart after it finishes— it should
+wait a minute."* So the track runs to its end, `onended` fires, and `MUSIC_GAP_SEC` brings it back.
+A `loop = true` would make that constant dead code, which is what the gate checks for.
+
+⚠ **THE GAP IS 180 SECONDS — THREE MINUTES — AND THIS PARAGRAPH SAID 60 FOR TWO DAYS.** He asked for
+it longer on 2026-09-08 and the constant moved; this page did not, and a CEO review caught it. That
+matters more here than in most docs: CLAUDE.md sends the next session to read `docs/AUDIO.md`
+**first** before touching sound, so a stale number here is not a stale note, it is a briefing that
+is wrong. **Read `MUSIC_GAP_SEC` in `src/ui/audio.js` rather than trusting this sentence** — and if
+you change it, change this line in the same commit.
+
+*(History, so nobody restores an older value believing it is live: 2026-09-06 recorded a 2-minute
+gap · 2026-09-07 ruled 1 minute · 2026-09-08 ruled 3. Each supersedes the one above it.)*
+
+**THE SOUND CONTROL IS A THREE-WAY CYCLE:** sound+music → sound → mute → sound+music. `isMuted()`
+still means exactly what it always meant, so not one of its callers changed; what is new is that
+"sound is on" now has two answers and only the music separates them. The row names all three from
+`data-audio` — panel.js's own rule, *"ONE ATTRIBUTE CARRIES THE WHOLE TRUTH, so the menu row and
+the icon cannot disagree"* — and `aria-pressed` was **removed** from that button, because it is a
+binary and would announce "on" or "off" for a state that is neither.
+
+`pp_soundMode` is the new key; a player who muted the game on an older build is migrated on first
+read, and `pp_muted` is kept in step so a rollback does not lose their choice.
+
+**Measured live, three taps from `full`:** tap 1 → `sfx` and nothing restarts (the sea keeps
+running, the song stops); tap 2 → `mute`, silence; tap 3 → `full`, and both return — one **looping**
+16.71s source and one **non-looping** 34.47s source. Three taps land back where they started.
+
+### Still open
+
+- **The music is a cut of the full master, not his own "short 1" edit.** That edit is on Drive and
+  could not be fetched (the Chrome extension was not connected; the Drive connector returns base64
+  into the session rather than to disk). **His level and pan were judged against this exact audio**
+  in the tuner, so the numbers mean what he heard. Swapping his edit in later is one file, no code.
+- **The bed does not duck** under a cannon or a drumroll, and the music does not duck under either.
+  Nobody has asked; noted so the next session knows it is absent by omission, not by decision.
+- **His pan is a strong one** (70% to port on a mono track). Worth a headphone check.
+
+---
+
 ## 2. The audio contradicts the script
 
-The battles are written entirely as gunpowder. Counted across `4/src` and `4/index.html`:
+The battles are written entirely as gunpowder. Counted across `4/src` and `index.html`:
 
 | Word | Occurrences |
 |---|---|
@@ -114,16 +268,31 @@ is the `clash` slot still open in §4.
 
 ## 3. Two things to get right before music is added
 
-### The narration already asks for a drumroll, and nothing plays
+### ~~The narration already asks for a drumroll, and nothing plays~~ — IT PLAYS NOW (T-073, 2026-09-06)
 
-`4/src/orchestrator.js:1078` is literally `await flash("Drumroll...")`. The board pulls back for a
+`src/orchestrator.js:1078` is literally `await flash("Drumroll...")`. The board pulls back for a
 last look, the blue box types the word, holds, fades, and the gold banner reveals the winner. The
-whole moment is built, staged and timed. **It is simply mute.**
+whole moment is built, staged and timed. ~~**It is simply mute.**~~ **NO LONGER — `playDrumroll()` fires on both end-of-voyage twins**
+(`applyEndMeta` for the guest, `liveResolveEndNet` for the host). The line moved from
+`src/orchestrator.js:1078` to `:1439`; cite it by name, not by number.
 
-**The window is exact, not estimated.** `4/src/ui/stage.js:578` holds every narration line for
+⛔ **BUT THE TIMING HALF OF HIS RULING IS NOT DELIVERED, AND THE NUMBER BELOW IS STALE.** Wyatt
+asked (2026-09-06) to *"match the narration box timing to the sfx file"*. **Measured: the file runs
+3148 ms and the box holds 1130 ms** — so the roll is still cut short by the winner reveal, equally
+on both screens. A first attempt passed the file's duration as `flash()`'s `holdMs` and was REVERTED
+the same day: that argument never crosses the wire (`sendNarr` forwards only `opts.wait`), so it
+held the HOST's box for 3148 ms and every guest's for 1130 — a split table, which is worse than a
+clipped roll. Doing it properly means the shared narration renderer knowing a line carries a sound,
+so both sides derive the same hold from the same file.
+
+~~**The window is exact, not estimated.** `src/ui/stage.js:578` holds every narration line for
 `Math.max(2550, Math.min(6750, msgHoldMs(msg) * 1.5))`, and `"Drumroll..."` is short enough to take
-that floor — so the roll is **2.55 seconds** and its final hit lands as the box fades into the
-reveal.
+that floor — so the roll is **2.55 seconds**.~~
+⚠ **THAT FLOOR NO LONGER EXISTS AND THIS PARAGRAPH MISLED A SESSION IN 2026-09.** D-34 replaced the
+whole model with reading speed (`narrationHoldMs`, `src/ui/util.js`) and, in stage.js's own words,
+*"the elegant version of that change DELETES the floor rather than lowering it"*. **Measured
+2026-09-06: the box holds "Drumroll..." for 1130 ms, and the file is 3148 ms** — so the roll is
+nearly three times the window, not sized to fit it.
 
 ### `initAudio()` blocks every sound on every file
 
@@ -176,10 +345,13 @@ cowbells, bell trees and waiters' bells — none is a bell hung in a rolling sea
 1. **Does "your turn" break the hear-the-whole-table rule?** `audio.js` D-07 says every captain is
    audible to everyone. A your-turn cue only works if it plays for the reader alone. He has not
    ruled.
-2. **Three-state cycle instead of two switches?** He asked whether a single control could cycle
-   *everything → effects only → mute*. My recommendation was **yes** — the states form a ladder
-   rather than a grid, it adds no new control to a screen where placing the mute button already
-   cost several rounds, and it needs one new icon instead of a new surface. He has not ruled.
+2. ~~**Three-state cycle instead of two switches?**~~ **RULED AND BUILT, 2026-09-07.** His words:
+   *"Make sure The audio/mute switch is 3-way— sound+music, sound, mute— repeat again from
+   sound+music."* The cycle it is, and **the order is part of the ruling**. `SOUND_MODES` owns it;
+   the row names all three states from `data-audio`; `scripts/qa/ambience_one_seam_check.mjs` holds
+   the order, the wrap and the three labels. **No new icon was needed after all** — the two
+   megaphones still carry on/off and the row's words carry the middle position, so the screen where
+   placing the mute button cost several rounds gained nothing new to place.
 3. **Where a second audio control would live**, if he takes the two-switch route.
 
 ---
@@ -231,6 +403,8 @@ sound. The **true** measured loudness is what `SFX_VOLUME` needs (§1, DEFECT-3)
 ### Reproducing the hunt
 
 ```bash
+# `python3` is the Mac / Linux spelling; on Windows the interpreter registers only as `python`
+# (scripts/lib/chrome.mjs:110 resolves both, and records what the wrong spelling cost).
 cd .planning/research/audio-sourcing
 python3 crawl.py libs > sonniss-libs.txt          # 1,816 Sonniss libraries
 python3 crawl.py files < targets.txt              # file lists for chosen libraries

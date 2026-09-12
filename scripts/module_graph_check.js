@@ -42,15 +42,30 @@
 // assertion below tolerates an empty/missing tier directory by construction (an empty file list
 // trivially satisfies "zero forbidden edges").
 //
-// No flags. Exits 0 on pass and prints one PASS line per assertion; exits 1 on any failure and
-// prints a named reason (file, line, specifier) per failure.
+// Exits 0 on pass and prints one PASS line per assertion; exits 1 on any failure and prints a
+// named reason (file, line, specifier) per failure.
+//
+// ============================================================================
+// THE TREE THIS GATE SCANS — read before trusting a green run (Phase 3 / TEST-04, THE TRACER)
+// ============================================================================
+// Until 2026-08-23 this file scanned ONLY the repo root's src/ — the v1 game, which has had no
+// code commit since 2026-08-02 and which nobody is developing. `4/` is the game being built.
+// *A gate aimed at the wrong tree is not silent, it is reassuring* (docs/HARD-WON-LESSONS.md §3),
+// and this one had been reassuring for a month.
+//
+//   node scripts/module_graph_check.js            the root tree — UNCHANGED, still in npm test
+//   node scripts/module_graph_check.js --tree=4   4/, the game actually being developed
+//
+// Both aims run in `npm test`. The selector is scripts/lib/pick_tree.js — one spelling of "which
+// tree", shared, never copied. The first line of output always names the tree AND the number of
+// files it read: a count is falsifiable, a bare "OK" is not.
 
 import fs from "node:fs";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
+import { pickTree, treeLine, REPO_ROOT } from "./lib/pick_tree.js";
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const ROOT = path.join(__dirname, "..");
+const picked = pickTree(process.argv);
+const ROOT = picked.root;
 const SRC_DIR = path.join(ROOT, "src");
 
 const failures = [];
@@ -86,7 +101,14 @@ function tierOf(file) {
 // Matches against the WHOLE file content, not line-by-line — src/net/index.js wraps a single
 // import statement's name list across multiple physical lines, and a per-line regex would
 // silently miss those specifiers.
-const IMPORT_RE = /(?:from\s+|import\()\s*["']([^"']+)["']/g;
+/* THE THIRD SPELLING, added 2026-08-31 after red-proofing found it. `import "./x.js";` — a bare
+   side-effect import with no binding — was INVISIBLE here, so it bypassed every tier rule silently:
+   src/shared/ could import src/ui/, src/engine/ could import src/ui/, and this gate stayed green.
+   Found by planting each of the four-layer plan's three layering violations and watching NONE of
+   them fail; the plant used the bare spelling, and the gate could not see it. Nothing in src/ uses
+   that spelling today, which is exactly why it was worth closing now rather than after something
+   did. `import\s+["']` cannot swallow `import {a} from "b"` — the brace blocks it. */
+const IMPORT_RE = /(?:from\s+|import\(|import\s+)\s*["']([^"']+)["']/g;
 
 function importsOf(file) {
   const content = fs.readFileSync(file, "utf8");
@@ -125,7 +147,7 @@ function checkNoCycles() {
       const c = color.get(resolved);
       if (c === GRAY) {
         const cycleStart = stack.indexOf(resolved);
-        const cyclePath = [...stack.slice(cycleStart), resolved].map((f) => path.relative(ROOT, f));
+        const cyclePath = [...stack.slice(cycleStart), resolved].map((f) => path.relative(REPO_ROOT, f));
         failures.push(`CYCLE: ${cyclePath.join(" -> ")}`);
         ok = false;
       } else if (c === WHITE) {
@@ -150,7 +172,7 @@ function checkTierShape(tierName, allowedTargetTiers, label) {
   let ok = true;
   const filesInTier = allSrcJsFiles.filter((f) => tierOf(f) === tierName);
   for (const file of filesInTier) {
-    const rel = path.relative(ROOT, file);
+    const rel = path.relative(REPO_ROOT, file);
     for (const { spec, resolved, line } of graph.get(file) || []) {
       if (!resolved.startsWith(SRC_DIR + path.sep) && resolved !== SRC_DIR) continue; // outside src/, ignore
       const targetTier = tierOf(resolved);
@@ -168,6 +190,15 @@ function checkTierShape(tierName, allowedTargetTiers, label) {
 
 /* ================= Runner ================= */
 function main() {
+  // THE TREE, AND THE COUNT, BEFORE ANY VERDICT. A green run over an empty tree is the shape of
+  // check this project has shipped before (HARD-WON-LESSONS §3) — printing the file count makes
+  // that impossible to miss, and makes "0 files" read as the alarm it is rather than as a pass.
+  console.log(`${treeLine(picked, `${allSrcJsFiles.length} .js file(s) under src/`)}`);
+  if (allSrcJsFiles.length === 0) {
+    console.error(`FAIL: no .js files found under ${SRC_DIR} — this gate scanned NOTHING. A green verdict here would be meaningless.`);
+    process.exit(1);
+  }
+
   const cyclesOk = checkNoCycles();
   console.log(`${cyclesOk ? "PASS" : "FAIL"} no import cycle detected among src/**/*.js`);
 
@@ -189,7 +220,7 @@ function main() {
   const uiFiles = allSrcJsFiles.filter((f) => tierOf(f) === "ui");
   let uiNoNetOk = true;
   for (const file of uiFiles) {
-    const rel = path.relative(ROOT, file);
+    const rel = path.relative(REPO_ROOT, file);
     for (const { spec, resolved, line } of graph.get(file) || []) {
       if (tierOf(resolved) === "net") {
         uiNoNetOk = false;

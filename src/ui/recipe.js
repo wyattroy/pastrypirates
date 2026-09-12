@@ -8,9 +8,13 @@
 // most safety-critical directional rule this whole phase exists to enforce. UI code may call
 // into net-published functions only through handler injection from main (the existing net->UI
 // seam Phase 9 established stays in that direction), never via a direct import here.
-// scripts/module_graph_check.js and scripts/ui_contract_check.js both gate this mechanically.
+// scripts/module_graph_check.js and scripts/ui_contract_check.js both gate this mechanically.  [UNGATED-IN-4: ui_contract_check.js does not read 4/ — 03-UI-CONTRACT-TRIAGE.md, plan 03-02]
 
-import { ASSET_BASE, ING_NAME, ING_PLAIN, iname, ingImg } from "../shared/index.js";
+/* ING_PLAIN is gone from this import, which is r31 landing: the plain-baker gloss ("sugar",
+   "butter & milk", "flour") existed to translate the card's ingredient NAMES, and the card no
+   longer prints names. The constant itself stays exported from shared/index.js — it is one small
+   table and something else may yet want it — but nothing reads it today. */
+import { ASSET_BASE, ING_NAME, iname, ingImg } from "../shared/index.js";
 import { appState } from "../state/index.js";
 
 // `$` is a classic-script-local `const $=id=>document.getElementById(id)` (index.html:863),
@@ -29,7 +33,7 @@ export function escHtml(s){return String(s==null?"":s).replace(/[&<>"]/g,c=>({"&
 // notes/pastry_pirates_recipes.md — shown in the in-game recipe modal (see openRecipeModal).
 // Ingredient list entries prefixed "## " render as a sub-header (for recipes with parts, e.g.
 // a base + filling) instead of a bullet.
-// exported (rather than kept module-private, as it was before FIX-08) so scripts/narration_test.js
+// exported (rather than kept module-private, as it was before FIX-08) so scripts/narration_test.js  [UNGATED-IN-4: narration_test.js reads the root tree, not this one]
 // can enumerate every entry's {ings,title,article} and match its assertions by title text, never
 // by array index — the same discipline recipeInfo()'s ings-based lookup already keys on.
 export const RECIPE_BOOK=[
@@ -313,8 +317,17 @@ const PASTRY_FILES=["01-spiced-cocoa-shortbread","02-molten-chocolate-lava-cake"
   "12-dark-chocolate-cream-puffs","13-pound-cake","14-french-pots-de-creme","15-chocolate-genoise-sponge-cake",
   "16-cinnamon-dutch-baby","17-mexican-chocolate-pots","18-cocoa-cloud-souffle","19-vanilla-bean-creme-brulee",
   "20-cinnamon-sponge-cake","21-chocolate-fudge-torte"];
+/* WEBP, NOT PNG — his ruling, INBOX-20260902T0048Z, question UI: "Do it", with /classic sharing
+   the converted files. CONVERT, NEVER RESIZE: `.planning/ASSET-DISPLAY-SIZES.md` measured all 21
+   at the recipe modal and every one is UNDER-resolution on a phone (512px shipped into a slot
+   wanting 692-879 DEVICE pixels), so taking pixels off would visibly soften art he commissioned.
+   The pixels are untouched at 512; only the encoding changed, and the family went 1.71 MB -> 1.18
+   MB. That weight is on the BOOT path, not the modal, since preloadAssets() started warming
+   RECIPE_BOOK's images (src/ui/util.js) -- which is what made half a megabyte worth taking.
+   `scripts/qa/recipe_art_exists_check.mjs` evaluates THIS line against the files on disk, in this
+   tree and classic's, so the extension cannot drift away from the art again. */
 export function attachPastryArt(){
-  RECIPE_BOOK.forEach((r,i)=>r.img=`${ASSET_BASE}pastries/${PASTRY_FILES[i]}.png`);
+  RECIPE_BOOK.forEach((r,i)=>r.img=`${ASSET_BASE}pastries/${PASTRY_FILES[i]}.webp`);
 }
 const RECIPE_LOOKUP={};
 for(const r of RECIPE_BOOK)RECIPE_LOOKUP[r.ings.slice().sort().join("|")]=r;
@@ -342,34 +355,95 @@ export function winRecipeSpan(idx){
   if(!p||!p.recipe)return "";
   return `<span class="narrRecipeLink" data-idx="${idx}">📜 ${escHtml(recipeTitle(p.recipe))}</span>`;
 }
+/* R2, his ruling 18: "picture, name, ingredient icons. NOTHING ELSE."
+   It came with the bluntest note on the whole list — "Your recipe cards look terrible. I'm sorry."
+   — about the three-way merge he had picked, so the answer is subtraction rather than a redesign.
+   GONE: the ten ingredient NAMES, and the plain-baker gloss under each one (ING_PLAIN, his r31 —
+   "once the card shows pictures instead of names, the translation has nobody left to serve"). The
+   description was already display:none on the stage; it goes here too, so the markup and the
+   screen agree instead of one hiding the other.
+   His reason for all of it, and it governs this whole moment: "The recipe choice moment has a lot
+   of text in it already, and it's pretty overwhelming -- even as is. Adding more text is not the
+   solution to this."
+
+   `data-ing` CARRIES THE INGREDIENT ID, and that is not decoration. The dock chart used to recover
+   these ids by reverse-matching each DISPLAYED NAME against ING_NAME — a second copy of the
+   mapping, resolved through a dynamic import, and the race in that promise is exactly what once
+   left orange rings on the water two days into a crew game. Carrying the id is the same discipline
+   the sail squares already use with data-gx/data-gy: carry the fact, never re-derive it.
+
+   `recipeList` IS KEPT AS THE CLASS even though it is no longer a list. It is a HOOK, not a
+   description: three separate selectors in stage.js find the picker by it, and renaming it here to
+   read nicely would silently unhook all three. */
 export function recipeCardHTML(recipe){
   const info=recipeInfo(recipe);
-  const items=recipe.map(i=>`<li><span class="ri">${ingImg(i)}</span><span class="rn">${iname(i)}</span><span class="rc">${ING_PLAIN[i]||""}</span></li>`).join("");
-  const desc=info?`<div class="recipeDesc">${info.desc}</div>`:"";
+  const items=recipe.map(i=>`<span class="ri" data-ing="${i}">${ingImg(i)}</span>`).join("");
   const thumb=info&&info.img?`<img class="recipeThumb" src="${info.img}" alt="">`:"";
-  return thumb+`<div class="recipeTitle">${recipeTitle(recipe)}</div>`+desc+
-    `<ul class="recipeList">${items}</ul>`;
+  // the name is wrapped so it can share one grid cell with its partner's (see data-ghost, stage.js)
+  return thumb+`<div class="recipeTitle"><span class="rtName">${recipeTitle(recipe)}</span></div>`+
+    `<div class="recipeList recipeIcons">${items}</div>`;
 }
 // ---- recipe modal: click a player's recipe name (in the captain's row, once one is chosen) to
 // view the full bakeable recipe, print it, or email it. NOT wired onto the initial draft-pick
 // cards (recipeCardHTML above) — there, the whole card is already the click-to-select control,
 // and nesting a second click target inside it would fight that selection click.
+/* D-35 — OPTION C, WITH HIS TWO CHANGES (Wyatt, 2026-08-21, after seeing the real art).
+   *"yes, build C with two changes: 1. increase the padding around the bottom of the image (It's too
+   cramped against the italicised description). 2. fix the strangely cut-off lighter gradient at the
+   top of the images, so that the gradient extends all the way to the line separating the title and
+   doesn't create the messy-looking edge."*
+
+   WHAT OPTION C IS, and it is the mechanism rather than the sketch file: the two round print and
+   email icons are pinned into the TITLE ROW, and that row is `position:sticky` inside the scrolling
+   body — it scrolls away with the title at first, then locks to the top and stays there. That is
+   how it satisfies his ORIGINAL item-9 constraint (the Download PDF and Email buttons must clearly
+   sit ABOVE the scrolling recipe) without spending a whole row on them. The card's own gradient
+   reaching the box edges and DARKENING, not lightening, is the other half of that same constraint
+   and is why this modal is no longer parchment — see 4/index.html's § recipeModal.
+
+   THE ORDER FLIPPED, AND THAT IS THE PRECONDITION FOR HIS CHANGE 2. The image used to be drawn
+   ABOVE the title. His words put the gradient at the top of the IMAGE and the separator ABOVE it,
+   so the gradient reaches UPWARD to meet the title's own rule. That is only possible with the title
+   first, which is also what option C shows.
+
+   THE SEPARATOR MOVED FROM THE h2 TO THE ROW THAT NOW CONTAINS IT, and this is stated because it
+   changes what a measurement must read. The rule under the title has never been its own element —
+   it was the h2's `border-bottom: 3px double #b48a52`. With the two icons now sharing that line,
+   the double rule belongs to the row, not to the text inside it. It is the SAME 3px double rule in
+   the same colour (rule 8: the double rule is this card's signature), and "the line separating the
+   title" is now the row's border-box bottom edge.
+
+   RULE 8 SWEEP, and the honest answer is that the two builders do NOT share a component. Checked
+   rather than assumed: recipeCardHTML() immediately above draws the small draft-picker card from a
+   completely separate class family (.recipeThumb / .recipeTitle / .recipeDesc, styled at
+   4/index.html § recipeCard) and its description is hidden outright on the stage. So it has no
+   gradient to cut off and no visible description to be cramped against — neither of D-35's two
+   changes has anything to apply to there, and it is deliberately untouched. */
 export function recipeModalHTML(recipe){
   const info=recipeInfo(recipe);
   const title=recipeTitle(recipe);
-  const thumb=info&&info.img?`<img class="recipeModalThumb" src="${info.img}" alt="">`:"";
-  if(!info||!info.real)return thumb+`<h2>${escHtml(title)}</h2><div class="recipeModalDesc">${info?escHtml(info.desc):""}</div>`;
+  // The two icons are rebuilt with the card every time it opens, so they are wired by DELEGATION
+  // in wireRecipeModal() below rather than by a one-shot onclick at boot — an id handler attached
+  // once would be attached to a button that no longer exists the second time the modal is opened.
+  const head=`<div class="recipeModalTitleRow"><h2>${escHtml(title)}</h2>`+
+    `<button class="recipeIconBtn" data-recipeact="pdf" type="button" title="Download PDF" aria-label="Download PDF">🖨️</button>`+
+    `<button class="recipeIconBtn" data-recipeact="email" type="button" title="Email to myself" aria-label="Email to myself">✉️</button>`+
+    `</div>`;
+  const thumb=info&&info.img
+    ?`<div class="recipeModalThumbWrap"><img class="recipeModalThumb" src="${info.img}" alt=""></div>`:"";
+  if(!info||!info.real)
+    return head+`<div class="recipeModalIn">${thumb}<div class="recipeModalDesc">${info?escHtml(info.desc):""}</div></div>`;
   const r=info.real;
   const ingredientsHTML=r.ingredients.map(line=>line.startsWith("## ")
     ?`</ul><div class="recipeModalSub">${escHtml(line.slice(3))}</div><ul>`
     :`<li>${escHtml(line)}</li>`).join("");
   const stepsHTML=r.steps.map(s=>`<li>${escHtml(s)}</li>`).join("");
-  return thumb+`<h2>${escHtml(title)}</h2>`+
+  return head+`<div class="recipeModalIn">`+thumb+
     `<div class="recipeModalDesc">${escHtml(info.desc)}</div>`+
     `<div class="recipeModalYield">Yield: ${escHtml(r.yield)}</div>`+
     `<ul>${ingredientsHTML}</ul>`+
     `<div class="recipeModalYield">Steps</div>`+
-    `<ol>${stepsHTML}</ol>`;
+    `<ol>${stepsHTML}</ol></div>`;
 }
 let recipeModalCurrent=null; // {title,plain} for the open modal — read by the print/email buttons
 export function openRecipeModal(recipe){
@@ -400,11 +474,18 @@ export function wireRecipeModal(){
     const p=appState.game&&appState.game.players&&appState.game.players[idx];
     if(p&&p.recipe)openRecipeModal(p.recipe);
   });
-  $("btnRecipePdf").onclick=()=>{window.print();};
-  $("btnRecipeEmail").onclick=()=>{
-    if(!recipeModalCurrent)return;
-    const subject=encodeURIComponent(`Pastry Pirates recipe: ${recipeModalCurrent.title}`);
-    const body=encodeURIComponent(recipeModalCurrent.plain);
-    window.location.href=`mailto:?subject=${subject}&body=${body}`;
-  };
+  // D-35/option C: the print and email controls now live INSIDE the card's sticky title row, which
+  // recipeModalHTML() rebuilds on every open. So they are reached by delegation off the body rather
+  // than by two onclick handlers bound once at boot to ids that get replaced.
+  $("recipeModalBody").addEventListener("click",e=>{
+    const b=e.target.closest(".recipeIconBtn");
+    if(!b)return;
+    if(b.dataset.recipeact==="pdf"){window.print();return;}
+    if(b.dataset.recipeact==="email"){
+      if(!recipeModalCurrent)return;
+      const subject=encodeURIComponent(`Pastry Pirates recipe: ${recipeModalCurrent.title}`);
+      const body=encodeURIComponent(recipeModalCurrent.plain);
+      window.location.href=`mailto:?subject=${subject}&body=${body}`;
+    }
+  });
 }

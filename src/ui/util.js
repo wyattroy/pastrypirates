@@ -8,7 +8,7 @@
 // the bridge's global-object spread until Phase 11 (11-07) deleted it).
 //
 // Purity bar for src/ui/: reads DOM and game state, NEVER imports src/net/ (D-07).
-// scripts/module_graph_check.js and scripts/ui_contract_check.js both gate this mechanically.
+// scripts/module_graph_check.js and scripts/ui_contract_check.js both gate this mechanically.  [UNGATED-IN-4: ui_contract_check.js does not read 4/ — 03-UI-CONTRACT-TRIAGE.md, plan 03-02]
 //
 // Deviation (mirrors 11-01's RECIPE_BOOK/$ finding): a handful of these functions read `cell`
 // (the board's current px-per-grid-cell) or `shipEls` (the array of ship <g> elements) — both
@@ -20,7 +20,8 @@
 // move here too. Fix: `islandArtPlacement`, `shipXY`, `islandXY`, `spawnPops` gained an explicit
 // `cellPx` parameter (default-free — every call site is still-classic and has `cell` in scope, so
 // each is updated in index.html to pass it explicitly) and `boatXY` gained a `shipEls` parameter
-// the same way. The EVENT_NARRATION `battle`/`aground`/`shotclockskip` entries gained an optional
+// the same way. The EVENT_NARRATION `battle`/`aground` entries (and, before the shot clock's
+// 2026-08-28 removal, `shotclockskip`) gained an optional
 // `cellPx=0` third parameter for the same reason; describe()/captions() (which only ever read
 // `.txt`/`.cls`/`.caps`, never `.pops`) call with the 2-arg form and let the harmless default
 // apply, while spawnPops() (the only real consumer of `.pops`) passes its own `cellPx` through.
@@ -32,27 +33,36 @@
 // localStorage has never actually persisted; fixed while moving (Rule 1).
 //
 // Deviation (Rule 3 — blocking): `replayShortfall`/`REPLAY_SHORTFALL_TOLERANCE` used to live inside
-// a sentinel-comment region in index.html that scripts/dlog_replay_test.js sliced out via
+// a sentinel-comment region in index.html that scripts/dlog_replay_test.js sliced out via  [UNGATED-IN-4: dlog_replay_test.js reads the root tree, not this one]
 // `node:vm` at test time (see that script's original header). Moving them here retires that
-// slicing hack entirely — dlog_replay_test.js now does a native `import` of this module instead;
+// slicing hack entirely — dlog_replay_test.js now does a native `import` of this module instead;  [UNGATED-IN-4: dlog_replay_test.js reads the root tree, not this one]
 // see its updated header comment for the full account.
 
 import {
   appState,
 } from "../state/index.js";
+import { normalizeSeat, deriveActiveSeat, isDecisionLocal } from "../shared/storyboard.js";
 import { roundCfg } from "../engine/index.js";
 import {
   // F5 (2026-07-29): dockFlavor -> dockFlavorIcon. EVENT_NARRATION.dock was this file's only
   // dockFlavor consumer; all four branches now take the icon-placed form from the declared split.
-  NAMES, HEXCOL, DIRNAME, ING_EMOJI, iname, ilabelImg, dockPlace, dockFlavorIcon, iconImg, ING_IMG,
-  CUPCAKE_IMG, CROWN_IMG, TRADE_SWIRL_IMG, CRATE_OVERBOARD_IMG, TET, ISLAND_SHAPE_IMG, emojify,
-  ASSET_BASE, BOARD_IMG, DOCK_IMG, WIND_ARROW_IMG, BOAT_IMG, ING_ALL, COIN_IMG,
+  NAMES, HEXCOL, DIRNAME, STORM_PUSH, ING_EMOJI, iname, ilabelImg, dockPlace, dockFlavorIcon, iconImg, ING_IMG,
+  CUPCAKE_IMG, FLAME_IMG, CROWN_IMG, HORN_IMG, WAVE_IMG, TRADE_SWIRL_IMG, CRATE_OVERBOARD_IMG, TET, ISLAND_SHAPE_IMG, emojify,
+  ASSET_BASE, BOARD_IMG, DOCK_IMG, WIND_ARROW_IMG, BOAT_IMG, ING_ALL, COIN_IMG, EYES_IMG,
+  // the flip's own five, for preloadAssets — see its note on why a timed ceremony cannot wait
+  FLIP_SOCKET_IMG, COIN_SPIN_IMG, FLIP_HEADS_IMG, FLIP_TAILS_IMG,
+  // T-33: the greyed-crate art, warmed alongside ING_IMG rather than fetched cold mid-voyage
+  ING_HOLE_IMG,
+  SEA_CREATURES, buildRoster,
 } from "../shared/index.js";
-import { escHtml } from "./recipe.js";
+/* THE WHOLE MODULE, as well as the names above — this is what makes preloadAssets() DERIVED rather
+   than a list somebody maintains. See its note: every hand-kept version of that list has drifted. */
+import * as SHARED from "../shared/index.js";
+import { escHtml, RECIPE_BOOK } from "./recipe.js";
 // 11-07 (bridge deletion fix): util.js is a common dependency of src/ui/board.js, panel.js,
 // lobby.js, and flow.js — it can never import any of THEM back without closing an import cycle
 // module_graph_check.js's "no import cycle" assertion forbids. A handful of functions here
-// (ask/botBeat/narrateCurrent/applyShotClockPenalty/toggleShotClockPause/shotClockTick/
+// (ask/botBeat/narrateCurrent/
 // spawnPops/updateRecipeBanner/resumeSoloGame) genuinely need to CALL a rendering function that
 // lives in one of those sibling modules (liveRender/flash/setClockUI/narrateLastEvent from
 // panel.js; popEmoji/render from board.js), or a net-adjacent orchestration function that lives
@@ -70,11 +80,56 @@ import { netHandlers } from "./handlers.js";
 // captains panel lists seats in sailing order (turnOrder), rotated so this browser's own seat
 // (the human, from its own point of view) always sits at the top — falls back to raw seat index
 // before turnOrder is known yet (briefly, at the very start of a game)
-export function seatDisplayOrder(){
+export function seatDisplayOrder(){ return seatOrderFrom(appState.mySeat); }
+// The rotation itself: sailing order (turnOrder), turned so `head` sits first and everyone else
+// follows in the order they will actually sail. Falls back to raw seat index before turnOrder is
+// known yet (briefly, at the very start of a game), and to plain sailing order if `head` is not a
+// seat in it.
+export function seatOrderFrom(head){
   const n=appState.game.players.length;
-  if(!appState.turnOrder||appState.turnOrder.length!==n)return appState.game.players.map((_,i)=>i);
-  const startPos=Math.max(0,appState.turnOrder.indexOf(appState.mySeat));
-  return appState.turnOrder.slice(startPos).concat(appState.turnOrder.slice(0,startPos));
+  /* 02.15-01 Stage 3, MEASURED IN A TWO-TAB SESSION 2026-08-20 BEFORE IT WAS TOUCHED. The fallback
+     used to return raw seat index and DROP `head` on the floor, so at the Ahoy beat — screenshotted
+     on both tiers — the guest read "Wyatt, Mate, Dough Hook, Flaky Jack" with its own captain
+     second. Wyatt's rule is "the active player, whether host or guest, should always see their
+     captain's name on top" (2026-08-20), and it was broken for the opening of every game.
+     NOT A HOST/GUEST DIVERGENCE, and the shots prove it: the HOST fell back identically, because
+     runLiveNet does not shuffle turn order until AFTER showAhoyIntro returns, so turn order truly
+     does not exist yet on either tier. The plan's suggested remedy — route turnOrder through the
+     dispatch — could not have fixed this: no delivery mechanism can deliver a value nobody has
+     computed. The site is the fallback, and the reproduction names it (CLAUDE.md rule 6).
+     The rotation is the same one rule, applied to whatever ordering is available. */
+  const ord=appState.game.turnOrder;   // the engine's record — see consumeEvent's turnOrder note
+  if(!ord||ord.length!==n){
+    const raw=appState.game.players.map((_,i)=>i);
+    const r=raw.indexOf(head);
+    return r<0?raw:raw.slice(r).concat(raw.slice(0,r));
+  }
+  const at=ord.indexOf(head);
+  if(at<0)return ord.slice();
+  return ord.slice(at).concat(ord.slice(0,at));
+}
+// PASS & PLAY (Wyatt, 2026-08-09): "resort the captains box with the currently active player at the
+// top during their turn, and the rest of the players sorted according to turn order... currently
+// they have to scroll down too far" — at a full table the reader was scrolling past three rivals to
+// reach their own recipe, on the one mode where the reader CHANGES every turn.
+//
+// Only Pass & Play reorders. In solo and net play the reader's own seat is a fixed anchor that
+// seatDisplayOrder already parks at the top; a box that resorted under them every turn would cost
+// them the one row they look at most, which is the opposite of the fix.
+//
+// Done by setting flex `order` rather than moving nodes: every prow*/pname*/coins*/chips*/
+// prowRecipe* id keeps the same element, so no in-flight name marquee, highlight transition or
+// pending paint is restarted by a reorder. Requires #players to be a flex column (index.html).
+//
+// A null `active` (between rounds, or after the last captain finishes) deliberately does NOTHING:
+// the box holds its current order until the next turn rather than snapping back for one frame.
+export function applyCaptainOrder(active){
+  if(!appState.passAndPlay||active==null||!appState.game)return;
+  const order=seatOrderFrom(active);
+  for(let k=0;k<order.length;k++){
+    const row=document.getElementById("prow"+order[k]);
+    if(row)row.style.order=k;
+  }
 }
 // 11-07 (bridge deletion fix): relocated here verbatim from src/ui/lobby.js. lobby.js already
 // imports src/ui/board.js's syncBoardSizing(), so board.js importing buildPlayerRows() BACK from
@@ -93,15 +148,15 @@ export function buildPlayerRows(){
     // D-29 RESOLVED (Wyatt-approved 2026-07-29): every player-facing string in this file speaks the
     // pirate register — the 2nd-person pronouns become ye/yer/yers/yerself. Applied as a one-time source
     // transformation using art-review/narration-core.js's own PIRATE_RE/PIRATE_MAP as the spec — the one
-    // declaration site in the repo, imported by the audit page, the health gate and ui_contract_check.js
+    // declaration site in the repo, imported by the audit page, the health gate and ui_contract_check.js  [UNGATED-IN-4: ui_contract_check.js does not read 4/ — 03-UI-CONTRACT-TRIAGE.md, plan 03-02]
     // alike (the
     // page ran it LIVE at render, so a card tagged `keep` displayed the converted text — under D-25 that
     // converted text is what he approved). No runtime helper is shipped for it: a pirateVoice() nothing
     // calls would be dead code, which D-33/D-34/D-40 exist to prevent. Comments and identifiers are out
-    // of scope. scripts/ui_contract_check.js now gates this permanently.
+    // of scope. scripts/ui_contract_check.js now gates this permanently.  [UNGATED-IN-4: ui_contract_check.js does not read 4/ — 03-UI-CONTRACT-TRIAGE.md, plan 03-02]
     // F1 (Wyatt-approved 2026-07-29): the LABEL class — this tooltip points AT a row to say "this
     // one is the reader", so it is UI chrome rather than the game speaking, and takes plain "you".
-    // See src/ui/lobby.js's renderSeatList for the full rule; ui_contract_check.js gates it.
+    // See src/ui/lobby.js's renderSeatList for the full rule; ui_contract_check.js gates it.  [UNGATED-IN-4: ui_contract_check.js does not read 4/ — 03-UI-CONTRACT-TRIAGE.md, plan 03-02]
     const who=s.id ? (i===appState.mySeat?`${escHtml(s.name)} — that's you!`:escHtml(s.name))
                    : `🤖 bot (${s.strat||appState.game.cfg.strategies[i]})`;
     const displayName=pname(i);
@@ -114,14 +169,88 @@ export function buildPlayerRows(){
       </div></div>`;
   }
   $("players").innerHTML=html;
-  // names have a fixed column width to keep coins/hold aligned across every row — a name that
-  // overflows it scrolls instead of blowing out the layout or truncating unreadably
-  for(const i of order){
+  refreshNameMarquees();
+}
+// D-31: the name-overflow check used to live inline in buildPlayerRows(), which only runs when
+// the TURN ORDER changes (orchestrator.js) — never when the CAPTAINS COLUMN's own width changes,
+// which the desktop layout now does live (stage.js computeStageGeometry(), every resize and every
+// ~900ms while the stage is up). A name that fit the old fixed 106px/36% column and no longer fits
+// a narrower derived one stayed marquee:false forever — statically clipped, never scrolling, with
+// no error and no visual cue that anything was hidden. Exported so computeStageGeometry() can
+// re-run this exact check after it changes the column's width, without rebuilding the whole
+// captains list (which the comment below warns against — it would cancel any in-flight marquee).
+// names have a fixed column width to keep coins/hold aligned across every row — a name that
+// overflows it scrolls instead of blowing out the layout or truncating unreadably
+/* ⭐ EVERY HOLD ON ONE LINE — Wyatt, 2026-09-11, on check 9: "I want them to scroll within the same
+   line, not go onto two lines -- ideally by bunching on top of each other, with less buffer room --
+   they can overlap a little bit, even up to 50%." Shown as a page with sliders; his settings, read
+   back off it: most overlap 35%, gap 3px. The rule, in his page's words: if the crates fit, nothing
+   changes; if they don't, they slide together evenly, the newest on top with a soft edge; never past
+   his limit; past it, the line scrolls sideways with a fade at the edge. A row is therefore always
+   one crate tall, so the box's height is set by the number of captains alone.
+   MEASURED at fit time, never assumed: the room is the hold's own width after the name and coin
+   columns have taken theirs, and the crate's size is its drawn size (22px on a phone, 26 elsewhere). */
+export const HOLD_GAP_PX=3, HOLD_MAX_OVERLAP=0.35;
+export function fitHold(el){
+  if(!el)return;
+  const chips=[...el.children].filter(c=>c.classList&&c.classList.contains("chip"));
+  el.classList.remove("holdScroll");
+  chips.forEach(c=>{c.style.marginLeft="";c.classList.remove("ov");});
+  if(chips.length<2)return;
+  const cs=chips[0].offsetWidth, room=el.clientWidth, n=chips.length;
+  if(!(cs>0&&room>0))return;                              // not laid out yet — the next fit catches it
+  if(n*cs+(n-1)*HOLD_GAP_PX<=room)return;                 // they fit: the CSS gap is the whole answer
+  const floor=cs*(1-HOLD_MAX_OVERLAP);
+  let step=(room-cs)/(n-1), scroll=false;
+  if(step<floor){step=floor;scroll=true;}
+  // the container's own 3px gap still applies between crates, so the margin takes it back out
+  const ml=(step-cs-HOLD_GAP_PX).toFixed(2)+"px";
+  chips.forEach((c,i)=>{ if(i){ c.style.marginLeft=ml; if(step<cs)c.classList.add("ov"); } });
+  el.classList.toggle("holdScroll",scroll);
+}
+export function fitHolds(){ document.querySelectorAll("#players .chips").forEach(fitHold); }
+export function refreshNameMarquees(){
+  const $=id=>document.getElementById(id);
+  /* ⭐ ONE COLUMN FOR EVERY NAME — his Q8 ruling, 2026-09-10: the name sits in a FIXED column so
+     every coin starts at the same x. The column is the widest name at the table plus the 6px gap
+     the desktop rule pads with, capped at 36% of the list so the crates keep their room; a name
+     wider than that scrolls. Measured before: coins ragged by 49px (phone) and 63px (desktop).
+     (Widths are read from each name's inline-block, which a running marquee's transform does not
+     change, so re-running this mid-scroll measures the same thing.)
+     ⚠ AND THE MARQUEE NOW RUNS ON DESKTOP TOO — his follow-up the same day, "A long captain name
+     SCROLLS on desktop too". This used to return early above 600px because the desktop column GREW
+     to fit, and a 2px rounding overhang had tripped the scroll and taken the first letter off
+     ("ough Hook", his report of 2026-08-21). A fixed column is exactly what makes an 18-character
+     name overflow on desktop, so the early return had to go — and the overhang is answered by a
+     THRESHOLD instead: a name must overflow by more than MARQUEE_MIN px to scroll. The widest name
+     always has its own 6px of slack in the column, so rounding can never reach it. */
+  const MARQUEE_MIN=3;
+  const list=$("players");
+  let widest=0;
+  for(const i of seatDisplayOrder()){
+    const inner=$("pname"+i)&&$("pname"+i).firstElementChild;
+    if(inner)widest=Math.max(widest,Math.ceil(inner.getBoundingClientRect().width));
+  }
+  if(list){
+    // the column holds the widest name, the gap the desktop rule pads it with, and 2px of slack
+    const w0=$("pname"+seatDisplayOrder()[0]);
+    const padR=w0?(parseFloat(getComputedStyle(w0).paddingRight)||0):0;
+    const cap=Math.floor(list.clientWidth*0.36);
+    const col=widest&&cap>40?Math.min(widest+padR+2,cap):0;
+    if(col)list.style.setProperty("--nameCol",col+"px"); else list.style.removeProperty("--nameCol");
+  }
+  for(const i of seatDisplayOrder()){
     const wrap=$("pname"+i),inner=wrap&&wrap.firstElementChild;
     if(!wrap||!inner)continue;
-    const overflow=inner.scrollWidth-wrap.clientWidth;
-    if(overflow>0){wrap.classList.add("marquee");wrap.style.setProperty("--scrollDist",(overflow+2)+"px");}
+    const pad=parseFloat(getComputedStyle(wrap).paddingRight)||0;
+    const overflow=inner.scrollWidth-(wrap.clientWidth-pad);
+    if(overflow>MARQUEE_MIN){wrap.classList.add("marquee");wrap.style.setProperty("--scrollDist",(overflow+2)+"px");}
+    // a column that GREW (side-by-side vs stacked, or a live resize) can un-clip a name that used
+    // to need the scroll — drop the class and stop animating something with nothing left to reveal.
+    else if(wrap.classList.contains("marquee")){wrap.classList.remove("marquee");wrap.style.removeProperty("--scrollDist");}
   }
+  /* the name column just moved, so every hold's room moved with it — re-fit them (his one-line holds) */
+  fitHolds();
 }
 // dock.png is authored facing right (+x, East) in a slightly perspective/isometric style —
 // rotating it 180° to face West flips it upside down and puts the anchor on the wrong side,
@@ -215,14 +344,24 @@ export function shipXY(pos,i,state,cellPx){
 export function pname(i){
   const s=(appState.roster&&appState.roster[i])||{};
   const fallback=NAMES[i].replace("Capt. ","");
-  return s.id?(escHtml((s.name||"").trim())||fallback):fallback;
+  const nm=(s.name||"").trim();
+  // playtest 19: a BOT carries no id, so this used to hand it the SEAT-INDEXED default — which is
+  // how a human who typed "Dough Hook" ended up sitting opposite a bot of the same name. Bots are
+  // now named once, collision-free, at roster build (buildRoster, src/shared/index.js), and that
+  // assigned name is authoritative. The id gate still governs NETWORKED seats, where an unclaimed
+  // seat must show its default rather than a name left behind by whoever sat there last.
+  if(!s.id&&s.bot&&nm)return escHtml(nm);
+  return s.id?(escHtml(nm)||fallback):fallback;
 }
 // plain (unescaped) display name for a seat — the same source pname() renders, minus the HTML
 // escaping. Used by writeGameLog so every finished game records who was playing, including
 // solo/local games (which have no rooms/{code}/seats node to cross-reference names from).
 export function rawName(i){
   const s=(appState.roster&&appState.roster[i])||{};
-  return (s.id?(s.name||"").trim():"")||NAMES[i].replace("Capt. ","");
+  const nm=(s.name||"").trim();
+  // same rule as pname() above — the game log must record the crew the player actually saw
+  if(!s.id&&s.bot&&nm)return nm;
+  return (s.id?nm:"")||NAMES[i].replace("Capt. ","");
 }
 export function pn(i){return `<b style="color:${HEXCOL[i]}">${pname(i)}</b>`;}
 // possessive form for narration addressed to spectators of someone else's turn, e.g. "Davy Scones' turn"
@@ -296,7 +435,29 @@ export function movedSinceTurnStart(e){
 // unset, and NEUTRAL_VIEWER) sees the third-person line. `newround` is deliberately EXCLUDED
 // (D-09 — it addresses the whole table, never one captain), and `end`/`turn` name no captain at
 // all, so neither gains a branch either.
-export const EVENT_NARRATION={
+// seaLine(sea,mine,name) — the whole sighting sentence, INCLUDING the captain's name, because
+// where the name goes is not fixed. Most lines lead with it ("Crustbeard leans over the rail…"),
+// but Wyatt's own "Off the bow, ye see…" puts it mid-sentence ("Off the bow, Crustbeard sees…"),
+// so the third-person string carries a `{}` marker and this decides nothing on its own.
+//
+// Both persons are read out verbatim from SEA_CREATURES. Nothing is conjugated, no article is
+// guessed, no verb agreement is derived — the deleted seaSighting() did all three and got the
+// plurals wrong; a leading-clause rule would additionally have missed the SECOND verb in a
+// compound sentence ("leans over the rail, and spots six clownfish").
+function seaLine(sea,mine,name){
+  // A pre-2026-08-06 solo save stores `sea` as a bare creature name, and a save from earlier the
+  // same day stores {o,s,v}. Both are replayed verbatim on resume, so both must still narrate.
+  // "there's X down there" needs neither an article nor number agreement, so every old name reads
+  // correctly without resurrecting the inference this change removed.
+  if(!sea||typeof sea==="string"||!sea.y){
+    const w=(sea&&sea.s)||(typeof sea==="string"?sea:null)||"somethin' strange";
+    return mine?`${name} — ye lean over the rail, and there's ${w} down there.`
+               :`${name} leans over the rail, and there's ${w} down there.`;
+  }
+  return mine?`${name} — ${sea.y}`:sea.t.replace("{}",name);
+}
+export
+const EVENT_NARRATION={
   // notes/edits NARR-03: a wind that hasn't changed direction is "still" blowing that way — it
   // doesn't newly go anywhere, so it never says "now".
   // notes/edits NARR-04: any wind, storm or not, that holds one direction two rounds running gets
@@ -307,240 +468,120 @@ export const EVENT_NARRATION={
   // distinction only matters once the storm has itself repeated a round (streak>=2, below) —
   // and a storm that's both repeated AND has the wind holding renders one line regardless of
   // whether that hold is merely gusting or has gone past 3 rounds ("won't quit").
+  /* THE DAY-START WEATHER LINE — Wyatt's shape, 2026-08-27.
+       Day 6: Wind SOUTH. Tomorrow: NORTH.
+       Day 6: Storm blowin' SOUTH. Tomorrow: NORTH.
+
+     TWO RULINGS OF HIS, and between them they took the calm line from 57 characters to 35 and the
+     held-storm line from 138 to 42:
+       1. directions in CAPS — applied in DIRNAME itself, so every wind surface agrees;
+       2. Option B "but remove '3 squares'; reasoning: the game already teaches you this
+          automatically." He is right: a storm moves every ship and the player watches it happen,
+          so the sentence was explaining something the board had already demonstrated.
+
+     WHAT WENT, SO THE NEXT READER DOES NOT RESTORE IT THINKING IT WAS LOST BY ACCIDENT. All of it
+     was his own approved copy (11cbf345, the 209 reviewed dispositions; re-approved at D-49), and
+     all of it was cut by him, on purpose, on 2026-08-27:
+       · "It'll blow every ship 3 squares west"        — ruling 2 above
+       · "Batten down the hatches, ye scurvy lot!" / "Fie, Poseidon!"  — the storm theatre
+       · "this westerly is gusting" / "won't quit"     — the wind-streak flavour, which is why
+         windHoldPhrase() below now has no callers
+     v2.1's rule SURVIVES and is the one thing here that is not merely shorter: a FORECAST storm
+     still names no direction (`e.next` is null on exactly those rounds), so the tail reads
+     "Tomorrow: a storm." and never guesses a heading.
+
+     NOTHING ABOUT THE WEATHER IS TYPED (rule 9) — the day, both directions and whether tomorrow
+     storms all come off the event. The old line hardcoded the 3 that STORM_PUSH already held.
+
+     THE NOBRK SPAN IS GONE WITH THE LENGTH, and that is deliberate rather than an oversight. It
+     existed because the old storm line put 502px of unbreakable text into a 276px box and was cut
+     off at every width tested, 430px included. At 35-46 characters there is no atomic unit left to
+     protect, and a span that cannot wrap is a liability the moment a line grows again. */
   newround:e=>{
-    const D=DIRNAME[e.dir],D2=DIRNAME[e.dir2];
-    const held=(e.windStreak||1)>=2,wontQuit=(e.windStreak||1)>=3;
-    if(e.storm){
-      if(e.streak>=2)return {cls:"roundhdr",
-        txt:held
-          ?`— Round ${e.round}: ⛈️ The storm's baked in and won't cool down! It's still aiming ${D}, then ${D2}. Fie, Poseidon! —`
-          :`— Round ${e.round}: ⛈️ The storm's baked in and won't cool down! It's aiming ${D}, then ${D2}. Batten down the hatches, ye scurvy lot! —`};
-      return {cls:"roundhdr",txt:`Round ${e.round}: A ⛈️ storm be ragin'! It'll blow yer ships ${D}, then ${D2}.`};
-    }
-    if(held)return {cls:"roundhdr",txt:wontQuit
-      ?`— Round ${e.round}: wind still to the ${D}, ${windHoldPhrase(e.dir,e.windStreak)} —`
-      :`— Round ${e.round}: wind still blows ${D}, ${windHoldPhrase(e.dir,e.windStreak)} —`};
-    return {cls:"roundhdr",txt:`— Round ${e.round}: wind is blowin' ${D} —`};
+    const tail=e.nextStorm?" Tomorrow: a storm.":(e.next?` Tomorrow: ${DIRNAME[e.next]}.`:"");
+    /* A-9 (Wyatt, 2026-08-28): option (b) — calm days stay short, a STORM day keeps a sentence of
+       its own carrying the rule, because this is the ONLY place a player is ever told how far a
+       storm moves them. His example verbatim: "It'll blow every ship 3 squares WEST." Distance
+       and direction both DERIVED (rule 9): STORM_PUSH is the same constant the engine pushes
+       with, DIRNAME is the one CAPS spelling every wind surface shares. This reverses the
+       2026-08-27 "minus 3 squares" cut on his own later word — the graveyard note below stands
+       as the history of that day, not the ruling in force. */
+    const head=e.storm
+      ? `Day ${e.round}: Storm ${e.streak>=2?"still":"blowin\u2019"} ${DIRNAME[e.dir]}. It\u2019ll blow every ship ${STORM_PUSH} squares ${DIRNAME[e.dir]}.`
+      : `Day ${e.round}: Wind ${DIRNAME[e.dir]}.`;
+    return {cls:"roundhdr",txt:head+tail};
   },
-  // D-25/D-37 (Wyatt-approved 2026-07-29): wind always BLOWS a player — never carries/sweeps/moves.
-  // FIX-04 (Wyatt, 2026-07-31): the narration line itself is gone — both viewer variants together,
-  // per D-07/NARR-05. The Captains-box capsule stays; it's the only remaining marker of the drift.
-  windmove:(e,at,cellPx,viewerSeat)=>({caps:[[e.p,"🌬️ drifts"]]}),
-  blownOut:(e,at,cellPx,viewerSeat)=>({txt:isLocalTo(e.p,viewerSeat)?`⛵ ${pn(e.p)} — a gale blows ye off the dock!`:`⛵ A gale blows ${pn(e.p)} off the dock!`}),
-  sail:(e,at,cellPx,viewerSeat)=>({txt:isLocalTo(e.p,viewerSeat)?`${pn(e.p)} — ye pay 1🌕 and sail`:`${pn(e.p)} pays 1🌕 and sails`,caps:[[e.p,"⛵ sails −1🌕"]]}),
-  // D-07/NARR-05/D-10 (Wyatt-approved 2026-07-29): the tracer line for viewer-aware narration. The
-  // addressed reader keeps the name prefix, then switches to second person; every other viewer
-  // (including NEUTRAL_VIEWER, and describe()'s own default when appState.mySeat is unset) sees the
-  // third-person line — see isLocalTo()'s own header comment for why.
-  dodge:(e,at,cellPx,viewerSeat)=>{
-    const addressed=isLocalTo(e.p,viewerSeat);
-    const txt=addressed?`${pn(e.p)} — ye pay 1🌕 to anchor safely!`:`${pn(e.p)} pays 1🌕 to anchor safely`;
-    return {txt,caps:[[e.p,"💨 dodges −1🌕"]],pops:[[at(e.p),"💨"]]};
-  },
-  anchor:(e,at,cellPx,viewerSeat)=>({txt:isLocalTo(e.p,viewerSeat)?`${pn(e.p)} — ye flip ⚪HEADS and dodge the rocks!`:`${pn(e.p)} flips ⚪HEADS and dodges the rocks!`,caps:[[e.p,"⚪H drops anchor ⚓"]],pops:[[at(e.p),"⚓"]]}),
-  // D-19/D-20/D-21/D-27 (Wyatt-approved 2026-07-26): one line used to cover three unrelated
-  // safe-harbor causes. mooredReason() still tags every event with which one actually fired (the
-  // engine's `reason` field is untouched — this is a narration-only collapse). Per Wyatt's
-  // decision, `home` (a Tortuga berth) renders the SAME lines as `dock` — D-18 treats Tortuga as a
-  // normal island/dock, so it gets no bespoke wording of its own, in EITHER of dock's two cases.
-  // A replayed pre-change log with no reason falls back to the old generic line rather than
-  // rendering "undefined".
-  //
-  // G2 (Wyatt-approved 2026-07-30): `home` used to map to `stillDocked` unconditionally, while
-  // `dock` already split on movement. So a ship the storm pressed against the TORTUGA berth took the
-  // `home` reason and read as though it had been parked there all along — Wyatt, this morning:
-  // "Right got blown onto a (tortuga) dock in a storm, but the narration said 'right is still
-  // docked' – instead of 'lucky break!'". Same bug BUG-2 fixed for `dock`, one reason short.
-  // `home` now takes the identical expression, built from the SAME two consts, so the two branches
-  // cannot drift apart — that is why the strings are hoisted rather than repeated.
-  //
-  // D-28 still holds and is NOT weakened: `justDocked`, `dock`-when-unmoved and `home`-when-unmoved
-  // remain ONE shared `stillDocked` string reached by three doors — not three copies awaiting a
-  // merge. This change splits only the MOVED case, and it adds no copy: both strings already ship,
-  // both are Wyatt's own approved rewrites (D-20/D-25/D-37), and D-37 keeps "shoves" here as a
-  // rescue rather than a move. Nothing here is new wording; it is a second door onto approved copy.
-  moored:(e,at,cellPx,viewerSeat)=>{
-    // G2: hoisted to ONE call, above both tables. It walks the event stream, so four calls per
-    // render is wasteful — and a single const is what makes `dock` and `home` structurally
-    // identical rather than merely matching today. `null` ("can't tell") is NOT a shove, per
-    // movedSinceTurnStart's own contract.
-    const shoved=movedSinceTurnStart(e)===true;
-    const stillDocked=`${pn(e.p)} is still docked, so the storm can't run them aground.`;
-    const dockShove=`Lucky break! The gust shoves ${pn(e.p)} towards a dock, and the crew steadies her fast ⚓`;
-    const L={
-      justDocked:stillDocked,
-      // D-20: the mechanics stay a lucky save (a ship blown ONTO a dock is sheltered by it) — the
-      // wording change is the fix, per Wyatt: "you're able to steady your boat against the dock to
-      // not be blown aground."
-      //
-      // BUG-2 (storm-push-not-rendered): reason `dock` is mooredReason()'s "standing on a dock"
-      // cause, and that covers TWO different stories the engine cannot tell apart — the storm
-      // shoved this ship onto the dock earlier in this same push (D-20's genuine lucky save), or
-      // the ship was simply parked at that dock before the storm started and has not moved an
-      // inch. The shove line is only true for the first, and Wyatt watched it fire for the second.
-      // The engine must keep emitting the one `dock` reason (that field is serialized into all 31
-      // determinism fixtures — see .planning/debug/storm-push-not-rendered.md), so the UI picks
-      // the wording instead, from movement the event stream already records. When the ship never
-      // moved, it renders the SAME already-approved "still docked" line as justDocked/home, which
-      // is exactly what it is — no new player-facing copy is invented here (D-14/D-27).
-      //
-      // NARR-01/D-25 (Wyatt-approved 2026-07-29): the lucky-break "dockMoved" wording is his own
-      // rewrite, applied verbatim; D-37 keeps "shoves" here deliberately (a rescue, not a move — see
-      // that decision's own resolution note). justDocked/dock(unmoved)/home stay byte-identical to
-      // each other (D-28: one shared string reached by three doors, not three copies to merge).
-      dock:shoved?dockShove:stillDocked,
-      home:shoved?dockShove:stillDocked, // G2: the Tortuga berth tells the same two stories
-    };
-    // D-07/D-25: addressed siblings to L above — a sibling table, never a replacement, so the
-    // third-person strings above (asserted byte-identical by scripts/bot_storm_narration_test.js)
-    // are untouched by this branch existing.
-    if(isLocalTo(e.p,viewerSeat)){
-      const stillDockedYou=`${pn(e.p)} — yer still docked, so the storm can't run ye aground.`;
-      const dockShoveYou=`Lucky break! The gust shoves ye towards a dock, ${pn(e.p)}, and yer crew steadies her fast ⚓`;
-      const LA={
-        justDocked:stillDockedYou,
-        dock:shoved?dockShoveYou:stillDockedYou,
-        home:shoved?dockShoveYou:stillDockedYou, // G2: same split as the neutral table above
-      };
-      return {txt:LA[e.reason]||`${pn(e.p)} — the dock steadies ye from running aground ⚓`,pops:[[at(e.p),"⚓"]]};
-    }
-    return {txt:L[e.reason]||`The dock steadies ${pn(e.p)} from running aground ⚓`,pops:[[at(e.p),"⚓"]]};
-  },
-  // D-08: `blocked` names TWO captains — e.p (the ship that struck sail) and e.other (the ship
-  // spotted dead ahead, blocking the way). Each reads it addressed to themselves independently.
-  // NARR-01/D-25/D-54 (Wyatt-approved 2026-07-29): approved neutral + actor-addressed text applied
-  // verbatim; the third viewer (the ship spotted dead ahead) has no dedicated addressed text from
-  // Wyatt's review (D-54's second-addressed-party field was still empty for this card at approval
-  // time — see 15-06-SUMMARY.md's outstanding-addressedNotes2 list) so its line is derived by the
-  // same mechanical name→"ye" substitution every other multi-viewer builder in this table already
-  // applies to its own approved template, not new invented wording.
-  blocked:(e,at,cellPx,viewerSeat)=>{
-    let txt;
-    if(isLocalTo(e.p,viewerSeat))txt=`${pn(e.p)} — ye spot ${pn(e.other)} dead ahead, so ye strike sail and hold fast.`;
-    else if(isLocalTo(e.other,viewerSeat))txt=`${pn(e.p)} spots ye dead ahead, so strikes sail and holds fast.`;
-    else txt=`${pn(e.p)} spots ${pn(e.other)} dead ahead, so strikes sail and holds fast.`;
-    return {txt,pops:[[at(e.p),"⚓"]]};
-  },
-  anchorHold:(e,at,cellPx,viewerSeat)=>({txt:isLocalTo(e.p,viewerSeat)?`${pn(e.p)} — yer anchor's already down. It holds fast ⚓`:`${pn(e.p)}'s anchor is already down — it holds fast ⚓`,pops:[[at(e.p),"⚓"]]}),
-  tradewind:(e,at,cellPx,viewerSeat)=>({txt:isLocalTo(e.p,viewerSeat)?`🌀 ${pn(e.p)} — yer blown into the trade winds and swept around the rim!`:`🌀 ${pn(e.p)} is blown into the trade winds and swept around the rim!`,pops:[[at(e.p),"🌀",true,TRADE_SWIRL_IMG]]}),
-  // D-19 SIMPLIFIED (Wyatt-approved 2026-07-29): `parley` now fires ONLY on a refusal — an accepted
-  // hail emits a `trade` event instead (src/ui/flow.js's bot-hail path), so the old `e.ok===true`
-  // "deal struck!" branch here is unreachable and has been removed rather than left as dead copy a
-  // future rewrite could land on. `table:parley`/`table:parley~refused` collapse to this one
-  // refusal-only builder (D-25/D-26: no notes given for either row, so wording is unchanged from
-  // before — only the unreachable branch is gone).
-  parley:(e,at,cellPx,viewerSeat)=>{
-    // D-08: each named captain reads the offer addressed to themselves — the offerer's own view,
-    // and the target's own view; a third-party viewer reads today's exact text.
-    let txt;
-    if(isLocalTo(e.a,viewerSeat))txt=`🤝 ${pn(e.a)} — ye offered ${fmtItem(e.offer)} for ${pn(e.b)}'s ${fmtItem(e.want)} — they refused.`;
-    else if(isLocalTo(e.b,viewerSeat))txt=`🤝 ${pn(e.a)} offered ${fmtItem(e.offer)} for yer ${fmtItem(e.want)} — ye refused.`;
-    else txt=`🤝 ${pn(e.a)} offered ${fmtItem(e.offer)} for ${pn(e.b)}'s ${fmtItem(e.want)} — they refused.`;
-    return {cls:"trade",txt,pops:[[at(e.a),"🙅"]]};
-  },
-  // NARR-01/D-25/D-38 (Wyatt-approved 2026-07-29): the coin case names the real amount lost, per
-  // his question on the addressed card — computed from the event stream's own snapshots (the
-  // immediately-prior event's captured coins for this seat, same technique movedSinceTurnStart
-  // uses for position), never a new engine field. Falls back to no parenthetical when the amount
-  // can't be determined (a fabricated/detached event) rather than guessing.
-  aground:(e,at,cellPx=0,viewerSeat)=>{
-    const evs=(appState.game&&appState.game.events)||[];
-    const idx=evs.lastIndexOf(e);
-    const prev=idx>0?evs[idx-1]:null;
-    const before=(prev&&prev.state&&prev.state[e.p])?prev.state[e.p].coins:null;
-    const after=(e.state&&e.state[e.p])?e.state[e.p].coins:null;
-    const lost=(before!=null&&after!=null)?Math.max(0,before-after):null;
-    const lossTag=lost!=null?` <span class="nobrk">(−${lost}🌕)</span>`:"";
-    return {txt:isLocalTo(e.p,viewerSeat)
-        ?(e.ing?`${pn(e.p)} — ye flip ⚫TAILS and run aground! A crate of ${ilabelImg(e.ing)} tumbles overboard and floats back to its island ⚠️`:`${pn(e.p)} — ye flip ⚫TAILS and run aground! Ye lose half yer coins on repairs${lossTag} ⚠️`)
-        :(e.ing?`${pn(e.p)} flips ⚫TAILS and runs aground! A crate of ${ilabelImg(e.ing)} tumbles overboard and floats back to its island ⚠️`:`${pn(e.p)} flips ⚫TAILS and runs aground! Loses half their coins doing repairs${lossTag} ⚠️`),
-      caps:[[e.p,e.ing?`⚫T aground! ${ING_EMOJI[e.ing]} overboard`:"⚫T aground! 💥 −half 🌕"]],
-      pops:e.ing?[[at(e.p),"📦",true,CRATE_OVERBOARD_IMG,"splash"]].concat(islandXY(e.ing,cellPx)?[[islandXY(e.ing,cellPx),ING_EMOJI[e.ing],true,ING_IMG[e.ing],"splash"]]:[]):[[at(e.p),"💥"]]};
-  },
-  shipwrecked:(e,at,cellPx,viewerSeat)=>({txt:isLocalTo(e.p,viewerSeat)?`${pn(e.p)} — yer shipwrecked, and lose yer turn making repairs.`:`${pn(e.p)} is shipwrecked, and loses their turn making repairs.`,caps:[[e.p,"🛠️ shipwrecked — repairs all turn"]],pops:[[at(e.p),"🛠️"]]}),
-  // NARR-01/D-25/D-46/D-48 (Wyatt-approved 2026-07-29): docking copy applied verbatim.
-  //
-  // D-46, STATED AS IT ACTUALLY READS (this comment used to describe the over-application F10
-  // found, i.e. exactly what D-46 forbade): *"Only the `ing` (heads) narration branch loses its
-  // place clause. The other three dock branches still need theirs. Do not apply the cut across all
-  // four."* So `ing` — and ONLY `ing` — drops the place and leads with the payoff, because the
-  // actor already read the place name on the Dock button and the flip prompt, and the haul itself
-  // is the payoff that needs no antecedent.
-  //
-  // G1 (Wyatt-approved 2026-07-30) — THE RULE, stated rather than its history: **the addressed line
-  // says what happened to YOU, not where you are.** The actor already read the place name on the
-  // Dock button and again on the flip prompt; a third telling is noise. Wyatt: "you already know
-  // that you docked at the Flour Patch — we don't need to tell you that again."
-  //
-  // This governs the `gA` table only. The NEUTRAL `g` table below keeps every place clause, because
-  // a spectator watching someone else's turn has no other source for either the place or the goods.
-  //
-  // F10's real defect was a DANGLING PRONOUN, and it stays fixed — by a different means. The
-  // addressed `bought` line read "ye flip ⚫ TAILS, but buy it anyway for 3🌕", where "it" referred
-  // to nothing. F10 gave "it" an antecedent by restoring the whole place-and-goods clause; that
-  // over-corrected, because the place was never the fix. `bought` now NAMES ITS GOODS directly in
-  // place of the pronoun — antecedent supplied, place dropped. `empty` returns to its shorter
-  // pre-F10 form at Wyatt's explicit ask; `coins` needs neither place nor goods.
-  //
-  // F5: the ingredient icon now sits directly before the ingredient NAME on every branch that names
-  // goods, via the single shared `goods` value from dockFlavorIcon() — one place decides where the
-  // icon goes, so these branches cannot drift apart again.
-  //
-  // D-48 — the flavour text (DOCK_FLAVOR) is kept and used on every branch, `ing` included.
   dock:(e,at,cellPx,viewerSeat)=>{
     const place=dockPlace(e.ing),goods=dockFlavorIcon(e.ing);
-    const g={ing:`docks at ${place} and flips ⚪ HEADS — hauls aboard ${goods}!`,
-      empty:`docks at ${place} and finds no ${ilabelImg(e.ing)}, so grabs 3🌕`,
-      bought:`docks at ${place} for ${goods} and flips ⚫ TAILS, but buys it anyway for 3🌕`,
-      coins:`docks at ${place} for ${goods}, but flips ⚫ TAILS and takes 3🌕`};
-    // G1: no addressed branch names the place — see the rule above. D-46's record stands among the
-    // NEUTRAL forms, where `ing` alone drops the place. `bought` keeps its goods (that is F10's
-    // fix, carried forward: the pronoun is replaced by the thing itself, not by the place).
-    const gA={ing:`ye haul aboard ${goods}!`,
-      empty:`ye find no ${ilabelImg(e.ing)}, so ye grab 3🌕`,
-      bought:`ye flip ⚫ TAILS, but buy ${goods} anyway for 3🌕`,
-      coins:`ye flip ⚫ TAILS and take 3🌕`};
-    const capM={ing:`gets ${ING_EMOJI[e.ing]}!`,empty:"island empty · +3🌕",bought:`buys ${ING_EMOJI[e.ing]} −3🌕`,coins:"+3🌕"};
-    // no flip happened on an empty island, so don't caption one
-    const F=e.got==="empty"?"":(e.heads?"⚪H":"⚫T");
-    const gotIng=(e.got==="ing"||e.got==="bought");
-    // #3: the crate rising out of the boat renders the ingredient art (ING_IMG), not the old
-    // emoji — the emoji stays as the fallback popEmoji() shows if the image can't load.
-    const txt=isLocalTo(e.p,viewerSeat)?`${pn(e.p)} — ${gA[e.got]}`:`${pn(e.p)} ${g[e.got]}`;
-    return {txt,caps:[[e.p,F?`docks ${F} ${capM[e.got]}`:`docks — ${capM[e.got]}`]],
-      pops:[[at(e.p),gotIng?ING_EMOJI[e.ing]:"🌕",false,gotIng?ING_IMG[e.ing]:null]]};
+    const heads=appState.game.cfg.dockHeads,tails=appState.game.cfg.dockTails;
+    const paid=e.price!=null?e.price:"";
+    const bought=(e.got==="bought");
+    // black-market buys and the purchase that empties a shelf each get their clause — the dry
+    // notice is how the whole table learns a shelf ran out (draft copy, Wyatt rewrites)
+    // THE BLACK MARKET'S TWO PRICES read as two different sentences, because they are two
+    // different bargains: coin buys the crate, but a barter SPENDS two crates the whole table can
+    // see leave the hold — and they leave the game with them, so the line has to name them.
+    const barter=bought&&e.paidIng&&e.paidIng.length===2;
+    // paying with two of the SAME crate is legal and common (a hold of junk duplicates is exactly
+    // what the barter is for), and "trades Cacao Pods an' Cacao Pods" reads like a stutter
+    const gave=barter
+      ?(e.paidIng[0]===e.paidIng[1]?`two ${fmtItem(e.paidIng[0])}`:e.paidIng.map(fmtItem).join(" an' "))
+      :``;
+    /* W2-5 — ONE FORMAT FOR COIN IN THIS SENTENCE, NOT TWO. The dig above already names the gain
+       as a signed parenthetical, `(+3🌕)`; the purchase in the SAME breath read "for 12🌕". Money
+       arriving and money leaving were dressed differently a dozen words apart.
+       THE MINUS IS U+2212 "−", NEVER ASCII "-" — the same character the broadside line and the
+       captain's-log capsule below already use; a hyphen here is the drift this whole clause exists
+       to stop. `.nobrk` because the coin is an <img>, and a replaced element hands the browser a
+       break opportunity immediately after it — the reason a full stop turned up alone on its own
+       line twice. Built ONCE and spent by both the third-person and the addressed form, so the two
+       can never say the amount differently. The barter clause takes no `spent`: it pays in crates,
+       and inventing a coin figure where no coin moved would be a lie the whole table can read. */
+    const spent=`<span class="nobrk">(−${paid}🌕)</span>`;
+    const buyTail=bought
+      ?(barter?` — then trades ${gave} to the black market for ${goods}.`
+        :e.black?` — then pays the black market for ${goods} ${spent}.`
+        :` — then buys ${goods} ${spent}.`+(e.wentDry?` That were the last of it — the shelves be bare!`:``))
+      :``;
+    const buyTailYou=bought
+      ?(barter?` — then ye trade ${gave} to the black market for ${goods}.`
+        :e.black?` — then ye pay the black market for ${goods} ${spent}.`
+        :` — then ye buy ${goods} ${spent}.`+(e.wentDry?` Ye took the last of it — the shelves be bare!`:``))
+      :``;
+    const txt=isLocalTo(e.p,viewerSeat)
+      ?(e.heads
+        ?`⚪ HEADS! Ye dig deep at ${place} and strike buried treasure <span class="nobrk">(+${heads}🌕)</span>${buyTailYou}`
+        :`⚫ TAILS — ye spend the turn workin' the docks at ${place} <span class="nobrk">(+${tails}🌕)</span>${buyTailYou}`)
+      :(e.heads
+        ?`⚪ HEADS! ${pn(e.p)} digs deep at ${place} and strikes buried treasure <span class="nobrk">(+${heads}🌕)</span>${buyTail}`
+        :`⚫ TAILS — ${pn(e.p)} spends the turn workin' the docks at ${place} <span class="nobrk">(+${tails}🌕)</span>${buyTail}`);
+    const cap=(e.heads?`⚪H 💰+${heads}🌕`:`⚫T +${tails}🌕`)+
+      (bought?(barter?` · ${e.paidIng.map(x=>ING_EMOJI[x]||"📦").join("")} → ${ING_EMOJI[e.ing]}`:` · buys ${ING_EMOJI[e.ing]} −${paid}🌕`):``);
+    return {txt,caps:[[e.p,cap]],
+      pops:[[at(e.p),bought?ING_EMOJI[e.ing]:"🌕",false,bought?ING_IMG[e.ing]:null]]};
   },
-  // notes/edits NARR-02: name the cooperation bonus rather than leaving a bare "(+1🌕 each)"
+  // v2 rule 4e: no harbor-tax refund any more, so no bonus clause to name.
   trade:(e,at,cellPx,viewerSeat)=>{
-    const bonus=appState.game.cfg.tradeBonus?' <span class="nobrk">— they each get +1🌕 for cooperating like good friendly pirates</span>':"";
-    const bonusYou=appState.game.cfg.tradeBonus?' <span class="nobrk">— ye each get +1🌕 for cooperatin\' like good friendly pirates</span>':"";
-    // D-08/D-25: each named trader reads it addressed to themselves; a third-party viewer reads
-    // today's exact text.
+    // D-08/D-25: each named trader reads it addressed to themselves.
     let txt;
-    if(isLocalTo(e.a,viewerSeat))txt=`🤝 ${pn(e.a)} — ye trade ${fmtItem(e.gave)} to ${pn(e.b)} for ${fmtItem(e.got)}${bonusYou}`;
-    else if(isLocalTo(e.b,viewerSeat))txt=`🤝 ${pn(e.a)} trades ${fmtItem(e.gave)} to ye for ${fmtItem(e.got)}${bonusYou}`;
-    else txt=`🤝 ${pn(e.a)} trades ${fmtItem(e.gave)} to ${pn(e.b)} for ${fmtItem(e.got)}${bonus}`;
+    if(isLocalTo(e.a,viewerSeat))txt=`🤝 ${pn(e.a)} — ye trade ${fmtItem(e.gave)} to ${pn(e.b)} for ${fmtItem(e.got)}`;
+    else if(isLocalTo(e.b,viewerSeat))txt=`🤝 ${pn(e.a)} trades ${fmtItem(e.gave)} to ye for ${fmtItem(e.got)}`;
+    else txt=`🤝 ${pn(e.a)} trades ${fmtItem(e.gave)} to ${pn(e.b)} for ${fmtItem(e.got)}`;
     return {cls:"trade",txt,
       caps:[[e.a,`🤝 got ${fmtItem(e.got)}`],[e.b,`🤝 got ${fmtItem(e.gave)}`]],
       pops:[[at(e.a),"🤝"],[at(e.b),"🤝"]]};
   },
-  // NARR-01/D-25/D-38 (Wyatt-approved 2026-07-29): sidebet copy applied verbatim, signed amounts.
+  // v2 rule 5: a call is free and pays a flat bounty. Nothing is ever lost on a wrong one, so
+  // there is no "backed the wrong ship (−N🌕)" form any more.
   sidebet:(e,at,cellPx,viewerSeat)=>{
     const you=isLocalTo(e.p,viewerSeat);
-    if(e.won)return {cls:"trade",txt:e.amt
-      ?(you
-        ?`🔭 ${pn(e.p)} — ye called it! 1🌕 + double yer bet <span class="nobrk">(+${e.delta}🌕)</span>`
-        :`🔭 ${pn(e.p)} called it! 1🌕 + double their bet <span class="nobrk">(+${e.delta}🌕)</span>`)
-      :(you
-        ?`🔭 ${pn(e.p)} — ye called it! <span class="nobrk">(+${e.delta}🌕)</span>`
-        :`🔭 ${pn(e.p)} called it! <span class="nobrk">(+${e.delta}🌕)</span>`)};
+    if(e.won)return {cls:"trade",txt:you
+      ?`🔭 ${pn(e.p)} — ye called it! <span class="nobrk">(+${e.delta}🌕)</span>`
+      :`🔭 ${pn(e.p)} called it! <span class="nobrk">(+${e.delta}🌕)</span>`,
+      caps:[[e.p,`🔭 called it +${e.delta}🌕`]]};
     return {cls:"trade",txt:you
-      ?(e.amt
-        ?`💰 ${pn(e.p)}, ye backed the wrong ship <span class="nobrk">(−${e.amt}🌕)</span>`
-        :`🔭 ${pn(e.p)} — ye backed the wrong ship. No bounty.`)
-      :(e.amt
-        ?`💰 ${pn(e.p)} backed the wrong ship <span class="nobrk">(−${e.amt}🌕)</span>`
-        :`🔭 ${pn(e.p)} backed the wrong ship — no bounty.`)};
+      ?`🔭 ${pn(e.p)} — ye called the wrong ship. No bounty.`
+      :`🔭 ${pn(e.p)} called the wrong ship — no bounty.`};
   },
   battle:(e,at,cellPx=0,viewerSeat)=>{
     // count by who actually scored (r[3]) rather than the raw flip pattern — a both-heads
@@ -632,11 +673,41 @@ export const EVENT_NARRATION={
     else if(dAddr)mainClause=`⚔️ ${pn(e.d)} — ye ${winIsA?"lose":"win"} ${aP}–${dP}.`;
     else mainClause=`⚔️ ${pn(e.winner)} wins ${aP}–${dP}.`;
     const viewerIsWinner=isLocalTo(e.winner,viewerSeat),viewerIsLoser=isLocalTo(loser,viewerSeat);
+    // playtest 20 (Mando: "There's a bug in the battles - we both rolled heads but he still took
+    // something from me"). It was not a bug — rule 9 gives a two-heads tie to the DOWNWIND ship —
+    // but nothing on the durable line ever said so, and both cannons land heads in ~25% of fights,
+    // so roughly ONE BATTLE IN FOUR ended with no stated reason. Wyatt, 2026-08-13, on where to
+    // explain it: after the battle (this), plus a badge on the battle card and a line in the flip
+    // ceremony. The loser's wording below is his approved copy verbatim; the winner-addressed and
+    // neutral forms are the mechanical person-swap of it, same as D-54 did for the base line.
+    //
+    // The DECIDING round is the last one that scored — a crosswind tie can re-fire, so earlier
+    // rounds may have no scorer at all. `downwind` rides the event (src/orchestrator.js).
+    const decidedRound=e.rounds&&e.rounds.filter(r=>r&&r[3]).pop();
+    const wonOnWind=!!(e.downwind&&decidedRound&&decidedRound[0]===1&&decidedRound[1]===1&&decidedRound[3]===e.downwind);
+    const windHeadThird=`⚔️ Both cannons land — but ${pn(e.winner)} fires downwind, and the wind carries the shot home.`;
+    const windHeadYe=`⚔️ Both cannons land — but ye're firin' downwind, and the wind carries the shot home.`;
+    // playtest 20 (Wyatt: "losers of a battle without a crate don't always give 'all they have' —
+    // sometimes they don't even give all their doubloons"). They give NONE, and that is correct:
+    // RULES-V2 line 180 is "Prize: one crate, winner's choice. No coin alternative", so an empty
+    // hold means the winner leaves with nothing. The ENGINE (awardSpoil returns null) and the live
+    // path (`pick` is undefined) both already do exactly that. The BUG WAS THIS FUNCTION.
+    //
+    // The isBribe / isEmptyHoldFive / "all ye have" branches below are survivors of the OLDER
+    // ruleset, where a beaten captain could pay in coin. With no coin spoil possible any more,
+    // spoilN parses to NaN, both coin branches go false, and every empty-hold loss fell through to
+    // the "gives up all they have" fallback — which is a lie, and reads exactly like the game
+    // failing to take something. Measured before the fix:
+    //   live path   "Wyargh wins 0–1 — ye give up all ye have."
+    //   engine path "Wyargh wins 0–1 — ye give up all ye have: nothing."
+    // Detected on the DATA (a null/"nothing" spoil) rather than by assuming coins are impossible,
+    // so a future ruleset that restores a coin prize cannot silently inherit this line.
+    const tookNothing=e.spoilIng==null&&(e.spoil==null||e.spoil==="nothing"||e.spoil==="");
     let spoilClause;
     // G3: every ${e.spoil} below became ${spoilText}. Not one sentence, clause order or word
     // changed — the only difference is how the spoil AMOUNT is spelled.
     if(e.spoilIng)spoilClause=viewerIsWinner?`Ye take ${spoilText}.`:`${pn(e.winner)} takes ${spoilText}.`;
-    else if(isBribe)spoilClause=viewerIsLoser?`Ye bribe yer way out of giving away a crate with ${spoilText}.`:`${pn(loser)} bribes their way out of giving away a crate with ${spoilText}.`;
+    else if(isBribe)spoilClause=viewerIsLoser?`Ye bribe yer way out of giving away an ingredient with ${spoilText}.`:`${pn(loser)} bribes their way out of giving away an ingredient with ${spoilText}.`;
     // FIX-07 (ruled 2026-07-31, verbatim): an empty-hold loser reads this third line, not the bribe
     // wording and not the all-they-have fallback below.
     else if(isEmptyHoldFive)spoilClause=viewerIsLoser?`Ye give up ${spoilText}.`:`${pn(loser)} gives up ${spoilText}.`;
@@ -655,14 +726,35 @@ export const EVENT_NARRATION={
     let txt;
     if(viewerIsLoser){
       const head=`⚔️ ${pn(e.winner)} wins ${aP}–${dP}`;
-      if(e.spoilIng)txt=`${head} and takes yer ${spoilText}`;
-      else if(isBribe)txt=`${head} — ye bribe yer way out of givin' away a crate with ${spoilText}.`;
+      // @copy misc.battle.emptyhold — verbatim as Wyatt wrote it, 2026-08-13. Checked BEFORE the
+      // wind branch: when nothing was taken, why the tie fell one way is not what the player is
+      // asking; "where did my crate go" is, and the answer is that there was never one to take.
+      if(tookNothing)txt=`⚔️ ${pn(e.winner)} wins — but ye've nothing in the hold to plunder.`;
+      else if(wonOnWind){
+        // his approved line: "Both cannons land — but X fires downwind, and the wind carries the
+        // shot home. X takes yer cocoa." The spoil is a SECOND sentence here, not the em-dash
+        // continuation the score-led head uses, because the head already ends in a full stop.
+        if(e.spoilIng)txt=`${windHeadThird} ${pn(e.winner)} takes yer ${spoilText}.`;
+        else if(isBribe)txt=`${windHeadThird} Ye bribe yer way out of givin' away an ingredient with ${spoilText}.`;
+        else if(isEmptyHoldFive)txt=`${windHeadThird} Ye give up ${spoilText}.`;
+        else txt=`${windHeadThird} Ye give up all ye have${spoilText?`: ${spoilText}`:""}.`;
+      }
+      else if(e.spoilIng)txt=`${head} and takes yer ${spoilText}`;
+      else if(isBribe)txt=`${head} — ye bribe yer way out of givin' away an ingredient with ${spoilText}.`;
       // FIX-07: mechanical person-swap of the ruled "Ye give up {spoil}." line into this composite's
       // own em-dash-continuation shape, matching the pattern the bribe/all-they-have branches above
       // already use in this same chain.
       else if(isEmptyHoldFive)txt=`${head} — ye give up ${spoilText}.`;
       else txt=`${head} — ye give up all ye have${spoilText?`: ${spoilText}`:""}.`;
-    }else txt=`${mainClause} ${spoilClause}`;
+    }else if(tookNothing){
+      // @copy misc.battle.emptyhold — Wyatt's own wording, 2026-08-13. It deliberately drops the
+      // "1–0" score the other lines carry: nothing changed hands, so the scoreline is the least
+      // interesting thing about the outcome. Winner-addressed and neutral are the person-swap.
+      txt=viewerIsWinner
+        ? `⚔️ Ye win — but there's nothing in ${pn(loser)}'s hold to plunder.`
+        : `⚔️ ${pn(e.winner)} wins — but there's nothing in ${pn(loser)}'s hold to plunder.`;
+    }
+    else txt=`${wonOnWind?(viewerIsWinner?windHeadYe:windHeadThird):mainClause} ${spoilClause}`;
     return {cls:"battle",
       txt,
       caps:[[e.winner,`⚔️ wins! +${spoilText}`],[loser,"⚔️ loses 💸"]], // G3: the winner caption too
@@ -674,61 +766,126 @@ export const EVENT_NARRATION={
   battleflee:(e,at,cellPx,viewerSeat)=>{
     const aAddr=isLocalTo(e.a,viewerSeat),dAddr=isLocalTo(e.d,viewerSeat);
     let txt;
-    if(aAddr)txt=`🏃 ${pn(e.a)} — ye attack ${pn(e.d)}, but both shots miss wildly and ${pn(e.d)} slips away! <span class="nobrk">(−1🌕)</span>`;
-    else if(dAddr)txt=`🏃 ${pn(e.a)} attacks ye, but both shots miss wildly and ye slip away! <span class="nobrk">(−1🌕)</span>`;
-    else txt=`🏃 ${pn(e.a)} attacks ${pn(e.d)}, but both shots miss wildly and ${pn(e.d)} slips away! <span class="nobrk">(−1🌕)</span>`;
-    return {cls:"battle",txt,caps:[[e.d,"🏃 flees! −1🌕"]],pops:[[at(e.d),"🏃"]]};
+    // v2 rule 2: fleeing is FREE now, so every (−1🌕) toll comes off these three lines and the capsule.
+    if(aAddr)txt=`🏃 ${pn(e.a)} — ye attack ${pn(e.d)}, but both shots miss wildly and ${pn(e.d)} slips away!`;
+    else if(dAddr)txt=`🏃 ${pn(e.a)} attacks ye, but both shots miss wildly and ye slip away!`;
+    else txt=`🏃 ${pn(e.a)} attacks ${pn(e.d)}, but both shots miss wildly and ${pn(e.d)} slips away!`;
+    return {cls:"battle",txt,caps:[[e.d,"🏃 flees!"]],pops:[[at(e.d),"🏃"]]};
   },
   // notes/edits UI-04: on a catch, the emoji that rises from the boat is the SUGARFISH itself, not
   // the fishing line — you just landed a fish, so show the fish coming up out of the boat.
   // NARR-01/D-25/D-38 (Wyatt-approved 2026-07-29): signed catch amounts.
-  fish:(e,at,cellPx,viewerSeat)=>{
-    const outcome=e.heads?'catches a 🐠 sugarfish! <span class="nobrk">(+2🌕)</span>':(appState.game.cfg.sardine?'nets a 🦀 candycrab <span class="nobrk">(+1🌕)</span>':"comes up empty-handed");
-    const outcomeYou=e.heads?'catch a 🐠 sugarfish! <span class="nobrk">(+2🌕)</span>':(appState.game.cfg.sardine?'net a 🦀 candycrab <span class="nobrk">(+1🌕)</span>':"come up empty-handed");
-    const txt=isLocalTo(e.p,viewerSeat)?`${pn(e.p)} — ye cast a line and ${outcomeYou}`:`${pn(e.p)} casts a line, ${outcome}`;
-    return {txt,
-      caps:[[e.p,`🎣 ${e.heads?"⚪H":"⚫T"} ${e.heads?"+2🌕":(appState.game.cfg.sardine?"🦀 +1🌕":"nothing")}`]],
-      pops:[[at(e.p),e.heads?"🐠":(appState.game.cfg.sardine?"🦀":"🎣")]]};
-  },
   finish:(e,at,cellPx,viewerSeat)=>({cls:"roundhdr",txt:isLocalTo(e.p,viewerSeat)?`🏁 ${pn(e.p)} — ye return to the Isle of Tortuga with a full recipe!`:`🏁 ${pn(e.p)} returns to the Isle of Tortuga with a full recipe!`,
     caps:[[e.p,"🏁 recipe done!"]],pops:[[at(e.p),"🏁",true]]}),
-  shotclock:(e,at,cellPx,viewerSeat)=>({cls:"trade",txt:isLocalTo(e.p,viewerSeat)?`⏱ ${pn(e.p)} — ye were too slow and lose 1🌕; everyone else gets +1🌕`:`⏱ ${pn(e.p)} was too slow — loses 1🌕, everyone else +1🌕`}),
-  // NARR-01/D-25 (Wyatt-approved 2026-07-29): "loses the turn" → "loses their/yer turn" for
-  // parallelism with the addressed form.
-  //
-  // WYATT, 2026-07-30 — HIS WORDING, chosen from three drafts: "Dozed at the helm!". The old
-  // headline was "Snoozing pirates lose their treasure!", which became untrue the moment the two
-  // 30-second resource penalties were removed (see expireShotClock in src/orchestrator.js). The
-  // event no longer carries `ing` or `coins` AT ALL, so there is one line per viewer instead of a
-  // four-way branch, and no `pops` — nothing goes overboard any more, so nothing splashes.
-  //
-  // If a resource penalty is ever reinstated, this line must change WITH it. That coupling is the
-  // whole reason the old wording survived being false: the text described a mechanic the code had
-  // moved on from. (15-LEARNINGS #6 — a constant, or a string, that does not mean what it says.)
-  shotclockskip:(e,at,cellPx=0,viewerSeat)=>({cls:"roundhdr",txt:isLocalTo(e.p,viewerSeat)
-      ?`⏰ Dozed at the helm! ${pn(e.p)} — ye lose yer turn.`
-      :`⏰ Dozed at the helm! ${pn(e.p)} loses their turn.`}),
+  /* The `shotclock` (20s coin penalty) and `shotclockskip` (30s turn skip, Wyatt's "Dozed at the
+     helm!" wording) rows stood here — removed 2026-08-28 with the shot clock itself (see ask()).
+     Nothing emits either event any more; the wordings and their approval history live in git. */
   // D-08/D-25: both finalists read the result addressed to themselves — the winner's own "ye take
   // it!", the loser's own commiseration; a third-party viewer (and NEUTRAL_VIEWER) reads today's
   // exact third-person text.
-  bakeoff:(e,at,cellPx,viewerSeat)=>{
-    const loser=e.winner===e.a?e.b:e.a;
-    let txt;
-    if(isLocalTo(e.winner,viewerSeat))txt=`${iconImg(CUPCAKE_IMG)} BAKEOFF! ${pn(e.a)} vs ${pn(e.b)} — ye take it!`;
-    // D-54: the loser's line is Wyatt's own wording (15-ADDRESSED2-APPROVED.json) — both captains
-    // stay NAMED rather than the loser becoming "ye". In a bakeoff the matchup is the drama, and
-    // "vs ye" flattens one of the two names exactly when the pairing is the point. It also carries
-    // no consolation clause: he approved it plain. Do not re-add one.
-    else if(isLocalTo(loser,viewerSeat))txt=`${iconImg(CUPCAKE_IMG)} BAKEOFF! ${pn(e.a)} vs ${pn(e.b)} — ${pn(e.winner)} takes it!`;
-    else txt=`${iconImg(CUPCAKE_IMG)} BAKEOFF! ${pn(e.a)} vs ${pn(e.b)} — ${pn(e.winner)} takes it!`;
-    return {cls:"battle",txt,
-      caps:[[e.winner,`${iconImg(CUPCAKE_IMG)} wins the bakeoff!`]],pops:[[at(e.winner),"🧁",true,CUPCAKE_IMG]]};
-  },
   // notes/edits EOV-01: the blue narration box no longer announces the win — it would duplicate the
   // dedicated one-off victory box (see endLive's flash) and the End of Voyage summary. The board
   // still gets a crown pop over the winner; the announcement itself lives in the celebratory box.
   end:(e,at)=>({cls:"roundhdr",txt:"",caps:[],pops:e.winner===null?[]:[[at(e.winner),"👑",true,CROWN_IMG]]}),
   turn:()=>null,
+  // RESTORED VERBATIM 2026-09-01 from 693c2b0b^ — the weather-line commit (693c2b0b, 2026-08-27)
+  // deleted this entry as COLLATERAL in its table edit: its own "cut on purpose" list names the
+  // storm theatre and the wind-streak flavour, never this. Five days of silent Muses later, Wyatt
+  // reported it from the Glass ("the Muse narrations are now missing"). seaLine() above had sat
+  // with zero callers the whole time. Held now by scripts/qa/muse_narration_check.mjs.
+  //
+  // Pass, given something to look at. Every captain who takes the turn off sees a different beast
+  // go by; see Game.nextSeaCreature. The BUTTON reads "🌊 Muse" with the payout stated after it
+  // (Wyatt, 2026-08-05 — it briefly read "Look into the ocean"; the label went back to Pass, the
+  // narration stayed; the amount joined it under RULE-01, built like Attack's cost; the label
+  // became Muse 2026-08-27, W2-7).
+  //
+  // RULE-01/D-06: passing pays a dubloon (Game.doPass), and the line says so. Wyatt's wording, his
+  // pick over two longer drafts of his own — the idea is that the sea creatures are where the recipe
+  // inspiration comes from, and the constraint he named was "short and easy to read".
+  //
+  // IT IS A SUBJECTLESS FRAGMENT AND THAT IS THE WHOLE POINT. About twenty of the fifty sightings
+  // end on the CREATURE as the nearest grammatical subject ("...and a dozen donut shrimp bounce
+  // past."), so any appended clause carrying a verb hands the pen to the shrimp. No subject, no
+  // verb, no agreement to derive: it reads identically after all fifty sentences in both persons,
+  // which is what lets it be appended HERE, once, with all 100 hand-written strings untouched — the
+  // seaLine contract above, which the deleted seaSighting() broke in all three ways at once.
+  //
+  // The coin is a RAW character, resolved to the coin image by emojify() at panel()'s single
+  // chokepoint (D-50), like every other coin-amount line in this table. Hand-rolling the markup here
+  // would duplicate the chokepoint. Wrapped WHOLE rather than just the parenthetical — a unit and
+  // its amount are one readable thing (the sailing-order precedent, G27/P7).
+  //
+  // THE AMOUNT IS READ OFF THE LIVE GAME'S ROUND CONFIG, not written out here — the same unguarded
+  // read the dock: builder below already does for its two flip payouts, from inside this same
+  // table. It is the same field the engine pays from and the same field the Pass button states, so
+  // a line that tells a captain what they were paid cannot drift from what they were actually
+  // paid. The wording is Wyatt's and is fixed; only the number derives.
+  /* THE POST-STORM SUMMARY — the line Wyatt found missing on 2026-09-06, playing solo to the end.
+     "Solo: storm summary narration is missing."
+
+     IT WAS MISSING IN EVERY MODE, not just solo, and this is the other half of an August ruling
+     that only ever shipped its first half. ITEM 8 (Wyatt, 2026-08-23c): "The storm narrated the
+     fact that flaky jack was blown into the trade winds — it shouldn't. trade winds, like
+     everything else, should be reported once with the post-storm summary." The four mid-storm
+     lines (windmove, blownOut, anchorHold, blocked) and the tradewind bubble were duly withdrawn.
+     THE SUMMARY THAT WAS MEANT TO REPLACE THEM WAS NEVER WRITTEN. `stormSummaryEvent` has been
+     emitting a full payload — moved/held/shipHeld/blown/swept — into a table with no entry for
+     it, so describeFor() returned null at line 789 and the bubble never appeared. A storm
+     announced itself in the day header and then moved four ships in total silence.
+
+     HIS SHAPE, chosen from the question UI 2026-09-06: name the captains, group the outcomes.
+     Grouping is what keeps it one line instead of four on a phone — the engine already hands us
+     the seats bucketed by outcome, so this reads them rather than re-deriving anything.
+     shipHeld is the bucket that exists BECAUSE captains were being silently omitted (see
+     noteStormOutcome: 71 omitted across 300 seeded games), so it gets a clause of its own here.
+     Every bucket the engine can fill has one; a bucket cannot be added there without this line
+     going quiet about it, which is the failure this whole entry is repairing. */
+  stormSummary:(e,at,cellPx,viewerSeat)=>{
+    const dir=DIRNAME[e.dir];
+    /* "ye" wherever the local player is in the group, exactly as the trade and battle lines do —
+       a summary that calls you by name while addressing everyone else in second person is the
+       inconsistency rule "one display path" exists to stop. */
+    const list=(seats)=>{
+      const names=seats.map(i=>isLocalTo(i,viewerSeat)?"<b>ye</b>":pn(i));
+      if(names.length<=1)return names[0]||"";
+      if(names.length===2)return `${names[0]} an' ${names[1]}`;
+      return `${names.slice(0,-1).join(", ")} an' ${names[names.length-1]}`;
+    };
+    /* Second person takes the plural verb ("ye drop"), so a group is singular ONLY when it is one
+       captain who is not you. THIS IS THE BUG THE HARNESS CAUGHT: the first draft built every
+       clause in the passive ("X is driven"), which read fine in a list and produced the fragment
+       "The storm Crustbeard is driven 3 squares NORTH!" whenever it was the only clause. */
+    const sng=(seats)=>seats.length===1&&!isLocalTo(seats[0],viewerSeat);
+    /* TWO GRAMMATICAL SUBJECTS, KEPT APART. What the storm DOES to a captain takes the storm as
+       its subject, so those clauses share the one "The storm …" opener and read as one sentence
+       however many of them fire. What a captain does about it takes the captain, so those follow
+       the dash. Wyatt's own shape, chosen from the question UI 2026-09-06:
+         "The storm drives Flaky Jack and Wyargh WEST — Crustbeard drops anchor and holds fast…" */
+    const byStorm=[],byCaptain=[];
+    if(e.moved.length) byStorm.push(`drives ${list(e.moved)} ${STORM_PUSH} squares ${dir}`);
+    if(e.blown.length) byStorm.push(`blows ${list(e.blown)} clean off the dock`);
+    if(e.swept.length) byStorm.push(`sweeps ${list(e.swept)} into the trade winds`);
+    if(e.held.length)  byCaptain.push(`${list(e.held)} ${sng(e.held)?"drops":"drop"} anchor an' ${sng(e.held)?"holds":"hold"} fast`);
+    if(e.shipHeld.length)byCaptain.push(`${list(e.shipHeld)} ${sng(e.shipHeld)?"is":"are"} pinned by the hull ahead`);
+    const join=(a)=>a.length<=1?(a[0]||""):a.length===2?`${a[0]} an' ${a[1]}`:`${a.slice(0,-1).join(", ")} an' ${a[a.length-1]}`;
+    /* The engine already refuses to emit this event when every bucket is empty ("say nothing
+       rather than narrate an absence"), so one of these two is always populated — but a narration
+       builder that CAN return an empty sentence is one bad merge away from showing him "🌀 !". */
+    if(!byStorm.length&&!byCaptain.length)return null;
+    const txt=byStorm.length
+      ? `🌀 The storm ${join(byStorm)}${byCaptain.length?` — ${join(byCaptain)}`:""}!`
+      : `🌀 The storm blows through — ${join(byCaptain)}!`;
+    return {cls:"storm",txt,
+      caps:e.moved.concat(e.blown,e.swept).map(i=>[i,"🌀 blown by the storm"])
+          .concat(e.held.concat(e.shipHeld).map(i=>[i,"⚓ held fast"]))};
+  },
+  pass:(e,at,cellPx,viewerSeat)=>({
+    txt:`🌊 ${seaLine(e.sea,isLocalTo(e.p,viewerSeat),pn(e.p))} <span class="nobrk">Recipe idea! (+${appState.game.cfg.passCoin}🌕)</span>`,
+    // Generic rather than naming the creature: the sighting is one hand-written sentence now, with
+    // no separately-stored subject to lift out of it, and inventing one by parsing the prose is
+    // exactly the kind of guessing this rewrite removed. (Nothing renders caps in v2 regardless.)
+    caps:[[e.p,"🌊 looks into the ocean"]],pops:[[at(e.p),"🌊",false,WAVE_IMG]]}),
 };
 const NO_AT=()=>[0,0]; // describe()/captions() never need real board coordinates
 // D-10: describeFor is the viewer-aware core; describe() below is now a thin wrapper
@@ -761,7 +918,7 @@ export function narrationSubjects(e){
   const seats=new Set();
   if(e.p!=null)seats.add(e.p);
   if(e.t==="battle"||e.t==="battleflee"){if(e.a!=null)seats.add(e.a);if(e.d!=null)seats.add(e.d);}
-  if(e.t==="parley"||e.t==="trade"||e.t==="bakeoff"){if(e.a!=null)seats.add(e.a);if(e.b!=null)seats.add(e.b);}
+  if(e.t==="parley"||e.t==="trade"||e.t==="collab"){if(e.a!=null)seats.add(e.a);if(e.b!=null)seats.add(e.b);}
   if(e.t==="blocked"&&e.other!=null)seats.add(e.other);
   return [...seats].sort((a,b)=>a-b);
 }
@@ -788,6 +945,42 @@ export function narrationVariants(e){
 // a null payload, a missing/empty variants array, and a null asking seat, so an old host's
 // payload (no variants key at all) and a viewer with no seat both degrade to the payload's own
 // html rather than ever returning undefined/null.
+/* A WAIT LINE ADDRESSED TO THE VERY CAPTAIN WHO IS ABOUT TO BE ASKED IS NOT DRAWN ON THAT
+   CAPTAIN'S OWN SCREEN — they are getting the question itself. Everyone else still reads
+   "…is deciding…", with no dismissal deadline, exactly as item 19 requires.
+
+   THE DEFECT THIS CLOSES, measured to the millisecond twice (`.planning/debug/tails-narration-
+   vanishes.md`, then again by 4/scripts/narration_timeline.mjs on build h). ask() posts a wait-line
+   bubble carrying the same words as the prompt it is about to build; two milliseconds later, in the
+   SAME synchronous turn, panel()'s trailing syncPrompt() runs promptTick(), which sees the action
+   panel go empty -> non-empty and retires whatever wait line is registered — including the one
+   ask() itself just posted. The bubble pops in and is marked for its 300ms fade before a word of it
+   can be read. Measured on build h: the post-sail menu 0ms, the dock's Buy mirror 0ms, the
+   crow's-nest call 1ms. That is Wyatt's "popped up and immediately disappeared", four times over.
+
+   THE FIX GOES AT THE MIRROR, NOT AT promptTick, AND THE CODEBASE ALREADY DECIDED THIS. The radial
+   fan carries a dedup whose own comment says the quiet part out loud — "if a live bubble is just
+   this pill's own words, retire it (the pill already says it)". The mirror is redundant with the
+   prompt by this project's own prior ruling, so teaching promptTick to spare the line would either
+   leave a genuine duplicate standing or be cancelled two lines later by that dedup. And the
+   retirement it would weaken is 3a80839's, which closed a real defect Wyatt reported — a "waiting
+   for yer mateys" card outliving the prompt it announced. That still works after this.
+
+   DERIVED FROM WHAT THE PAYLOAD ALREADY CARRIES — no new wire field, no new state (rule 9). `wait`
+   already crosses (netSetNarr's own note records why a display flag must), and so does `variants`.
+   A wait line for which a seat AT THIS BROWSER has an addressed variant is, by construction, a wait
+   line about a question coming to this browser. decisionIsLocal() is the same test ask() itself
+   uses one line later to decide whether to build the prompt here or send it over the wire, so the
+   two can never disagree about who is being asked.
+
+   ONE PLACE, BOTH TIERS (rule 23, PAR-14). This is called from stageFlash — the single renderer the
+   host's own loop and a guest's watchNarr both reach — never from the two call shapes above it. */
+export function waitLineIsSelfAddressed(variants,opts){
+  if(!(opts&&opts.wait))return false;
+  if(!Array.isArray(variants))return false;
+  try{return variants.some(v=>v&&v.seat!=null&&decisionIsLocal(v.seat));}
+  catch(e){return false;}   // pre-game, or a seat the table does not have: draw it, as before
+}
 export function pickNarrVariant(payload,seat){
   if(!payload)return "";
   const variants=payload.variants;
@@ -845,8 +1038,8 @@ export function captions(e){
 export function computeAwards(){
   const n=appState.game.players.length;
   const mk=()=>Array(n).fill(0);
-  const battlesWon=mk(),battlesLost=mk(),timesAttacked=mk(),fishCount=mk(),dist=mk(),
-    trades=mk(),shotClockCount=mk(),longestBattle=mk(),hottestStreak=mk(),streak=mk();
+  const battlesWon=mk(),battlesLost=mk(),timesAttacked=mk(),cratesBought=mk(),dist=mk(),
+    trades=mk(),longestBattle=mk(),hottestStreak=mk(),streak=mk();
   const bump=(i,heads)=>{
     if(i==null)return;
     if(heads){streak[i]++;if(streak[i]>hottestStreak[i])hottestStreak[i]=streak[i];}
@@ -854,7 +1047,17 @@ export function computeAwards(){
   };
   let prevPos=appState.game.players.map(()=>null);
   for(const e of appState.game.events){
-    if(e.t==="battle"||e.t==="battleflee"){
+    // v2.1 (Wyatt, 2026-08-06: recalculate the lucky streak "over the course of the whole game").
+    // MEASURED FIRST: the walk was already whole-game — `streak` is never reset between turns — but
+    // it was BLIND TO `battlenull`, and that is where the reported symptom came from. A null battle
+    // (v2 rule 9: the crosswind stand-off nobody paid to break, and every declined re-fire) carries
+    // its flips in `rounds` exactly like the other two outcomes, and they were being dropped.
+    // Across 40 headless games that lost 74 of 816 flips — 9% — and the badge undercounted somebody's
+    // streak in 4 of them. Always downward, which is why it read as "this only counted one turn".
+    // Adding it also repairs timesAttacked and longestBattle, which had the same blind spot: a null
+    // battle is still a real attack with real rounds. battlesWon/battlesLost stay guarded on
+    // `winner!=null`, because a null is precisely the case where nobody won.
+    if(e.t==="battle"||e.t==="battleflee"||e.t==="battlenull"){
       // #5: a fought-then-fled battle still counts toward game.battles, so it must count in the
       // per-player battle stats too (it was a real attack with real rounds) — only the clean
       // win/loss tally is skipped for a flee, since nobody won.
@@ -863,20 +1066,20 @@ export function computeAwards(){
       const rounds=e.rounds||[],len=rounds.length;
       if(len>longestBattle[e.a])longestBattle[e.a]=len;
       if(len>longestBattle[e.d])longestBattle[e.d]=len;
-      for(const r of rounds){bump(e.a,!!r[0]);bump(e.d,!!r[1]);}
+      // v2 rule 9b: on a paid re-fire only the ATTACKER flips, and the defender's slot is
+      // null rather than 0 — counting that as a tails would libel their coin luck.
+      for(const r of rounds){bump(e.a,!!r[0]);if(r[1]!=null)bump(e.d,!!r[1]);}
     }
-    if(e.t==="fish"){if(e.heads)fishCount[e.p]++;bump(e.p,!!e.heads);}
-    if(e.t==="dock")bump(e.p,!!e.heads);
-    if(e.t==="anchor")bump(e.p,true);
-    if(e.t==="aground")bump(e.p,false);
+    if(e.t==="dock"){bump(e.p,!!e.heads);if(e.got==="bought")cratesBought[e.p]++;}
+    // v2: `aground` is no longer a coin flip — a storm asks nothing (rule 8), so it contributes
+    // nothing to the heads-luck tally. `anchor` no longer exists at all.
     if(e.t==="trade"){trades[e.a]++;trades[e.b]++;}
-    if(e.t==="shotclock"||e.t==="shotclockskip")shotClockCount[e.p]++;
     if(e.state)e.state.forEach((s,i)=>{
       if(prevPos[i])dist[i]+=Math.abs(s.pos[0]-prevPos[i][0])+Math.abs(s.pos[1]-prevPos[i][1]);
       prevPos[i]=s.pos;
     });
   }
-  return {battlesWon,battlesLost,timesAttacked,fishCount,dist,trades,shotClockCount,longestBattle,hottestStreak};
+  return {battlesWon,battlesLost,timesAttacked,cratesBought,dist,trades,longestBattle,hottestStreak};
 }
 // notes/edits EOV-04: the end-of-voyage honours. The full pool of ~10 keepsakes, each with a
 // pirate-y name, a byline, its 1:1 emblem art (assets/badges/*.png — placeholders Wyatt will
@@ -885,15 +1088,20 @@ export function computeAwards(){
 // the per-player stat array (computeAwards() output, plus a synthesised `tails`).
 const BADGE_POOL=[
   {key:"battlesWon",   img:"cutlass",  name:"The Cutlass of a Thousand Notches", byline:"One notch per fallen foe, carved into the hilt.",                 stat:"Most battles won",   unit:"",         scale:3},
-  {key:"fishCount",    img:"herring",  name:"The Golden Herring",                byline:"For the sweetest rod in the ocean.",                              stat:"Most fish caught",   unit:"",         scale:4},
+  // v2 rule 3: no fishing, so the Golden Herring is retired. In its place, the award that
+  // actually measures a v2 captain — who spent the most at the docks now that every crate on the
+  // board has a price on it (rules 10/11).
+  {key:"cratesBought", img:"doubloon", name:"The Open Purse",                      byline:"Paid the harbourmaster more than any captain on the Sugar Seas.", stat:"Most ingredients bought", unit:"",         scale:4},
   {key:"dist",         img:"compass",  name:"The Horizon-Chaser's Compass",      byline:"For the salt-crusted soul who sailed further than sense allowed.", stat:"Farthest traveled",  unit:" sq",      scale:45},
   {key:"longestBattle",img:"medal",    name:"The Iron Gut Medal",                byline:"For the crew that refused to sink.",                               stat:"Longest battle",     unit:" rounds",  scale:4},
   {key:"tails",        img:"blackspot",name:"The Black Spot of Bad Tides",       byline:"Survived the curse — worst luck on the Sugar Seas.", stat:"Most tails flipped", unit:" tails", scale:16},
-  {key:"hottestStreak",img:"doubloon", name:"The Lucky Doubloon",                byline:"Heads, then heads, then heads again — Lady Luck rode on their shoulder.", stat:"Hottest streak", unit:" heads", scale:4},
+  {key:"hottestStreak",img:"herring",  name:"The Lucky Streak",                  byline:"Heads, then heads, then heads again — Lady Luck rode on their shoulder.", stat:"Hottest streak", unit:" heads", scale:4},
   {key:"trades",       img:"ledger",   name:"The Silver-Tongued Ledger",         byline:"Struck more deals than a Tortuga fishmonger on market day.",       stat:"Most trades struck", unit:"",         scale:3},
   {key:"timesAttacked",img:"target",   name:"The Painted Target",                byline:"Somehow every cannon in the Caribbean swung their way.",           stat:"Most set upon",      unit:"",         scale:3},
   {key:"battlesLost",  img:"timbers",  name:"The Splintered Timbers",            byline:"Took a right drubbing and lived to grumble about it.",             stat:"Most battles lost",  unit:"",         scale:3},
-  {key:"shotClockCount",img:"barnacle",name:"The Barnacle Brain",                byline:"Pondered each move till the barnacles grew — no rush in these waters.", stat:"Slowest to decide", unit:"",      scale:3},
+  /* "The Barnacle Brain" (slowest to decide) left with the shot clock, 2026-08-28 — its tally
+     counted shotclock/shotclockskip events nothing emits now; kept, every seat would score 0 and
+     the award would be handed out by tie-break, a visibly wrong End of Voyage screen. */
 ];
 // Guaranteed fallback for a captain who earned no standout stat (rare — everyone at least sails, so
 // "Farthest traveled" is nearly always claimable — but this ensures EVERY captain gets one award).
@@ -905,7 +1113,7 @@ const FALLBACK_BADGE={img:"anchor",name:"Good Mate",byline:"Pirated for the love
 // still-available badge. A captain who can't claim any stat (all zero) gets a flavor fallback.
 export function assignBadges(){
   const s=computeAwards();
-  const arrs=Object.assign({},s,{tails:appState.game.players.map(p=>(p.flips||0)-(p.heads||0))});
+  const arrs=Object.assign({},s,{tails:appState.game.players.map(player=>(player.flips||0)-(player.heads||0))});
   const n=appState.game.players.length;
   const cands=[];
   for(const def of BADGE_POOL){
@@ -914,12 +1122,33 @@ export function assignBadges(){
   }
   cands.sort((a,b)=>b.score-a.score);
   const bySeat={},usedCat=new Set();
+  /* ⭐ THE BLACK SPOT IS ALWAYS AWARDED — Wyatt, 2026-09-09: "include the unluckiest (most tails
+     flipped) prize in each awards lineup".
+     ⚠ IT WAS NOT MISSING, IT WAS COMPETING. Every badge below is handed out by one greedy pass over
+     `score = value / scale`, so "most tails" only appeared when it happened to out-score a captain's
+     battles, distance or trades — which on a lucky table is never. He wants it every voyage, so it
+     is assigned FIRST, to whoever actually flipped the most tails, and the greedy pass then fills
+     the rest of the table around it.
+     ⭐ AND THE COUNTER ALREADY MEANS WHAT HE HOPED — he asked to "make sure that the most tails
+     flipped counter is doing total tails, not streak". It is: `flips - heads`, a total, computed
+     where `arrs` is built above. The STREAK award is a different badge (hottestStreak, heads), which
+     is probably what raised the question. Checked, not assumed. */
+  {
+    const t=arrs.tails||[];
+    let best=-1,bestSeat=-1;
+    for(let i=0;i<n;i++)if((t[i]||0)>best){best=t[i]||0;bestSeat=i;}
+    const def=BADGE_POOL.find(d=>d.key==="tails");
+    if(def&&bestSeat>=0&&best>0){
+      bySeat[bestSeat]={seat:bestSeat,def,value:best,score:best/def.scale};
+      usedCat.add("tails");
+    }
+  }
   for(const c of cands){
     if(bySeat[c.seat]!==undefined||usedCat.has(c.def.key))continue;
     bySeat[c.seat]=c;usedCat.add(c.def.key);
   }
   for(let i=0;i<n;i++)if(bySeat[i]===undefined)bySeat[i]={seat:i,def:FALLBACK_BADGE,value:appState.game.players[i].ing.length};
-  return appState.game.players.map((p,i)=>bySeat[i]); // one per captain, in seat order
+  return appState.game.players.map((player,i)=>bySeat[i]); // one per captain, in seat order
 }
 
 // standard subtitle-timing formula: a floor so short messages don't flash away, a per-char
@@ -973,14 +1202,100 @@ export function assignBadges(){
 // signals "this is about to leave". That was his stated purpose for lengthening it.
 const HOLD_BASE_MS=500, HOLD_MS_PER_CHAR=20, HOLD_PAUSE_MS=300;
 export const HOLD_FLOOR_MS=800, HOLD_CEILING_MS=2000;
-export function msgHoldMs(text){
+// D-10 (Wyatt, 2026-08-20 playtest item 10; re-ruled by the orchestrator 2026-08-21 after the
+// literal stage.js edit was measured to have zero player-visible effect): "a long narration line
+// stays on screen about two seconds longer" — the CEILING only, floor and formula untouched.
+//
+// THE LEVER WAS HERE, NOT AT stage.js's OUTER CLAMP. `msgHoldMs()` was already returning at most
+// HOLD_CEILING_MS (2000) BEFORE stage.js's `*1.5` and its own outer Math.min ever run, so
+// 2000*1.5=3000 sat well under stage.js's clamp regardless of what number that clamp named —
+// raising 6750 to 8775 there could never bind. Live-measured, two-tab, real driven crew game:
+// longest bubble held 3305ms/3304ms (host/guest), matching 2000*1.5 + the ~300ms fade tail in
+// stage.js's finish(), not the outer ceiling.
+//
+// SCOPED, NOT GLOBAL: msgHoldMs() gained an OPTIONAL second parameter rather than HOLD_CEILING_MS
+// itself being raised, because this function has a second live consumer — panel.js's flash()
+// falls back to `msgHoldMs(text)` (no override) whenever `window.__pp4` is unset. In practice that
+// path is dead once a game is on screen (stage.js's initStage() sets window.__pp4 unconditionally
+// at boot), but it is a real second reader of this exact constant and D-10 asked only about the
+// narration BUBBLE, not every future caller. Every existing call site — including panel.js's
+// fallback and any script harness reading HOLD_CEILING_MS directly — behaves byte-identically:
+// the parameter defaults to HOLD_CEILING_MS itself, so omitting it reproduces today's clamp
+// exactly. Only stage.js's narration-bubble call (the sole live consumer) passes the override.
+export function msgHoldMs(text,ceilingMs){
+  if(appState.ff)return 0;   // ⏩ fast-forward: no holds — pacing belongs to the skip until a prompt lands
   text=text||"";
   let raw=HOLD_BASE_MS+text.length*HOLD_MS_PER_CHAR;
   const body=text.replace(/[.,!?]+$/,""); // trailing punctuation doesn't count as a mid-string pause
   const pauses=(body.match(/[,!?.]/g)||[]).length;
   raw+=pauses*HOLD_PAUSE_MS;
-  return Math.round(Math.min(Math.max(raw,HOLD_FLOOR_MS),HOLD_CEILING_MS));
+  const ceiling=typeof ceilingMs==="number"?ceilingMs:HOLD_CEILING_MS;
+  return Math.round(Math.min(Math.max(raw,HOLD_FLOOR_MS),ceiling));
 }
+// ---- D-34 / D-45: narration holds at READING SPEED --------------------------------------------
+// His item 6 on the afternoon solo list, build t: "medium narration lines drag". Measured, and the
+// curve above was not the culprit -- the FLOOR was. msgHoldMs() returns at least HOLD_FLOOR_MS,
+// stage.js then multiplied by 1.5 and floored the RESULT at 2550ms, so every line under about 85
+// characters sat at exactly 2550ms. "Blown into the trade winds!" (27 chars, computed 1560ms) and a
+// 75-character sentence held for the identical time. A floor is a price list standing in for a
+// quantity that moves by an order of magnitude across a voyage (rule 9), and it fails silently.
+//
+// D-34 -- Wyatt's own pick, shown three options and the measurement behind each: replace the
+// floor-plus-per-character model with a READING-SPEED one. Hold = a small overhead + characters
+// divided by a reading rate. He picked against two anchors, and those two anchors are the only
+// numbers typed here. Two points determine one line, so the rate and the overhead are SOLVED from
+// them rather than typed alongside them:
+//
+//     rate     = (75 - 27) chars / (4500 - 2100) ms = 0.0200 char/ms  (20 char/sec)
+//     overhead = 2100ms - 27 chars / 0.0200 char/ms = 750ms
+//
+// D-45 -- Wyatt, 2026-08-21 evening, asked directly with both numbers in front of him: "everything
+// 15% faster: long lines ~5.3s -> ~4.5s, short ~2.1s -> ~1.8s." BOTH of his after-numbers are his
+// own before-numbers divided by 1.15, so the speed-up divides the WHOLE hold, not only its reading
+// term. Dividing the overhead and multiplying the rate does exactly that at every length in
+// between, and it needs no third number. (D-41 recorded the earlier form of this ruling -- rate
+// only, ceiling held. D-45 supersedes it and says so.)
+//
+// D-45 ALSO RE-RULES D-10's CEILING, in the open, by the person who made both rulings. D-10 pinned
+// a long line at ~5.3s (live-measured 5304ms host / 5297ms guest) and this file used to describe
+// that number as guarded. It is not guarded any more: he was shown it and chose ~4.5s. D-10's
+// INTENT -- a long line stays on screen long enough to read -- is untouched; only its number moved.
+// So the new ceiling is D-10's own hold divided by the same 1.15, not a fourth typed number.
+//
+// WHAT MOVES WITH IT, enumerated before the change rather than discovered after it (the -21.2
+// ladder regression came from replacing a constant with a calculation and not listing its readers):
+//   - stage.js's narration bubble  -> MOVES. This is D-34's target and the only live consumer.
+//   - panel.js's flash() classic-path fallback -> MOVES, so the two cannot disagree about how long
+//     one line of narration reads (rule 23). It is dead in practice because initStage() sets
+//     window.__pp4 at boot, but it is a real second reader of the same pacing.
+//   - flash(holdMs) when holdMs is a NUMBER -> does NOT move. That is botWindLeg's explicit
+//     per-square override (D-10), an argument rather than a curve.
+//   - chatBubbleHoldMs()           -> does NOT move. D-15 pinned a chat bubble to its own curve on
+//     purpose: another player typing TO you earns the extra beat.
+//   - msgHoldMs() itself and its botMsgHoldMs() alias -> UNCHANGED. Nothing in 4/src calls either
+//     any more once the two above are moved; they are kept so the D-23 parity alias and any script
+//     harness reading HOLD_FLOOR_MS/HOLD_CEILING_MS keep behaving byte-identically.
+//   - scripts/narration_test.js's G28 pins -> read the ROOT tree's src/ui/util.js, not this file.  [ROOT-TREE-CITATION: narration_test.js reads the root tree on purpose — true as written]
+//     Checked by path, not assumed.
+const READ_ANCHOR_SHORT  = [27, 2100];   // D-34: ~27 characters reads in ~2.1s
+const READ_ANCHOR_MEDIUM = [75, 4500];   // D-34: ~75 characters reads in ~4.5s
+export const READ_SPEEDUP = 1.15;        // D-45: assume people read 15% faster -- every line
+const READ_RATE_BASE_CPMS =
+  (READ_ANCHOR_MEDIUM[0] - READ_ANCHOR_SHORT[0]) / (READ_ANCHOR_MEDIUM[1] - READ_ANCHOR_SHORT[1]);
+export const READ_RATE_CPMS = READ_RATE_BASE_CPMS * READ_SPEEDUP;
+export const READ_OVERHEAD_MS =
+  (READ_ANCHOR_SHORT[1] - READ_ANCHOR_SHORT[0] / READ_RATE_BASE_CPMS) / READ_SPEEDUP;
+// D-10's approved hold exactly as this codebase produced it until today -- msgHoldMs's scoped
+// ceiling times stage.js's 1.5 -- kept as the SOURCE of the new ceiling so the lineage of the
+// number stays readable and D-45 is expressed in exactly one place.
+const D10_HOLD_CEILING_MS = 3330 * 1.5;  // 4995ms; measured on screen at 5304/5297 with the fade tail
+export const NARRATION_HOLD_CEILING_MS = Math.round(D10_HOLD_CEILING_MS / READ_SPEEDUP);
+export function narrationHoldMs(text){
+  if(appState.ff)return 0;   // fast-forward: no holds, same rule msgHoldMs already follows
+  const chars=String(text==null?"":text).length;
+  return Math.round(Math.min(READ_OVERHEAD_MS + chars / READ_RATE_CPMS, NARRATION_HOLD_CEILING_MS));
+}
+
 // D-09/D-10: the per-square storm-push beat — a single named constant so Wyatt can tune
 // snappiness-vs-legibility at UAT without a code hunt. STORM_STEP_MS is the human pace (windLeg);
 // BOT_STORM_STEP_MS is the bot's own, snappier per-square beat (botWindLeg, src/ui/flow.js).
@@ -997,7 +1312,104 @@ export function msgHoldMs(text){
 // measurement on the fixed build put the real dwell at 166ms (bot) and 317ms (human), both under
 // the 350ms glide, exactly as that predicts. Raised to clear it with a little rest at each square.
 // Still the feel knob: tune freely, but keep both above SHIP_GLIDE_MS or the stepping is lost.
-export const SHIP_GLIDE_MS=350; // must match drawBoard()'s ship `transition: transform .35s`
+// /4 playtest 14 (Wyatt: "make the boats sail 50% of current speed"): 350 -> 700. Every derived
+// beat below (storm steps, rim-sweep pace) scales with it, so the per-square rest is preserved.
+// playtest 19 item 3 (Wyatt: "on load, the recipe cards were zoomed wrong; i had to zoom out then
+// refresh"). THE LAYOUT VIEWPORT — never window.innerWidth/innerHeight for laying anything out.
+//
+// Safari reports the *visual* viewport in innerWidth/innerHeight, so on a pinch-zoomed page they
+// SHRINK, and every box sized from them is built for a screen half the real width. Measured at
+// 390x844 with innerWidth forced to 195 (a 2x pinch), on the old build: the recipe sheet came out
+// 179px wide with 72px cards against a correct 374/163.5, and it stayed wrong until BOTH a
+// zoom-out and a reload — exactly what he had to do.
+//
+// documentElement.clientWidth/Height is the layout viewport. It does not move with pinch zoom, and
+// it is the same coordinate space getBoundingClientRect() reports in — which is what every
+// placement in stage.js compares against, so mixing the two was the whole bug.
+//
+// Defined ONCE here because two separate files had it: stage.js sizes the prompts and the recipe
+// sheet, and board.js's syncBoardSizing() sets --boardW, which #actionPanel is max-width capped to
+// (index.html) — so a zoomed innerWidth squeezed the cards a second time, through a different
+// file, after the first fix. The `||` is a floor for the pre-layout case, not a preference.
+/* ONE ANSWER to "is this option greyed out?", for every site that needs to know.
+   playtest 21 item 5 moved greyed options from the `disabled` ATTRIBUTE onto aria-disabled, because
+   a real <button disabled> fires no click event and therefore could never be tapped to ask why it
+   is greyed. The consequence is that `b.disabled` is now FALSE on every prompt button, so any
+   surviving `!b.disabled` test silently starts treating greyed options as live — which is exactly
+   how the stay-put confirm would have picked one to hang itself on.
+   It lives in util.js rather than flow.js because stage.js needs it too and flow.js must not be
+   imported there: module_graph_check.js forbids the cycle. */
+export function isDisabledBtn(b){return !!b&&b.getAttribute("aria-disabled")==="true";}
+/* ITEM 22 STOPGAP (D-18, 02.2-03): on a desktop-width screen, index.html caps `body.pp4Stage` to a
+   phone-shaped column (`max-width:430px`) and gives it a `transform`, which — by the CSS spec — is
+   what makes `body` the containing block for every `position:fixed` stage element (the ribbon, the
+   prompt box, the captains panel, the board itself: buildStage() in stage.js appends all of them
+   straight to `document.body`). So the WIDTH those elements actually render at is `body`'s own box,
+   not the true viewport — but `document.documentElement.clientWidth` only ever answers "how wide is
+   the viewport", never "how wide is the box everything is actually measured against". Every camera
+   fit, every `cqw` calculation and every board-mapped overlay in stage.js reads `vwPx()`/`vhPx()`
+   for that number, so left unchanged they would keep computing against the full desktop width while
+   everything they position renders inside the narrower, capped column — the exact mismatch a
+   200px phantom bug came from once already (`docs/BOARD-RENDERING.md` §7).
+   `document.body.getBoundingClientRect()` is what the renderer's own fixed-position math is
+   actually keyed to (BOARD-RENDERING.md §7's rule: compare against what the renderer produced, not
+   against arithmetic re-derived by hand) — so read it directly, rather than re-deriving 430px or
+   the media query's breakpoint here as a second copy of either number.
+   FALLS BACK to today's behaviour whenever the stage isn't active, the container has no box yet
+   (a game not yet on screen — 0×0 is a real width, so its emptiness, not a falsy check, is what
+   triggers the fallback), or `pp4Stage` never got the class in the first place — a phone, where the
+   min-width media query never applies and body's own rect equals the viewport anyway, takes this
+   same fallback path and is unaffected either way. Zero-risk default (D-18).
+   TO REVERT (Phase 8): delete this branch and the matching `@media (min-width:601px)` rule in
+   index.html — both are additive over the pre-stopgap behaviour below. */
+export function stageCappedRect(){
+  if(typeof document==="undefined")return null;
+  const b=document.body;
+  if(!b||!b.classList.contains("pp4Stage"))return null;
+  const vw=document.documentElement.clientWidth||window.innerWidth;
+  const r=b.getBoundingClientRect();
+  // Trust body's own box ONLY once the desktop-only media query has genuinely narrowed it below
+  // the true viewport. On a phone that query never matches, so body's rect always equals the
+  // viewport width — `r.width>=vw` catches that (and any other width-uncapped state) and falls
+  // through to the untouched pre-stopgap path, which is what keeps a phone byte-identical (D-18)
+  // regardless of anything this branch does on desktop.
+  if(r.width<=0||r.height<=0||r.width>=vw)return null;
+  return r;
+}
+export const vwPx=()=>{const r=stageCappedRect();return r?r.width:(document.documentElement.clientWidth||window.innerWidth);};
+export const vhPx=()=>{const r=stageCappedRect();return r?r.height:(document.documentElement.clientHeight||window.innerHeight);};
+/* THE OTHER HALF OF ITEM 22 (RED ALERT, 2026-08-21, D-18 follow-up): stageCappedRect() above fixes
+   WIDTH/HEIGHT for anything reading vwPx()/vhPx() — but the same transform that narrows body also
+   MOVES it: `margin:0 auto` on a capped-width body sits its own left edge partway into the true
+   viewport, not at 0. getBoundingClientRect() always answers relative to the true viewport (CSS
+   spec, unaffected by any ancestor transform), so a `left`/`top` copied from one gBCR reading
+   straight onto a DIFFERENT position:fixed element (now measured against body's shifted box, not
+   the viewport) lands off by exactly that shift. Confirmed as the root cause of Wyatt's 7am
+   game-stopping report (docs/HARD-WON-LESSONS.md): the radial fan's own placement search requires
+   candidates to land inside a body-relative band (via vwPx()), but was fed viewport-absolute
+   coordinates for the ship itself — every candidate failed, and the fallback stacked all four
+   buttons (Dock/Trade/Attack/Pass) on the same clamped corner, hiding three of them under the one
+   left visibly clickable.
+   fixedOrigin() is that same shift, read the same way stageCappedRect() reads its own guard — zero
+   on phone, zero whenever the stopgap isn't active, never re-derived as 430px or the breakpoint.
+   fixedRect(el) applies it to one element's own rendered box for the handful of call sites that
+   read a DIFFERENT element's rect (a sail-highlight square, an already-placed pill) to place
+   something else — width/height are untouched, since a translation cannot change a size. */
+export function fixedOrigin(){
+  const r=stageCappedRect();
+  return r?{x:r.left,y:r.top}:{x:0,y:0};
+}
+export function fixedRect(el){
+  const r=el.getBoundingClientRect();
+  const o=fixedOrigin();
+  return {left:r.left-o.x,right:r.right-o.x,top:r.top-o.y,bottom:r.bottom-o.y,width:r.width,height:r.height};
+}
+export const SHIP_GLIDE_MS=700;
+/* How long the finished board is left alone before the End of Voyage banner covers it (playtest 22
+   item 12). Long enough to read the sea and take a screenshot, short enough that it does not read
+   as the game having stalled — the same judgement msgHoldMs makes for a line of narration, and
+   deliberately a shade longer because there is nothing to read and everything to look at. */
+export const BOARD_LAST_LOOK_MS=2600;
 export const STORM_STEP_MS=SHIP_GLIDE_MS+70;     // 420 — the human watching their own ship
 export const BOT_STORM_STEP_MS=SHIP_GLIDE_MS+30; // 380 — bots stay the snappier of the two
 // G14 (Wyatt-approved 2026-07-30): the per-square beat for a TRADE-WIND RIM SWEEP. Derived from the
@@ -1057,14 +1469,55 @@ export const RIM_SWEEP_STEP_MS=Math.round(BOT_STORM_STEP_MS/4); // 95
 // the automation tab reported visibilityState "hidden", rAF returned zero frames, and the game
 // stalled mid-turn every time. setTimeout keeps firing (merely throttled) when hidden.
 //
-// The tick is paired with an equally short LINEAR css glide, so the browser interpolates between
-// our discrete targets and absorbs the timer jitter setTimeout has and vsync-aligned rAF does not.
-// That pairing is what makes a setTimeout-driven motion look as smooth as an rAF one.
+// The tick is paired with a LINEAR css glide, so the browser interpolates between our discrete
+// targets and absorbs the timer jitter setTimeout has and vsync-aligned rAF does not. That pairing
+// is what makes a setTimeout-driven motion look as smooth as an rAF one — but ONLY if the glide
+// outlasts the tick. See MOTION_BRIDGE_TICKS below: "equally short", which is what this paragraph
+// said for a fortnight, is the one length that cannot work.
 // UNITS: milliseconds BETWEEN motion updates — so SMALLER is smoother, not larger. 16ms is ~60
 // updates a second, which is the display's own refresh rate and therefore the practical ceiling:
 // going lower buys nothing a screen can show. (Wyatt asked for "48" reading 24 as a frame rate;
 // 16ms is ~60/sec, i.e. more than the 48/sec he was after, in the direction he wanted.)
 export const RIM_SWEEP_TICK_MS=16;
+// playtest 21 item 6: the motion tick for a routed sail. Same value and same reasoning as the rim
+// sweep's — small enough that the eye reads one continuous travel, and paired with a one-tick
+// LINEAR ship glide so the browser bridges between successive targets. It is a TICK RATE, not a
+// pace: the route's duration is SHIP_GLIDE_MS regardless, so lowering this buys smoothness and
+// costs paints, and changes nothing about how long a move takes.
+export const SAIL_ROUTE_TICK_MS=16;
+/* HOW LONG THE BRIDGING GLIDE RUNS, IN TICKS — and "one tick" is precisely the value that cannot
+   work, which is what both steppers shipped with until playtest 22 (Wyatt: "the ships movement is
+   not smooth; it feels jittery").
+
+   MEASURED, headless at a real 61fps, sampling the ship's RENDERED transform (getComputedStyle,
+   which returns the live animated matrix) on every animation frame through a real four-leg routed
+   sail. The control is a plain 700ms CSS glide on the same element — a motion already known to be
+   smooth, so it proves the sampler can tell the two apart at all:
+
+     bridge = 1 tick  (16ms, what shipped)   48% of the fast core's frames FROZEN   peak jump 20.0px
+     bridge = 2 ticks (32ms)                  0% frozen                             peak jump 10.6px
+     bridge = 3 ticks (48ms)                  0% frozen                             peak jump  9.5px
+     one 700ms CSS glide (control)            0% frozen                             peak jump  5.3px
+
+   At one tick the per-frame sequence is a perfect sawtooth — 0.1 0.0 0.5 0.0 1.3 0.0 2.8 0.0 —
+   the boat advancing on every OTHER frame in doubled steps. THE RACE IS WITH THE FRAME CLOCK, NOT
+   THE TIMER: a transition exactly as long as the tick has at most one frame in which to run, so
+   whether a frame shows an intermediate value at all depends on where setTimeout happens to land
+   inside it. Two ticks means a transition is always still in flight when the next target lands —
+   the measured tick gap ran 16-36ms — so the browser has something to interpolate every frame.
+
+   THE COST IS LAG, AND LAG ROUNDS CORNERS — the chord bug of 2026-07-31 in a milder form, so it is
+   measured too, and against the stepper's OWN targets rather than against arithmetic of mine (the
+   targets are on the drawn route by construction). Max excursion off the route: 4.5px at 2 ticks
+   (0.11 of a cell), 8.2px at 3, 12.7px at 5. Two ticks buys the whole of the smoothness and costs
+   a ninth of a cell, so it is the setting; three buys nothing more and costs twice as much.
+
+   ONE constant for BOTH steppers (routed sail and rim sweep) — they are the same mechanism and had
+   the same defect, so they are not allowed to drift apart. It is expressed in TICKS rather than
+   milliseconds for the same reason RIM_SWEEP_MS_PER_CELL is derived: the thing that matters is the
+   ratio to the tick, and a millisecond figure would quietly stop being right the moment a tick
+   rate is tuned. */
+export const MOTION_BRIDGE_TICKS=2;
 // Progress is always derived from ELAPSED TIME, never from a tick count — panel.js's other lesson:
 // a chain that counts ticks can never catch up, because each tick only schedules the next after its
 // own overhead, so one slow callback drifts every remaining one. Deriving from elapsed time means a
@@ -1141,6 +1594,132 @@ export function pastelize(hex,alpha=.16){
   return `#${mix(r)}${mix(g)}${mix(b)}`;
 }
 export function apBtnStyle(col){return col?` style="border:2px solid ${col};background:${pastelize(col)};font-weight:700"`:"";}
+/* ================= ONE BUTTON ROW, BUILT IN ONE PLACE (02.1-03) =================
+
+   The host's localAsk (flow.js) and the guest's watchPrompt (orchestrator.js) used to build this
+   markup from two separately-maintained template literals, and orchestrator.js's own comment named
+   the hazard in as many words: "this renderer is a genuine second copy (host and guest render
+   prompts from different sources), so a change to one that skips the other reintroduces the bug on
+   whichever side was forgotten." Six fields had already drifted and been caught ONE AT A TIME —
+   `disabled`, `why`, `back`, `flipIdx`, `stage`, `shorts` — every one of them found by a human
+   staring at two browser windows. A seventh, `seat`, was still missing from the guest when this
+   was written. This function is why there cannot be an eighth.
+
+   SHARE THE BUILDER, NOT THE CALLER. This is the sailHighlightRect() shape (flow.js:388-419, G25,
+   which fixed the same class of drift for sail squares): one pure function decides what the markup
+   IS, and each caller keeps its own click wiring. localAsk resolves its own promise with res(i);
+   watchPrompt writes an answer to Firebase with sendResponse(prompt.id,i). Those two resolution paths
+   are legitimately different — a local promise and a network round trip — and must stay apart.
+   Unifying them is NOT what this shares.
+
+   escHtml (recipe.js) rather than a third local escaper. The two `esc`/`escW` closures this
+   replaces never escaped ">" at all; escHtml does, so the row is strictly better escaped than
+   either copy was. Nothing in 4/ feeds a ">" into a `why` today (checked), so no rendered reason
+   changes — this is a hole closed, not a behaviour change.
+
+   Items are {i, label, cls, disabled, why, seat, color}. `seat` MAY BE 0 — seat 0 is a real
+   captain — so it is tested against null and never for truthiness. `data-why` is written only when
+   the option is BOTH disabled and has a reason, because that attribute exists for showWhy() to
+   speak when a greyed circle is tapped, and a live button has nothing to explain.
+
+   The narration-box reveal rule (.apBack -> .apMsg -> .apBtns -> .apSub) is untouched by this: it
+   builds only what goes INSIDE .apBtns, and never the order panel() assembles around it. */
+export function optionButtonsHTML(items){
+  return (items||[]).map(it=>`<button class="apBtn ${it.cls||""}${it.disabled?" apDisabled":""}" data-i="${it.i}"${it.seat!=null?` data-seat="${it.seat}"`:""}${it.disabled?` aria-disabled="true"`:""}${it.disabled&&it.why?` data-why="${escHtml(it.why)}"`:""}${apBtnStyle(it.color)}>${it.label}</button>`).join("");
+}
+// the small circular "‹" escape hatch that renders ABOVE the message rather than competing with
+// the real choices in the button row. Both call sites hand-built this identical string; same
+// reason as the row above, one definition.
+export function backButtonHTML(idx){return `<button class="apBack" data-i="${idx}" aria-label="Back">‹</button>`;}
+
+/* ================= ONE COIN SLIDER, BUILT AND WIRED IN ONE PLACE (05-01 Task 3, MP-08) =========
+
+   Wyatt, 2026-08-23: "guest should OBVIOUSLY get the real coin slider, and you already know why —
+   guests and hosts are given the same experience." (D-55.) It was never a decision: CLAUDE.md
+   rule 23 / DISPLAY-RULES §1 already say host/guest decides WHO COMPUTES and WHO CREATES THE ROOM,
+   never WHAT IS DRAWN, and rule 8 says the same gesture behaves the same way everywhere unless he
+   chose the exception. He did not choose this one — the code itself had been flagging it as an open
+   hole since playtest 21 ("close this if /4 ever ships online multiplayer"), which is an admission,
+   not a ruling. /4 is shipping online multiplayer. This is that closure.
+
+   THE DESIGN-TIME QUESTION, answered before a line of it was written: what makes the host's coin
+   control and a guest's coin control agree? THEY ARE THE SAME TWO FUNCTIONS. Not two controls kept
+   in step. localAsk (flow.js) and watchPrompt's ask branch (orchestrator.js) both name
+   sliderWrapHTML and wireSlider directly — no tier-only wrapper, because a wrapper is exactly what
+   stops the parity gate from seeing a convergence.
+
+   THE CLASS NAMES ARE LOAD-BEARING AND THAT IS WHY THIS IS ONE BUILDER. stage.js identifies the
+   slider BY CLASS in two places: menuButtons exempts `input:not(.apSlider)` so a slider does not
+   knock its own prompt out of radial mode, and the placement memo key reads `.apSliderWrap` without
+   which the bar renders at 0,0 in the corner. A guest whose markup differed by one class name would
+   get a flat card where the host gets the radial bloom — the 2026-08-19 complaint, waiting to happen
+   an eighth time. With one builder that is unrepresentable.
+
+   WHAT CROSSES THE WIRE AND WHAT DOES NOT. The spec is {min,max,start,ref,fmt,aria}. Four of those
+   six are a plain number or a string and ride across untouched. The two that cannot:
+     - `fmt` is a closure over live game state, so it is PRE-RENDERED on the host into `texts` —
+       max-min+1 short strings, one per stop. It is not dropped: the pill re-stating the whole deal
+       as ye drag is the reason the number is never read in isolation (TRADE-SYSTEM §4), and a guest
+       handed a bare number would have a different control again.
+     - `ref` is the mutable object the CALLER reads the answer out of. It does not cross and does not
+       need to: the guest builds its own ref, the chosen number rides home beside the button index
+       as {i,n}, and ask() lands it in the HOST's ref before resolveOpt ever runs. So coinSlider's
+       single logQuantity() call fires for a remote drag exactly as it does for a local one — the
+       decision-log requirement satisfied BY CONSTRUCTION rather than by care, which is the point,
+       because HARD-WON-LESSONS §5 is the account of this very control replaying at its floor. */
+export function sliderWrapHTML(sl){
+  /* W6-1 (Wyatt): "'Would ye offer any coin on top?' appears with NO SLIDER when the player has no
+     money left. Expectation: the slider appears greyed out." A dead purse still gets the control —
+     the question makes no sense without it — but it must LOOK dead, because a live-looking bar that
+     cannot move invites a drag that does nothing. `disabled` does both jobs at once: the browser
+     stops the drag and stops the keyboard, and the stylesheet greys it, so there is no second
+     mechanism to keep in step. */
+  const dead = sl.disabled ? " disabled" : "";
+  return `<div class="apSliderWrap${sl.disabled ? " apSliderDead" : ""}"><input class="apSlider" type="range" min="${sl.min}" max="${sl.max}" value="${sl.start}" step="1"${dead} aria-label="${escHtml(sl.aria||"Amount")}"><output class="apSliderOut">${sl.start}</output></div>`;
+}
+/* The deal re-stated at THIS stop. `fmt` on the tier that has the game, `texts` on the tier that was
+   handed the strings — one function so the two can never say different things at the same stop. */
+export function sliderText(sl,n){
+  if(sl.fmt)return sl.fmt(n);
+  if(sl.texts&&sl.texts[n-sl.min]!=null)return sl.texts[n-sl.min];
+  return null;
+}
+/* Wires the control the markup above built. `sl.ref.value` is where the running position lands, and
+   the CALLER reads its answer from there — locally on the drag, remotely when ask() unpacks {i,n}.
+   Same function, same class names, same repaint, on every tier. */
+export function wireSlider(root,sl){
+  const inp=root.querySelector(".apSlider"),outEl=root.querySelector(".apSliderOut");
+  if(!inp)return;
+  const paint=()=>{
+    const n=+inp.value;
+    if(sl.ref)sl.ref.value=n;
+    if(outEl)outEl.textContent=String(n);
+    const t=sliderText(sl,n);
+    if(t!=null){const m=root.querySelector(".apMsg");if(m)m.innerHTML=emojify(t);}
+  };
+  inp.addEventListener("input",paint);
+  paint();
+}
+/* The wire form of a slider spec: the four serialisable fields plus the pre-rendered strings.
+   Built on the host, where the game lives. Returns null when there is no slider, so ask()'s payload
+   simply never carries the key — additive, omitted when absent, the same shape netSetNarr's
+   variants/wait params use, so an old client reading a new payload never sees it. */
+export function sliderWirePayload(sl){
+  if(!sl)return null;
+  const texts=[];
+  for(let n=sl.min;n<=sl.max;n++){const t=sliderText(sl,n);texts.push(t==null?"":String(t));}
+  /* `disabled` CROSSES THE WIRE, and leaving it off was a rule-23 fault caught by CEO Review 19.
+     W6-1 greys the control when there is nothing to choose; the guest rebuilds its spec from THIS
+     payload alone (orchestrator.js Object.assigns it), so a flag missing here means the host sees a
+     dead bar and the guest sees a live one — in the exact control TRADE-SYSTEM.md says every seat
+     drags. The commit that added the greying argued the case against itself: "a live-looking bar
+     that cannot move invites a drag that does nothing." That was the guest's screen for one commit.
+     Omitted when false so an older client reading a newer payload is unaffected, the same additive
+     shape the rest of this payload uses. */
+  const out={min:sl.min,max:sl.max,start:sl.start,aria:sl.aria||"Amount",texts};
+  if(sl.disabled)out.disabled=true;
+  return out;
+}
 // opts[i] can come back missing — a remote seat's answer can resolve to null (remotePrompt
 // resolves null when Firebase gives back a response with no `choice` field, e.g. a dropped
 // connection), or a replay log can be stale/corrupt. Left unguarded that throws mid-decision
@@ -1150,7 +1729,14 @@ export function resolveOpt(opts,i,fallback){
   console.warn("resolveOpt(): invalid choice index",i,"of",opts.length,"options — defaulting to",fallback);
   return{i:fallback,opt:opts[fallback]};
 }
-export function ask(msg,opts,colors,sub){
+/* `extra` (playtest 21 item 7) carries a SLIDER spec for a quantity prompt. IT NOW REACHES EVERY
+   SEAT (05-01 Task 3, MP-08, D-55). The named exception that used to sit here said this must be
+   closed if /4 ever shipped online multiplayer; /4 is shipping online multiplayer, so it is closed.
+   The four serialisable fields plus pre-rendered `texts` ride across in `slider:` (sliderWirePayload
+   above); the guest builds the SAME markup with the SAME builder, and the number it drags to comes
+   home beside the button index as {i,n} and lands in this tier's `ref` below, before resolveOpt.
+   coinStepper is gone from the tree, and with it the routing-dependent decision-log length. */
+export function ask(msg,opts,colors,sub,extra){
   // during reload-replay, return the recorded choice (an index) mapped through the freshly
   // rebuilt opts — so object-valued options resolve to live game references, not stale copies.
   if(appState.replaying){
@@ -1158,31 +1744,16 @@ export function ask(msg,opts,colors,sub){
     netHandlers().onEndReplay();
   }
   const seat=appState.curSeat;
-  // D-02 (18-05): the shot clock used to arm HERE, before the prompt's own buttons were even in
-  // the DOM — a player on a long prompt lost up to ~2.8s of their 30s window to the typewriter
-  // reveal before they could act at all (D-01 now holds the buttons hidden until it resolves).
-  // Publish a one-shot continuation instead: whichever panel() render actually gates the button
-  // row (18-01's pendingReveal seam) claims it and fires it once the buttons are truly clickable.
-  // Deliberately does NOT itself call the arming function defined below — this file's only mention
-  // of that identifier is its own declaration line (a hard gate on this task's own diff); panel.js
-  // is the sole caller, since it already imports it and is where every claim of this continuation
-  // actually happens (both the deferred-reveal path and the remote estimate path). The closure
-  // below just marks the arm claimed and hands the real seat back to whoever calls it, since
-  // panel()'s own currentTurnSeat() derivation is a display-only approximation (it can drift from
-  // the actual asked seat during a nested battle sub-decision) and must never be the value that
-  // actually gets armed.
-  //
-  // Published BEFORE onBroadcast() below, not just before onLocalAsk/onRemotePrompt — netNarrate
-  // (onBroadcast's target) calls showNarration() synchronously on THIS (host) browser before it
-  // ever reaches Firebase, so it is the FIRST panel() render this call produces on either branch:
-  // the actor's own line for a local seat, or the neutral spectator line for a remote one — and
-  // for a remote seat that spectator render is the ONLY panel() call this browser ever makes for
-  // this decision (the real button row renders on the deciding guest's own browser instead).
-  let resolveArmed;
-  const armed=new Promise(res=>{resolveArmed=res;});
-  appState.clockPendingLocal=decisionIsLocal(seat);
-  appState.clockPendingText=msg;
-  appState.clockPendingArm=()=>{resolveArmed();return seat;};
+  /* THE SHOT CLOCK IS TEMPORARILY OUT OF THE GAME — Wyatt, 2026-08-28, choosing removal over
+     engineering the one-activity-engine convergence around it: "i'd prefer to do it even if it
+     breaks shot clock, and to temporarily remove the shot clock from the game." What stood here
+     was the D-02/18-05 arming machinery: an `armed` promise resolved by a one-shot continuation
+     (appState.clockPendingArm) that panel()'s reveal seam claimed once the buttons were truly
+     clickable, so a captain never lost reveal-time from their 30s window. It comes BACK against
+     the converged dispatch — racing ONE resolver is an easier problem than racing two, which is
+     the whole reason removal won. The reveal-gating half of that seam (buttons hidden until the
+     typewriter finishes and the board settles) is a separate feature and still lives in panel().
+     Removal gate: scripts/qa/shotclock_removed_check.mjs. */
   // D-10 DELIVERY (F7, found in the 2026-07-29 two-tab playtest): ONE broadcast reaches EVERY
   // client, so content that branches on the local viewer can never be right. This line used to read
   // `seat===appState.mySeat?msg:spectatorLine` — but ask() runs on the HOST, so `mySeat` is the
@@ -1195,50 +1766,171 @@ export function ask(msg,opts,colors,sub){
   // content, and the actor's own prompt as that seat's variant. netNarrate forwards `variants` to
   // pickNarrVariant on the host and through netSetNarr to watchNarr on every guest, so each client
   // selects for itself. No new copy — both strings already existed.
-  // scripts/ui_contract_check.js assertion 7 gates the rule.
-  netHandlers().onBroadcast(`${pn(seat)} is deciding…`,[{seat,html:msg}]);
+  // scripts/ui_contract_check.js assertion 7 gates the rule.  [UNGATED-IN-4: ui_contract_check.js does not read 4/ — 03-UI-CONTRACT-TRIAGE.md, plan 03-02]
+  /* 19 — THE HOST'S DEAD BOARD, and this is the line that was dying on it. While a guest answers,
+     every other screen holds this "…is deciding…" line, and it is the only thing explaining the
+     pause. On the ordinary hold curve it retired after a few seconds and left a board with nothing
+     on it at all — Wyatt's shot 19, where the host reads as dead while the guest still has the
+     prompt up. `wait` means it registers no dismissal deadline and stands until the answer arrives
+     and fires the next real line, which is his own wording for item 19: "it should disappear when
+     their teammates have played". It is fire-and-forget — nothing awaits it — which is what makes
+     an un-deadlined bubble safe here (see stageFlash). */
+  netHandlers().onBroadcast(`${pn(seat)} is deciding…`,[{seat,html:msg}],{wait:true});
   const isFlip=opts.length===1&&!!opts[0].flip;
   // `sub` is optional helper text rendered under the button row; an option flagged `disabled`
   // renders greyed and non-clickable (notes/edits #5) — used for the too-poor Attack button.
-  const base=decisionIsLocal(seat)?netHandlers().onLocalAsk(msg,opts,colors,sub)
+  const base=decisionIsLocal(seat)?netHandlers().onLocalAsk(msg,opts,colors,sub,extra)
     :netHandlers().onRemotePrompt(seat,{kind:"ask",msg,labels:opts.map(o=>o.label),
        colors:colors?colors.map(c=>c||""):null,classes:opts.map(o=>o.cls||""),
-       disabled:opts.map(o=>!!o.disabled),sub:sub||null,flip:isFlip,
+       // playtest 21 item 5: `why` rides across with `disabled`, because the two are one fact and
+       // a guest that got the greying without the reason would show a dead circle that answers
+       // nothing when tapped — the exact complaint, reintroduced on the other side of the wire.
+       disabled:opts.map(o=>!!o.disabled),why:opts.map(o=>o.why||""),sub:sub||null,flip:isFlip,
+       // 2026-08-19, Wyatt: "the guest doesn't have radial action menus", and "the narration box
+       // stage doesn't look the same for guest and host". Both were THIS payload, missing two
+       // fields — the same shape as the `why` fix five lines up, which is why that note is worth
+       // reading before adding an option flag that the guest also has to see.
+       //   `shorts` — menuButtons() (stage.js:1029) only blooms a prompt into the radial ring when
+       // every button either carries a short label or is <=16 characters. "Dock at the Flour Patch"
+       // is neither, so with `short` left behind the guest silently fell back to a flat card for
+       // the commonest prompt in the game. Empty string, not null, for absent: matches `classes`
+       // and `why` above and avoids RTDB's null-hole behaviour in arrays.
+       //   `stage` — localAsk stamps dataset.pp4Stage from it (flow.js:214) and the stage loop
+       // turns that into the centre-stage treatment. Without it the joining captain got a small
+       // pill where the host got the dimmed 420px card: same words, different game.
+       shorts:opts.map(o=>o&&o.short!=null?o.short:""),
+       //   `seats` — the SEVENTH field of this exact class, and the last one still missing when
+       // 02.1-03 went looking. An option carrying `seat` blooms its circle over the boat it NAMES
+       // rather than around the boat choosing (stage.js's radial placement reads it back off data-seat — named, not line-numbered, because the line moves and the citation rots) — the
+       // battle side-bet's "Call Dough Hook" is the case that needs it. Without this the spectating
+       // guest got the ordinary fan while the host got the anchored one: same words, different
+       // game, which is the same sentence the `stage` fix five lines up had to be written in.
+       //   Empty string for absent, matching `classes`/`why`/`shorts` above and avoiding RTDB's
+       // null-hole behaviour in arrays. SEAT 0 IS A REAL CAPTAIN, so the test is `!=null`, never
+       // truthiness — and the guest reading it back must be just as careful.
+       seats:opts.map(o=>o&&o.seat!=null?o.seat:""),
+       stage:opts.some(o=>o&&o.stage)?1:null,
+       /* MP-08. Additive and OMITTED WHEN ABSENT — sliderWirePayload returns null for a prompt
+          with no quantity on it, and Firebase drops a null key, so nothing changes for the ~99%
+          of prompts that are just buttons. */
+       slider:sliderWirePayload(extra&&extra.slider),
        flipIdx:opts.findIndex(o=>o.flip),back:opts.findIndex(o=>o.back)});
-  // No-panel belt: nothing claimed the arm during the synchronous render above — a pure flip
-  // prompt (opts.length===1 with a `flip`) never calls panel() at all (see localAsk()), so there
-  // is no reveal to defer onto. Arm right now so this decision is never left unclocked; identical
-  // to today's timing for exactly this case (T-18-13). Inlines the same two-line body the arming
-  // function below performs (host guard, then start the clock for this seat) rather than naming
-  // it a second time in this file, for the same reason the closure above doesn't.
-  if(appState.clockPendingArm){
-    appState.clockPendingArm=null;appState.clockPendingLocal=false;appState.clockPendingText="";
-    resolveArmed();
-    if(appState.isHost){const p=appState.game.players[seat];if(p)startShotClock(p);}
-  }
-  // Hard constraint 1: withShotClock() bails out and returns `base` unwrapped unless
-  // seat===appState.shotClockSeat — chaining it onto `armed` guarantees the seat has already been
-  // armed (shotClockSeat is already set) before withShotClock ever inspects it, so the 30s
-  // auto-skip resolver is installed for every clocked decision, never skipped (T-18-12).
-  const idxP=armed.then(()=>withShotClock(seat,base,0));
-  return idxP.then(i=>{const r=resolveOpt(opts,i,0);netHandlers().onLogDecision(r.i);return r.opt.value;});
+  // With the clock out there is nothing to arm and nothing to race: the answer is the answer.
+  // (The no-panel belt and the armed→withShotClock chain that stood here are part of the same
+  // atomic removal as the machinery above — inventory D1: removing HALF of it hangs every prompt.)
+  const idxP=base;
+  return idxP.then(v=>{
+    /* A QUANTITY PROMPT COMES BACK AS {i,n} — the button and the number the captain dragged to.
+       Unpacked HERE, before resolveOpt, for two reasons. First, resolveOpt has always taken an
+       INDEX and an unguarded object would fall through to its fallback, silently answering index 0.
+       Second, `n` has to be in `ref` before the caller's own confirm branch reads it, and that
+       branch is what calls logQuantity() — so the number reaches the decision log through the ONE
+       call a local drag already uses, for a remote drag too.
+       A BARE NUMBER MUST STILL WORK: while the shot clock lived, its 30s force-resolve answered
+       with a plain 0 — an index, not a pair — and any future forced answer will again. */
+    let i=v;
+    if(v&&typeof v==="object"&&v.i!=null){
+      i=v.i;
+      if(v.n!=null&&extra&&extra.slider&&extra.slider.ref)extra.slider.ref.value=v.n;
+    }
+    const r=resolveOpt(opts,i,0);netHandlers().onLogDecision(r.i);return r.opt.value;});
 }
-// re-arms the shot clock with a fresh 30s window right before a new decision is shown to
-// whichever seat is being asked — every ask()/pickCell()/non-flip battleAsk() call in the
-// game goes through this, so every decision anyone makes is timed the same way.
-export function armClock(seat){
-  if(!appState.isHost)return;
-  const p=appState.game.players[seat];if(p)startShotClock(p);
-}
+/* ---------- pacing ---------- */
+// (The solo-pause gate that used to precede these beats left with play/pause — A-10.)
+/* EVERY BEAT IN THE GAME IS AWAITED, SO NO BEAT MAY BE LOST — playtest 22, the stall report
+   (Wyatt: "the game just completely stalled, and when i refreshed the browser, the game RESTARTED").
 
-/* ---------- pause / pacing ---------- */
-// solo pause (see toggleShotClockPause) freezes the whole game by making every await-ed
-// sleep() stall first — bots pace their turns entirely through sleep(), so this alone halts
-// bot play without threading a paused-check through every call site.
-export function waitWhilePaused(){
-  return appState.shotClockPaused?new Promise(res=>{
-    const iv=setInterval(()=>{if(!appState.shotClockPaused){clearInterval(iv);res();}},150);
-  }):Promise.resolve();
+   The turn loop is a chain of awaits: a narration hold, a coin's spin, a pause between storm
+   squares. Each one was a bare `setTimeout`, and a `setTimeout` is a promise that a browser is
+   allowed to break. MEASURED, headless, with the page visible and unthrottled: two timers armed on
+   the same line with the same delay were BOTH never delivered, neither was ever cleared, and a
+   250ms setInterval kept counting straight through it — 272 ticks across 72 seconds. One lost
+   callback anywhere in that chain and the voyage stops for good, with no error and nothing on
+   screen to say so. That is precisely what a stall looks like from the seat.
+
+   So a beat is a DEADLINE with two ways to come due: the timer, which is exact and almost always
+   the one that fires, and a single sweeping interval that catches whatever the timer dropped. The
+   worst case becomes a beat up to SLEEP_SWEEP_MS late rather than a voyage that never continues.
+   One sweeper for the whole game, not one per sleep, so the cost is fixed no matter how many beats
+   are in flight — and intervals are what the measurement showed surviving.
+
+   If setInterval is lost too there is nothing left to catch it, and that is an accepted limit: the
+   evidence says the two are not lost together. */
+const SLEEP_SWEEP_MS=120;
+const pendingSleeps=new Set();
+setInterval(()=>{
+  if(!pendingSleeps.size)return;
+  const now=Date.now();
+  for(const rec of [...pendingSleeps])if(now>=rec.due)rec.fire();
+},SLEEP_SWEEP_MS);
+export function sleepMs(ms){
+  const wait=Math.max(0,ms||0);
+  return new Promise(res=>{
+    const rec={due:Date.now()+wait,done:false,
+      fire(){if(this.done)return;this.done=true;pendingSleeps.delete(this);res();}};
+    pendingSleeps.add(rec);
+    setTimeout(()=>rec.fire(),wait);
+  });
+}
+/* ---------- the voyage ran aground ---------- */
+/* A THROW IN THE TURN CHAIN USED TO BE A SILENT DEATH. Wyatt's call, 2026-08-14, after the counter
+   stall: put something on screen.
+
+   The chain runLiveNet -> the round loop -> humanTurn/botTurn -> every prompt is one long series of
+   awaits with nothing catching at the top. A throw anywhere in it rejected all the way up and the
+   game simply stopped — empty panel, no captain's-log line, and MEASURED over CDP with
+   Runtime.exceptionThrown subscribed: `page errors: NONE`, because the awaiting chain swallows the
+   rejection. On a phone he has no console, so a crash and a hang look identical to him, and the
+   report that reaches me is "it stalled" rather than a stack. That cost two sessions on one typo.
+
+   THREE RULES SHAPE THIS, and each one is why it looks the way it does:
+
+   1. IT MUST NOT USE THE GAME'S OWN RENDERING. Not panel(), not flash(), not showNarration() — the
+      thing that failed may BE the render path, and an error surface that needs the broken machine
+      is not a surface. Raw createElement, inline styles, appended to <body>, no imports.
+   2. IT MUST CARRY THE BUILD STAMP AND THE ERROR TEXT, read from the DOM rather than imported for
+      the same reason. A screenshot of this box is a bug report I can act on; "it stalled" is not.
+   3. IT MUST SAY WHETHER A REFRESH WILL HELP. Solo persists as a decision log, so if the fault is
+      on a REPLAYED decision a refresh sails straight back into it and comes back at the starting
+      position — which reads like a corrupt save and is the second half of every stall report so
+      far. When the log is what will be replayed, the box says to start a fresh voyage instead.
+
+   Deliberately NOT a retry or a resume. Play cannot continue past a turn that half-happened — the
+   coins, the crates and the decision log would disagree — and an error boundary that lets the game
+   limp on is how a small fault becomes an unexplainable one.
+   @copy adhoc.stall.aground — pirate voice with the stamp, Wyatt's pick 2026-08-14. */
+export function voyageAground(err,where){
+  try{
+    if(document.getElementById("ppAground"))return;      // first fault wins; later ones are noise
+    const stamp=(document.getElementById("pp4Stamp")||{}).textContent||"v4 · build unknown";
+    const detail=String((err&&(err.stack||err.message))||err||"unknown");
+    // a replayed decision is the case where refreshing makes it WORSE, not better
+    const onReplay=!!(appState&&appState.replaying);
+    const hasLog=!!(appState&&appState.dlog&&appState.dlog.length);
+    const advice=onReplay||hasLog
+      ? "Refreshin' will sail ye back onto the same rock — start a fresh voyage."
+      : "A refresh may set ye right.";
+    console.error("VOYAGE AGROUND"+(where?" ("+where+")":""),err);
+    const box=document.createElement("div");
+    box.id="ppAground";
+    box.style.cssText="position:fixed;inset:auto 12px 12px 12px;z-index:99999;background:#fffdf2;"+
+      "border:2px solid #2aa9b8;border-radius:14px;padding:14px 16px;max-height:60vh;overflow:auto;"+
+      "font:14px/1.45 system-ui,sans-serif;color:#123;box-shadow:0 8px 30px rgba(0,0,0,.35)";
+    const esc=s=>String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;");
+    box.innerHTML=
+      `<div style="font-weight:800;margin-bottom:6px">🪨 The voyage has run aground</div>`+
+      `<div style="margin-bottom:8px">Somethin' broke below decks and the game can sail no further. `+
+      `${esc(advice)}</div>`+
+      `<div style="opacity:.6;font-size:11px;margin-bottom:6px">${esc(stamp)}`+
+      `${where?" · "+esc(where):""}</div>`+
+      `<pre style="white-space:pre-wrap;word-break:break-word;font-size:11px;opacity:.8;margin:0">`+
+      `${esc(detail)}</pre>`;
+    document.body.appendChild(box);
+  }catch(e){
+    // the surface itself failed — say it the one way that cannot also fail
+    console.error("voyageAground() could not render",e,"original:",err);
+    try{alert("The voyage has run aground. "+String(err));}catch(_){}
+  }
 }
 // used only to derive flip/spin animation-pacing constants (asyncBattle, asyncBakeoff, fishCast)
 // — unrelated to text legibility, which is governed by flash()'s own reveal/hold/fade formula.
@@ -1249,10 +1941,50 @@ export function stepDelay(){return 3000;}
 // hitting the most common narration path in the game (every bot action goes through botBeat()).
 // Now narrateCurrent() itself is the thing that paces this beat, via flash()'s length-aware timing.
 export async function botBeat(){netHandlers().onLiveRender();await narrateCurrent();}
+/* THE ONCE-PER-VOYAGE CEREMONY GATE — ONE PLACE, BOTH NARRATION PATHS (rule 23, his item 7).
+   Wyatt: "Did the on-stage narration for the black market appear the first time all ingredients
+   were removed from an island? ... it needs to be there. How did it get lost?" It never got lost.
+   It was built into ONE of the game's two narration functions and has been missing from the other
+   since the day it shipped (348ccf4, 2026-08-12).
+
+   A HUMAN's dock runs humanDock() -> narrateLastEvent() (src/ui/panel.js), which carried the
+   firstDry check. A BOT's dock runs the engine's doDock() -> botBeat() -> narrateCurrent(), right
+   here — a separate, older function (written 2026-08-11, a full day before the ceremony existed)
+   that had no reference to firstDry anywhere in its body. And `drySeen` is a single voyage-wide
+   latch that flips on the first shelf to empty WHOEVER empties it. So when a bot claims that
+   shelf, the ceremony is swallowed and can never appear again for the rest of the voyage.
+   Measured across 500 seeded games: a bot claims the first dry shelf in 76.0% of solo voyages.
+   His report — that it simply was not there — is what a 76% failure rate looks like from a
+   player's chair.
+
+   TWO FIXES WERE AVAILABLE AND THIS IS THE WIDER ONE. Adding the same `if(e.firstDry)` line to
+   this file would be smaller and the wrong shape: it leaves two narration functions that must be
+   kept in step by discipline, which is the definition of a thing that will drift. Rule 23 states
+   the move — when a SECOND consumer of the same thing appears, make the FIRST one go through the
+   new path too. So panel.js's narrateLastEvent() now calls THIS, and so does narrateCurrent()
+   below; the next feature gated on a once-per-voyage stamp gets both paths for free.
+
+   RULE 13 IS THE CHECK THAT IT LANDED: bots and humans have identical rules and affordances.
+   After this, who emptied the shelf cannot change whether the table is told.
+
+   WHY THE HANDLER SEAM RATHER THAN AN IMPORT. dryCeremony() draws a centre-stage card and lives
+   in panel.js, which imports THIS file — so util.js can never import it back (module_graph_check
+   forbids the cycle). handlers.js exists for exactly this edge and already carries onFlash and
+   onLiveRender, two calls of the same shape. No new mechanism. */
+export async function eventCeremony(e){
+  if(!e||!e.firstDry||appState.replaying)return;
+  const h=netHandlers();
+  if(h.onDryCeremony)await h.onDryCeremony();
+}
 // keep the yellow action panel in step with the bot's latest move — liveRender only
 // updates the board/log/bubble, so without this the panel stays stuck on the last human prompt.
 export async function narrateCurrent(){
   const e=appState.game.events[appState.evIdx];if(!e)return;
+  await narrateCurrentBody(e);
+  // his item 7: a bot's dock reaches the black-market ceremony by the same door a human's does
+  await eventCeremony(e);
+}
+async function narrateCurrentBody(e){
   // D-07/D-25 (Wyatt-approved 2026-07-29): the one ad-hoc (non-EVENT_NARRATION-table) narration
   // line that lives here in util.js itself — the neutral-plus-variants shape, same as every other
   // ad-hoc flash() site in src/ui/flow.js.
@@ -1264,14 +1996,47 @@ export async function narrateCurrent(){
   // @copy adhoc.turn.boteventpassthrough
   const L=appState.logLines[appState.evIdx];if(L)await netHandlers().onFlash(L.txt);
 }
-export function setActor(s){appState.curSeat=s;}
+/* NOT EXPORTED (2026-08-31). One fact, one writer: the only caller is applyActiveSeat below,
+   which also moves S.activeSeat — the value stage.js:1206 draws FIRST. Sixteen call sites used
+   to import this directly and leave the ribbon pointing at the previous captain; they now call
+   applyActiveSeat. Un-exporting is what stops the seventeenth from being added by hand.
+   scripts/qa/whose_turn_one_fact_check.mjs holds this. */
+function setActor(s){appState.curSeat=s;}
+/* ONE ACTIVE SEAT (02.15-01 Stage 2, D-25). THE fault of D-24 in miniature, and it was measured
+   before it was touched: ribbonTick (ui/stage.js) glows the boat at S.activeSeat ?? appState.curSeat;
+   curSeat is written only by setActor and S.activeSeat only by __pp4.actor; and every one of those
+   21 call sites lived in the host's live simulation or a local prompt. Not one of the guest's nine
+   listeners called either. Measured in a two-tab crew game 2026-08-20, fourteen consecutive samples:
+   host curSeat=1 / ribbon glow on boat 1, guest curSeat=0 / glow on boat 0, never moving. That is
+   his shot 21 — "top-bar boats: updating with the turn / not updating" — and, through camToSeat
+   reading the same notion of whose turn it is, his shot 20 as well.
+   ONE FUNCTION, BOTH TIERS, so the two cannot be aimed differently. The host's turn loop calls it
+   (humanTurn, botTurn) and so does watchEvents, off the `p: seat` field every meaningful event
+   already carries. NO ENGINE CHANGE and none is permitted here: ev() records no actor and the
+   schema has no actor field, but `turn`/`sail`/`dock`/`pass`/`attack` all carry `p`. This is the
+   same move watchEvents already makes for round, wind, storm and per-seat state.
+   TWO GUARDS, BOTH DELIBERATE. Events that carry no seat (`newround`, `end`) leave the indicator
+   alone rather than blanking it. And the seat is bounded to the known range before it is used as an
+   index (T-02.2-08) — the `ev` node is host-authoritative, which is the same trust already relied
+   on for board positions, but a bounded index costs nothing and a trusted one eventually does. */
+export function applyActiveSeat(seat){
+  /* THE ONE WRITER. Both guards now come from src/shared/storyboard.js's normalizeSeat, so the
+     rule for "is this a seat we may point at" has one spelling shared with the event-stream
+     derivation the board reads (2026-08-31). Behaviour is unchanged: null in -> nothing written,
+     out-of-range in -> nothing written. */
+  const ps=appState.game&&appState.game.players;
+  const s=normalizeSeat(seat,ps?ps.length:null);
+  if(s==null)return;
+  setActor(s);
+  if(window.__pp4)window.__pp4.actor(s);
+}
 export function seatLocal(s){return s===appState.mySeat;}
 // D-10: a sentinel seat value no real seat index (0..3) can ever equal — passing it as
 // viewerSeat forces isLocalTo()'s neutral (never-addressed) branch, used to compute the
 // viewer-neutral default line narrationVariants() diffs every per-seat rendering against.
 export const NEUTRAL_VIEWER=-1;
 // D-10/Pitfall 2: viewerSeat null/undefined MUST delegate to seatLocal()'s live appState.mySeat
-// read and therefore behave byte-identically to today — scripts/bot_storm_narration_test.js
+// read and therefore behave byte-identically to today — scripts/bot_storm_narration_test.js  [UNGATED-IN-4: bot_storm_narration_test.js reads the root tree, not this one]
 // never sets appState.mySeat, so this default is exactly what keeps that script green
 // unmodified. An explicit numeric viewerSeat (including NEUTRAL_VIEWER) instead compares
 // directly, ignoring whatever the live appState.mySeat happens to be.
@@ -1281,165 +2046,37 @@ export function isLocalTo(seat,viewerSeat){
 // pass & play: every human seat shares this one browser, so any human seat resolves locally
 // regardless of mySeat — unlike real online multiplayer, there's no other device to reach over
 // remotePrompt/remoteDraftPrompt (which would throw anyway, since db/room are null here).
-export function decisionIsLocal(s){return (appState.passAndPlay&&appState.game.players[s].strategy==="human")||seatLocal(s);}
+/* THE THIN WRAPPER. The RULE is isDecisionLocal() in src/shared/storyboard.js — pure, so the gate
+   that guards it runs the same function the game runs instead of a typed-out copy of it (which is
+   how CEO review 41 walked past decider_table_check with one appended clause). This half knows
+   only WHERE the facts live; it decides nothing. */
+// ONE LINE ON PURPOSE: mode_fork_check counts LINES carrying a who-is-playing word, so splitting
+// this wrapper across three lines raised the file's fork count by one without adding a fork. The
+// counter is a debt ceiling and it should keep meaning what it says.
+const EMPTY_SEAT=Object.freeze({});   // a missing seat has no strategy; never a fresh object per call
+export function decisionIsLocal(s){const player=((appState.game&&appState.game.players)||[])[s]||EMPTY_SEAT;return isDecisionLocal({sharedDevice:appState.passAndPlay,strategy:player.strategy,isMySeat:seatLocal(s)});}
 
-/* ---------- shot clock ---------- */
-export function startShotClock(p){
-  if(!appState.isHost||appState.timerOff)return;   // #7: timer switched off — decisions wait, never time out
-  appState.shotClockSeat=p.idx;
-  appState.shotClockDeadline=Date.now()+30000;
-  appState.shotClockFired={};
-  appState.turnExpired=false;
-  appState.shotClockPaused=false;
-  netHandlers().onBroadcastClock();
-  if(appState.shotClockTimer)clearInterval(appState.shotClockTimer);
-  appState.shotClockTimer=setInterval(shotClockTick,500);
-}
-export function stopShotClock(){
-  if(!appState.isHost)return;
-  // BUG-02: stash the in-flight decision's force-resolver before dropping the live reference, so
-  // rearmShotClock() can hand it back. Keyed by seat — restoring a resolver that belongs to an
-  // older decision would force-resolve the wrong promise, which is worse than having no auto-skip.
-  if(appState.shotClockForce&&appState.shotClockSeat!=null)appState.shotClockStash={seat:appState.shotClockSeat,force:appState.shotClockForce};
-  appState.shotClockSeat=null;appState.shotClockForce=null;appState.shotClockPaused=false;
-  if(appState.shotClockTimer){clearInterval(appState.shotClockTimer);appState.shotClockTimer=null;}
-  netHandlers().onBroadcastClock();
-}
-// notes/edits BUG-02: re-arm the CURRENT turn's clock after the timer is switched back on. This is
-// deliberately not startShotClock(): that clears shotClockFired, which would let the same turn be
-// charged the 20s penalty twice. D-06 says an already-fired penalty is neither refunded nor
-// replayed — switching the timer off only prevents FUTURE penalties. Also restores the stashed
-// force-resolver so the 30s auto-skip survives the toggle (see stopShotClock).
-// Not a pause button: D-04 keeps multiplayer on the ⏱ toggle only, and this adds no new UI.
-export function rearmShotClock(p){
-  if(!appState.isHost||appState.timerOff)return;
-  appState.shotClockSeat=p.idx;
-  appState.shotClockDeadline=Date.now()+30000;   // D-05: a full fresh 30s, not the remainder
-  appState.shotClockPaused=false;
-  // shotClockFired is deliberately NOT reset here (D-06) — see above.
-  // turnExpired is deliberately NOT cleared: if the turn already expired, the flow is unwinding
-  // and watchTimer's guard below refuses to re-arm it at all.
-  if(appState.shotClockStash&&appState.shotClockStash.seat===p.idx){appState.shotClockForce=appState.shotClockStash.force;appState.shotClockStash=null;}
-  netHandlers().onBroadcastClock();
-  if(appState.shotClockTimer)clearInterval(appState.shotClockTimer);
-  appState.shotClockTimer=setInterval(shotClockTick,500);
-}
-// solo/bots-only games only — pausing wouldn't make sense with other humans waiting on you
-export function soloBotGame(){return appState.game&&appState.game.players&&appState.game.players.filter(p=>p.strategy==="human").length<=1;}
-// CLOCK-02: the pause/resume state-mutation body, extracted out of toggleShotClockPause below
-// so src/orchestrator.js's watchPause() can call it directly on the host branch of a networked
-// pause toggle — the SAME shotClockDeadline/shotClockPauseElapsed math as before (D-07: resume
-// continues from the remaining time, not a fresh 30s), just relocated, not rewritten. No
-// isHost/soloBotGame gate lives in here on purpose (D-05/D-06): the caller decides who may call
-// this — solo's toggleShotClockPause() below (host-only), or the host branch of watchPause()
-// (never the guest branch, which only mirrors the boolean for rendering).
-export function applyPauseState(nowPaused){
-  if(nowPaused){
-    appState.shotClockPaused=true;
-    if(appState.shotClockSeat!=null){
-      appState.shotClockPauseElapsed=Date.now()-(appState.shotClockDeadline-30000);
-      if(appState.shotClockTimer){clearInterval(appState.shotClockTimer);appState.shotClockTimer=null;}
-    }
-  }else{
-    appState.shotClockPaused=false;
-    if(appState.shotClockSeat!=null){
-      appState.shotClockDeadline=Date.now()+30000-appState.shotClockPauseElapsed;
-      appState.shotClockTimer=setInterval(shotClockTick,500);
-    }
-  }
-}
-// notes/edits BUG-02 / D-18 (phase 21): the timer-off state-mutation body, extracted VERBATIM out
-// of src/orchestrator.js's watchTimer() Firebase-listener callback so BOTH the networked path
-// (watchTimer(), unchanged below other than calling this) and the new local path (toggleTimer()'s
-// solo/pass-and-play branch) share this ONE body — the whole point being that the re-arm fix below
-// (BUG-02: switching the timer off then back on mid-turn must re-arm the clock for the player
-// whose turn is in progress, or the game freezes) cannot drift between the networked and local code
-// paths. Mirrors applyPauseState()'s own no-gate discipline immediately above: every appState.isHost
-// gate already lived INSIDE this body before the move and stays exactly where it was — the caller
-// decides who may call this, not this function.
-export function applyTimerOff(off){
-  const was=appState.timerOff;
-  appState.timerOff=off;
-  if(appState.isHost&&appState.timerOff)stopShotClock();
-  else if(appState.isHost&&was&&!appState.timerOff&&appState.shotClockSeat==null&&!appState.turnExpired){
-    // shotClockSeat==null is what prevents double-arming: this fires on EVERY client for every
-    // write (networked path) or the one local browser (solo/pass-and-play), so the host also runs
-    // it for a write a guest originated.
-    const seat=currentTurnSeat();
-    const p=seat!=null?appState.game.players[seat]:null;
-    if(p&&!p.done)rearmShotClock(p);
-  }
-  // src/ui/util.js is imported by src/ui/panel.js (setClockUI() lives there) — calling setClockUI()
-  // directly here would close an import cycle scripts/module_graph_check.js forbids outright, so
-  // this reaches it through the same netHandlers() render seam toggleShotClockPause() uses one
-  // function below.
-  netHandlers().onSetClockUI();
-}
-// works any time in solo play, not just on your own turn — shotClockPaused doubles as the
-// whole game's pause flag (see waitWhilePaused/sleep above), so pausing between turns
-// actually freezes the bots instead of just a countdown that isn't running yet.
-// CLOCK-02/D-05/D-06: the soloBotGame() half of the old gate is REMOVED here — multiplayer now
-// reaches pause too, via src/orchestrator.js's togglePause()/watchPause(), which call
-// applyPauseState() directly instead of this wrapper. This wrapper stays host-gated and is now
-// only the solo/pass-and-play path (togglePause()'s local fallback when there is no db/room).
-export function toggleShotClockPause(){
-  if(!appState.isHost)return;
-  applyPauseState(!appState.shotClockPaused);
-  netHandlers().onSetClockUI();
-}
-export function shotClockTick(){
-  if(appState.shotClockSeat==null)return;
-  const elapsed=Date.now()-(appState.shotClockDeadline-30000);
-  if(!appState.shotClockFired.t20&&elapsed>=20000){appState.shotClockFired.t20=true;applyShotClockPenalty();}
-  if(elapsed>=30000){netHandlers().onExpireShotClock();return;}
-  netHandlers().onSetClockUI();
-}
-export function applyShotClockPenalty(){
-  const p=appState.game.players[appState.shotClockSeat];if(!p)return;
-  const others=appState.game.players.filter(q=>q!==p&&!q.done);
-  const take=Math.min(1,p.coins);
-  p.coins-=take;others.forEach(q=>q.coins++);
-  appState.game.ev({t:"shotclock",p:p.idx,others:others.map(q=>q.idx)});
-  netHandlers().onNarrateLastEvent();
-  netHandlers().onLiveRender();
-}
-// mirrors render()'s "whose turn is it" derivation — used by setClockUI() to tell a genuinely
-// idle moment apart from a bot quietly taking its turn, since startShotClock() is only ever
-// armed for a human decision (ask()), never for a bot's turn.
+/* ---------- the clock and pause both stood here ----------
+   Removed in two rulings, 2026-08-28: the shot clock ("temporarily remove the shot clock", see
+   ask() above), then play/pause itself (A-10: "you can simply remove play/pause from this latest
+   work — if we need to put it in again later, we'll re-engineer it"). What lived here across the
+   two removals: startShotClock/stopShotClock/rearmShotClock/shotClockTick/applyShotClockPenalty/
+   applyTimerOff/withShotClock, then soloBotGame/applyPauseState/toggleShotClockPause. The design
+   decisions they carried (D-05/06/07; CLOCK-02's networked pause; the app-switch auto-pause's
+   hidden-tab history) are in git history at this file — read the log before re-deriving any of
+   it. sleepMs's sweeper belt above is NOT pause residue: it is the measured defence against a
+   browser dropping setTimeout callbacks, and it must stay. */
+// CORRECTED 2026-08-31: this comment used to say "mirrors render()'s derivation". IT DOES NOT —
+// render() also stops at `ovens` and `bake`; this walk knows only `turn`. It was true when written
+// and rotted when render()'s copy was widened, which is exactly the rot a behavioural comment
+// carries (rule 6). It is now one walk, shared/storyboard.js, with the difference passed in.
+// CURRENTLY UNCALLED (its last consumer, the
+// pause panel's "waiting" label, left with play/pause at A-10) — kept because the clock's return
+// needs exactly this derivation, and it is pure over the event stream.
 export function currentTurnSeat(){
   if(!appState.game||!appState.game.events)return null;
-  for(let i=appState.evIdx;i>=0&&i>appState.evIdx-80;i--){
-    const t=appState.game.events[i]&&appState.game.events[i].t;
-    if(t==="turn")return appState.game.events[i].p;
-    if(t==="newround")return null;
-  }
-  return null;
+  return deriveActiveSeat(appState.game.events,appState.evIdx);
 }
-// If `seat` is the one currently on the shot clock, wrap its decision so expireShotClock() can
-// force a default answer once 30s run out, instead of the answer waiting forever. A no-op for
-// every other decision in the game (recipe drafts, battle/trade sub-flows, etc).
-// Critically: once the wrapped decision is answered for real (not forced), the clock stops
-// immediately rather than continuing to tick toward that seat — otherwise a spectator who
-// answers a side-bet prompt right away keeps getting timed against for the rest of the battle,
-// long after they have nothing left to decide.
-export function withShotClock(seat,base,defaultVal){
-  if(!appState.isHost||seat!==appState.shotClockSeat)return base;
-  return new Promise(res=>{
-    let done=false;
-    appState.shotClockForce=()=>{if(!done){done=true;res(defaultVal);}};
-    base.then(v=>{
-      if(!done){
-        done=true;appState.shotClockForce=null;
-        // BUG-02: the decision resolved for real, so any resolver stashed for THIS seat across a
-        // timer-off is dead — drop it so a later re-arm can't force-resolve a settled promise.
-        if(appState.shotClockStash&&appState.shotClockStash.seat===seat)appState.shotClockStash=null;
-        if(appState.shotClockSeat===seat)stopShotClock();
-        res(v);
-      }
-    });
-  });
-}
-
 /* ---------- board pops (event -> emoji animation) ---------- */
 export function spawnPops(e,cellPx){
   if(!e)return;
@@ -1465,9 +2102,91 @@ export function updateRecipeBanner(){
 // #6: preload the core board art up front so a slow connection doesn't render the board with
 // missing/fallback tiles that pop in one by one. Each image resolves on load OR error (never
 // rejects), and boot() caps the whole wait with a timeout, so the loader can never hang the game.
+/* THE COIN'S OWN FACES WERE NEVER IN HERE — playtest 22 item 13 (Wyatt): "Make sure to load all of
+   the coin flip images immediately when the game loads; currently they seem to be loading during
+   the first flip, which makes them fail to appear sometimes."
+   Exactly right, and the reason is a drift this list is prone to: it was written around the BOARD
+   (art, docks, boats, islands, crates) and the flip's five images were never added, so the first
+   toss of a voyage fetched its own socket, spin and faces mid-ceremony. Everything else on the
+   board can arrive a beat late and nobody notices; a flip CANNOT, because it is a timed animation
+   that has already started.
+
+   That line — "preload what a TIMED CEREMONY needs, not every icon" — was Wyatt's deliberate
+   trade-off through 2026-08-31. He REVERSED it 2026-09-01 (INBOX-20260901T1335Z): "we need to load
+   all game assets up front; i notice sometimes that the 'fire the ovens' graphic loads dynamically
+   when it is called, which will make it appear blank on slow connections. Bad engineerign! [sic]"
+   The recipe/badge art below is the confirmed, measured mechanism: RECIPE_BOOK's 21 pastry
+   illustrations (recipe.js) and BADGE_POOL's emblems (this file) are plain `<img src>` tags that
+   fetch cold the first time the recipe picker, the recipe modal, or the End-of-Voyage award screen
+   actually renders them — exactly the "loads dynamically when called" complaint, on the two asset
+   families that were never in this list. Safe to add here because every call site of
+   preloadAssets() already fires it WITHOUT awaiting except the mid-voyage-resume path, which caps
+   it at a 6s Promise.race — this was already true before this change, not a new guarantee. */
+/* EVERY ASSET URL THE SHARED MODULE KNOWS ABOUT, READ OFF THE MODULE ITSELF.
+   Rule 9's shape — derived from what the game already computes, never a list somebody types.
+   THE HISTORY IS THE ARGUMENT FOR THIS. The list below was hand-kept for its whole life and it
+   drifted every single time somebody added art: the flip's five faces were missing until a playtest
+   caught them mid-ceremony, ING_HOLE_IMG was missing until a driven run failed on holes/sugar.png,
+   the recipe and badge families were missing until 2026-09-01. Each was fixed by appending one more
+   name, which is the move that guarantees the next omission. CEO Review 80 then found the same
+   fault AGAIN and it was the biggest one yet: the entire `assets/icons/` family — 78 files —
+   including FLAME_IMG, the flame in every "fire the ovens" line, WHICH IS WYATT'S OWN NAMED EXAMPLE
+   of the bug ("i notice sometimes that the 'fire the ovens' graphic loads dynamically when it is
+   called, which will make it appear blank on slow connections. Bad engineerign!").
+   A fifth append would have been the fifth wrong answer, so the list is now the derivation:
+   anything exported as `*_IMG` whose value is an asset path is warmed, and a new icon is covered
+   the moment it is declared. `scripts/qa/preload_recipe_badge_check.mjs` guards the shape. */
+export function sharedAssetUrls(){
+  const out=[];
+  for(const [name,val] of Object.entries(SHARED)){
+    if(!name.endsWith("_IMG"))continue;
+    // scalars, arrays (BOAT_IMG, ISLAND_SHAPE_IMG) and lookup objects (ING_IMG, EMOJI_IMG) all appear
+    // under this suffix, so flatten whatever shape the constant happens to have.
+    const vals=typeof val==="string"?[val]:Array.isArray(val)?val:val&&typeof val==="object"?Object.values(val):[];
+    for(const u of vals)if(typeof u==="string"&&u.startsWith(ASSET_BASE))out.push(u);
+  }
+  return [...new Set(out)];
+}
+/* THE ART A JAVASCRIPT CONSTANT CANNOT SEE — read off the page's own stylesheets.
+   `sharedAssetUrls()` above derives from `*_IMG` constants, so it is structurally blind to a picture
+   that exists only inside CSS, and one does: the storm's rain texture (`#stormOverlay .rlayer`,
+   index.html). Measured 2026-09-02 against INBOX-20260901T1335Z — of the 144 pictures the game
+   names, `assets/rain-streaks.png` was the ONE that boot never asked for, so the first storm of a
+   voyage fetched its own rain mid-storm. That is Wyatt's complaint word for word: "loads dynamically
+   when it is called, which will make it appear blank on slow connections."
+   THIS IS A DERIVATION AND NOT A FIFTH NAME ON THE LIST, deliberately. The comment above records
+   that the hand-kept list drifted four times and that "a fifth append would have been the fifth
+   wrong answer"; appending `rain-streaks.png` would have been exactly that. Any picture a future
+   stylesheet names is covered the moment the rule is written.
+   A sheet we are not allowed to read (a cross-origin stylesheet) is skipped rather than thrown on —
+   warming is best-effort by construction, and no caller awaits it. */
+function cssAssetUrls(){
+  const out=[];
+  for(const sheet of document.styleSheets||[]){
+    let rules; try{ rules=sheet.cssRules; }catch{ continue; }
+    if(!rules)continue;
+    for(const rule of rules){
+      const text=rule.cssText||"";               // a media rule's cssText contains its inner rules
+      for(const m of text.matchAll(/url\(\s*["']?([^"')]+)["']?\s*\)/g)){
+        if(m[1]&&m[1].startsWith(ASSET_BASE))out.push(m[1]);
+      }
+    }
+  }
+  return out;
+}
 export function preloadAssets(){
-  const urls=[BOARD_IMG,DOCK_IMG,WIND_ARROW_IMG,TRADE_SWIRL_IMG,`${ASSET_BASE}logo.jpg`,
-    ...BOAT_IMG,...ISLAND_SHAPE_IMG,...ING_ALL.map(i=>ING_IMG[i])];
+  const urls=[...new Set([...sharedAssetUrls(),...cssAssetUrls(),
+    `${ASSET_BASE}logo.jpg`,
+    // T-33: ING_HOLE_IMG was the ONE ingredient family never warmed here, so the greyed-crate art
+    // was always fetched cold in the middle of a voyage — and both image failures caught in a
+    // driven run were in it (holes/sugar.png, twice). Seven files, ~24KB.
+    ...BOAT_IMG,...ISLAND_SHAPE_IMG,...ING_ALL.map(i=>ING_IMG[i]),...ING_ALL.map(i=>ING_HOLE_IMG[i]),
+    // INBOX-20260901T1335Z: the two asset families a player can reach WITHOUT them ever having
+    // been fetched — recipe art (picker/modal/victory banner) and award emblems (End of Voyage).
+    // These are NOT `*_IMG` constants (they are built per-recipe and per-badge), so they stay
+    // explicit — the derivation above cannot see them.
+    ...RECIPE_BOOK.map(r=>r.img),
+    ...BADGE_POOL.map(b=>`${ASSET_BASE}badges/${b.img}.png`),`${ASSET_BASE}badges/${FALLBACK_BADGE.img}.png`])];
   return Promise.all(urls.map(u=>new Promise(res=>{
     const img=new Image();
     img.onload=img.onerror=()=>res();
@@ -1482,11 +2201,20 @@ export function preloadAssets(){
 // Alternatives Considered) — bump only the one whose shape actually changes. boot()'s guard clears
 // a blob (via the existing clearSession()/clearSoloState()) whenever its stamp doesn't match,
 // treating an unstamped pre-refactor blob or a stale mismatched one as "no resume" (D-01/D-02).
-// pp_id/pp_timerOff are structurally excluded from this mechanism (D-03) — never versioned/cleared.
+// pp_id and the turn-clock key are structurally excluded from THIS MECHANISM (D-03) — meaning the
+// SESSION_SCHEMA_V/SOLO_SCHEMA_V auto-clear of the resumable-game-state blobs never versions or
+// clears them. That is the entire scope of the sentence. It says nothing about any other cleanup:
+// v2.0's FIX-01 removes the legacy shared pp_timerOff key exactly once per browser
+// (cleanupLegacyTimerKey in src/ui/stage.js), and this exclusion neither blocks nor governs it.
 // pp_lastName joins that exclusion in FIX-01 (Phase 22): it carries a display name, not resumable
 // game state, so it is never cleared by leaveGame() either — that is precisely the point, per D-04.
 export const SESSION_SCHEMA_V=1;
-export const SOLO_SCHEMA_V=1;
+// 1 -> 2 (playtest 21, the counter-offer stall): a confirmed COIN QUANTITY is now its own entry in
+// the decision log (flow.js logQuantity). A save written before that has one fewer entry per coined
+// trade, so replaying it would run every decision after the first such trade against the wrong
+// prompt — the exact failure the new entry exists to stop. The stamp is what makes an old blob
+// "no resume" instead of a mis-aligned one.
+export const SOLO_SCHEMA_V=3;   // 2->3 at A-1: the bake-day reorder changes replay — a v2 save must be refused, never desynced
 export function getMyId(){
   let id=null;try{id=localStorage.getItem("pp_id");}catch(e){}
   if(!id){id="u"+Math.random().toString(36).slice(2,10);try{localStorage.setItem("pp_id",id);}catch(e){}}
@@ -1498,14 +2226,57 @@ export function getMyId(){
 // Follows getMyId()'s exact try/catch-swallow shape: silent failure, no logging, plain string (not
 // a JSON blob), never stamped with SESSION_SCHEMA_V/SOLO_SCHEMA_V and never cleared — same
 // structural exclusion as pp_id, see the comment block above.
+/* MAX_NAME_LEN — NOT a taste decision, and not ours to pick: the LIVE Firebase rule validates
+   `seats/$seat/name` with `newData.val().length <= 18` (notes/ONLINE_SETUP.md). A longer name is
+   refused by the database SERVER-side, and the refusal arrives as an uncaught promise rejection
+   from firebase-database-compat.js — which the game surfaces as "The voyage has run aground."
+   Wyatt hit exactly this on 2026-08-19 with a 22-character name: the join simply died.
+
+   The boxes used to accept 40 and the clamps used to cut at 40, so every name between 19 and 40
+   characters was a crash the player could type. This is the one number that must agree with the
+   deployed rule, so it lives here once and every name that can reach the database derives from it.
+   If the rule is ever changed in the Firebase console, THIS is the line that has to move with it.
+
+   Pass-and-play's own name boxes (#ppName0-3) deliberately do NOT use this: those names are local
+   to one device, never written to any room, and never persisted through saveLastName() — the only
+   caller of which is confirmName() below. Capping them would restrict a mode the database rule
+   does not reach. */
+export const MAX_NAME_LEN=18;
 export function getLastName(){
   let n=null;try{n=localStorage.getItem("pp_lastName");}catch(e){}
   return n||"";
 }
 export function saveLastName(v){try{localStorage.setItem("pp_lastName",v);}catch(e){}}
+// The sea-creature cursor (Wyatt, 2026-08-06): where this device's captain had got to in the
+// fifty, so the next voyage starts at the NEXT one and they work through the whole list across
+// many games instead of restarting near the top every time.
+//
+// Structurally excluded from the SESSION_SCHEMA_V/SOLO_SCHEMA_V versioning above, exactly like
+// pp_id and pp_lastName, and for the same reason: it is a durable device preference, not resumable
+// game state, so leaveGame()'s clearSession()/clearSoloState() must never wipe it — that is the
+// whole point of the feature. Same try/catch-swallow shape too, so Safari private mode and a
+// file:// page fall back to 0 and behave exactly as the game did before this existed.
+//
+// Read ONCE PER GAME (startSinglePlayer/startPassAndPlay stash it in soloMeta, which the solo save
+// carries), never once per look. A per-look read would make a host-refresh replay narrate
+// different creatures than the voyage actually showed, because the cursor would have moved on.
+export function getSeaBase(){
+  let n=null;try{n=localStorage.getItem("pp_seaIdx");}catch(e){}
+  const v=parseInt(n,10);
+  return (isFinite(v)&&v>=0)?(v%SEA_CREATURES.length):0;
+}
+// Called after a sighting by the seat that owns the cursor. Idempotent by construction — it writes
+// an ABSOLUTE position derived from the game's fixed base plus this captain's look count, not an
+// increment, so a replay that re-runs the same looks rewrites the same number rather than racing
+// the cursor forward a second time.
+export function advanceSeaCursor(player){
+  const base=(appState.game&&appState.game.seaBase)||0;
+  const looks=player.oceanLooks||0;
+  try{localStorage.setItem("pp_seaIdx",String((base+looks)%SEA_CREATURES.length));}catch(e){}
+}
 export function genCode(){const A="ABCDEFGHJKMNPQRSTUVWXYZ";let s="";for(let i=0;i<4;i++)s+=A[Math.floor(Math.random()*A.length)];return s;}
-export function saveSession(){try{localStorage.setItem("pp_sess",JSON.stringify({v:SESSION_SCHEMA_V,room:appState.room,mySeat:appState.mySeat,isHost:appState.isHost}));}catch(e){}}
-export function clearSession(){try{localStorage.removeItem("pp_sess");}catch(e){}}
+export function saveSession(){try{localStorage.setItem("pp4_sess",JSON.stringify({v:SESSION_SCHEMA_V,room:appState.room,mySeat:appState.mySeat,isHost:appState.isHost}));}catch(e){}}
+export function clearSession(){try{localStorage.removeItem("pp4_sess");}catch(e){}}
 
 // --- host-refresh recovery: record & replay the decision log ---
 // Encode so a "stay put" (null) still persists as a non-empty object (Firebase drops nulls,
@@ -1516,19 +2287,44 @@ export function decodeDec(e){return (e&&Object.prototype.hasOwnProperty.call(e,"
 // but keep the log in localStorage instead of Firebase, since there's no server for solo games ----
 export function saveSoloState(){
   if(!appState.soloMeta)return;
-  try{localStorage.setItem("pp_solo",JSON.stringify({v:SOLO_SCHEMA_V,...appState.soloMeta,dlog:appState.dlog}));}catch(e){}
+  try{localStorage.setItem("pp4_solo",JSON.stringify({v:SOLO_SCHEMA_V,...appState.soloMeta,dlog:appState.dlog}));}catch(e){}
 }
-export function clearSoloState(){appState.soloMeta=null;try{localStorage.removeItem("pp_solo");}catch(e){}}
+export function clearSoloState(){appState.soloMeta=null;try{localStorage.removeItem("pp4_solo");}catch(e){}}
 export function resumeSoloGame(saved){
   appState.numSeats=saved.strategies.length;appState.room=null;appState.isHost=true;appState.mySeat=0;
   appState.passAndPlay=!!saved.passAndPlay;
   const names=saved.names||[saved.name]; // old solo saves only ever had one human, at seat 0
-  appState.roster=saved.strategies.map((s,i)=>i<names.length?{name:names[i],id:"solo",bot:false}:{name:"",id:"",bot:true,strat:s});
-  appState.soloMeta=appState.passAndPlay?{names,strategies:saved.strategies,seed:saved.seed,passAndPlay:true}
-                      :{name:saved.name,strategies:saved.strategies,seed:saved.seed};
+  appState.roster=buildRoster(names,saved.strategies);   // playtest 19: SAME rule as the fresh
+  // start above, or a resumed voyage would rename the bots mid-game
+  // seaBase rides along so the replay narrates the SAME creatures the live voyage did; a save from
+  // before this existed has none, and 0 is exactly the behaviour it had.
+  const seaBase=saved.seaBase||0;
+  // v2.1: THE RULESET RIDES ALONG TOO, for a sharper reason than seaBase's. cfg is rebuilt from
+  // roundCfg() here, which reads whatever the flag says RIGHT NOW — so a voyage played with the
+  // bake-off on and resumed with it off (or resumed on a `?bakeoff=0` link) would replay its
+  // decision log against a structurally different game: different turn loop, different rng draws,
+  // and a log whose entries no longer line up with the decisions being asked for. A save from
+  // before this field existed has no opinion, and inheriting the current flag is the only sensible
+  // reading of an old save.
+  const bakeoff=saved.bakeoff===undefined?undefined:!!saved.bakeoff;
+  const meta=appState.passAndPlay?{names,strategies:saved.strategies,seed:saved.seed,passAndPlay:true,seaBase}
+                      :{name:saved.name,strategies:saved.strategies,seed:saved.seed,seaBase};
+  if(bakeoff!==undefined)meta.bakeoff=bakeoff;
+  // ?ovens=1 rides along for the same reason: it changes what is in a hold on day one, so a save
+  // made with it and resumed without it (he cleared the query string, or opened a bookmark that
+  // never had it) would replay its decision log against captains who never had a full recipe.
+  if(saved.ovens!==undefined)meta.ovens=!!saved.ovens;
+  appState.soloMeta=meta;
   appState.dlog=(saved.dlog||[]).slice();appState.dlogIdx=0;appState.dlogN=0;
   appState.replaying=true;
-  netHandlers().onBeginGame(roundCfg(saved.strategies),saved.seed);
+  const cfg=roundCfg(saved.strategies);
+  if(bakeoff!==undefined)cfg.bakeoff=bakeoff;
+  // Same override for ?ovens=1: the save's value wins over whatever the current URL made roundCfg
+  // say, so cfg never contradicts the soloMeta the stock check actually reads.
+  if(saved.ovens!==undefined)cfg.ovens=!!saved.ovens;
+  if(saved.bake2!==undefined)cfg.bake2=!!saved.bake2;
+  if(saved.endcard!==undefined)cfg.endcard=!!saved.endcard;
+  netHandlers().onBeginGame(cfg,saved.seed);
 }
 // notes/edits BUG-03/BUG-04: decide whether a host-refresh replay actually rebuilt the voyage.
 // The yardstick is resumeEvLen — the Firebase event count captured BEFORE the reload (see
@@ -1546,8 +2342,24 @@ export function replayShortfall(rebuiltEvLen, priorEvLen, readFailed){
   if(shortfall > REPLAY_SHORTFALL_TOLERANCE) return {shortfall, incomplete:true, reason:"short-replay"};
   return {shortfall, incomplete:false, reason:"ok"};
 }
+/* THE WIRE EATS EMPTY ARRAYS, AND THIS IS THE ONE PLACE THAT PUTS THEM BACK. Firebase RTDB does
+   not store an empty array — it stores nothing — so a field written as `[]` on the host arrives on
+   a guest as `undefined`. `s.ing` above has always been repaired here for exactly that reason. */
+/* ⭐ THE STORM CRASH THAT KILLS CREW VOYAGES — open since Wyatt's 2026-08-21 handoff, named there
+   as "stormSummary reading .length of undefined", and it is this and nothing more.
+   stormSummaryEvent emits FIVE buckets (moved/held/shipHeld/blown/swept) and only emits at all when
+   at least one has somebody in it — so the others are `[]`, the wire drops them, and the narration
+   reaches `if(e.moved.length)` on a guest with e.moved undefined. IT CAN ONLY EVER HAPPEN IN CREW,
+   because a host reads the array it just built, in memory, and a solo game never crosses a wire.
+   That is why it survived four months of solo play and killed multiplayer.
+   ⚠ REPAIRED HERE RATHER THAN GUARDED AT THE READ. The narration reads five fields and the log line
+   reads them too; guarding each is five places to keep in step for one wire fact. STORM_BUCKETS is
+   asserted against the engine's own emit by storm_summary_buckets_check.mjs, so a sixth bucket
+   cannot be added there without this list being made to match. */
+export const STORM_BUCKETS=["moved","held","shipHeld","blown","swept"];
 export function fixEv(e){
   if(e.state)e.state.forEach(s=>{if(!s.ing)s.ing=[];if(!s.pos)s.pos=[0,0];});
   if(e.rounds)e.rounds=e.rounds.map(r=>[r&&r[0]?1:0,r&&r[1]?1:0,r&&r[2]?1:0,r&&r[3]||null]);
+  if(e.t==="stormSummary")for(const k of STORM_BUCKETS)if(!Array.isArray(e[k]))e[k]=[];
   return e;
 }

@@ -1,0 +1,1196 @@
+{
+  "counter": "none",
+  "holders": 2,
+  "responderDelayMs": 3000,
+  "sampleIntervalMs": 200,
+  "startedAt": "2026-08-23T07:21:03.760Z",
+  "steps": [
+    {
+      "name": "00-voyage-open",
+      "note": "after the draft",
+      "at": 1787469703425,
+      "host": {
+        "seat": 0,
+        "isHost": true,
+        "room": "UBEZ",
+        "round": 1,
+        "events": 1,
+        "dlogLen": 3,
+        "strategies": [
+          "human",
+          "human",
+          "human",
+          "rusher"
+        ],
+        "names": [
+          null,
+          null,
+          null,
+          null
+        ],
+        "coins": [
+          3,
+          6,
+          4,
+          5
+        ],
+        "ing": [
+          [],
+          [],
+          [],
+          []
+        ],
+        "ings": [
+          "wheat",
+          "dairy",
+          "sugar",
+          "eggs",
+          "cocoa",
+          "spice",
+          "vanilla"
+        ],
+        "apMsg": "The crew draws lots for sailing order — test1 first!No fretting, patience pays — test3 (+1), Flaky Jack (+2), ",
+        "apBtns": [
+          "Start"
+        ],
+        "apSub": null,
+        "hasSlider": false,
+        "hasSliderWrap": false,
+        "sliderOut": null,
+        "promptCls": "pp4Center",
+        "bub": "— Day 1: wind is blowin' north — Next day: wind west."
+      },
+      "guests": [
+        {
+          "seat": 1,
+          "isHost": false,
+          "room": "UBEZ",
+          "round": 0,
+          "events": 0,
+          "dlogLen": 0,
+          "strategies": [
+            "human",
+            "human",
+            "human",
+            "rusher"
+          ],
+          "names": [
+            null,
+            null,
+            null,
+            null
+          ],
+          "coins": [
+            3,
+            3,
+            3,
+            3
+          ],
+          "ing": [
+            [],
+            [],
+            [],
+            []
+          ],
+          "ings": [
+            "wheat",
+            "dairy",
+            "sugar",
+            "eggs",
+            "cocoa",
+            "spice",
+            "vanilla"
+          ],
+          "apMsg": null,
+          "apBtns": [],
+          "apSub": null,
+          "hasSlider": false,
+          "hasSliderWrap": false,
+          "sliderOut": null,
+          "promptCls": null,
+          "bub": "Waiting for yer mateys…"
+        },
+        {
+          "seat": 2,
+          "isHost": false,
+          "room": "UBEZ",
+          "round": 0,
+          "events": 0,
+          "dlogLen": 0,
+          "strategies": [
+            "human",
+            "human",
+            "human",
+            "rusher"
+          ],
+          "names": [
+            null,
+            null,
+            null,
+            null
+          ],
+          "coins": [
+            3,
+            3,
+            3,
+            3
+          ],
+          "ing": [
+            [],
+            [],
+            [],
+            []
+          ],
+          "ings": [
+            "wheat",
+            "dairy",
+            "sugar",
+            "eggs",
+            "cocoa",
+            "spice",
+            "vanilla"
+          ],
+          "apMsg": null,
+          "apBtns": [],
+          "apSub": null,
+          "hasSlider": false,
+          "hasSliderWrap": false,
+          "sliderOut": null,
+          "promptCls": null,
+          "bub": "Waiting for yer mateys…"
+        }
+      ]
+    },
+    {
+      "name": "01-parked",
+      "note": "the turn loop is parked on a LOCAL prompt; the wire is free",
+      "at": 1787469713230,
+      "host": {
+        "seat": 0,
+        "isHost": true,
+        "room": "UBEZ",
+        "round": 1,
+        "events": 3,
+        "dlogLen": 4,
+        "strategies": [
+          "human",
+          "human",
+          "human",
+          "rusher"
+        ],
+        "names": [
+          null,
+          null,
+          null,
+          null
+        ],
+        "coins": [
+          3,
+          6,
+          4,
+          5
+        ],
+        "ing": [
+          [],
+          [],
+          [],
+          []
+        ],
+        "ings": [
+          "wheat",
+          "dairy",
+          "sugar",
+          "eggs",
+          "cocoa",
+          "spice",
+          "vanilla"
+        ],
+        "apMsg": "test1, what'll ye do:",
+        "apBtns": [
+          "Trade",
+          "Pass +1"
+        ],
+        "apSub": "No one's holding cargo to trade for yet.",
+        "hasSlider": false,
+        "hasSliderWrap": false,
+        "sliderOut": null,
+        "promptCls": "radial",
+        "bub": null
+      },
+      "guests": [
+        {
+          "seat": 1,
+          "isHost": false,
+          "room": "UBEZ",
+          "round": 1,
+          "events": 3,
+          "dlogLen": 0,
+          "strategies": [
+            "human",
+            "human",
+            "human",
+            "rusher"
+          ],
+          "names": [
+            null,
+            null,
+            null,
+            null
+          ],
+          "coins": [
+            3,
+            6,
+            4,
+            5
+          ],
+          "ing": [
+            [],
+            [],
+            [],
+            []
+          ],
+          "ings": [
+            "wheat",
+            "dairy",
+            "sugar",
+            "eggs",
+            "cocoa",
+            "spice",
+            "vanilla"
+          ],
+          "apMsg": null,
+          "apBtns": [],
+          "apSub": null,
+          "hasSlider": false,
+          "hasSliderWrap": false,
+          "sliderOut": null,
+          "promptCls": null,
+          "bub": "test1 is deciding…"
+        },
+        {
+          "seat": 2,
+          "isHost": false,
+          "room": "UBEZ",
+          "round": 1,
+          "events": 3,
+          "dlogLen": 0,
+          "strategies": [
+            "human",
+            "human",
+            "human",
+            "rusher"
+          ],
+          "names": [
+            null,
+            null,
+            null,
+            null
+          ],
+          "coins": [
+            3,
+            6,
+            4,
+            5
+          ],
+          "ing": [
+            [],
+            [],
+            [],
+            []
+          ],
+          "ings": [
+            "wheat",
+            "dairy",
+            "sugar",
+            "eggs",
+            "cocoa",
+            "spice",
+            "vanilla"
+          ],
+          "apMsg": null,
+          "apBtns": [],
+          "apSub": null,
+          "hasSlider": false,
+          "hasSliderWrap": false,
+          "sliderOut": null,
+          "promptCls": null,
+          "bub": "test1 is deciding…"
+        }
+      ]
+    },
+    {
+      "name": "02-round-open",
+      "note": "every holder's screen at the same moment",
+      "at": 1787469718272,
+      "host": {
+        "seat": 0,
+        "isHost": true,
+        "room": "UBEZ",
+        "round": 1,
+        "events": 4,
+        "dlogLen": 4,
+        "strategies": [
+          "human",
+          "human",
+          "human",
+          "rusher"
+        ],
+        "names": [
+          null,
+          null,
+          null,
+          null
+        ],
+        "coins": [
+          3,
+          6,
+          4,
+          8
+        ],
+        "ing": [
+          [],
+          [
+            "wheat"
+          ],
+          [
+            "wheat"
+          ],
+          [
+            "dairy",
+            "sugar"
+          ]
+        ],
+        "ings": [
+          "wheat",
+          "dairy",
+          "sugar",
+          "eggs",
+          "cocoa",
+          "spice",
+          "vanilla"
+        ],
+        "apMsg": "test1, what'll ye do:",
+        "apBtns": [
+          "Trade",
+          "Pass +1"
+        ],
+        "apSub": "No one's holding cargo to trade for yet.",
+        "hasSlider": false,
+        "hasSliderWrap": false,
+        "sliderOut": null,
+        "promptCls": "radial",
+        "bub": "📣 Flaky Jack hails the table: \"Who'll give me Toasty Wheat for Fresh Milk + 3?\""
+      },
+      "guests": [
+        {
+          "seat": 1,
+          "isHost": false,
+          "room": "UBEZ",
+          "round": 1,
+          "events": 4,
+          "dlogLen": 0,
+          "strategies": [
+            "human",
+            "human",
+            "human",
+            "rusher"
+          ],
+          "names": [
+            null,
+            null,
+            null,
+            null
+          ],
+          "coins": [
+            3,
+            6,
+            4,
+            8
+          ],
+          "ing": [
+            [],
+            [
+              "wheat"
+            ],
+            [
+              "wheat"
+            ],
+            [
+              "dairy",
+              "sugar"
+            ]
+          ],
+          "ings": [
+            "wheat",
+            "dairy",
+            "sugar",
+            "eggs",
+            "cocoa",
+            "spice",
+            "vanilla"
+          ],
+          "apMsg": null,
+          "apBtns": [],
+          "apSub": null,
+          "hasSlider": false,
+          "hasSliderWrap": false,
+          "sliderOut": null,
+          "promptCls": null,
+          "bub": "📣 Flaky Jack hails the table: \"Who'll give me Toasty Wheat for Fresh Milk + 3?\""
+        },
+        {
+          "seat": 2,
+          "isHost": false,
+          "room": "UBEZ",
+          "round": 1,
+          "events": 4,
+          "dlogLen": 0,
+          "strategies": [
+            "human",
+            "human",
+            "human",
+            "rusher"
+          ],
+          "names": [
+            null,
+            null,
+            null,
+            null
+          ],
+          "coins": [
+            3,
+            6,
+            4,
+            8
+          ],
+          "ing": [
+            [],
+            [
+              "wheat"
+            ],
+            [
+              "wheat"
+            ],
+            [
+              "dairy",
+              "sugar"
+            ]
+          ],
+          "ings": [
+            "wheat",
+            "dairy",
+            "sugar",
+            "eggs",
+            "cocoa",
+            "spice",
+            "vanilla"
+          ],
+          "apMsg": null,
+          "apBtns": [],
+          "apSub": null,
+          "hasSlider": false,
+          "hasSliderWrap": false,
+          "sliderOut": null,
+          "promptCls": null,
+          "bub": "📣 Flaky Jack hails the table: \"Who'll give me Toasty Wheat for Fresh Milk + 3?\""
+        }
+      ]
+    },
+    {
+      "name": "03-mid-round",
+      "note": "",
+      "at": 1787469730318,
+      "host": {
+        "seat": 0,
+        "isHost": true,
+        "room": "UBEZ",
+        "round": 1,
+        "events": 5,
+        "dlogLen": 6,
+        "strategies": [
+          "human",
+          "human",
+          "human",
+          "rusher"
+        ],
+        "names": [
+          null,
+          null,
+          null,
+          null
+        ],
+        "coins": [
+          3,
+          6,
+          7,
+          5
+        ],
+        "ing": [
+          [],
+          [
+            "wheat"
+          ],
+          [
+            "dairy"
+          ],
+          [
+            "sugar",
+            "wheat"
+          ]
+        ],
+        "ings": [
+          "wheat",
+          "dairy",
+          "sugar",
+          "eggs",
+          "cocoa",
+          "spice",
+          "vanilla"
+        ],
+        "apMsg": "test1, what'll ye do:",
+        "apBtns": [
+          "Trade",
+          "Pass +1"
+        ],
+        "apSub": "No one's holding cargo to trade for yet.",
+        "hasSlider": false,
+        "hasSliderWrap": false,
+        "sliderOut": null,
+        "promptCls": "radial",
+        "bub": "Flaky Jack trades Fresh Milk + 3 to test3 for Toasty Wheat"
+      },
+      "guests": [
+        {
+          "seat": 1,
+          "isHost": false,
+          "room": "UBEZ",
+          "round": 1,
+          "events": 5,
+          "dlogLen": 0,
+          "strategies": [
+            "human",
+            "human",
+            "human",
+            "rusher"
+          ],
+          "names": [
+            null,
+            null,
+            null,
+            null
+          ],
+          "coins": [
+            3,
+            6,
+            7,
+            5
+          ],
+          "ing": [
+            [],
+            [
+              "wheat"
+            ],
+            [
+              "dairy"
+            ],
+            [
+              "sugar",
+              "wheat"
+            ]
+          ],
+          "ings": [
+            "wheat",
+            "dairy",
+            "sugar",
+            "eggs",
+            "cocoa",
+            "spice",
+            "vanilla"
+          ],
+          "apMsg": null,
+          "apBtns": [],
+          "apSub": null,
+          "hasSlider": false,
+          "hasSliderWrap": false,
+          "sliderOut": null,
+          "promptCls": null,
+          "bub": "Flaky Jack trades Fresh Milk + 3 to test3 for Toasty Wheat"
+        },
+        {
+          "seat": 2,
+          "isHost": false,
+          "room": "UBEZ",
+          "round": 1,
+          "events": 5,
+          "dlogLen": 0,
+          "strategies": [
+            "human",
+            "human",
+            "human",
+            "rusher"
+          ],
+          "names": [
+            null,
+            null,
+            null,
+            null
+          ],
+          "coins": [
+            3,
+            6,
+            7,
+            5
+          ],
+          "ing": [
+            [],
+            [
+              "wheat"
+            ],
+            [
+              "dairy"
+            ],
+            [
+              "sugar",
+              "wheat"
+            ]
+          ],
+          "ings": [
+            "wheat",
+            "dairy",
+            "sugar",
+            "eggs",
+            "cocoa",
+            "spice",
+            "vanilla"
+          ],
+          "apMsg": null,
+          "apBtns": [],
+          "apSub": null,
+          "hasSlider": false,
+          "hasSliderWrap": false,
+          "sliderOut": null,
+          "promptCls": null,
+          "bub": "Flaky Jack trades Fresh Milk + 3 to test3 for Toasty Wheat"
+        }
+      ]
+    },
+    {
+      "name": "04-settled",
+      "note": "after the trade resolved",
+      "at": 1787469734382,
+      "host": {
+        "seat": 0,
+        "isHost": true,
+        "room": "UBEZ",
+        "round": 1,
+        "events": 5,
+        "dlogLen": 6,
+        "strategies": [
+          "human",
+          "human",
+          "human",
+          "rusher"
+        ],
+        "names": [
+          null,
+          null,
+          null,
+          null
+        ],
+        "coins": [
+          3,
+          6,
+          7,
+          5
+        ],
+        "ing": [
+          [],
+          [
+            "wheat"
+          ],
+          [
+            "dairy"
+          ],
+          [
+            "sugar",
+            "wheat"
+          ]
+        ],
+        "ings": [
+          "wheat",
+          "dairy",
+          "sugar",
+          "eggs",
+          "cocoa",
+          "spice",
+          "vanilla"
+        ],
+        "apMsg": "test1, what'll ye do:",
+        "apBtns": [
+          "Trade",
+          "Pass +1"
+        ],
+        "apSub": "No one's holding cargo to trade for yet.",
+        "hasSlider": false,
+        "hasSliderWrap": false,
+        "sliderOut": null,
+        "promptCls": "radial",
+        "bub": null
+      },
+      "guests": [
+        {
+          "seat": 1,
+          "isHost": false,
+          "room": "UBEZ",
+          "round": 1,
+          "events": 5,
+          "dlogLen": 0,
+          "strategies": [
+            "human",
+            "human",
+            "human",
+            "rusher"
+          ],
+          "names": [
+            null,
+            null,
+            null,
+            null
+          ],
+          "coins": [
+            3,
+            6,
+            7,
+            5
+          ],
+          "ing": [
+            [],
+            [
+              "wheat"
+            ],
+            [
+              "dairy"
+            ],
+            [
+              "sugar",
+              "wheat"
+            ]
+          ],
+          "ings": [
+            "wheat",
+            "dairy",
+            "sugar",
+            "eggs",
+            "cocoa",
+            "spice",
+            "vanilla"
+          ],
+          "apMsg": null,
+          "apBtns": [],
+          "apSub": null,
+          "hasSlider": false,
+          "hasSliderWrap": false,
+          "sliderOut": null,
+          "promptCls": null,
+          "bub": null
+        },
+        {
+          "seat": 2,
+          "isHost": false,
+          "room": "UBEZ",
+          "round": 1,
+          "events": 5,
+          "dlogLen": 0,
+          "strategies": [
+            "human",
+            "human",
+            "human",
+            "rusher"
+          ],
+          "names": [
+            null,
+            null,
+            null,
+            null
+          ],
+          "coins": [
+            3,
+            6,
+            7,
+            5
+          ],
+          "ing": [
+            [],
+            [
+              "wheat"
+            ],
+            [
+              "dairy"
+            ],
+            [
+              "sugar",
+              "wheat"
+            ]
+          ],
+          "ings": [
+            "wheat",
+            "dairy",
+            "sugar",
+            "eggs",
+            "cocoa",
+            "spice",
+            "vanilla"
+          ],
+          "apMsg": null,
+          "apBtns": [],
+          "apSub": null,
+          "hasSlider": false,
+          "hasSliderWrap": false,
+          "sliderOut": null,
+          "promptCls": null,
+          "bub": null
+        }
+      ]
+    }
+  ],
+  "notes": [],
+  "profileRoot": "/var/folders/4z/574czt1n0yxfn9m22xbnr6tm0000gn/T/crew-trade-prof-rP3gwN",
+  "seats": {
+    "strategies": [
+      "human",
+      "human",
+      "human",
+      "rusher"
+    ],
+    "names": [
+      null,
+      null,
+      null,
+      null
+    ]
+  },
+  "holderSeats": [
+    1,
+    2
+  ],
+  "pose": {
+    "ok": true,
+    "askerIdx": 3,
+    "offer": {
+      "want": "wheat",
+      "giveIng": "dairy",
+      "giveCoins": 3
+    },
+    "heard": [
+      1,
+      2
+    ],
+    "holderStrategies": [
+      "human",
+      "human"
+    ],
+    "askerIng": [
+      "dairy",
+      "sugar"
+    ],
+    "askerCoins": 8
+  },
+  "dlogBefore": 4,
+  "fire": {
+    "t0": 1787469713235,
+    "state": "resolved",
+    "result": true,
+    "err": null,
+    "t1": 1787469731386
+  },
+  "dlogAfter": 6,
+  "ledger": {
+    "askerIdx": 3,
+    "offer": {
+      "want": "wheat",
+      "giveIng": "dairy",
+      "giveCoins": 3
+    },
+    "ing": [
+      [],
+      [
+        "wheat"
+      ],
+      [
+        "dairy"
+      ],
+      [
+        "sugar",
+        "wheat"
+      ]
+    ],
+    "coins": [
+      3,
+      6,
+      7,
+      5
+    ],
+    "tradeEvents": [
+      {
+        "t": "openoffer",
+        "p": 3,
+        "want": "wheat",
+        "offer": "<img class=\"narrIcon\" src=\"../assets/ingredients/dairy.png\" alt=\"Fresh Milk\"> Fresh Milk + 3 coins",
+        "round": 1,
+        "wind": "N",
+        "storm": false,
+        "wind2": null,
+        "state": [
+          {
+            "pos": [
+              7,
+              5
+            ],
+            "coins": 3,
+            "ing": [],
+            "done": false,
+            "baking": false
+          },
+          {
+            "pos": [
+              7,
+              8
+            ],
+            "coins": 6,
+            "ing": [
+              "wheat"
+            ],
+            "done": false,
+            "baking": false
+          },
+          {
+            "pos": [
+              8,
+              7
+            ],
+            "coins": 4,
+            "ing": [
+              "wheat"
+            ],
+            "done": false,
+            "baking": false
+          },
+          {
+            "pos": [
+              6,
+              7
+            ],
+            "coins": 8,
+            "ing": [
+              "dairy",
+              "sugar"
+            ],
+            "done": false,
+            "baking": false
+          }
+        ],
+        "tokens": {
+          "wheat": 3,
+          "dairy": 3,
+          "sugar": 3,
+          "eggs": 3,
+          "cocoa": 3,
+          "spice": 3,
+          "vanilla": 3
+        }
+      },
+      {
+        "t": "trade",
+        "a": 3,
+        "b": 2,
+        "gave": "<img class=\"narrIcon\" src=\"../assets/ingredients/dairy.png\" alt=\"Fresh Milk\"> Fresh Milk + 3 coins",
+        "got": "wheat",
+        "kind": "open",
+        "round": 1,
+        "wind": "N",
+        "storm": false,
+        "wind2": null,
+        "state": [
+          {
+            "pos": [
+              7,
+              5
+            ],
+            "coins": 3,
+            "ing": [],
+            "done": false,
+            "baking": false
+          },
+          {
+            "pos": [
+              7,
+              8
+            ],
+            "coins": 6,
+            "ing": [
+              "wheat"
+            ],
+            "done": false,
+            "baking": false
+          },
+          {
+            "pos": [
+              8,
+              7
+            ],
+            "coins": 7,
+            "ing": [
+              "dairy"
+            ],
+            "done": false,
+            "baking": false
+          },
+          {
+            "pos": [
+              6,
+              7
+            ],
+            "coins": 5,
+            "ing": [
+              "sugar",
+              "wheat"
+            ],
+            "done": false,
+            "baking": false
+          }
+        ],
+        "tokens": {
+          "wheat": 3,
+          "dairy": 3,
+          "sugar": 3,
+          "eggs": 3,
+          "cocoa": 3,
+          "spice": 3,
+          "vanilla": 3
+        }
+      }
+    ],
+    "dlog": [
+      0,
+      0,
+      0,
+      [
+        7,
+        5
+      ],
+      0,
+      0
+    ]
+  },
+  "promptChannel": {
+    "writes": [
+      {
+        "ms": 49,
+        "id": null,
+        "kind": null,
+        "seat": null,
+        "msg": null,
+        "nOpts": 0,
+        "slider": false
+      },
+      {
+        "ms": 4350,
+        "id": "q6_1787469717583",
+        "kind": "ask",
+        "seat": 1,
+        "msg": "test2: Flaky Jack offers  Fresh Milk + 3 coins for yer  Toasty Wheat.",
+        "nOpts": 3,
+        "slider": false
+      },
+      {
+        "ms": 9053,
+        "id": null,
+        "kind": null,
+        "seat": null,
+        "msg": null,
+        "nOpts": 0,
+        "slider": false
+      },
+      {
+        "ms": 9054,
+        "id": "q7_1787469722287",
+        "kind": "ask",
+        "seat": 2,
+        "msg": "test3: Flaky Jack offers  Fresh Milk + 3 coins for yer  Toasty Wheat.",
+        "nOpts": 3,
+        "slider": false
+      },
+      {
+        "ms": 13805,
+        "id": null,
+        "kind": null,
+        "seat": null,
+        "msg": null,
+        "nOpts": 0,
+        "slider": false
+      }
+    ],
+    "distinct": 2
+  },
+  "responders": [
+    {
+      "acts": [
+        {
+          "t": 1787469722235,
+          "a": "ANSWER \"Accept\""
+        }
+      ],
+      "stepperTaps": 0,
+      "sliderSets": 0,
+      "err": null,
+      "phase": "answering"
+    },
+    {
+      "acts": [
+        {
+          "t": 1787469726986,
+          "a": "ANSWER \"Accept\""
+        }
+      ],
+      "stepperTaps": 0,
+      "sliderSets": 0,
+      "err": null,
+      "phase": "answering"
+    }
+  ],
+  "measured": {
+    "responderDelayMs": 3000,
+    "sampleIntervalMs": 200,
+    "openofferToSettlementMs": 20801,
+    "tradeWallClockMs": 18151,
+    "longestDecidingSpanMs": {
+      "host": {
+        "ms": 9599,
+        "fromMs": 4402
+      },
+      "guest1": {
+        "ms": 4796,
+        "fromMs": 9205
+      },
+      "guest2": {
+        "ms": 4606,
+        "fromMs": 4601
+      }
+    },
+    "longestDecidingSpanAnyScreenMs": 9599,
+    "promptWrites": 5,
+    "distinctPromptIds": 2,
+    "dlogBefore": 4,
+    "dlogAfter": 6,
+    "dlogEntriesAdded": 2,
+    "stepperTaps": [
+      0,
+      0
+    ],
+    "sliderDrags": [
+      0,
+      0
+    ]
+  },
+  "finishedAt": "2026-08-23T07:22:14.447Z"
+}

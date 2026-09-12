@@ -1,0 +1,64 @@
+=== crew bake probe (measure) — http://127.0.0.1:8811/4/?ovens=1 ===
+room PEDH
+voyage started
+  open host: Arrgh!
+  open guest: Arrgh!
+  recipes drafted on every seat
+
+--- 00-voyage-open (after the draft)
+    HOST  bench=none  bowls=0  whose=n/a  hint=""
+          apMsg="Ahoy! Choose a recipe, gather each ingredient, then sail home first to"  btns=["Arrgh!"]
+    GUEST bench=none  bowls=0  whose=n/a  hint=""
+          apMsg="Ahoy! Choose a recipe, gather each ingredient, then sail home first to"  btns=["Arrgh!"]
+
+=== waiting for the first bake ===
+      host tick 1: RECIPE
+      guest tick 1: RECIPE
+      host tick 2: RECIPE
+      guest tick 2: RECIPE
+      host tick 10: Start
+      guest tick 10: Start
+first bake surface: host=true guest=false after 34 ticks
+
+--- 01-first-bake (the first bench of the voyage)
+    HOST  bench=none  bowls=0  whose=seat 1 (?)  hint=""
+          apMsg="The ovens be roarin'! Yer ingredients be waitin'. Ye must bake yer rec"  btns=["Get bakin'!"]
+    GUEST bench=none  bowls=0  whose=n/a  hint=""
+          apMsg=""  btns=[]
+
+=== playing the first bake on the HOST ===
+  {"tag":"host","steps":["intro","ready","armed","guess-entered"],"openCrates":[0,1,2,3,4]}
+
+--- 02-first-bench-answerable (every crate named, before Bake it!)
+    HOST  bench=VISIBLE 364x323  bowls=5  whose=seat 1 (?)  hint="Tap the crates in recipe order. Tap again to u"
+          apMsg=""  btns=["Watch again 1","Bake it!"]
+    GUEST bench=none  bowls=0  whose=n/a  hint=""
+          apMsg=""  btns=[]
+
+--- 03-first-verdict (the reveal running)
+    HOST  bench=VISIBLE 364x323  bowls=5  whose=seat 1 (?)  hint="Opening the crates…"
+          apMsg=""  btns=["Watch again 1","In the oven…"]
+    GUEST bench=none  bowls=0  whose=n/a  hint=""
+          apMsg=""  btns=[]
+
+=== waiting for the second captain's bake ===
+second bake surface: host=true guest=false after 0 ticks
+
+--- 04-second-bake (the second captain's bake, both browsers at the same moment)
+    HOST  bench=VISIBLE 364x323  bowls=5  whose=seat 1 (?)  hint="Opening the crates…"
+          apMsg=""  btns=["Watch again 1","In the oven…"]
+    GUEST bench=none  bowls=0  whose=n/a  hint=""
+          apMsg=""  btns=[]
+
+ANSWER: {
+  "hostShowsABench": true,
+  "guestShowsABench": false,
+  "hostBenchBelongsToSeat": 1,
+  "guestBenchBelongsToSeat": null,
+  "hostSeat": 0,
+  "guestSeat": 1,
+  "guestApMsg": null,
+  "hostApMsg": null
+}
+
+result.json written to /Users/wyattroy/Documents/Projects/pastrypirates/.planning/phases/04-the-networked-bakeoff/shots/t1

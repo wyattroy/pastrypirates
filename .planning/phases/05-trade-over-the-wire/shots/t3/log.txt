@@ -1,0 +1,72 @@
+=== crew trade probe — counter=crate coins=2 holders=1 delay=3000ms drop=false ===
+    http://127.0.0.1:8851/4/
+room EANN
+voyage started
+  voyage under way (tick 8, last host act Start)
+  seats: [null,null,null,null] strategies=["human","human","trader","rusher"]
+  human seats: [0,1]  (host is seat 0)
+
+--- 00-voyage-open (after the draft)
+    HOST  apMsg="The crew draws lots for sailing order — Dough Hook first!No fretting, patience"
+          btns=["Start"] slider=false/false@null bub="Day 1: A storm be ragin'! It'll blow every ship 3 squares nort"
+    G1    apMsg=""
+          btns=[] slider=false/false@null bub="Waiting for yer mateys…"
+
+=== waiting for the host's own action prompt (parks the turn loop, frees the wire) ===
+  ...tick 24: host apMsg="" btns=[]
+  parked at tick 34: ["Trade","Pass +1"]
+
+--- 01-parked (the turn loop is parked on a LOCAL prompt; the wire is free)
+    HOST  apMsg="test1, what'll ye do:"
+          btns=["Trade","Pass +1"] slider=false/false@null bub=""
+    G1    apMsg=""
+          btns=[] slider=false/false@null bub="test1 is deciding…"
+  human holder seats: [1] (host seat 0 deliberately NOT a holder)
+
+=== pose: {"ok":true,"askerIdx":2,"offer":{"want":"wheat","giveIng":"dairy","giveCoins":3},"heard":[1],"holderStrategies":["human"],"askerIng":["dairy","sugar","sugar"],"askerCoins":8}
+  prompt watch up
+  guest: responder up (counter-crate, 3000ms)
+
+=== firing the hail (dlog before = 3) ===
+  fired on seat 2
+
+--- 02-round-open (every holder's screen at the same moment)
+    HOST  apMsg="test1, what'll ye do:"
+          btns=["Trade","Pass +1"] slider=false/false@null bub="📣 Dough Hook hails the table: "Who'll give me Toasty Wheat fo"
+    G1    apMsg=""
+          btns=[] slider=false/false@null bub="📣 Dough Hook hails the table: "Who'll give me Toasty Wheat fo"
+
+--- 03-mid-round 
+    HOST  apMsg="test1, what'll ye do:"
+          btns=["Trade","Pass +1"] slider=false/false@null bub="test2 is deciding…"
+    G1    apMsg="test2: ye're ASKIN' Crystal Sugar for yer Toasty Wheat"
+          btns=["Ask it!"] slider=true/true@0 bub=""
+  trade resolved after 25.2s  result=true err=none
+
+--- 04-settled (after the trade resolved)
+    HOST  apMsg="test1, what'll ye do:"
+          btns=["Trade","Pass +1"] slider=false/false@null bub=""
+    G1    apMsg=""
+          btns=[] slider=false/false@null bub=""
+
+================ MEASURED ================
+  responder thinking time held at        3000ms (fixed), sampled every 200ms
+  human holders answering                1
+  openoffer -> settlement                27.6s
+  trade call wall clock                  25.2s
+  longest unbroken "is deciding" (host   ) 16.6s
+  longest unbroken "is deciding" (guest1 ) 0.0s
+  prompt round trips (writes to rooms/<C>/prompt)  7  (3 distinct prompts)
+  decision log                           3 -> 7  (+4)
+  stepper taps per guest                 [0]
+  slider drags per guest                 [1]
+    +0.1s  (cleared) seat=null slider=false ""
+    +4.3s  q3_178747124 seat=1 slider=false "test2: Dough Hook offers  Fresh Milk + 3 coins for yer  "
+    +9.1s  (cleared) seat=null slider=false ""
+    +9.1s  q4_178747124 seat=1 slider=false "test2: what o' Dough Hook's will ye have instead?"
+    +13.8s  (cleared) seat=null slider=false ""
+    +13.8s  q5_178747125 seat=1 slider=true "test2: ye're ASKIN'  Crystal Sugar for yer  Toasty Wheat"
+    +20.9s  (cleared) seat=null slider=false ""
+==========================================
+
+wrote /Users/wyattroy/Documents/Projects/pastrypirates/.planning/phases/05-trade-over-the-wire/shots/t3/result.json

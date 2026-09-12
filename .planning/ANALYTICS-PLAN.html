@@ -1,0 +1,345 @@
+<title>Analytics — the whole picture, and how to switch Google on</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+:root{
+  --paper:#f2f5f6; --card:#fbfcfc; --ink:#16232b; --muted:#5c6e77; --line:#dce4e7;
+  --accent:#0b5d75; --accent-soft:#e3eef2; --rust:#a8452f; --rust-soft:#f7e9e5;
+  --good:#1c7a5e; --good-soft:#e4f2ec;
+  --shadow:0 1px 2px rgba(16,40,50,.05),0 8px 24px rgba(16,40,50,.06);
+}
+@media (prefers-color-scheme:dark){:root{
+  --paper:#0c1519; --card:#132228; --ink:#e4edf0; --muted:#93a9b2; --line:#25404a;
+  --accent:#5ac8e0; --accent-soft:#12313c; --rust:#ff8a6b; --rust-soft:#3a1f18;
+  --good:#4fc79b; --good-soft:#12312a;
+  --shadow:0 1px 2px rgba(0,0,0,.5),0 8px 24px rgba(0,0,0,.35);
+}}
+*{box-sizing:border-box}
+body{
+  margin:0; padding:28px 20px 90px; background:var(--paper); color:var(--ink);
+  font:400 17px/1.62 "IBM Plex Sans",system-ui,-apple-system,sans-serif;
+  -webkit-text-size-adjust:100%;
+}
+.wrap{max-width:760px;margin:0 auto}
+h1{
+  font:700 32px/1.15 Fraunces,Georgia,serif; margin:0 0 6px; letter-spacing:-.01em;
+}
+.sub{color:var(--muted);font-size:15px;margin:0 0 28px}
+h2{
+  font:600 23px/1.25 Fraunces,Georgia,serif; margin:38px 0 12px;
+  padding-top:20px; border-top:1px solid var(--line);
+}
+h3{font:600 17px/1.3 "IBM Plex Sans",sans-serif;margin:24px 0 8px}
+p{margin:0 0 14px}
+ul,ol{margin:0 0 16px;padding-left:22px}
+li{margin:0 0 8px}
+strong{font-weight:600}
+code,.mono{font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:.9em}
+code{background:var(--accent-soft);padding:1px 5px;border-radius:4px}
+.card{
+  background:var(--card); border:1px solid var(--line); border-radius:12px;
+  padding:18px 20px; margin:0 0 18px; box-shadow:var(--shadow);
+}
+.tldr{border-left:4px solid var(--accent)}
+.warn{border-left:4px solid var(--rust); background:var(--rust-soft)}
+.warn code{background:rgba(0,0,0,.06)}
+.yours{border-left:4px solid var(--good); background:var(--good-soft)}
+.yours code{background:rgba(0,0,0,.06)}
+.big{
+  display:flex;flex-wrap:wrap;gap:10px;margin:0 0 18px;
+}
+.stat{
+  flex:1 1 130px; background:var(--card); border:1px solid var(--line);
+  border-radius:10px; padding:12px 14px; box-shadow:var(--shadow);
+}
+.stat b{display:block;font:700 27px/1.1 Fraunces,Georgia,serif;color:var(--accent)}
+.stat span{display:block;font-size:13px;color:var(--muted);margin-top:3px}
+table{width:100%;border-collapse:collapse;margin:0 0 18px;font-size:15px}
+th,td{text-align:left;padding:9px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-weight:600;color:var(--muted);font-size:13px;text-transform:uppercase;letter-spacing:.04em}
+td.y{color:var(--good);font-weight:600}
+td.n{color:var(--rust);font-weight:600}
+.steps{counter-reset:s;padding:0;list-style:none}
+.steps li{
+  counter-increment:s; position:relative; padding-left:42px; margin:0 0 18px;
+}
+.steps li::before{
+  content:counter(s); position:absolute; left:0; top:-1px;
+  width:28px;height:28px;border-radius:50%;
+  background:var(--accent);color:var(--paper);
+  font:600 15px/28px "IBM Plex Sans",sans-serif;text-align:center;
+}
+pre{
+  background:var(--card);border:1px solid var(--line);border-radius:8px;
+  padding:12px 14px;overflow-x:auto;font-family:"IBM Plex Mono",monospace;
+  font-size:13px;line-height:1.5;margin:0 0 14px;
+}
+.q{font:600 18px/1.35 Fraunces,Georgia,serif;margin:22px 0 8px}
+.rec{
+  display:inline-block;background:var(--good);color:#fff;
+  font:600 11px/1 "IBM Plex Sans",sans-serif;letter-spacing:.05em;
+  padding:4px 7px;border-radius:4px;text-transform:uppercase;vertical-align:2px;margin-left:6px;
+}
+.foot{margin-top:44px;padding-top:18px;border-top:1px solid var(--line);
+  color:var(--muted);font-size:13px}
+@media (max-width:520px){
+  body{padding:20px 15px 70px;font-size:16px}
+  h1{font-size:26px} h2{font-size:20px}
+  .stat b{font-size:23px}
+  table{font-size:14px} th,td{padding:7px 6px}
+}
+</style>
+
+<div class="wrap">
+
+<h1>Analytics — the whole picture</h1>
+<p class="sub">Written for Wyatt, 2026-09-03. Every number here was read off the live database
+this morning, not remembered. Your ask: <em>“give me instructions to switch it on, and give me
+the full plan for analytics as an artifact.”</em></p>
+
+<div class="card tldr">
+  <h3 style="margin-top:0">The short version</h3>
+  <p><strong>You already have a Google Analytics property, and it has never been told
+  anything.</strong> Its ID is sitting in the game's Firebase settings. Switching it on is one
+  line of HTML per page — about ten minutes of work.</p>
+  <p><strong>You also already have your own analytics, and it is better than you think.</strong>
+  It has been quietly recording since 10 August. That is where the numbers below come from.</p>
+  <p><strong>So the real question is not “should I add Google”. It is “which three or four
+  things does Google know that my own counter doesn't?”</strong> There are exactly three, and
+  they are listed further down. <strong>Everything else Google would tell you, you are already
+  collecting.</strong></p>
+</div>
+
+<h2>1. What you have right now, without Google</h2>
+
+<p>The game writes three tiny anonymous records to your own Firebase database — a page boot, a
+voyage start, and a voyage finish. No names, no third party, nothing that follows anyone off
+your site. It is in <code>src/ui/usage.js</code>, and your <code>/stats.html</code> page reads
+it back.</p>
+
+<p><strong>Live, the last fourteen days:</strong></p>
+
+<div class="big">
+  <div class="stat"><b>237</b><span>page boots</span></div>
+  <div class="stat"><b>123</b><span>different browsers</span></div>
+  <div class="stat"><b>44</b><span>voyages started</span></div>
+  <div class="stat"><b>8</b><span>voyages finished</span></div>
+</div>
+
+<p>Of the 44 starts: <strong>35 solo, 3 pass-and-play, 6 crew games.</strong> Your busiest day was
+24 August with 45 boots; yesterday had 10.</p>
+
+<div class="card warn">
+  <h3 style="margin-top:0">⚠ Do not read “123 people, only 19 ever played”</h3>
+  <p>That sentence is roughly what the raw numbers say, and it is unfair to the game in
+  <strong>four separate ways</strong> — a previous note quoted it flat and it was wrong to:</p>
+  <ul>
+    <li><strong>Crew guests never count as a start.</strong> Only the person who <em>hosts</em>
+    a crew game gets counted. Six crew games were hosted, so their guests all look like people
+    who opened the page and walked away.</li>
+    <li><strong>Coming back to a saved voyage counts as nothing.</strong> Resumes and replays
+    write no start at all — the file says so in its own header.</li>
+    <li><strong>Private tabs mint a new browser every time.</strong> So the 123 is inflated, and
+    testing inflates it most.</li>
+    <li><strong>The “unfinished” count is deliberately generous.</strong> A voyage finished after
+    a mid-game refresh still counts as finished, but loses its link back to its start.</li>
+  </ul>
+  <p><strong>All four biases push the same direction.</strong> The real drop-off is better than
+  123 → 19, and nobody yet knows by how much. <strong>Google would not fix this either</strong> —
+  it would have exactly the same blind spot about crew guests, because the blind spot is in when
+  the game decides to count, not in who is counting.</p>
+</div>
+
+<h2>2. The one real gap — and it is not the one you'd guess</h2>
+
+<p>Your counter runs on <strong>the game page only</strong>. It is wired into the game's
+orchestrator (<code>src/orchestrator.js</code>), and nothing else on the site calls it.</p>
+
+<table>
+  <tr><th>Page</th><th>Public?</th><th>Measured today?</th></tr>
+  <tr><td><code>/</code> — the game</td><td>yes</td><td class="y">yes</td></tr>
+  <tr><td><code>/about.html</code></td><td>yes</td><td class="n">no</td></tr>
+  <tr><td><code>/rules.html</code></td><td>yes</td><td class="n">no</td></tr>
+  <tr><td><code>/classic/</code> — the old game</td><td>yes, noindex</td><td class="y">yes</td></tr>
+  <tr><td><code>/stats.html</code> — your console</td><td>hidden</td><td class="n">no</td></tr>
+  <tr><td><code>/classic/stats.html</code></td><td>hidden</td><td class="n">no</td></tr>
+  <tr><td><code>/classic/lab.html</code></td><td>hidden</td><td class="n">no</td></tr>
+  <tr><td><code>/scripts/battle_sim.html</code></td><td>a dev tool</td><td class="n">no</td></tr>
+</table>
+
+<p><strong>So the rules page you shipped this morning is invisible to you.</strong> You cannot
+currently tell whether one person has read it. Same for the About page. That is a genuine hole,
+and it is worth more than it sounds — those two pages are what a stranger sees before they
+decide whether to play.</p>
+
+<div class="card">
+  <p style="margin:0 0 10px"><strong>⚠ That table is the SITE. There are twelve more live pages
+  it deliberately leaves out, and you should know which.</strong></p>
+  <p style="margin:0 0 10px">The repo has <strong>20 web pages outside the planning folder</strong>.
+  Eight are the site above. The other twelve are working files — five <code>art-review/</code>
+  galleries and seven <code>notes/sketches/</code> mockups — and they are <strong>live on your
+  domain right now</strong>. That is your own settled ruling, not a new finding: you already
+  answered <em>“yes”</em> to stopping crawlers reaching them.</p>
+  <p style="margin:0"><strong>They should get no analytics tag under any of the three options
+  below</strong>, including “every page”. Measuring your own working files would put noise in the
+  numbers you are turning Google on to read. <strong>If a future watch reads option 2 as “all
+  twenty”, it has misread it.</strong></p>
+</div>
+
+<h2>3. What Google gives you that you don't have</h2>
+
+<p>Honestly: <strong>three things, and one of them you could build yourself in an afternoon.</strong></p>
+
+<table>
+  <tr><th>What</th><th>Worth it?</th></tr>
+  <tr>
+    <td><strong>Where people came from</strong> — the referrer. Whether your 123 browsers arrived
+    from a Google search, a link someone shared, or by typing the address.</td>
+    <td>The strongest reason. You are about to launch; this is the one that tells you whether
+    anything you do to promote it works.</td>
+  </tr>
+  <tr>
+    <td><strong>Roughly where in the world, and on what</strong> — country, device type, browser.</td>
+    <td>Useful. You have been guessing at the phone/desktop split; this ends the guess.</td>
+  </tr>
+  <tr>
+    <td><strong>Every page, for free, forever</strong> — including About and Rules, and any page
+    you add later, with no code to remember to wire up.</td>
+    <td>This is the quiet one. Your own counter needs a line added per page; Google's needs
+    nothing after the first install.</td>
+  </tr>
+</table>
+
+<div class="card">
+  <p style="margin:0"><strong>The honest caveat:</strong> the referrer is <em>not</em> something
+  only Google can see. Any page can read its own referrer in one line of JavaScript, and your
+  own counter could store it beside the build string it already stores. So “I need Google for
+  the referrer” is not true — <strong>“Google gives me the referrer plus geography plus every
+  page, today, for ten minutes of work” is true.</strong></p>
+</div>
+
+<h2>4. The two decisions that are yours</h2>
+
+<p class="q">Decision 1 — which pages get the tag?</p>
+<ol>
+  <li><strong>The public pages only</strong> — the game, About, and Rules.
+    <span class="rec">Recommended</span><br>
+    <span style="color:var(--muted);font-size:15px">This is the smallest thing that closes the
+    real gap. It leaves your private console out, so measuring yourself doesn't pollute the
+    numbers, and leaves <code>/classic</code> out because it is frozen and already has its own
+    counter.</span></li>
+  <li><strong>Every page including <code>/classic</code></strong> — one consistent picture,
+    at the cost of mixing a frozen v1's traffic into your launch numbers.</li>
+  <li><strong>The game page only</strong> — the most cautious, and it leaves About and Rules
+    exactly as blind as they are today, which is the thing this was meant to fix.</li>
+</ol>
+
+<p class="q">Decision 2 — a cookie notice, or not?</p>
+<p>This is a genuine judgement call and <strong>nobody here has made it for you.</strong> Plainly:</p>
+<ul>
+  <li>Google Analytics 4 sets a cookie and sends data to Google. Your own counter does neither.</li>
+  <li><strong>Children play this game</strong>, which is the part that makes this more than a
+  formality.</li>
+  <li>There is a middle option: GA4 has a setting that stops it storing anything on the visitor's
+  device — no cookie, and no attempt to recognise a returning visitor. You lose “how many unique
+  people” from Google, <strong>but you already have that number from your own counter</strong>,
+  which is why this option fits your situation unusually well.
+  <br><span style="color:var(--muted);font-size:15px">⚠ <strong>This is the one thing on this page
+  I could not check.</strong> The machine that wrote it has no web access, so this rests on how
+  the setting has worked rather than on Google's documentation as it stands today. <strong>It gets
+  verified before anything is installed</strong> — and if it has changed, decision 2 becomes a
+  straight choice between a banner and no banner.</span></li>
+</ul>
+<ol>
+  <li><strong>Cookieless mode, no banner.</strong> <span class="rec">Recommended</span><br>
+    <span style="color:var(--muted);font-size:15px">You keep the three things you actually want
+    (referrer, geography, per-page), you set no cookie, and no child is asked to consent to
+    anything. Your own counter keeps supplying the unique-player count.</span></li>
+  <li><strong>Standard GA4 plus a small consent banner.</strong> More complete data, and a box
+    over your front door on every first visit.</li>
+  <li><strong>Standard GA4, no banner.</strong> What most small sites do. Simplest, and the one
+    with the most to argue about.</li>
+</ol>
+
+<h2>5. How to switch it on — the instructions you asked for</h2>
+
+<div class="card yours">
+  <p style="margin:0"><strong>Step 1 is yours and takes about ten seconds. The rest is mine.</strong>
+  Nothing has been installed. This page is the plan; say which options you want and the next
+  watch does it.</p>
+</div>
+
+<ol class="steps">
+  <li><strong>Confirm the property exists.</strong> Open
+    <span class="mono">analytics.google.com</span> while signed in as you, and look for a
+    property whose measurement ID is <code>G-2KK6EZDZSP</code>.
+    <br><span style="color:var(--muted);font-size:15px">That ID is written into the game's
+    Firebase settings in two files. Google normally only writes that line when Analytics is
+    switched on for the project — <strong>so the property almost certainly exists, but I cannot
+    see inside your account and I am not going to claim it as verified.</strong> If it is not
+    there, making one is three clicks and produces a new <code>G-</code> ID to use instead.</span></li>
+
+  <li><strong>Tell me your two answers</strong> — which pages, and cookie or cookieless. Both
+    are above with a recommendation marked.</li>
+
+  <li><strong>I add one snippet to the top of each chosen page.</strong> It looks like this —
+    about eight lines, and nothing else in the game changes:
+    <pre>&lt;script async src="https://www.googletagmanager.com/gtag/js?id=G-2KK6EZDZSP"&gt;&lt;/script&gt;
+&lt;script&gt;
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-2KK6EZDZSP');     // + the no-storage setting, if you pick cookieless
+&lt;/script&gt;</pre>
+    <span style="color:var(--muted);font-size:15px">⚠ <strong>Use the snippet Google's own setup
+    screen prints you, not this one.</strong> Step 1 puts you on that screen anyway, and it is the
+    authoritative version — this is here so you can see the shape and the size of the change, not
+    so anyone copies it. Same reason as the caveat under decision 2: this machine could not reach
+    Google's documentation to check the current form.</span></li>
+
+  <li><strong>I flip the check that is currently red.</strong> There is already a check in the
+    repo that fails today precisely because the ID is declared and no page loads it. It gets
+    renamed and wired into the test suite, so that from then on <em>deleting</em> the tag by
+    accident fails the build.</li>
+
+  <li><strong>You look at the live site and see data arrive</strong> — Google's “Realtime” view
+    should show your own visit within a minute or so. That is the proof it worked; nothing else
+    is.
+    <br><span style="color:var(--muted);font-size:15px">Same caveat as decision 2: this machine
+    could not reach Google's docs, so treat the timing as “quickly, watch for it” rather than a
+    number to hold them to.</span></li>
+</ol>
+
+<div class="card warn">
+  <h3 style="margin-top:0">One thing that must not be skipped</h3>
+  <p>This touches <code>index.html</code> — the page real players are in the middle of — with a
+  third-party script. The repo's rules say a change to that file gets the deepest level of
+  testing before it goes live: ten voyages across three screen sizes and both browser engines.
+  <strong>Today's trial took 75 minutes</strong> (read off this morning's report, not estimated;
+  the rules themselves budget about 85).</p>
+  <p><strong>You already spotted this and said so:</strong> <em>“it clearly doesn't need a full
+  one given that you're just adding a tag to index; so we need a way to tell sea trial that and
+  manually choose the depth of the trial.”</em> <strong>You are right, and that is now its own
+  job on the Chart</strong> — a separate watch, because it changes the testing machinery rather
+  than the game. It is not folded in here.</p>
+</div>
+
+<h2>6. What this plan does NOT do</h2>
+<ul>
+  <li><strong>It installs nothing.</strong> You asked for instructions and a plan; that is what
+  this is. No page has been touched.</li>
+  <li><strong>It does not decide consent for you</strong>, and no session should.</li>
+  <li><strong>It does not build the sea-trial depth control</strong> — your third sentence. That
+  is filed as its own item.</li>
+  <li><strong>It does not verify your Google account.</strong> Only you can open that.</li>
+</ul>
+
+<p class="foot">
+Measured 2026-09-03T16:50Z against the live Realtime Database (<code>_t206_usage_count.mjs</code>)
+and the tracked repo (<code>_t206_dark_property_check.mjs</code>: measurement ID declared in 2
+files, loaded in 0). Page list read from <code>git ls-files '*.html'</code>: 39 total, 20 outside
+the planning folder, 8 of those the site — the other 12 are the working files called out above.
+An earlier draft of this listed five pages from memory, and a first pass at the footer said “eight
+tracked pages” as though eight were all there were. Both corrected after a review caught them.
+</p>
+
+</div>

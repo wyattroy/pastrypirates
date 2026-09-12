@@ -1,5 +1,32 @@
 # Roadmap: Pastry Pirates
 
+> # ⛔ THIS FILE IS HISTORICAL. DO NOT PLAN FROM IT, AND DO NOT LET A COMMAND PLAN FROM IT.
+>
+> **Wyatt's ruling, 2026-08-28.** The status table near the bottom of this file has been wrong for
+> **215 commits** — it was last touched 2026-08-25. It currently says Phase 6 "The Cutover" is
+> **Not started**; the cutover shipped, and the `4/` tree it moved is not even on disk any more. It
+> says Phase 3 has 30 gates; there are 37. It says phases 7–9 are Not started; those are the
+> board-and-screen phases, and they are most of what has shipped since.
+>
+> **This is not new information and that is the point.** `.planning/STATE.md` has carried a note
+> since 2026-08-25 saying *"THE ROADMAP'S OWN STATUS TABLE IS STALE and no phase-level percentage
+> should be trusted until somebody audits it."* Nobody audited it, and on 2026-08-28
+> `/gsd-autonomous` read this file and proposed re-planning work that had shipped a week earlier —
+> the "adjacent, competent, misses the ask" failure rule 25 exists to catch.
+>
+> ### WHERE THE TRUTH ACTUALLY LIVES
+>
+> | for | read |
+> |---|---|
+> | what is happening now, in order | [`CTO-LEDGER.md`](CTO-LEDGER.md) — append-only, one entry per item |
+> | what is still to fix | [`BACKLOG.md`](BACKLOG.md) — the wave list, from Wyatt's playtests |
+> | whether it survived contact | [`SEA-TRIAL.md`](SEA-TRIAL.md) + [`CEO-REVIEWS.md`](CEO-REVIEWS.md) |
+>
+> **Everything BELOW this banner is a record of what was planned, not a claim about what is done.**
+> It is kept because the phase write-ups and their reasoning are worth reading. Reconciling it is
+> deliberately deferred to the start of the next milestone, when the phase list is being rewritten
+> anyway — Wyatt chose that over spending an hour of a fix window on it.
+
 > **⚠️ PHASE NUMBERING RESTARTS AT 1 FOR v2.0**
 >
 > **Wyatt's explicit choice, 2026-08-18.** v2.0 promotes a different game with a different engine,
@@ -40,7 +67,7 @@ cutover, not a merge**: `4/` forked 2026-08-11 and the repo root has had no code
 - [ ] **Phase 2: Multiplayer Revival** - The Firebase tags come back and a host and guest play a full networked voyage with the bake-off switched off — which measures what is really broken before the large work is planned
 - [ ] **Phase 02.15: One Log, One Display Path** *(inserted)* - The game is displayed from one place according to one set of rules, on every screen — the host draws from the event log like a guest and the scrubber already do, and Firebase becomes a copier rather than a second way of finding out what happened
 - [ ] **Phase 3: The Safety Net** - A determinism corpus for the v2 engine, the contract gates pointed at the tree being promoted, and host/guest parity gated rather than remembered
-- [ ] **Phase 4: The Networked Bake-off** - The finish line of the game works over the wire, and every other captain watches the bake live on the same face-down bench instead of reading "waiting…"
+- [x] **Phase 4: The Networked Bake-off** - The finish line of the game works over the wire, and every other captain watches the bake live on the same face-down bench instead of reading "waiting…"
 - [ ] **Phase 5: Trade Over the Wire** - A multi-captain trade completes inside one turn, counter-offers cross the wire, and a guest gets the same controls as the host
 - [ ] **Phase 6: The Cutover** - `playpastrypirates.com` serves the new game, today's game keeps playing at `/classic`, and nothing that identifies the live site exists in more than one tree
 - [ ] **Phase 7: The Board Fits** - The whole board is visible on a laptop and the director stops cropping the choices it is asking the player to make
@@ -545,10 +572,12 @@ playing)*
 **Depends on**: **Phase 02.15** (One Log, One Display Path) — which absorbed this phase's
 Group A and runs BEFORE it, on Wyatt's ruling.
 
-**Plans:** 7 plans — see the list below for which are executed (the count was hand-typed and had
+**Plans:** 6/7 plans executed
 already gone stale at 4/5 with six plans on the list; the checkboxes are the record).
 
 Plans:
+
+- [x] 02.2-08-PLAN.md
 
 - [x] 02.2-01-PLAN.md — Group Q: the one-line wins (items 13, 10, 1, 14, 7), the 20/15 reproduction, and the sketches for 8 and 9
 - [ ] 02.2-02-PLAN.md — Group A: one narration path and one director rule (items 17, 18, 19, 21, and 20/15 if Q could not reproduce them)
@@ -556,7 +585,7 @@ Plans:
 - [x] 02.2-04-PLAN.md — Group C: the bot that passes AND bakes (item 4) — **the one engine change in the phase**
 - [x] 02.2-05-PLAN.md — Group C′: the economy, measured and reported (item 12) — **no game code changes, no stamp bump**
 - [ ] 02.2-06-PLAN.md — Group D: design and copy (items 6, 16, and 8/9 if he has picked)
-- [ ] 02.2-07-PLAN.md — Group E: Wyatt's afternoon solo list on build `t` — all nine items (the
+- [x] 02.2-07-PLAN.md — Group E: Wyatt's afternoon solo list on build `t` — all nine items (the
   wait-line race behind his 2 and 8, the storm summary, the black market, reading-speed narration,
   the petal pulse, the Dock label, the wind pill, the crate cue). **A new list, not his twenty-two**
   — item numbers here are his afternoon numbering, recorded in
@@ -710,7 +739,46 @@ see the correction on 02.1's Wave 4 row); the doubled flip sound (Wyatt's earlie
   4. Host/guest parity fails the build when it breaks, instead of being noticed in a playtest.
   5. No comment in the tree claims a check gates it when that check does not exist.
 
-**Plans**: TBD
+**Plans**: 1 of 1 planned so far EXECUTED — 03-01 landed four of the five requirements. Two
+follow-ups are named below and not yet written: 03-02 (`ui_contract_check.js`) and 03-03 (TEST-03).
+
+Plans:
+**Wave 1**
+
+- [x] 03-01-PLAN.md — the gates learn to read the game we are actually shipping: five contract gates
+  and the parity gate re-aimed at `4/` and red-proofed BOTH ways, a falsifiable gate count in
+  `package.json`, and the ~66 comment citations swept behind a gate (TEST-04, TEST-05, TEST-06,
+  TEST-07). **No game code, no stamp bump, no corpus captured.**
+
+**Named but not yet written** *(both deliberate, both with the measurement they start from recorded
+in `03-01-PLAN.md`)*:
+
+- `03-02-PLAN.md` — `ui_contract_check.js` blocking against `4/`. **Measured for real in 03-01:
+  9 PASS, 4 FAIL groups, 68 findings** — 54 of them the D-29 copy-register rule `4/` never adopted,
+  9 anchors that moved, 4 real greyed-control faults and 1 allowlist entry. Shaped by
+  `03-UI-CONTRACT-TRIAGE.md`, which carries the bucket counts and a recommended two-half shape.
+
+- `03-03-PLAN.md` — **TEST-03, the corpus.** The three inherited engine purity fixes and the capture
+  as ONE pass, per `docs/DETERMINISM-RERECORD-NEXT.md` §7.
+
+> **THE ONE-WAY DOOR WAS DELIBERATELY LEFT OPEN, 2026-08-23, and this is a judgement Wyatt can
+> overrule.** ROADMAP's own text below says capture the corpus in this phase. `03-01-PLAN.md` §1
+> argues for capturing it LAST instead: the corpus is an oracle against *unintended* engine drift,
+> and Phases 4 and 5 are the two phases most likely to make an *intended* engine change — a gate that
+> fires on changes you meant to make is `HARD-WON-LESSONS` §9. The claim that neither phase needs an
+> engine change is an inference from 2026-08-18 intake research, not a measurement of today's tree
+> (which 02.2-04 and 02.15 have both changed since). And the `gave` purity fix sits on the **trade**
+> event, which is what Phase 5 exists to rework. **Confirmed in code, not assumed:** all three queued
+> purity fixes are inherited by `4/src/engine/index.js` (`:8`, `:1140`/`:1166`, `:1793`/`:1797`), and
+> `4/scripts/fixtures/` does not exist, so the door is still open. `docs/DETERMINISM-CAPTURE-4.md`
+> (written by 03-01 Task 5) records the capture and re-record procedures so spending the door is a
+> costed, reviewed act rather than a crisis.
+
+> **TEST-07 is bigger than this file says.** ROADMAP names two dangling citations; **there are about
+> 66**, counted 2026-08-23 across `4/src/**` and `4/index.html` — thirteen naming the UI contract
+> gate, nine the module graph gate, four the parity gate, and a long tail. **The two line numbers
+> below have both drifted since intake and now point at unrelated code — do not chase them.** 03-01
+> Task 4 sweeps behind a gate instead, per D-37 (a universal rule, never per-bug assertions).
 
 **Why the safety net comes before the bake-off, not after.** Root `npm test` runs 21 gates and
 **not one of them loads `4/`** — the exact "gate scanning the wrong tree is not silent, it is
@@ -750,7 +818,13 @@ the moment either is fixed. TEST-07's two dangling citations are `4/src/orchestr
   4. A host who reloads during the bake-off replays the voyage to the same finish — the bake still logs as one decision per captain.
   5. The bake-off runs with no shot clock, and a captain who drops mid-bake does not stall the table.
 
-**Plans**: TBD
+**Plans**: 1/1 plans executed
+
+Plans:
+**Wave 1**
+
+- [x] 04-01-PLAN.md — The Networked Bake-off (MP-04, MP-05, MP-06, MP-13)
+
 **UI hint**: yes
 
 **This is the single largest piece of work in the milestone, and the blocker is concrete.** Today's
@@ -768,20 +842,35 @@ single hardest thing in the milestone. Wyatt reversed it: *"how hard would it be
 watch the bakeoff, instead of just see a standard 'waiting for {Player} to decide' note? that seems
 like a better design."*
 
-**The spectator channel already exists, and the bake-off already writes into it.** `rooms/<C>/battle`
-is host-written (`4/src/orchestrator.js:378`), watched by every guest (`watchBattle`, `:381`), and
-rendered by `renderBattleFromSnap` — it updates many times per fight, so it is a live stage, not a
-one-shot. `battleSnapshot` already carries a `title` for a bake-off snapshot and `asyncBakeoff` is
-its only producer anywhere in the repo. The bake-off is **muted by one guard** at `:396`, whose
-comment says: *"un-silencing the bakeoff is a design call belonging to Wyatt, not a side effect of
-this timing fix — the bakeoff stays exactly as silent as it is today."* A previous session hit this
-question, declined to decide it, and left it for him. This phase is that decision landing.
+**THE SPECTATOR CHANNEL EXISTS. THE HALF THAT SAID THE BAKE-OFF ALREADY WROTE INTO IT WAS FALSE FOR
+`4/`, AND IT IS CORRECTED HERE IN THE OPEN (rule 6, corrected 2026-08-23 while executing 04-01).**
 
-**The work, concretely:** `battleSnapshot` (`4/src/ui/flow.js:2252`) whitelists 15 battle-shaped keys
-(`round, a, d, atState, dfState…`); a watchable bench needs bake-shaped ones instead — bowls, which
-are locked, which bowl is being touched, attempt count, rewatches — plus a bench renderer beside
-`renderBattleFromSnap`. Since MP-04 already puts the baker's picks in motion between host and guest,
-the state to broadcast is already travelling.
+True as written: `rooms/<C>/battle` is host-written (`4/src/orchestrator.js:389`), watched by every
+guest (`watchBattle`), and rendered by `renderBattleFromSnap` — it updates many times per fight, so
+it is a live stage, not a one-shot.
+
+**False as written:** this paragraph said *"the bake-off already writes into it"* and *"the bake-off
+is muted by one guard at `:396`"*, i.e. that un-silencing that guard would deliver criterion 2.
+Measured by reading the tree: `asyncBakeoff()` — the only thing that ever produced a `title`
+snapshot — **exists only in the ROOT tree** (`src/ui/flow.js:1639`), and it is v1's head-to-head
+coin-flip ladder, a different mechanic from the crate-memory bake entirely. **v2 rule 12 deleted it
+from `4/`.** So in `4/` nothing produced a bake snapshot at all, the guard had never once fired, and
+flipping it would have delivered nothing. **Criterion 2 was not a guard flip; it was build a bench
+publisher, build one bench renderer, and route the baker and every watcher through the same one.**
+
+**What actually shipped (04-01 Task 3):** `playBakeoffLive` is fully data-driven, so a watcher is
+handed the **same spec** and runs the **same choreography** from it — nothing is streamed frame by
+frame. Only the DISCRETE MOMENTS cross the wire, and they are published by **whoever is baking**,
+not by the host, because a guest baker is the only party who knows when Ready was pressed. The host
+therefore had to start listening on that node too. **The guard was kept and now fires for the first
+time**, because a bench snapshot carries a `title` — so the battle sting cannot sound over a bake.
+Full account: `docs/DISPLAY-RULES.md` §2's bake-off row and §4's sixth fork.
+
+**The work, concretely — and "a bench renderer BESIDE `renderBattleFromSnap`" is the one instruction
+in this section that was wrong to follow.** A second renderer beside the first is the two-directors
+shape rule 23 forbids. What shipped instead is one snapshot shape carried under a `bake` key on the
+same node, discriminated before `renderBattleFromSnap` is ever reached, and rendered by the SAME
+`playBakeoffLive` the baker is running.
 
 **There is no competitive leak to protect.** Each captain bakes their own recipe on their own
 shuffled bench (`newBake(order)`, `4/src/engine/bakeoff.js:39`), so seeing a rival's bowls teaches
@@ -794,12 +883,17 @@ so a guest cannot say "I bought a look" and keep the prompt open. Folding the re
 the single reply and settling at the end matches what replay already does at
 `4/src/orchestrator.js:908-912` — and keeps criterion 4 true for free.
 
-**The bake-off gets NO shot clock (Wyatt, 2026-08-18) — and that is why criterion 5 exists.** Today
-`bakeoffPrompt` wraps the bake in `withShotClock` (`4/src/ui/flow.js:604`) and an expiry forfeits to
-the engine's own fallback guess. **Removing the clock removes that safety net**, so a captain who
-closes their tab mid-bake would hang the table forever with no timer to rescue it. The fallback must
-therefore fire on **presence loss** instead — the room already tracks presence (`watchPresence`), so
-the trigger changes, not the mechanism.
+**The bake-off gets NO shot clock (Wyatt, 2026-08-18) — and that is why criterion 5 exists.**
+`bakeoffPrompt` wrapped the bake in `withShotClock` and an expiry forfeited to the engine's own
+fallback guess. **Removing the clock removes that safety net**, so a captain who closes their tab
+mid-bake would hang the table forever with no timer to rescue it. The fallback therefore fires on
+**presence loss** instead.
+
+**One correction to the mechanism named here (04-01 Task 4):** it does not go through
+`watchPresence`, which is a site-wide busy counter and says nothing about a particular room. It uses
+the same `onDisconnect` pattern `netMarkHostGoneOnDisconnect` already uses — armed by the baker on
+`rooms/<C>/response`, the node the host is already holding an open promise on, so it needed no new
+watcher and no new node.
 
 **Whatever fires the fallback must still write one decision to the log.** Expiry currently writes a
 default into the decision log (`4/src/orchestrator.js:1104-1110`), and that is the only reason a
@@ -815,30 +909,52 @@ so it must not alter what the engine emits.
 **Requirements**: MP-07, MP-08, MP-09
 **Success Criteria** (what must be TRUE):
 
-  1. A player can make and receive counter-offers in a networked game, including a counter that replaces the give side with a crate ("keep yer coin, I want yer milk").
-  2. A guest gets the same coin control as the host — or the stepper fallback is a decision Wyatt made and recorded, not an open hole flagged in the code.
-  3. A trade that reaches three other captains resolves inside one turn, without the rest of the table watching a "…is deciding" line for over two minutes.
-  4. The decision log records the same entries in the same order however a trade was routed, so a host reload still replays.
+  1. A player can make and receive counter-offers in a networked game, including a counter that replaces the give side with a crate ("keep yer coin, I want yer milk"). **[VERIFIED 05-01 — measured, not assumed]**
+  2. A guest sets their coins on the SAME slider the host uses, built by one function both tiers name — and the ± stepper no longer exists in the tree. **[LANDED 05-01]**
+  3. A trade that reaches three other captains resolves inside one turn, without the rest of the table watching a "…is deciding" line for over two minutes. **[MET on the measured plumbing after 05-01; the DESIGN DEFECT behind it — holders asked in series — is NOT fixed. See below.]**
+  4. The decision log records the same entries in the same order however a trade was routed, so a host reload still replays. **[LENGTH half LANDED 05-01; ORDER half OPEN]**
 
-**Plans**: TBD
+**Plans**: `05-01` — Trade Over the Wire. Tasks 1–3 and 5 landed (build `2026-08-23c`); **Task 4,
+the parallel answering round, was NOT done.** See `05-01-SUMMARY.md` for the numbers and the reason.
 
-**Better news than expected on MP-07.** The whole counter-offer loop already goes through `ask()`
-(`4/src/ui/flow.js:1591`), so it routes remote correctly with no changes — this criterion is mostly
-verification, and it is the cheapest thing in the phase.
+**MP-07 was "mostly verification" and that reading was RIGHT — now measured rather than assumed.**
+In a real crew room a guest countered a bot's hail with *"keep yer coin, I want yer Crystal Sugar"*,
+and the engine ledger confirms the crate that moved was the one asked for while the original give
+side was cleared: the asker kept its dairy and all eight coins. No fix was needed. `shots/t2c`.
 
-**MP-08 is a decision before it is work.** `4/src/ui/util.js:1437-1442` flags it in the code:
-*"threading a live control through that contract is a large change for a mode /4 does not ship …
-and this must be closed if /4 ever ships online multiplayer."* The stepper fallback at `:1451`
-already works and already logs identically (`logQuantity`, `4/src/ui/flow.js:1441`), so **accepting
-it is a legitimate answer** — it just means a guest gets a visibly worse control than the host.
-Wyatt's call, and it should be asked with a measurement attached.
+**MP-08 WAS NEVER A DECISION, and this paragraph used to say it was.** It read *"accepting it is a
+legitimate answer … Wyatt's call, and it should be asked with a measurement attached."* **That framing
+is wrong and it is the failure D-56 exists to stop.** Rule 23 / DISPLAY-RULES §1 had already settled
+it — host/guest decides who COMPUTES, never what is DRAWN — and rule 8 had settled it again. The code
+comment flagging the hole was an admission, not a ruling. Wyatt, 2026-08-23, when a session queued the
+question anyway: *"guest should OBVIOUSLY get the real coin slider, and you already know why — guests
+and hosts are given the same experience. stop asking stupid questions and refer to your documents."*
+Recorded as D-55. **The stepper is deleted; every seat drags one slider.** Said plainly rather than
+quietly deleted, because a roadmap line that offers a choice a standing rule has already made is
+stale, and the next reader needs to know which way it went.
 
-**MP-09 is the real work, and it has a wall.** One player's trade currently asks up to three other
-seats *in sequence*, each on its own 30-second shot clock, then asks the original player again —
-roughly five sequential round trips inside one turn. The right fix is per-seat parallel prompts, for
-which `draftPrompts/<seat>` is the working precedent — **but it must collect in fixed seat order so
-the decision log stays stable.** A log whose length or order depends on routing only replays under
-the same routing (`4/src/ui/flow.js:1432-1436`).
+**MP-09 IS THE REMAINING WORK, and the wall is exactly where this said it was.** Measured 2026-08-23
+in a real crew room with responders held at a fixed 3s: the prompt-node write log shows seat 1 asked
+at +4.3s and cleared at +9.1s, and seat 2 not asked until +9.1s — **holders are asked strictly in
+series**, one 30-second shot-clock window each. Two holders cost 18.2s and 9.6s of unbroken
+*"…is deciding…"*; each further holder adds ~4.8s of plumbing on top of that captain's own thinking
+time. **Criterion 3's stated NUMBER is met** — even three holders each burning the full 30s clock is
+90s, under the two-minute bar, and the thing that actually blew past it (a remote counter costing
+eleven prompt round trips and 52.6s of dead screen) was deleted by Task 3. **The design defect is
+not met**, and it is one function away: `humanTrade` and `botOpenTradeLive` still hold the answering
+loop TWICE, byte-identical but for a `worthReAsking` filter. The deliverable is
+`collectTableAnswers(asker, offer, holders)` taking the holder list as an ARGUMENT — so who gets
+hailed cannot move and invariant I1 is protected by the shape of the code — with `recipeDraftNet`
+(`4/src/orchestrator.js`) as the working precedent for every hard part: a pass-and-play sequential
+branch, a `pending.map` + `Promise.all` crew branch, ONE narration line with per-seat variants,
+`logDecision` after the round in fixed order, and a replay short-circuit that consumes the log in
+that same order. Reuse `draftPrompts/<seat>`; do not add a tenth listener.
+
+**Read `docs/TRADE-SYSTEM.md` before touching anything that trades.** It is self-declared canonical,
+it is `4/`-native, and the "NOTHING IS A CONSTANT" rule was earned twice in one day in this
+subsystem. **Hails per game is a guarded number** — baseline it with
+`node 4/scripts/trade_offer_measure.js 150` before a line changes and report it first, whatever else
+improved.
 
 **Read `docs/TRADE-SYSTEM.md` before touching anything that trades.** It is self-declared canonical,
 it is `4/`-native, and the "NOTHING IS A CONSTANT" rule was earned twice in one day in this
@@ -1045,9 +1161,9 @@ The first phase is independent of every promotion decision and can start immedia
 | 2. Multiplayer Revival | 7/7 | Complete | 2026-08-19 |
 | 02.1 One Game, Every Captain (INSERTED) | 4/4 | Plans complete | Gate found 2 turn-blocking defects -> Phase 02.2; PAR-02 reopened |
 | **02.15 One Log, One Display Path (INSERTED)** | 0/TBD | Planning | Wyatt's architecture — the host draws from the log like everyone else. Absorbed 02.2's Group A (items 15, 17, 18, 19, 20, 21) and runs BEFORE it |
-| 02.2 One Game, Every Captain — Wyatt's Twenty-Two (INSERTED) | 3/5 | In Progress|  |
-| 3. The Safety Net | 0/TBD | Not started | - |
-| 4. The Networked Bake-off | 0/TBD | Not started | - |
+| 02.2 One Game, Every Captain — Wyatt's Twenty-Two (INSERTED) | 6/7 | In Progress|  |
+| 3. The Safety Net | 1/1 written, 1 executed | In Progress | 03-01 done: 30 gates, 8 reading 4/. 03-02 (ui contract) and 03-03 (TEST-03 corpus) still to write |
+| 4. The Networked Bake-off | 1/1 | In Progress|  |
 | 5. Trade Over the Wire | 0/TBD | Not started | - |
 | 6. The Cutover | 0/TBD | Not started | - |
 | 7. The Board Fits | 0/TBD | Not started | - |

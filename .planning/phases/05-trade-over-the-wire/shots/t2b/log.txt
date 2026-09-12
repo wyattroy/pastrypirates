@@ -1,0 +1,89 @@
+=== crew trade probe — counter=crate coins=2 holders=1 delay=3000ms drop=false ===
+    http://127.0.0.1:8844/4/
+room HCTF
+voyage started
+  voyage under way (tick 8, last host act null)
+  seats: [null,null,null,null] strategies=["human","human","trader","rusher"]
+  human seats: [0,1]  (host is seat 0)
+
+--- 00-voyage-open (after the draft)
+    HOST  apMsg=""
+          btns=[] slider=false/false@null bub="Day 1: A storm be ragin'! It'll blow every ship 3 squares sout"
+    G1    apMsg=""
+          btns=[] slider=false/false@null bub="Day 1: A storm be ragin'! It'll blow every ship 3 squares sout"
+
+=== waiting for the host's own action prompt (parks the turn loop, frees the wire) ===
+  ...tick 24: host apMsg="" btns=[]
+  ...tick 49: host apMsg="" btns=[]
+  parked at tick 51: ["Trade","Pass +1"]
+
+--- 01-parked (the turn loop is parked on a LOCAL prompt; the wire is free)
+    HOST  apMsg="test1, what'll ye do:"
+          btns=["Trade","Pass +1"] slider=false/false@null bub=""
+    G1    apMsg=""
+          btns=[] slider=false/false@null bub="test1 is deciding…"
+  human holder seats: [1] (host seat 0 deliberately NOT a holder)
+
+=== pose: {"ok":true,"askerIdx":2,"offer":{"want":"wheat","giveIng":"dairy","giveCoins":3},"heard":[1],"holderStrategies":["human"],"askerIng":["dairy","sugar"],"askerCoins":8}
+  prompt watch up
+  guest: responder up (counter-crate, 3000ms)
+
+=== firing the hail (dlog before = 5) ===
+  fired on seat 2
+
+--- 02-round-open (every holder's screen at the same moment)
+    HOST  apMsg="test1, what'll ye do:"
+          btns=["Trade","Pass +1"] slider=false/false@null bub="📣 Dough Hook hails the table: "Who'll give me Toasty Wheat fo"
+    G1    apMsg=""
+          btns=[] slider=false/false@null bub="📣 Dough Hook hails the table: "Who'll give me Toasty Wheat fo"
+
+--- 03-mid-round 
+    HOST  apMsg="test1, what'll ye do:"
+          btns=["Trade","Pass +1"] slider=false/false@null bub="test2 is deciding…"
+    G1    apMsg="test2: ye're ASKIN' Crystal Sugar for yer Toasty Wheat"
+          btns=["− 1","+ 1","Ask it!"] slider=false/false@null bub=""
+  trade resolved after 60.9s  result=true err=none
+
+--- 04-settled (after the trade resolved)
+    HOST  apMsg="test1, what'll ye do:"
+          btns=["Trade","Pass +1"] slider=false/false@null bub=""
+    G1    apMsg=""
+          btns=[] slider=false/false@null bub=""
+
+================ MEASURED ================
+  responder thinking time held at        3000ms (fixed), sampled every 200ms
+  human holders answering                1
+  openoffer -> settlement                63.6s
+  trade call wall clock                  60.9s
+  longest unbroken "is deciding" (host   ) 52.2s
+  longest unbroken "is deciding" (guest1 ) 0.0s
+  prompt round trips (writes to rooms/<C>/prompt)  23  (11 distinct prompts)
+  decision log                           5 -> 17  (+12)
+  stepper taps per guest                 [8]
+  slider drags per guest                 [0]
+    +0.1s  (cleared) seat=null slider=false ""
+    +4.3s  q5_178747003 seat=1 slider=false "test2: Dough Hook offers  Fresh Milk + 3 coins for yer  "
+    +9.3s  (cleared) seat=null slider=false ""
+    +9.3s  q6_178747004 seat=1 slider=false "test2: what o' Dough Hook's will ye have instead?"
+    +13.8s  (cleared) seat=null slider=false ""
+    +13.8s  q7_178747004 seat=1 slider=false "test2: ye're ASKIN'  Crystal Sugar for yer  Toasty Wheat"
+    +18.3s  (cleared) seat=null slider=false ""
+    +18.3s  q8_178747005 seat=1 slider=false "test2: ye're ASKIN'  Crystal Sugar + 1🌕 for yer  Toasty"
+    +22.8s  (cleared) seat=null slider=false ""
+    +22.8s  q9_178747005 seat=1 slider=false "test2: ye're ASKIN'  Crystal Sugar + 2🌕 for yer  Toasty"
+    +27.6s  (cleared) seat=null slider=false ""
+    +27.6s  q10_17874700 seat=1 slider=false "test2: ye're ASKIN'  Crystal Sugar + 3🌕 for yer  Toasty"
+    +32.6s  (cleared) seat=null slider=false ""
+    +32.6s  q11_17874700 seat=1 slider=false "test2: ye're ASKIN'  Crystal Sugar + 4🌕 for yer  Toasty"
+    +37.1s  (cleared) seat=null slider=false ""
+    +37.1s  q12_17874700 seat=1 slider=false "test2: ye're ASKIN'  Crystal Sugar + 5🌕 for yer  Toasty"
+    +41.8s  (cleared) seat=null slider=false ""
+    +41.8s  q13_17874700 seat=1 slider=false "test2: ye're ASKIN'  Crystal Sugar + 6🌕 for yer  Toasty"
+    +46.6s  (cleared) seat=null slider=false ""
+    +46.6s  q14_17874700 seat=1 slider=false "test2: ye're ASKIN'  Crystal Sugar + 7🌕 for yer  Toasty"
+    +51.6s  (cleared) seat=null slider=false ""
+    +51.6s  q15_17874700 seat=1 slider=false "test2: ye're ASKIN'  Crystal Sugar + 8🌕 for yer  Toasty"
+    +56.6s  (cleared) seat=null slider=false ""
+==========================================
+
+wrote /Users/wyattroy/Documents/Projects/pastrypirates/.planning/phases/05-trade-over-the-wire/shots/t2b/result.json

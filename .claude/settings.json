@@ -6,7 +6,32 @@
       "Bash(git fetch *)",
       "Bash(curl -s -o /dev/null *)",
       "mcp__github__actions_list",
-      "mcp__github__actions_get"
+      "mcp__github__actions_get",
+      "Bash(node scripts/*)",
+      "Bash(npm run deploy:staging*)",
+      "Bash(bash scripts/deploy-staging.sh*)",
+      "Bash(node .claude/gsd-core/bin/gsd-tools.cjs *)",
+      "Bash(npm test*)",
+      "Bash(git status*)",
+      "Bash(git diff *)",
+      "Bash(git log *)",
+      "Bash(git show *)",
+      "Bash(git pull *)",
+      "Bash(git add *)",
+      "Bash(git commit *)",
+      "Bash(git push origin claude/*)",
+      "Bash(git rev-parse *)",
+      "Bash(pkill -f remote-debugging-port*)",
+      "Bash(pkill -f http.server*)",
+      "Bash(curl -s https://playpastrypirates.com/*)",
+      "Bash(curl -s https://staging.playpastrypirates.com/*)",
+      "Edit",
+      "Write"
+    ],
+    "deny": [
+      "Read(.env)",
+      "Read(.env.*)",
+      "Read(.secrets)"
     ]
   },
   "hooks": {
@@ -18,6 +43,18 @@
             "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/cloud-session-start.sh\"",
             "timeout": 300,
             "statusMessage": "Cloud QA browser setup (no-op on the laptop)"
+          },
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/session-base.cjs\"",
+            "timeout": 15,
+            "statusMessage": "Marking where this session started"
+          },
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/machine-handoff.cjs\" --arrive 2>/dev/null || true",
+            "timeout": 30,
+            "statusMessage": "Sync this machine in — pull, or say why it could not"
           }
         ]
       }
@@ -31,6 +68,62 @@
             "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/read-the-doc-first.cjs\" 2>/dev/null || true",
             "timeout": 10,
             "statusMessage": "Checking CLAUDE.md §4 — read the doc first"
+          },
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/qa-gear-first.cjs\" 2>/dev/null || true",
+            "timeout": 10,
+            "statusMessage": "Which QA gear is this change in? (docs/QA-PROCESS.md)"
+          },
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/staging-is-not-main.cjs\" 2>/dev/null || true",
+            "timeout": 10,
+            "statusMessage": "Staging is a different repo — git ancestry cannot answer 'did it ship?'"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/backlog-not-empty.cjs\" 2>/dev/null || true"
+          },
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/parked-work-is-mine.cjs\" || true"
+          },
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/playtest-checklist-last.cjs\" 2>/dev/null || true",
+            "timeout": 10,
+            "statusMessage": "Did this session change the game? Wyatt needs a checklist"
+          },
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/scripts/qa/kill_stray_probes.mjs\" --quiet || true",
+            "timeout": 20,
+            "statusMessage": "Killing any abandoned headless browsers (rule 17)"
+          },
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/machine-handoff.cjs\" --leave 2>/dev/null || true",
+            "timeout": 30,
+            "statusMessage": "Is this machine holding work nobody else can see?"
+          }
+        ]
+      }
+    ],
+    "SubagentStop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/scripts/qa/kill_stray_probes.mjs\" --quiet || true",
+            "timeout": 20,
+            "statusMessage": "Killing any abandoned headless browsers (rule 17)"
           }
         ]
       }

@@ -33,13 +33,13 @@ bake-shaped ones and writing a bench renderer beside `renderBattleFromSnap`.
 - [ ] **MP-01**: A player can host a networked game from the promoted build and share a room code
 - [ ] **MP-02**: A second player can join by room code, claim a seat, and be named without collision
 - [ ] **MP-03**: A guest sees the host's board, ships, narration and prompts in sync for a full voyage
-- [ ] **MP-04**: A player can take a bake-off turn in a networked game
-- [ ] **MP-05**: A player who is not baking **watches the bake-off live** — the shuffle, each pick landing, locks earned, wrong guesses reshuffling — seeing the same **face-down** bench the baker sees, not the answer. Replaces today's `⏳ Waiting for {name}…` note (`battleFooter`, `4/src/ui/flow.js:2270`)
-- [ ] **MP-06**: A player can spend coins mid-bake-off (the pay-to-rewatch button) in a networked game
-- [ ] **MP-13**: The bake-off runs with **no shot clock**, and a captain who disconnects or closes their tab mid-bake does not stall the table — the engine's fallback guess fires on presence loss instead of on a timer
-- [ ] **MP-07**: A player can make and receive trade counter-offers in a networked game
-- [ ] **MP-08**: A player can use the coin slider in a networked trade (local-path only today — flagged in `c8e2937` as *"must be closed if /4 ever ships online multiplayer"*)
-- [ ] **MP-09**: A multi-captain trade completes inside one turn without stalling the table (~5 sequential round trips today)
+- [x] **MP-04**: A player can take a bake-off turn in a networked game
+- [x] **MP-05**: A player who is not baking **watches the bake-off live** — the shuffle, each pick landing, locks earned, wrong guesses reshuffling — seeing the same **face-down** bench the baker sees, not the answer. Replaces today's `⏳ Waiting for {name}…` note (`battleFooter`, `4/src/ui/flow.js:2270`)
+- [x] **MP-06**: A player can spend coins mid-bake-off (the pay-to-rewatch button) in a networked game
+- [x] **MP-13**: The bake-off runs with **no shot clock**, and a captain who disconnects or closes their tab mid-bake does not stall the table — the engine's fallback guess fires on presence loss instead of on a timer
+- [x] **MP-07**: A player can make and receive trade counter-offers in a networked game — verified end to end in a real crew room (05-01): a guest countered a bot's hail with *"keep yer coin, I want yer Crystal Sugar"*, the crate that moved was the one asked for, and the original give side was cleared. No code change was needed; the reading that this was "mostly verification" was right, and is now measured rather than assumed.
+- [x] **MP-08**: A player uses THE SAME coin slider in a networked trade that they use everywhere else — `coinStepper` is deleted, one builder (`sliderWrapHTML` + `wireSlider`, `4/src/ui/util.js`) is named directly by both tiers and gated by the parity check. The number a guest drags to reaches the decision log through the one `logQuantity()` call a local drag uses. D-55; the old parenthetical here read *"local-path only today"*.
+- [ ] **MP-09**: A multi-captain trade completes inside one turn without stalling the table. **PARTLY.** The expensive half is gone — a remote counter cost 11 prompt round trips and 52.6s of dead screen and now costs 3 and 16.2s (05-01 Task 3) — but holders are still asked STRICTLY IN SERIES, measured at +4.3s / +9.1s on the prompt node for two holders. The one answering loop (`collectTableAnswers`) is not built; the loop still exists twice.
 - [ ] **MP-10**: Hiding or backgrounding a tab does not pause or resume the shared clock for everyone (`4/src/main.js:148` writes the shared `paused` node; currently safe only because it sits behind `soloBotGame()`)
 - [ ] **MP-11**: Fast-forward cannot let one player skip narration other players are still watching (`4/src/state/index.js:99`)
 - [ ] **MP-12**: A host who reloads mid-voyage resumes from the decision log with the game intact
@@ -124,17 +124,17 @@ scanning the wrong tree" trap in `docs/HARD-WON-LESSONS.md` §3.
 - [x] **TEST-01**: `4/src/ui/stage.js` imports under Node without throwing (bare `addEventListener` at `:190` makes the largest new module — 1,545 lines — untestable headlessly today)
 - [x] **TEST-02**: `4/scripts/no_undef_check.js` exits 0 (fails today, exit 1)
 - [ ] **TEST-03**: A determinism corpus exists for the v2 engine and verifies green
-- [ ] **TEST-04**: The contract gates — engine, module graph, net, state, UI — run against the promoted tree
-- [ ] **TEST-05**: `npm test` covers the promoted game, and its gate count is stated in `package.json`
-- [ ] **TEST-06**: Host/guest parity is mechanically gated, not maintained by discipline
-- [ ] **TEST-07**: The two dangling citations are made true or removed — `4/src/orchestrator.js:880` and `4/src/ui/util.js:1484` each claim a check gates them; neither check exists
+- [x] **TEST-04**: The contract gates — engine, module graph, net, state, UI — run against the promoted tree
+- [x] **TEST-05**: `npm test` covers the promoted game, and its gate count is stated in `package.json`
+- [x] **TEST-06**: Host/guest parity is mechanically gated, not maintained by discipline
+- [x] **TEST-07**: No comment in `4/` claims a check gates it when that check does not exist or never opens `4/` — enforced by `4/scripts/gate_citation_check.js`. *(Originally written as "the two dangling citations… `4/src/orchestrator.js:880` and `4/src/ui/util.js:1484`". Measured 2026-08-23: both line numbers had drifted since intake and point at unrelated code, and there were NINETY citations, not two. Swept behind a gate rather than chased — 36 satisfied, 8 declared root-tree, 46 declared UNGATED-IN-4.)*
 
 ### Cutover (CUT)
 
 A one-way promotion. `4/` forked 2026-08-11; the root has had no code commit since 2026-08-02.
 
 - [ ] **CUT-01**: `playpastrypirates.com` serves the promoted game
-- [ ] **CUT-02**: Today's game stays playable at `/classic`, so no existing bookmark breaks
+- [ ] **CUT-02**: Today's game stays playable at `/classic`, so no existing bookmark breaks. **DECIDED 2026-08-25 (D-60): `/4` BOUNCES to the front page** — it neither 404s nor serves a second copy of the game.
 - [ ] **CUT-03**: `v2/`, `v2bakeoff/` and `3/` are removed from the working tree (~40k lines; preserved in git history)
 - [ ] **CUT-04**: The promoted game is indexable — `noindex, nofollow` removed from `4/index.html:10`, `robots.txt` `Disallow: /4/` resolved, `sitemap.xml` correct, and the page title no longer reads `v3 bot test`
 - [ ] **CUT-05**: Every image resolves from the root (`ASSET_BASE="../assets/"` at `4/src/shared/index.js:24` points one directory above the app)
@@ -174,10 +174,10 @@ disagree with the code.
 ### Standalone Fixes (FIX)
 
 - [x] **FIX-01**: The new game's turn-clock preference is stored under its **own** key, so its default does not reach into the other game. **The default being OFF is intentional (Wyatt, 2026-08-18) and must not be changed** — the defect is only that `4/src/ui/stage.js:1478` writes the shared, un-namespaced `pp_timerOff`, which v1 reads at `src/orchestrator.js:1399` and pushes to the whole room at `:1404`. `4/` already namespaces `pp4_sess` and `pp4_solo`; this key was missed. The fix survives the cutover, where the new game and `/classic` still share one origin and want opposite defaults.
-- [ ] **FIX-02**: `?ovens=1` (skips the entire 16-day voyage) and `?windhud=1` are gated or removed before the game is public
+- [ ] **FIX-02**: `?ovens=1` (skips the entire 16-day voyage) and `?windhud=1` are gated or removed before the game is public. **DECIDED 2026-08-25 (D-58): GATED, not removed** — both stay, behind a developer key stored in the browser, so a shared link cannot unlock them. `?ovens=1` is Wyatt's own instrument and he extended it to crew games the day before. `?bakeoff=0/1` is explicitly OUT of scope.
 - [ ] **FIX-03**: The sparse-draft crash at `4/src/orchestrator.js:1591` is fixed, along with the unguarded `.val()` at `:1501` and the unescaped host HTML at `:1239`
-- [ ] **FIX-04**: Safari storm performance is re-measured on a real device — the BUG-01 fix is intact, but rain is now full-viewport (~5× paint area) and a 60fps camera tween runs during storms, and this has never been measured on Safari
-- [ ] **FIX-05**: The wind-dot prototype's shipping default is a decision, not an accident (`4/src/ui/board.js:570` ships `true` at 20 dots; live deliberately keeps it `false` at 10)
+- [x] **FIX-04**: Safari storm performance is re-measured on a real device — the BUG-01 fix is intact, but rain is now full-viewport (~5× paint area) and a 60fps camera tween runs during storms, and this has never been measured on Safari. **CLOSED 2026-08-25 (D-62) — MET ON HIS OWN iPHONE.** Asked directly whether a storm had hit him during a week of playtesting `/4`, Wyatt: *"Yes, and storms are fine."* **The phrase "has never been measured on Safari" above was written about instrumented runs and is retired** — it overlooked a week of real voyages on the one device that matters, which is the same blind spot that cost eight days on the pulse bug. Do not re-open this or schedule a re-measurement.
+- [ ] **FIX-05**: The wind-dot prototype's shipping default is a decision, not an accident (`4/src/ui/board.js:570` ships `true` at 20 dots; live deliberately keeps it `false` at 10). **DECIDED 2026-08-25 (D-59): ships ON at 20** — Wyatt, declining an offer to measure it first: *"it's well measured in safari, i've been playtesting it all week."* The requirement is met by making that value deliberate and **correcting the comment at `:569`, which says "Off by default" directly above `=true`.**
 - [x] **FIX-06**: The dead bot brain is resolved — `planTurnClassic` (`4/src/engine/index.js:2739`, ~210 lines) has zero callers and `planTurn:2197` dispatches to v3 unconditionally
 
 ---
@@ -259,17 +259,17 @@ below are v2.0 phases, not v1.x phases. Phase detail and success criteria: [`ROA
 | PAR-16 | **Phase 02.15 — One Log, One Display Path (inserted)** | Satisfied — `docs/DISPLAY-RULES.md` exists; 5 code claims spot-checked at verification. See 02.15-VERIFICATION.md |
 | PAR-13 | Phase 02.2 — Wyatt's Twenty-Two (inserted) | Pending — Group D, plans 02.2-01 (sketches) and 02.2-06 |
 | TEST-03 | Phase 3 — The Safety Net | Pending |
-| TEST-04 | Phase 3 — The Safety Net | Pending |
-| TEST-05 | Phase 3 — The Safety Net | Pending |
-| TEST-06 | Phase 3 — The Safety Net | Pending |
-| TEST-07 | Phase 3 — The Safety Net | Pending |
-| MP-04 | Phase 4 — The Networked Bake-off | Pending |
-| MP-05 | Phase 4 — The Networked Bake-off | Pending |
-| MP-06 | Phase 4 — The Networked Bake-off | Pending |
-| MP-13 | Phase 4 — The Networked Bake-off | Pending |
-| MP-07 | Phase 5 — Trade Over the Wire | Pending |
-| MP-08 | Phase 5 — Trade Over the Wire | Pending |
-| MP-09 | Phase 5 — Trade Over the Wire | Pending |
+| TEST-04 | Phase 3 — The Safety Net | Complete |
+| TEST-05 | Phase 3 — The Safety Net | Complete |
+| TEST-06 | Phase 3 — The Safety Net | Complete |
+| TEST-07 | Phase 3 — The Safety Net | Complete |
+| MP-04 | Phase 4 — The Networked Bake-off | Complete |
+| MP-05 | Phase 4 — The Networked Bake-off | Complete |
+| MP-06 | Phase 4 — The Networked Bake-off | Complete |
+| MP-13 | Phase 4 — The Networked Bake-off | Complete |
+| MP-07 | Phase 5 — Trade Over the Wire | Complete (05-01, verified in a crew room) |
+| MP-08 | Phase 5 — Trade Over the Wire | Complete (05-01, D-55) |
+| MP-09 | Phase 5 — Trade Over the Wire | Partial (05-01 Task 3 removed the counter's cost; the answering round is still sequential — Task 4 not done) |
 | CUT-01 | Phase 6 — The Cutover | Pending |
 | CUT-02 | Phase 6 — The Cutover | Pending |
 | CUT-03 | Phase 6 — The Cutover | Pending |

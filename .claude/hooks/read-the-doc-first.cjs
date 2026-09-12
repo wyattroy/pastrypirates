@@ -1,15 +1,25 @@
 #!/usr/bin/env node
-/* read-the-doc-first.cjs — the structural half of CLAUDE.md rule 17.
+/* CITED BY NAME, NOT BY NUMBER — CLAUDE-RULE lines below are checked against CLAUDE.md's table
+ * by 4/scripts/doc_command_check.js §8.
  *
- * WHY THIS EXISTS (2026-08-19). Rule 17 says "read the subsystem's own design doc before writing a
- * line", and CLAUDE.md §4 carries the table of which doc goes with which subsystem. On 2026-08-19 a
+ * This file said "rule 17" in three places. Rule 17 is "kill every headless Chrome and server you
+ * start"; the rule this hook enforces is 20. The number was right when it was written and the table
+ * renumbered underneath it, silently, the way a number always will. So the hooks now quote the rule
+ * TEXT, which does not renumber, and the gate fails the build if the quoted text is not in the
+ * table. Point, do not restate (CLAUDE.md §5) — and if you must restate, have a machine check it. */
+/* CLAUDE-RULE: Read the subsystem's own doc before writing a line */
+
+/* read-the-doc-first.cjs — the structural half of CLAUDE.md's rule "Read the subsystem's own
+ * design doc before writing a line".
+ *
+ * WHY THIS EXISTS (2026-08-19). That rule is one line; CLAUDE.md §4 carries the table of which doc goes with which subsystem. On 2026-08-19 a
  * session passed docs/DRIVING-THE-GAME.md faithfully to all four of its subagents, then picked up a
  * browser itself and never read it. It joined a crew game the wrong way (§5c documents the name
  * modal it skipped), hand-rolled a driver §5b already contains, and stalled Wyatt's table twice.
  * Wyatt: "why did i have to tell you to read that? how can you fix yourself to actually read the
  * things you need to read next time, without me having to remember that they exist?"
  *
- * The answer is not another rule. BOTH failures happened with rule 17 already in context — it was
+ * The answer is not another rule. BOTH failures happened with that rule already in context — it was
  * present and did not fire. What was missing is a gate at the ROLE SWITCH, the moment a session
  * stops dispatching work and starts doing it. A document cannot enforce that. A hook can.
  *
@@ -27,10 +37,50 @@ const path = require("path");
 /* The §4 table, as data. Add a row here in the same commit that adds a doc to CLAUDE.md §4. */
 const SUBSYSTEMS = [
   {
+    id: "intent",
+    docs: ["docs/INTENDED-BEHAVIOUR.md"],
+    why: "anything that draws — several host/guest differences are DELIBERATE and are listed there",
+    // WHY THIS FIRES ON THE DRAWING TIER RATHER THAN ON A KEYWORD. The failure it prevents is not
+    // "edited the wrong file", it is "looked at two screens and concluded the game was broken".
+    // That happens while working in the UI, so the reminder belongs at the first edit there.
+    // Wyatt, 2026-08-30, having explained the same deliberate behaviour to a third session:
+    // "you need to figure out a system... so that you stop asking me every single time."
+    paths: [/(^|\/)src\/ui\/[^/]+\.js$/],
+    code: [/chips\d|prowRecipe|canReveal|empty hold|isHost|passAndPlay/],
+  },
+  {
+    id: "qa",
+    docs: ["docs/QA-PROCESS.md", "docs/HARD-WON-LESSONS.md"],
+    why: "testing, measuring, or trusting any instrument",
+    // Added 2026-08-26 by the commit that also added the row to CLAUDE.md §4 — because the commit
+    // BEFORE it added the prose row and skipped this one, and a CEO review is what noticed.
+    // scripts/doc_command_check.js now fails the build when these two tables disagree.
+    match: (f) => /(^|\/)(4\/)?scripts\/.*(check|test|gate|trial|drill|probe)/i.test(f)
+                || /(^|\/)scripts\/lib\//.test(f),
+  },
+  {
+    id: "artifacts",
+    docs: ["docs/ARTIFACT-GUIDELINES.md"],
+    why: "publishing ANY page for him — commentable per section, pass/problem, and RE-USE the sheet",
+    /* ⚠ MATCHED ON THE ARTIFACT ITSELF, not on a keyword in the game's source. The failure this
+       prevents is not "edited the wrong file", it is publishing a page that makes him ask for the
+       same three things again — he has asked for commentable sections, pass/problem verdicts and
+       one re-used URL more than once each, which is why he asked for the doc at all on 2026-09-10.
+       Fires on the scratch .html a page is written into before it is published, and on the file
+       that records which sheet is live. */
+    match: (f) => /\.html$/.test(f) || /CURRENT-SHEET/.test(f),
+  },
+  {
+    id: "ceo",
+    docs: [".claude/CEO-BRIEF.md"],
+    why: "reviewing work before Wyatt sees it (rule 25)",
+    match: (f) => /CEO-BRIEF|CEO-REVIEWS/.test(f),
+  },
+  {
     id: "trade",
     docs: ["docs/TRADE-SYSTEM.md"],
     why: "anything that trades",
-    paths: [/trade/i, /4\/src\/ui\/flow\.js$/],
+    paths: [/trade/i, /^src\/ui\/flow\.js$/],   // 4/src/ was deleted by the cutover, 2026-08-26
     code: [/humanTrade|counterOffer|respondToOffer|composeOffer|openingBid|settleTrade|botOpenOffer/],
   },
   {
@@ -44,7 +94,7 @@ const SUBSYSTEMS = [
     id: "board",
     docs: ["docs/BOARD-RENDERING.md"],
     why: "anything drawn on the board",
-    paths: [/4\/src\/ui\/(board|stage)\.js$/],
+    paths: [/^src\/ui\/(board|stage)\.js$/],    // 4/src/ was deleted by the cutover, 2026-08-26
     code: [/CAM_HTML_LAYERS|camFit|sailHighlightRect|buildStage|boatUXY/],
   },
   {
@@ -75,7 +125,13 @@ const SUBSYSTEMS = [
     paths: [/^(CNAME|robots\.txt|sitemap\.xml)$/],
     bash: [
       /git\s+push/i,
-      /deploy-preview/i,
+      /\b(deploy|publish)-[a-z0-9-]+\.(sh|mjs|js)\b/i,   /* THE SHAPE, NOT THE NAME. This read
+         /deploy-preview/i until 2026-09-06, three weeks after `scripts/deploy-preview.sh` was
+         renamed to `deploy-staging.sh` — so the one command that can take the live domain down
+         stopped tripping this hook, and nothing said so. Naming a script by hand is a promise to
+         come back and edit this line on the day somebody renames it, and that promise was already
+         broken once. doc_command_check §6 now drives every deploy/publish script in scripts/ through
+         this hook and fails the build if any of them comes back silent. */
       /\brsync\b/i,
       /playpastrypirates\.com/i,
       /gh-pages/i,
@@ -105,7 +161,15 @@ function readStdin() {
  *
  * A command counts as inspection only when EVERY segment of it is one of these verbs, so a real
  * launch piped into grep is still a launch. */
-const INSPECT = /^(pgrep|pkill|ps|lsof|kill|killall|ls|cat|head|tail|wc|grep|rg|find|echo|printf|which|type|stat|file|du|df|sed|awk|sort|uniq|cut|tr|jq|node\s+-e|test|\[)\b/;
+/* `cd` LEADS ALMOST EVERY COMMAND IN THIS REPO, because the rulebook requires absolute paths
+   and the Bash tool's cwd resets (CLAUDE-RULE: Absolute paths, always
+   layout). It was missing from this list until 2026-09-06, so
+   `cd <repo> && sed -n 1,12p scripts/deploy-staging.sh` — pure reading — was classified as an
+   ACTION and denied. The hook fired on a `sed`, in the middle of an audit of why sessions ignore
+   these hooks, which is about as on-the-nose as evidence gets: false positives are the mechanism
+   by which a gate stops being read. Safe to add, because `every` still requires EVERY other
+   segment to be an inspection verb — `cd x && rm -rf y` is still an action. */
+const INSPECT = /^(cd|pushd|popd|pgrep|pkill|ps|lsof|kill|killall|ls|cat|head|tail|wc|grep|rg|find|echo|printf|which|type|stat|file|du|df|sed|awk|sort|uniq|cut|tr|jq|node\s+-e|test|\[)\b/;
 function inspectionOnly(cmd) {
   const segs = String(cmd).split(/\||&&|;|\n/).map(s => s.trim()).filter(Boolean);
   if (!segs.length) return false;
@@ -183,7 +247,7 @@ function main() {
   );
 
   const reason =
-`CLAUDE.md rule 17 — read the subsystem's design doc BEFORE writing a line.
+`CLAUDE.md — "Read the subsystem's own doc before writing a line."
 
 This action touches:
 ${lines.join("\n")}

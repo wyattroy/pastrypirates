@@ -1,0 +1,161 @@
+{
+ "note": "Group E AFTER numbers. Wyatt rescoped this run on 2026-08-22: numbers are required only where he gave a number (the D-45 holds). Everything else in Group E is proved by a screenshot that was opened and read — see 02.2-E-MEASUREMENTS.md, which names the picture for each. Fields that were NOT re-measured say so rather than carrying a stale or invented value.",
+ "measured_at": "2026-08-22T09:17:07.520Z",
+ "W": 1400,
+ "H": 900,
+ "holds": {
+  "c27": 2129,
+  "c75": 4347,
+  "long": 4645
+ },
+ "holds_detail": {
+  "c27": {
+   "hold_ms": 1827,
+   "life_ms": 2129,
+   "chars": 27,
+   "text": "Blown into the trade winds!",
+   "runs": [
+    1828,
+    1831,
+    1827
+   ]
+  },
+  "c75": {
+   "hold_ms": 4044,
+   "life_ms": 4347,
+   "chars": 78
+  },
+  "long": {
+   "hold_ms": 4344,
+   "life_ms": 4645,
+   "chars": 178
+  }
+ },
+ "holds_before": {
+  "c27": 2855,
+  "c75": 3393,
+  "long": 5298
+ },
+ "holds_guest": null,
+ "holds_guest_note": "not re-measured on a guest. The hold is computed in ONE function (narrationHoldMs, util.js) that both tiers reach through the same showNarration, so there is no seam at which they can disagree — rule 23. Stated as unmeasured rather than assumed equal.",
+ "redproof": {
+  "selfretire": "seen red (self-retired in 32ms)",
+  "occlusion": "seen red (390ms behind the veil)",
+  "overhang": "seen red (272px past body right edge)",
+  "board_top": "seen red (board moved 40px)",
+  "prompt_attrs": "seen red (3 new samples on a forced change)",
+  "cues": "seen red (counted 2 forced cues)",
+  "storm_engine": "seen red (82 blocked captains missing from their summary on the PRE-FIX engine, same sampler, same 300 seeded games)",
+  "blackmarket": "seen red (handler unregistered -> no ceremony card drew)",
+  "recipe": "seen red (no recipe on the seat -> openRecipeModal drew nothing)"
+ },
+ "storm": {
+  "instrument": "headless engine over 300 seeded games (storm 0.35), red-proofed against HEAD; plus one live posed storm, screenshot shots/e-storm-one-summary.png",
+  "engine_before": {
+   "storms": 1616,
+   "storms_with_blocked": 233,
+   "blocked_captains": 262,
+   "missing_from_summary": 82
+  },
+  "engine_after": {
+   "storms": 1616,
+   "storms_with_blocked": 233,
+   "blocked_captains": 262,
+   "missing_from_summary": 0
+  },
+  "live_posed": {
+   "blocked_events": 2,
+   "bubbles_raised": 1,
+   "inline_lines": 0,
+   "shipHeld": [
+    1
+   ],
+   "every_blocked_captain_named": true,
+   "summary_line": "The storm drives Dough Hook and Flaky Jack north — but Claude has land at their back and d"
+  },
+  "blocked_captains_in_summary": true
+ },
+ "blackmarket": {
+  "bot_seat": 1,
+  "bot_is_bot": true,
+  "redproof_handler_off_shows_nothing": true,
+  "ceremony_shown_on_bot_path": true
+ },
+ "dock_petal": {
+  "before": "⚓ Dock at {ing} {island}  /  short: ⚓ Dock {ing}",
+  "after_label": "Dock at  Cocoa Cabana",
+  "after_has_anchor": false,
+  "after_images": [
+   "cocoa.png",
+   "coin-spin.png"
+  ],
+  "images_count": 2
+ },
+ "pill": {
+  "exists_at_start": true,
+  "shown_at_start": true,
+  "text": "WIND NOW: ? · FORECAST: ?",
+  "board_shift_px_before": 0,
+  "board_shift_px_after": 0,
+  "note": "the placeholder ALREADY shipped in an earlier plan (pillHTML, stage.js, comment names his item 5). This run verifies it; the shift is reported as zero rather than claimed as a fix nobody made.",
+  "guest_draws_pill": null,
+  "guest_note": "see crew leg in 02.2-07-SUMMARY.md"
+ },
+ "buy_to_render_ms": {
+  "before": 5489,
+  "after": null,
+  "note": "NOT re-measured end to end. Under the rescope this item is proved by the code path plus a count: liveRender() appears 35 times in flow.js before AND after, and the git hunk shows only `await narrateLastEvent()` moving from above the render to below it. Moved, never added."
+ },
+ "petal_pulse": {
+  "natural_prompt_class_at_1400": "pp4Center",
+  "natural_prompt_class_at_390": "pp4Center",
+  "pp4Center_existing_animation": "pp4StagePulse (scale 1.09, 1.1s, + a 16px orange ring at 28% alpha)",
+  "new_shared_animation": "sailBounce (scale 1.11, 1.15s), applied to #pp4Prompt:not(.pp4Center) #actionPanel .apBtn",
+  "keyframes_definitions": 1,
+  "surfaces_using_it": 2,
+  "verdict": "SHIPPED BUT NOT PROVEN ON A LIVE RADIAL PETAL. Every posed action menu rendered pp4Center, which this rule excludes and which already pulses with a near-identical animation. His item 1 may need a stronger answer than a pulse; that is his call. See 02.2-E-MEASUREMENTS.md section 8."
+ },
+ "recipe_card": {
+  "w1400": {
+   "title_above_image": true,
+   "separator_el": "recipeModalTitleRow",
+   "separator_bottom": 135.5,
+   "gradient_top": 135.5,
+   "gradient_declared": true,
+   "gradient_fades_to_transparent": true,
+   "image_top": 135.5,
+   "image_bottom": 355.5,
+   "desc_top": 374.3,
+   "image_to_desc_gap_px": 18.84,
+   "desc_line_height_px": 18.85,
+   "title_row_sticky": true,
+   "icons_in_title_row": true
+  },
+  "w390": {
+   "title_above_image": true,
+   "separator_el": "recipeModalTitleRow",
+   "separator_bottom": 117.5,
+   "gradient_top": 117.5,
+   "gradient_declared": true,
+   "gradient_fades_to_transparent": true,
+   "image_top": 117.5,
+   "image_bottom": 337.5,
+   "desc_top": 356.3,
+   "image_to_desc_gap_px": 18.84,
+   "desc_line_height_px": 18.85,
+   "title_row_sticky": true,
+   "icons_in_title_row": true
+  },
+  "print": {
+   "h2_color": "rgb(58, 38, 0)",
+   "row_position": "static",
+   "card_bg": "none",
+   "icons_hidden": true,
+   "li_color": "rgb(34, 34, 34)"
+  }
+ },
+ "console_errors": {
+  "group_e_pass": [],
+  "recipe_pass": []
+ }
+}

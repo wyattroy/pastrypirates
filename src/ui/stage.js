@@ -1,0 +1,5484 @@
+// src/ui/stage.js — the /4 stage: full-bleed board, camera director, wind pill, ribbon,
+// bottom sheet, ship-attached narration bubbles, and the flip ceremony.
+//
+// Design contract (Wyatt, 2026-08-11, 16 answers before build):
+//   - Bubbles from day one: no narration box. Captain lines attach to their ship; table lines
+//     hover over the water. Auto-advance on the existing hold curve, tap to hurry.
+//   - Full director: sail prompts frame the WHOLE sail window (never crop a legal move, zoom
+//     capped), the camera glides to whoever is speaking, storms pull back to the full board.
+//     Pinch/pan/double-tap override the director until the player's next sail prompt.
+//   - Wind pill: one compact semi-transparent overlay, fixed spot — "WIND NOW: E→ FORECAST: S↓";
+//     a coming storm shows ⛈ with a slowly turning, never-settling arrow (the approved chip
+//     treatment, carried over). The old on-board chip is hidden; the compass dial stays as art.
+//   - Solo clock off by default (toggle still present in the sheet's controls row).
+//   - Flip ceremony: the flippenator takes the screen when armed.
+// Everything here is render-side. The engine, its RNG, and the dlog are never touched.
+"use strict";
+import { appState } from "../state/index.js";
+import { boardShipEls, setFlipCoin } from "./board.js";
+import { narrationHoldMs, vwPx, vhPx, isDisabledBtn, fixedOrigin, fixedRect, refreshNameMarquees,
+  waitLineIsSelfAddressed, pname } from "./util.js";
+import { typewriterReveal } from "./panel.js";
+import { HEXCOL, emojify, DIRS, STORM_PUSH, BOAT_IMG } from "../shared/index.js";
+import { showsThinkingIndicator } from "../shared/visibility.js";
+import { pilotToggle, pilotIsOn, pilotMsg, pilotSee } from "./pilot.js";
+import { showCourseFor, paintMarks, clearCourse, forgetCourse, redrawCourse } from "./course.js";
+
+const $ = id => document.getElementById(id);
+const AR = { N: "↑", S: "↓", E: "→", W: "←" };
+// playtest 19 item 3: every box on this stage is laid out from the LAYOUT viewport (vwPx/vhPx in
+// util.js), never window.innerWidth/innerHeight — Safari reports the pinch-zoomed *visual*
+// viewport in those, which is what shrank the recipe sheet to half width. The helpers live in
+// util.js because board.js's syncBoardSizing() needs the same rule; see the note there.
+// Bumped on every deploy. Shown in the ☰ menu so a playtest screenshot proves which build it came
+// from — two stall reports have now turned out to be photos of code that was already fixed, and
+// Safari's module cache makes "refresh" an unreliable way to get the new build.
+//
+// W0-3 (Wyatt, 2026-08-27): the old shape was `v4 · build 2026-08-26k-CUTOVER`, and both halves had
+// stopped earning their place. "v4" named the /4 preview directory, which the cutover deleted, so it
+// pointed at nothing; the letter suffix counted the day's builds in a code only its author could
+// read. HIS DECISION, recorded in .planning/BACKLOG.md: a date-based build number.
+//
+//   YYYY.MM.DD.N  —  N is the Nth build published that day, bumped by hand exactly as the letter was.
+//
+// Staging appends its own suffix at publish time and never here — see scripts/deploy-staging.sh.
+const PP4_STAMP = "2026.09.07.3";
+
+/* HIDE THE WHOLE STAGE LAYER — T-12 (Wyatt, 2026-08-26, with a screenshot).
+   "They are successfully brought back to port (the homepage) BUT there is a bug -- the homepage
+   looks crazy." His screenshot shows the welcome card floating over a LIVE game: the DAY 4 ribbon,
+   the captains box, and a narration bubble reading "wy2: tap to sail", all still painted behind it.
+
+   WHY, and it is structural rather than a missed line. showHome() hides #game — and every one of
+   these elements is appended to document.body, OUTSIDE #game (search body.appendChild in this
+   file: ribbon, wind pill, captains box, chat sheet, the fx layer, the ceremony veil, the prompt).
+   They were never inside the thing being hidden, so hiding it could not touch them. There was no
+   stage teardown at all; nothing in the codebase had ever needed to take the stage down, because
+   until a captain could leave a voyage mid-flight nothing ever went back.
+
+   HIDDEN, NOT REMOVED, deliberately. maybeBuildStage() builds these once and reuses them, and a
+   stale 2026-08-13 no-op in exactly that function silently prevented the whole stage from building
+   in ANY networked game until 02-03 found it. Removing nodes here would put the correctness of a
+   return trip on the rebuild path being perfect. Hiding cannot fail that way, and buildStage's own
+   guards keep working untouched.
+
+   Also drops body.pp4Stage, which is what gives the page the phone-column layout and
+   overflow:hidden — left on, the welcome screen inherits a game's body styling. */
+/* Set while the player is at port. The prompt's display is rewritten by promptTick() on EVERY
+   FRAME, so hiding it lasted under 16ms — the first version of this teardown left #pp4Prompt
+   painted over the welcome card and the probe caught it: 5 elements hidden, 4 stayed hidden, the
+   prompt came straight back. A flag the tick reads is the fix; hiding harder is not. */
+let stageDown = false;
+export function hideStageLayer(){
+  stageDown = true;
+  for(const id of ["pp4Ribbon","pp4Pill","pp4Cap","pp4Col","pp4ChatSheet","pp4Prompt","pp4Fx","pp4Veil","pp4Stamp"]){
+    const e=document.getElementById(id);
+    if(e)e.style.display="none";
+  }
+  document.body.classList.remove("pp4Stage","pp4Side","pp4CapBleed");
+}
+/* The other half. Clears the inline display rather than setting one, so each element goes back
+   under CSS control and whatever the game logic wanted for it (a pill hidden in a mode that has no
+   wind, the chat sheet closed) still holds. Setting display:"" here rather than "block" is the
+   whole point — an inline value would out-rank the stylesheet forever. */
+export function showStageLayer(){
+  stageDown = false;
+  for(const id of ["pp4Ribbon","pp4Pill","pp4Cap","pp4Col","pp4ChatSheet","pp4Prompt","pp4Fx","pp4Veil","pp4Stamp"]){
+    const e=document.getElementById(id);
+    if(e&&e.style.display==="none")e.style.display="";
+  }
+}
+
+
+const S = {
+  active: false,            // stage layout applied (solo game on screen)
+  cam: { x: 0, y: 0, w: 640, tx: 0, ty: 0, tw: 640 },
+  lock: false,              // a player gesture holds the camera until the next sail prompt
+  battle: null,             // [attacker, defender] while a fight is live — the camera holds on it
+  subject: null,            // seat index the next flash() line is about (stashed by panel.js)
+  subjectSet: false,        // …and whether that was DECIDED from an event (so the colour sniff must not override it)
+  evType: null,
+  hurry: null,              // resolver for tap-to-hurry on the live bubble
+  bubPlace: null,           // live bubble's positioner — run every tick, same loop as the camera
+  frameKey: "",             // the prompt the director last re-framed for (once per ask, never per frame)
+  bubDue: 0,                // when the live bubble is due to retire — a DEADLINE, not a timer
+  bubFinish: null,          // …and the resolver the deadline calls. See stageFlash for why.
+  waitFinish: null,         // resolver for a WAIT line specifically — see promptTick
+  lastSeq: "",              // panel.js's per-prompt stamp, so "a NEW question arrived" is readable
+  hadPrompt: false,         // …and last frame's answer, so the retire is an EDGE, not a level
+  raf: 0,
+  lastPill: "",
+  geomAt: 0,                // D-31: Date.now() of the last computeStageGeometry() measurement pass
+  geomBound: false,         // …and whether the resize listener has been registered yet
+};
+
+/* ================= camera ================= */
+function svgEl(){ return $("board"); }
+function grid(){ const g = appState.game; return g ? g.cfg.grid : 15; }
+function cellPx(){ return 640 / grid(); }
+
+/* THE STAGE HOLDS THE DIRECTOR STILL — Wyatt's item 7, 2026-08-23c, stated as a principle and
+   quoted in full because he asked that the intention be understood, not just the instance:
+   "at EVERY stage, when things happen on stage, the board waits for the stage to disappear before
+   serving more narrations/director movement/etc — the etc is important here so i want you to
+   understand my intention: the stage should get all your attention; if things happen behind it,
+   the player feels like they're missing out, and the stage is BLOCKING them from seeing important
+   things. that's the worst feeling."
+   camTo() is the ONE door every director move walks through (camFull/camToCell/camToSeat/
+   camFitCells all funnel here), so the rule lives here once: while the flip-ceremony veil
+   (body.pp4Cer) or a centre-stage card (#actionPanel[data-pp4-stage]) holds the audience, a
+   requested glide is REMEMBERED, not performed — and tick() performs the LAST one the moment the
+   stage clears. Immediate positioning (boot layout) is exempt: it is setup, not direction. */
+function stageHoldsAttention(){
+  if (document.body.classList.contains("pp4Cer")) return true;
+  const ap = $("actionPanel");
+  return !!(ap && ap.dataset.pp4Stage);
+}
+function camTo(x, y, w, immediate){
+  if (!immediate && S.active && stageHoldsAttention()){ S.camHeld = [x, y, w]; return; }
+  S.camHeld = null;   // a performed move supersedes anything remembered
+  S.cam.tx = Math.max(0, Math.min(640 - w, x));
+  S.cam.ty = Math.max(0, Math.min(640 - w, y));
+  S.cam.tw = Math.min(640, w);
+  if (immediate){ S.cam.x = S.cam.tx; S.cam.y = S.cam.ty; S.cam.w = S.cam.tw; S.tween = null; wake(); return; }
+  // Wyatt, playtest 3: the glide was a jerky exponential chase — S-curve it, ~300ms longer.
+  S.tween = { fx: S.cam.x, fy: S.cam.y, fw: S.cam.w, t0: performance.now(), dur: 650 };
+  wake();   // the slow-gear heartbeat must never pace a glide
+}
+const easeInOutCubic = t => t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+function camFull(){ camTo(0, 0, 640); }
+function camToCell(c, zoom){
+  const w = 640 / zoomCap(zoom || 1.9);              // D-36: less zoom on a big board
+  camTo((c[0] + 0.5) * cellPx() - w / 2, (c[1] + 0.5) * cellPx() - w / 2, w);
+}
+function camToSeat(i){
+  const g = appState.game; if (!g || !g.players[i]) return;
+  camToCell(g.players[i].pos, 1.9);
+}
+/* FRAME A SET OF CELLS: the box that holds every one of them, padded, at whatever zoom that box
+   allows — capped, so a tight subject is not magnified into abstraction. THE ZOOM IS DERIVED FROM
+   THE SUBJECT, never picked: two ships three squares apart and two ships across the board are not
+   the same shot, and one number cannot be right for both (CLAUDE.md, "nothing is a constant").
+   Shared by the sail window and the battle framing below, so those two cannot drift apart. */
+const CAM_FIT_PAD = 1.2;                             // cells of water left around the subject
+function camFitCells(cells, maxZoom, reservePx, padCells){
+  if (!cells || !cells.length) return;
+  const cp = cellPx();
+  let x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9;
+  cells.forEach(([x, y]) => { x0 = Math.min(x0, x); y0 = Math.min(y0, y); x1 = Math.max(x1, x); y1 = Math.max(y1, y); });
+  /* `padCells` is optional and defaults to the shared CAM_FIT_PAD, so every other caller — the
+     storm's wide shot, the battle framing — is untouched. The sail fit asks for exactly one, which
+     is the number Wyatt gave. */
+  const P = (padCells != null) ? padCells : CAM_FIT_PAD;
+  const bw = (x1 - x0 + 1 + 2 * P) * cp, bh = (y1 - y0 + 1 + 2 * P) * cp;
+  let side = Math.max(bw, bh);
+  /* HIS #6 IS ANSWERED, and the answer is today's zoom — Wyatt, 2026-09-11, shown one fight framed
+     at 2.2×, 1.6× and 1.3×: "Keep today's". The try-it switch that let him compare (?camcap) is
+     gone with the question. */
+  side = Math.max(side, 640 / zoomCap(maxZoom || 2.2));   // D-36: less zoom on a big board
+  /* THE DIRECTOR MAKES THE ROOM (Wyatt, 2026-08-23): "you can always have the director zoom out
+     more if it needs to, to find places to put the elements without covering sail squares."
+     A placement search can only choose among the spaces the camera has already left it — so when a
+     full sail window fills the strip there is genuinely nowhere legal to stand, and "least-bad"
+     meant standing on seven of twenty-two squares. The lever is the FRAME, not the placement.
+
+     ONE THING DECIDES THE FRAME, and that is why this lives here rather than in place(). If the
+     bubble asked the camera to move, the camera and the placement would be two directors of the
+     same picture, oscillating (rule 23, the fault this project already paid for once). The fit
+     reserves the room; the placement then simply finds it.
+
+     DERIVED, NOT TYPED: `reservePx` is the height the prompt actually measures on screen. Growing
+     the frame by strip/(strip - reserve) shrinks the board content by exactly the fraction of the
+     strip the prompt occupies, so the freed band IS the prompt's own size — no constant, and it
+     tracks a longer question or a bigger phone automatically. Still clamped to the whole board:
+     640 is the entire ocean and there is nothing further to zoom out to. */
+  if (reservePx > 0){
+    const strip = Math.max(1, boardBand().bottom - boardBand().top);
+    const room = Math.max(0.35, (strip - reservePx) / strip);   // never give away more than 65%
+    side = side / room;
+  }
+  side = Math.min(side, 640);
+  camTo((x0 - P) * cp + bw / 2 - side / 2, (y0 - P) * cp + bh / 2 - side / 2, side);
+}
+// frame the whole sail window: bbox of every highlighted cell + my ship, padded; zoom is
+// whatever that window allows, capped at 2.2x.
+/* THAT LINE USED TO END "— a legal move is never off screen." IT WAS NOT TRUE, and it is the kind
+   of claim CLAUDE.md forbids a comment from making: a statement about runtime behaviour, written
+   as a standing fact, that nothing was checking. MEASURED 2026-08-29 in a real crew game on a
+   390x844 guest: six sail squares at x = -57 to -116 (off the LEFT edge by more than a full
+   square) and one at x=400 on a 390-wide screen. The bbox below genuinely contains every square —
+   the fit is not what fails. What fails is that containment in BOARD coordinates is not
+   containment on SCREEN, and no amount of reasoning about the projection has survived contact:
+   two geometry theories were measured dead over two days before this one.
+   ⚠ BEFORE YOU CHANGE ANYTHING IN THIS FILE'S PLACEMENT OR FRAMING, READ THIS. Wyatt, 2026-08-30,
+   in his own words: "don't touch bubble placement again without a posed comparison — the same
+   seeded sail prompt, before and after, two screenshots. Three probe runs and three 85-minute
+   trials couldn't settle a question that two pictures would have. That's the lesson of the night,
+   and it cost the night to learn it." Pose one with docs/DRIVING-THE-GAME.md §5e.
+   A CONTAINMENT PASS THAT RE-FITS AGAINST THE RENDERED RECTS WAS BUILT AND THEN REMOVED, 2026-08-30,
+   and the reason is worth more than the code was. It is Wyatt's ruling ("zoom out until they all
+   fit") and it is the right shape. But three 8-minute runs of the same probe produced 7, 12 and 5
+   judged captures with completely different cause mixes — a driven crew game yields too few
+   samples in that window to tell a fix from a coin flip, and a change had already been shipped on
+   exactly that kind of noise the night before and withdrawn. THE COMPARISON THIS NEEDS IS A POSED
+   ONE: docs/DRIVING-THE-GAME.md §5e, the same seeded board before and after, not two different
+   voyages. Do not re-add it on run-to-run counts.
+   RE-ADDED 2026-09-01 ON EXACTLY THAT POSED COMPARISON — sailContainTick() below, judged by
+   scripts/qa/sail_containment_probe.mjs --mode=crew --seed=7: the same room (ZTNK), the same
+   board, the same moment (20 squares, day 1), before and after. Before: square (3,8) at x=-23,
+   centre outside, elementFromPoint = nothing. And the missing HALF of the story, found by reading
+   the call graph rather than theorising geometry: camFitSail had ONE caller — pickCell(), which
+   runs on the machine running the ENGINE — so a crew GUEST drew its squares and never asked the
+   director to frame them at all; its camera sat wherever the last narration's camToSeat() glide
+   (640/1.9 = the 336.84-unit window in every probe trace) had parked it. renderPickPrompt now
+   asks for the frame on whichever client draws the squares (rule 23's converge move). */
+/* FRAME THE CAPTAIN BEING ASKED, NOT THE CAPTAIN LOOKING — Wyatt, 2026-08-20, from a two-window
+   screenshot: "on guest's turn the host's director moved back up to the host's boat while waiting
+   for guest to sail... it should not center on host at the beginning of their turn at all."
+
+   This took `appState.mySeat` — the seat of whoever is *watching*. pickCell() fires this on every
+   sail prompt from whichever machine runs the engine, which in a crew game is the HOST, so the
+   host's camera jumped to the HOST's own ship at the start of every guest's turn. It then corrected
+   itself the moment the guest actually moved, because the move arrives as narration and the
+   narration path already aims at the right captain (:589, camToSeat(subj)) — which is exactly why
+   it read as a snap-and-recover rather than a stuck camera.
+
+   The `.sailCell` highlights only exist on the client being asked, so on a spectating host the cell
+   list is empty and this collapsed to "fit one cell: my own boat". Passing the seat fixes both
+   halves: the spectator frames the right ship, and the player being asked still gets their own
+   window because their cells ARE drawn locally.
+
+   `seat` is optional and falls back to the viewer, so any future caller with no seat in hand keeps
+   the old local behaviour rather than silently framing seat 0. */
+function camFitSail(seat, pos){
+  S.lock = false;                                    // a new turn releases any gesture hold
+  const g = appState.game; if (!g) return;
+  /* `pos` is the AUTHORITATIVE square of the captain being asked, carried on the prompt spec for
+     both tiers (renderPickPrompt passes it) — on a guest, g.players[].pos is a stale render shell
+     and must never be read for this, the same rule the stay square earned (T-02). The seat lookup
+     remains the fallback for callers with no pos in hand: the spectating host's pickCell call. */
+  const who = g.players[seat ?? appState.mySeat ?? 0];
+  const own = (pos && Number.isFinite(+pos[0])) ? pos : (who && who.pos);
+  if (!own) return;
+  // playtest 20: the squares carry their own grid coordinates now (sailHighlightRect writes
+  // data-gx/gy). This used to invert that function's inset arithmetic by hand — a second copy of
+  // the same maths that had to be kept in step with it, and it stopped being possible at all once
+  // the squares became HTML sized in cqw rather than SVG rects with x/width attributes.
+  const cells = [...document.querySelectorAll(".sailCell")]
+    .map(r => [+r.dataset.gx, +r.dataset.gy])
+    .filter(c => Number.isFinite(c[0]) && Number.isFinite(c[1]));
+  cells.push(own);
+  /* Reserve the room the prompt will need, measured from what is on screen rather than guessed:
+     the ask pill and its helper line are what a sail prompt actually draws, and a narration bubble
+     is the other thing that has to stand somewhere. Nothing on screen yet (the very first fit of a
+     turn) reserves nothing and behaves exactly as before. */
+  const need = [".apMsg", ".apSub", ".pp4Bub:not(.out)"]
+    .map(sel => document.querySelector(sel))
+    .filter(e => e && e.getBoundingClientRect().height > 4)
+    .reduce((h, e) => h + e.getBoundingClientRect().height + 8, 0);
+  /* ITEM 38 (Wyatt, 2026-08-23c) — the hole in this reserve, named by the overnight gate as the
+     one structural fault ('a sail square covering the tap-to-sail question — the existing clamp
+     provably cannot reach it'): the FIRST fit of a turn runs before the pill exists, measures
+     nothing, reserves nothing — so the frame never grew and the placement search had no legal
+     ground, exactly when the whole sail window fills the strip. The fallback is the LAST measured
+     need — the game's own number from the previous prompt, not a typed constant — so from the
+     second prompt of a voyage onward the director always leaves the words their room. The very
+     first prompt of a session still reserves nothing, exactly as before. */
+  if (need > 0) S.lastPromptNeed = need;
+  /* ⭐ FRAME THE SAILABLE AREA, NOT A FIXED WINDOW — Wyatt, 2026-09-09: "sometimes the viewport
+     director is more zoomed out than it needs to be when sailing -- it should zoom into the
+     sailable area, with a 1-square padding around that -- so the farthest N/E/S/W that a player can
+     go is fully onscreen, plus at least one square in all of those directions; more if needed in
+     order to have the narration box not occlude a square."
+     ⚠ THE PAD WAS NEVER THE PROBLEM — IT IS 1.2 CELLS AND ALWAYS WAS. What actually held the camera
+     back is the FLOOR one function down: `side = Math.max(side, 640 / zoomCap(maxZoom))`. At 2.2
+     that floor is a 291-unit window — about SEVEN CELLS on a 15-grid — so a three-cell sail window
+     was framed at seven and the extra four were the thing he was looking at. The frame was not
+     computed too wide; it was refused permission to be narrow.
+     SO THE CEILING GOES UP AND THE PAD BECOMES HIS EXACT 1. At 4.0 the floor is ~160 units (under
+     four cells), which stops binding on any real sail window and lets the fit's own arithmetic —
+     bounds + 1 cell — decide. It still cannot zoom past what zoomCap allows on a wide board (D-36),
+     and the "more if needed" half was already built: `reservePx` grows the frame by exactly the
+     height the prompt measures on screen, and the containment pass re-measures afterwards. */
+  camFitCells(cells, 4.0, need || S.lastPromptNeed || 0, 1);
+}
+/* THE CONTAINMENT PASS — WYATT'S RULING, BUILT ON THE POSED COMPARISON IT WAITED FOR.
+   His solution, stated twice (2026-08-23: "you can always have the director zoom out more…";
+   2026-09-01, DECISIONS.md "THE RELAY REDESIGN" ruling 7): when sail squares are shown, the camera
+   frames ALL of them fully on-screen, with margin. The fit above is board-unit arithmetic, and the
+   standing measurement is that containment in BOARD coordinates is not containment on SCREEN — so
+   this judges the only thing that counts: the RENDERED rects of the squares themselves, against
+   boardBand(), which already carries the game's own margins (ribbon+pill+8 above, the captains
+   card below, 8px each side). No number here is invented (CLAUDE.md rule 9).
+   BOUNDED — three corrections per prompt — and it acts only on a SETTLED camera: while a glide
+   runs, or the player holds the board (S.lock), or the stage holds attention, it waits. On its
+   first sighting of a new sail window it only starts the clock, so the fit's own glide gets to
+   play before anything is judged. The correction converts the measured union back to board units
+   through toScreen()'s own scale (br.width / cam.w — the renderer's number, not a re-derivation),
+   asks for a window wide enough that the union fits inside the band at the new scale, and aims the
+   union's centre at the band's centre. camTo() clamps as it always has: hard against the board's
+   rim the 8px side margin can give way (the window cannot show water past the edge), but the
+   square itself stays on screen. And the arithmetic is never trusted: the NEXT pass re-measures,
+   so a wrong correction costs one more bounded pass, never a lie.
+   WHY IN tick() AND NOT ONLY AFTER THE FIT: the fault has two orders. A guest whose squares were
+   drawn with no fit at all (the bug this closes), and a fit that lands correctly and is then
+   re-aimed off the squares by a later narration glide (camToSeat at 1.9). A pass that hangs off
+   the fit sees only the first; a pass that watches the settled camera while squares exist sees
+   both. */
+let scKey = "", scTries = 0, scAt = 0;
+function sailContainTick(){
+  if (S.tween || S.lock || stageHoldsAttention()) return;
+  const sq = document.querySelectorAll(".sailCell");
+  if (!sq.length){ scKey = ""; return; }
+  const now = Date.now();
+  const key = (S.turnSerial || 0) + "|" + sq.length;
+  if (key !== scKey){ scKey = key; scTries = 0; scAt = now; return; }
+  if (scTries >= 3 || now - scAt < 350) return;
+  const svg = svgEl(); if (!svg) return;
+  const br = svg.getBoundingClientRect(); if (!(br.width > 0)) return;
+  const band = boardBand();
+  const bx0 = Math.max(band.left, br.left), bx1 = Math.min(band.right, br.right);
+  const by0 = Math.max(band.top, br.top),  by1 = Math.min(band.bottom, br.bottom);
+  if (bx1 - bx0 < 40 || by1 - by0 < 40) return;      // no usable window to judge against
+  let L = 1e9, T = 1e9, R = -1e9, B = -1e9;
+  for (const el of sq){
+    const r = el.getBoundingClientRect();
+    if (!(r.width > 0)) continue;
+    if (r.left < L) L = r.left; if (r.top < T) T = r.top;
+    if (r.right > R) R = r.right; if (r.bottom > B) B = r.bottom;
+  }
+  if (R < L) return;
+  if (L >= bx0 && R <= bx1 && T >= by0 && B <= by1) return;   // all of them on screen, with margin
+  scTries++; scAt = now;
+  const sc = br.width / S.cam.w;                     // toScreen()'s own scale, inverted below
+  const vy = (S.vy ?? S.cam.y);
+  const ux0 = S.cam.x + (L - br.left) / sc, ux1 = S.cam.x + (R - br.left) / sc;
+  const uy0 = vy + (T - br.top) / sc,       uy1 = vy + (B - br.top) / sc;
+  let w = Math.max(S.cam.tw || S.cam.w,              // zoom OUT more, never in — his words
+                   (ux1 - ux0) * br.width / (bx1 - bx0),
+                   (uy1 - uy0) * br.width / (by1 - by0));
+  w = Math.min(640, w);                              // the whole ocean; nothing further to zoom to
+  const sc2 = br.width / w;
+  // tick()'s own letterbox (vh = w * aspect), carried to the new width from its live numbers
+  const h2 = Math.min(640, (S.vh && S.cam.w) ? w * (S.vh / S.cam.w) : w);
+  const vyWant = (uy0 + uy1) / 2 - ((by0 + by1) / 2 - br.top) / sc2;
+  camTo((ux0 + ux1) / 2 - ((bx0 + bx1) / 2 - br.left) / sc2,
+        vyWant - w / 2 + h2 / 2,   // camTo takes the square window's y; tick derives vy = centre − h/2
+        w);
+}
+// frame a set of captains — both combatants of a fight, whatever the water between them
+function camFitSeats(seats){
+  const g = appState.game; if (!g) return;
+  camFitCells(seats.map(i => g.players[i] && g.players[i].pos).filter(Boolean), 2.2);
+}
+// user SVG units -> screen px under the current camera ('meet' fit inside the wrap)
+/* RED ALERT FIX (2026-08-21, D-18 follow-up — see fixedOrigin()'s note in util.js): svg's own
+   getBoundingClientRect() is viewport-absolute (CSS spec, immune to any ancestor transform), but
+   every caller of toScreen() writes its result into a position:fixed element's left/top — which,
+   once item 22's stopgap has made body the containing block, is measured from BODY's own box, not
+   the viewport. Subtracting fixedOrigin() here, once, converts the ship's screen position into the
+   same frame vwPx()/vhPx() already use for the clamps every consumer below builds against — the
+   fan buttons, the ask pill, the apSub tooltip, the back button, the slider, the card fallback, and
+   the narration bubble + its pointer tail (boatUXY() -> toScreen() is how all of them find a ship). */
+function toScreen(ux, uy){
+  const svg = svgEl(); if (!svg) return [0, 0];
+  const br = svg.getBoundingClientRect();
+  const sc = br.width / S.cam.w;
+  const o = fixedOrigin();
+  return [(ux - S.cam.x) * sc + br.left - o.x, (uy - (S.vy ?? S.cam.y)) * sc + br.top - o.y];
+}
+/* WHERE A BOARD POINT WILL BE ONCE THE DIRECTOR HAS FINISHED — the same projection through the
+   camera's TARGET instead of its live position. Wyatt, 2026-08-25, on the narration bubble:
+   "the narration bubble appears first below the boat at the beginning of its run and then above
+   the boat later… ideally, the narration bubble stays in its same location with respect to the
+   boat for the whole time because if it has to flip from below to above, that's when it looks
+   jittery." He is explicit that the bubble MOVING with the camera is good and he wants it kept —
+   "i love that look and feel… as long as it is smooth". Only the SIDE may not change.
+   A side chosen from the live position is chosen from a number that is still travelling, so it
+   flips the instant the pan makes room above. Chosen from where the boat comes to REST it is
+   right for the whole life of the bubble, and the glide is untouched. */
+function toScreenRest(ux, uy){
+  const svg = svgEl(); if (!svg) return [0, 0];
+  const br = svg.getBoundingClientRect();
+  const w = S.cam.tw || S.cam.w;
+  const sc = br.width / w;
+  const o = fixedOrigin();
+  const cx = (S.cam.tx != null) ? S.cam.tx : S.cam.x;
+  const cy = (S.cam.ty != null) ? S.cam.ty : S.cam.y;
+  return [(ux - cx) * sc + br.left - o.x, (uy - cy) * sc + br.top - o.y];
+}
+/* A PULSING BUTTON HAS NO SINGLE SIZE, AND EVERY LAYOUT THAT DODGES ONE MUST AGREE ON WHICH SIZE.
+   `getBoundingClientRect()` on a button running pp4Grow returns its ANIMATED box — measured on
+   the rig at 66px -> 75.9px and back, every 1.1s. Two placements read those live rects every tick
+   and re-decide against them: the peek hint's clear-strip search, and the narration bubble's
+   weighted obstacle cost. So both can change their answer at the pulse frequency whenever a
+   button edge sits near a decision boundary — the gap they allow is 6px and the pulse moves an
+   edge by ~10px, which is why it reads as "it doesn't know where to resolve" (Wyatt, 2026-08-25,
+   who also guessed the cause exactly: "I think it's because of the pulsing of the buttons").
+   The fan's OWN layout already solved this — it reserves --pp4GrowPeak so circles never kiss at
+   the top of the pulse. These two were the placements that had not been told. Measuring the PEAK
+   box (the layout size, which a transform does not touch, scaled about the unmoving centre) makes
+   every one of them agree and makes the decision stable through the whole cycle. */
+const swellPeak = () => parseFloat(getComputedStyle(document.documentElement)
+  .getPropertyValue("--pp4GrowPeak")) || 1.15;
+function swellRect(el, r){
+  const cl = el && el.classList;
+  if (!cl || !(cl.contains("apBtn") || cl.contains("btlBtn"))) return r;
+  const k = swellPeak();
+  const w = (el.offsetWidth || r.width) * k, h = (el.offsetHeight || r.height) * k;
+  const cx = r.left + r.width / 2, cy = r.top + r.height / 2;   // scale origin is the centre
+  return { left: cx - w / 2, right: cx + w / 2, top: cy - h / 2, bottom: cy + h / 2, width: w, height: h };
+}
+/* WAIT FOR THE BOAT TO ARRIVE BEFORE BLOOMING THE FAN — playtest 21 item 2 (Wyatt: "only appear
+   the action prompt fan buttons AFTER the boat has finished moving — currently, they appear before
+   it has finished and they recalculate position and glitch out in the final few ms of travel,
+   which looks bad").
+
+   WHY IT GLITCHES, which is not where it looks. boatUXY reads el.style.transform — the ship's
+   TARGET, written in one go — so the circles are not chasing the hull. They are chasing the
+   CAMERA: the bloom is placed through toScreen(), the camera tweens across to follow the ship, and
+   every frame of that tween moves the whole placement. The tween finishes at about the moment the
+   boat lands, which is exactly the "final few ms of travel" he describes. So a fix aimed only at
+   the ship's glide would have missed half of it, and a fix aimed only at the camera would have
+   left the fan blooming around a hull still in flight.
+
+   BOTH are waited on, and each is MEASURED rather than timed:
+     - the camera, by asking whether a tween is running at all;
+     - the ship, by comparing its RENDERED transform (getComputedStyle, which returns the current
+       animated matrix) against its target. When they agree, the transition is genuinely over.
+   A timer would have been a third hand-synced copy of SHIP_GLIDE_MS, and this project has paid for
+   that pattern more than once. It also breaks the moment a sweep retunes the glide via
+   setShipGlideMs, which is precisely when the ship is moving furthest.
+
+   BOUNDED, AND THIS IS THE LOAD-BEARING PART. A UI gate that can wait forever is a game that can
+   hang on a dropped transitionend or a camera that never settles. The wait can never outlast
+   SETTLE_CAP_MS, after which the fan blooms regardless: the worst case is the cosmetic glitch this
+   exists to remove, never a turn that cannot be taken. */
+const SETTLE_POLL_MS = 60;
+const SETTLE_CAP_MS = 1400;   // comfortably past SHIP_GLIDE_MS (700) + the camera's own tween
+function shipStill(){
+  const els = boardShipEls();
+  if (!els || !els.length) return true;
+  for (const el of els){
+    if (!el || !el.style || !el.style.transform) continue;
+    const want = el.style.transform;
+    const now = getComputedStyle(el).transform;
+    // matrix(1,0,0,1,X,Y) vs translate(Xpx,Ypx) — compare the two translation components only
+    const a = /translate\(([-\d.]+)px,\s*([-\d.]+)px\)/.exec(want);
+    const b = /matrix\([^,]+,[^,]+,[^,]+,[^,]+,\s*([-\d.]+),\s*([-\d.]+)\)/.exec(now);
+    if (!a || !b) continue;             // nothing readable to compare — do not block on it
+    if (Math.abs(parseFloat(a[1]) - parseFloat(b[1])) > 0.5) return false;
+    if (Math.abs(parseFloat(a[2]) - parseFloat(b[2])) > 0.5) return false;
+  }
+  return true;
+}
+function stageSettled(){
+  if (!S.active) return Promise.resolve();
+  if (appState.replaying) return Promise.resolve();   // a replay waits for nothing — see stageFlash
+  const t0 = Date.now();
+  return new Promise(res => {
+    const poll = () => {
+      if (!S.active || (!S.tween && shipStill()) || Date.now() - t0 >= SETTLE_CAP_MS) return res();
+      setTimeout(poll, SETTLE_POLL_MS);
+    };
+    poll();
+  });
+}
+function boatUXY(i){
+  const els = boardShipEls();
+  const el = els && els[i]; if (!el) return null;
+  const m = /translate\(([-\d.]+)px,\s*([-\d.]+)px\)/.exec(el.style.transform);
+  return m ? [parseFloat(m[1]), parseFloat(m[2])] : null;
+}
+
+// playtest 11 (iPhone 13 mini running HOT): the tick loop used to lay out and write the DOM
+// every frame even with a parked camera — rect reads, viewBox writes and transform writes at
+// 60fps, forever. Layout inputs are now cached (refreshed ~2x/second and on resize), and every
+// write is skipped when the value hasn't changed, so an idle stage costs almost nothing.
+// The HTML overlays that are mapped to board coordinates and must therefore carry the camera.
+// See where it is applied below for why this is a list rather than two named consts.
+// "courseHost" is the onward guide's marker layer (src/ui/course.js). It is board-mapped, so it
+// belongs here — BOARD-RENDERING §3 calls adding it "the step that gets forgotten", and #rimHost
+// was forgotten exactly this way: the current stayed parked on the full-board layout while the
+// water zoomed away beneath it. A LIST, not named consts, for the same reason.
+const CAM_HTML_LAYERS = ["rippleHost", "sailHost", "rimHost", "courseHost"];
+let ribHCache = 48, ribHAt = -1e9, lastVB = "", lastRipT = "";
+/* THE TOP BAND — where the board's top edge goes: the bottom of the ribbon, or of the wind pill
+   when that sits lower (playtest 17, Wyatt: "the wind/forecast pip covers the top of the trade
+   winds — move the board down slightly"). Measured from the rendered elements, cached ~2×/second
+   (playtest 11, a hot phone). Read by camFrame() every frame AND by computeStageGeometry() when it
+   sizes the desktop board — one measurement, so the square it derives and the strip the camera
+   paints cannot drift apart (rule 23). */
+function topBandPx(){
+  if (performance.now() - ribHAt > 500){
+    const rib = $("pp4Ribbon");
+    let topEdge = rib ? Math.ceil(rib.getBoundingClientRect().bottom) : 48;
+    const pill = $("pp4Pill");
+    if (pill){
+      const pr = pill.getBoundingClientRect();
+      if (pr.height > 0) topEdge = Math.max(topEdge, Math.ceil(pr.bottom) + 6);
+    }
+    ribHCache = topEdge;
+    ribHAt = performance.now();
+  }
+  return ribHCache;
+}
+const isSideBySide = () => typeof document !== "undefined" && document.body.classList.contains("pp4Side");
+/* D-50 — ONE LIST, TWO MOUNTS. The captains card and the game's menu (#footerRow, the only list of
+   menu items there is) are MOVED between two homes rather than rendered twice:
+     side-by-side  -> both stand in #pp4Col, the column D-31 built beside the board, menu under card
+     everywhere else -> the card is its own fixed panel at the foot of the screen and the menu is
+                        the ☰ sheet over the board (D-18/D-31: the phone stays exactly as it is)
+   Moving the NODE is what makes "one list" true by construction — a second list is the fault rule
+   23 exists to prevent, and it is how the two-directors bug was born. Chosen by the SAME `pp4Side`
+   class computeStageGeometry() already sets: one decision, read twice, never two kept in step.
+   Every branch is guarded on the current parent, so this is a no-op on all but the tick a window
+   actually crosses the threshold. */
+function mountColumn(on){
+  const col = $("pp4Col"), cap = $("pp4Cap"), foot = $("footerRow"), body = document.body;
+  if (!col || !cap) return;
+  if (on){
+    if (cap.parentNode !== col) col.appendChild(cap);
+    if (foot && foot.parentNode !== col) col.appendChild(foot);
+    // the ☰ is hidden in this branch, so a sheet left open would be unclosable
+    if (body.classList.contains("pp4Foot")) body.classList.remove("pp4Foot");
+  } else {
+    if (cap.parentNode !== body) body.appendChild(cap);
+    const home = $("game");
+    if (foot && home && foot.parentNode !== home) home.appendChild(foot);
+  }
+}
+/* WHERE THE BOARD BAND ENDS — one answer, read by everything that has to place a floater above the
+   captains card. THE BUG THIS EXISTS TO KILL: three separate places each did
+   `cap.getBoundingClientRect().top`, which is the right bottom-boundary only while the captains
+   card sits BELOW the board (phone and stacked). In D-31's side-by-side the card sits BESIDE the
+   board with its top at the ribbon, so that read returned ~45 — and the radial fan's band became
+   `yMin 85 … yMax -29`, inverted. Every circle then clamped to a NEGATIVE y: all of them at the
+   same spot (the "overlapping controls: Call X/Call Y" the playtest gate found twice), off the top
+   of the screen, behind the ribbon (z40 over the prompt's z30) where nothing could click them —
+   which is where a real driver stalled, exactly as a player would. Beside the board the card takes
+   nothing off the bottom, so the band simply runs to the foot of the stage. */
+/* D-39/D-40 — THE PEEK HINT TEACHES UNTIL LEARNED, AND SAYS THE RIGHT VERB.
+   D-38 lets a prompt sit over the board, and the thing that makes that safe is the hold-the-sea
+   gesture. Before tonight the gesture was taught in exactly ONE place — the recipe picker on day 1
+   — and never again, which is too little for something now load-bearing; Wyatt's own suggestion was
+   a hint on every turn, and we landed on the middle: show it while a prompt is over the board on
+   your turn, and retire it for good once the player has actually USED the hold three times. Every
+   turn forever is clutter that competes with the narration it explains and goes unread by day 3.
+   The counter is localStorage, the same idiom pp4_timerOff already uses, and a browser that
+   refuses storage is treated as "already learned" so a private window is never nagged forever.
+   D-40: "tap" is wrong with a mouse. Pointer type, not width — a touch laptop gets the right verb. */
+const PEEK_KEY = "pp4_peekUsed", PEEK_LEARNED = 3, PEEK_HOLD_MS = 450;
+let peekArmedAt = 0;
+function peekUses(){ try { return +localStorage.getItem(PEEK_KEY) || 0; } catch (e) { return PEEK_LEARNED; } }
+function notePeekUse(){ try { localStorage.setItem(PEEK_KEY, String(Math.min(PEEK_LEARNED, peekUses() + 1))); } catch (e) {} }
+function holdVerb(){
+  try { return matchMedia("(pointer: coarse)").matches ? "Tap and hold" : "Click and hold"; }
+  catch (e) { return "Tap and hold"; }
+}
+export function peekHintText(){ return `${holdVerb()} the sea to reveal the board`; }
+/* Shows/hides the hint inside whichever prompt box is up. Placed at the FOOT of the board band so
+   it never joins the crowd around the boat (which is where D-38 has just sent everything else). */
+function peekHintTick(box){
+  let hint = box.querySelector(".pp4PeekHint");
+  if (peekUses() >= PEEK_LEARNED){ if (hint) hint.remove(); return; }
+  if (!hint){
+    hint = document.createElement("div"); hint.className = "pp4PeekHint";
+    hint.innerHTML = `<span>${peekHintText()}</span>`;
+    box.appendChild(hint);
+  }
+  const band = boardBand();
+  /* THE HINT IS THE ONE FLOATER THAT ALWAYS YIELDS, because it is the only one that is not part of
+     the question. It is `pointer-events:none` italic text explaining a gesture; everything it was
+     landing on is something a captain has to read or tap. It sat at a FIXED `band.bottom - 44`, and
+     that strip is inside the fan's own legal band BY CONSTRUCTION — the cornered dock puts circles
+     at `capT - D - 8` and the hint's line runs right through them. Measured on the 2026-08-21 gate:
+     the hint drawn straight across "Stay put" (solo-phone-020), across the ✓ of a trade
+     (passplay-phone-023) and over the second line of "Call Flaky Jack" (passplay-phone-029) — five
+     judge findings, all one cause, none of them a placement the fan could have avoided.
+     So the hint moves instead of the controls: keep the foot of the band when that strip is clear,
+     else hug the top of it, else say nothing this tick. Never a constant — the strip is judged
+     against the rects the renderer actually produced, so it is right at any screen size and for any
+     fan the placement search happens to choose. */
+  const span = hint.firstElementChild;
+  hint.style.display = "";
+  const sr = span ? span.getBoundingClientRect() : null;
+  const foot = Math.round(Math.max(band.top, band.bottom - 44));
+  if (!sr || !(sr.width > 0 && sr.height > 0)){ hint.style.top = foot + "px"; return; }
+  // everything the hint must not sit on: every control, the question itself, and any narration
+  // box that is already talking. One list, so a floater added later is covered by adding it here.
+  /* .pp4RcAsk joins the list the moment it exists — this comment's own promise, kept. Without it
+     the hint pill drew straight across the cream box on BOTH phone and desktop, hiding the captain's
+     name and half of "pick which recipe you want to bake" (seen in the 2026-09-09 parked shots, not
+     reported by any number). It is exactly the fault the five judge findings above describe. */
+  const busy = [...box.querySelectorAll(".apBtn, .apSliderWrap, .apMsg, .apSub, .pp4RcAsk"),
+                ...document.querySelectorAll(".sailCell, .pp4Bub")]
+    .map(e => swellRect(e, e.getBoundingClientRect()))    // the PEAK box — see swellRect's note
+    .filter(r => r.width > 2 && r.height > 2 && r.right > sr.left && r.left < sr.right);
+  /* CLEAR SPACE, not merely "not overlapping" — the judge's own words for this fault were "the
+     circle's bottom edge and text sit on top of the pill's top edge instead of having clear space
+     between them", and a hint grazing a button by a pixel reads exactly as badly as one covering it.
+     6px is the gap every other stacked floater in this file already leaves (`pillB.bottom + 6`, the
+     fan's own `gap`), so the hint is spaced like everything else rather than to a number invented
+     here — a layout dimension, not a game quantity. */
+  const AIR = 6;
+  const clear = y => y >= band.top && y + sr.height <= band.bottom &&
+    !busy.some(r => r.bottom > y - AIR && r.top < y + sr.height + AIR);
+  const head = Math.round(band.top + 4);
+  // …and a third spot BEFORE giving up: tucked just above whatever is standing in the foot's way.
+  // The hint belongs at the foot of the board, over the sea it names, so stepping up over the fan
+  // keeps it there; jumping to the ribbon is the last resort and hiding is the one after that,
+  // because a hint nobody sees teaches nobody (D-39).
+  const blockers = busy.filter(r => r.bottom > foot - AIR && r.top < foot + sr.height + AIR);
+  const above = blockers.length ? Math.round(Math.min(...blockers.map(r => r.top)) - sr.height - AIR) : foot;
+  /* W4-5 — NEAREST THE CARD IS TRIED FIRST. Wyatt: "move the tooltip closer to the recipe card…
+     in a way, it is a button — a button that reveals the sea."
+     MEASURED at the recipe picker before changing: the hint sat 295px above the card at 1200 and
+     768, and 222px at 390 — the far end of the board from the thing it is about. The cause was this
+     very list: with a card up, the card blocks `foot` and `above`, so the search fell through to
+     `head` every time. The old order was written when the hint's job was to sit "over the sea it
+     names", which is right when nothing is asking a question and wrong the moment something is.
+     THIS IS A CHANGE OF PREFERENCE, NOT A NEW FIXED POSITION, and that distinction is the whole
+     safety of it. The hint used to be pinned at band.bottom - 44 and the 2026-08-21 gate caught it
+     drawn across "Stay put", across a trade's ✓ and over the second line of "Call Flaky Jack" —
+     five judge findings, one cause. Every candidate below, this one included, still goes through
+     clear(), and hiding is still the last resort, so none of that can return.
+     Derived from the card's own rect, never a typed offset, so it is right at every size. */
+  const cardEl = box.querySelector("#actionPanel");
+  const cardR = cardEl ? cardEl.getBoundingClientRect() : null;
+  const nearCard = (cardR && cardR.width > 2 && cardR.height > 2)
+    ? Math.round(cardR.top - sr.height - AIR) : null;
+  for (const y of [nearCard, foot, above, head]){
+    if (y !== null && clear(y)){ hint.style.top = y + "px"; return; }
+  }
+  hint.style.display = "none";          // taught nothing this tick beats covering the answer
+}
+/* THE BACK CIRCLE RIDES THE PILL'S SHOULDER — one function, because the same two lines were
+   written out in THREE places (the placement pass, the lift-clear-of-fan pass and the
+   cornered-fan lift) and a floor added to any one of them would have left the other two wrong.
+   THE FLOOR IS THE FIX: `top = pill.top + (pill.height - 38) / 2` has no lower bound, and the
+   radial placement runs while `#pp4Prompt` is still `display:none` behind panel.js's
+   `pendingReveal` gate — so `fixedRect(msg)` is all zeros and the arithmetic reads
+   `0 + (0 - 38) / 2 = -19`, i.e. a grey half-circle hanging off the top-left corner over "DAY N".
+   Four judge findings on the 2026-08-21 phone leg (passplay-phone-014/015/016/028), reported as a
+   clipped "clock icon" because that is exactly what half a circle with a ‹ in it looks like.
+   Clamped to `tSafeV - 34`, which is the same floor the pill itself, the lift pass and clampTop()
+   already use — the band's own top edge, not a number chosen here. */
+function placeBackButton(ap, pillB, tSafeV){
+  const back = ap.querySelector(".apBack"); if (!back || !pillB) return;
+  const BK = 38, GAP = 8;                       // 46 = the circle plus the gap it always had
+  const floor = tSafeV - 34;
+  const shoulderY = Math.max(floor, pillB.top + (pillB.height - BK) / 2);
+  const shoulderX = pillB.left - (BK + GAP);
+  if (shoulderX >= 4){ back.style.left = shoulderX + "px"; back.style.top = shoulderY + "px"; return; }
+  /* NO ROOM ON THE SHOULDER, SO IT GOES ABOVE — and this only started happening once the pill was
+     made to fit the screen: a 343px pill on a 390px phone is flush left, and a circle clamped to
+     `left:4` then sits UNDER it, leaving a half-tappable escape hatch. Above the pill's own left
+     edge is where the top-to-bottom reveal rule (CLAUDE.md rule 11: back, message, buttons, helper)
+     already says the back belongs, so this is the arrangement the panel version has always used. */
+  const aboveY = pillB.top - BK - 6;
+  if (aboveY >= floor){ back.style.left = Math.max(4, pillB.left) + "px"; back.style.top = aboveY + "px"; return; }
+  back.style.left = "4px"; back.style.top = shoulderY + "px";   // nowhere left to go
+}
+/* THE PILL FITS THE SCREEN ON EVERY TICK, NOT ONLY ON THE TICK THAT PLACED IT — 18 of the 40 phone
+   findings on the 2026-08-21 gate, one cause. The placement pass chooses `left` from `mw`, and `mw`
+   was `msg.offsetWidth || 200` read while the box was `display:none` (panel.js's `pendingReveal`
+   gate holds the whole prompt hidden until the camera and ships settle). So the left edge is chosen
+   for a 200px box, the box turns out 343px, and the right edge leaves the screen — then `radKey`
+   memoises the layout and nothing ever measures it again. solo-phone-017 starts at x=95 of 390;
+   passplay-phone-023 at x=182, which is exactly the `vwPx() - 200 - 10` clamp for the guessed width.
+   Re-clamping here, above the memo, is the only version that cannot be out of date: it compares the
+   box's REAL rendered width against the real screen and moves nothing else. `.apSub` shares the
+   pill's placement rule so it is swept by the same loop (rule 8), and the back circle rides along
+   because its shoulder is defined by the pill it hangs off. */
+function clampAskToScreen(ap, tSafeV){
+  const vw = vwPx();
+  const backGap = ap.querySelector(".apBack") ? 50 : 0;   // same reservation as the placement pass
+  let pillB = null;
+  [".apMsg", ".apSub"].forEach(sel => {
+    const el = ap.querySelector(sel);
+    if (!el || !el.style.left) return;
+    const w = el.offsetWidth; if (!(w > 0)) return;
+    const was = parseFloat(el.style.left) || 0;
+    const left0 = sel === ".apMsg" ? 10 + backGap : 10;
+    const want = Math.max(left0, Math.min(was, vw - w - 10));
+    if (Math.abs(want - was) > 0.5) el.style.left = want + "px";
+    if (sel === ".apMsg") pillB = fixedRect(el);
+  });
+  if (pillB && pillB.height > 0) placeBackButton(ap, pillB, tSafeV);
+}
+/* Lifts the ask pill clear of any prompt circle already sitting on it (see the call site). */
+/* THE LIFT CAN FAIL TO CLEAR, AND IT REPORTS NOTHING WHEN IT DOES. That is the 3x `no-cover-ask`
+   on the crew-phone sea trial, 2026-08-26 (host-016, guest-020, guest-022): a long three-line trade
+   question with a circle sitting on the word it is asking about.
+
+   WHAT IS MEASURED, AND WHAT IS NOT — read this before trusting the next paragraph.
+     - guest-022 (390x664): MEASURED clamp-bound. The pill sits at y~83, the `tSafeV - 34` ceiling
+       is y~53, and the lift wants y~37. It rises the 30px it is allowed and STILL overlaps by ~4px.
+       Here the floor is genuinely the cause.
+     - host-016 (same 390x664 at 2x): MEASURED to have ~36px of headroom — the lift wanted y~65
+       against a y~53 ceiling, so it was NOT clamped, and the circle stayed on "deal" anyway.
+       WHY the lift did not take on that screen is NOT ESTABLISHED. A candidate, unverified: the
+       placement pass below writes `msg.style.top = mTop` unconditionally (see it a few hundred
+       lines down), so a re-place discards whatever the lift just did.
+   Both findings are from CEO review 4, which measured the two shots rather than reading this
+   function. An earlier version of this comment asserted the clamp as THE cause for all three
+   screens; that was a guess written in the voice of a finding, and host-016 contradicts it.
+
+   THE FIX DOES NOT DEPEND ON WHICH CAUSE IT WAS, which is the reason to prefer it. Whatever
+   defeated the lift, the durable answer is to re-run the placement against the pill's TRUE size.
+   The machinery already exists and this adds no second corrective path (rule 23): the pass treats
+   the pill as an obstacle (`obstacles.push(pillB)`) and `formationOK` refuses any formation that
+   hits an obstacle, sail rects included — so D-38 cannot be traded away by moving the circles.
+   The call site's own note says why the pass seated the fan badly in the first place: `.apMsg`
+   reveals progressively, so it measured a SMALL pill, avoided that correctly, and the memo then
+   froze the layout while the pill grew into it. Dropping `S.radKey` re-runs that same pass — the
+   file's existing idiom for "re-place next tick" (3 other uses).
+
+   ORDERING, because it is what makes this converge rather than oscillate: this function runs ABOVE
+   the memo check, so clearing `S.radKey` re-places on the SAME tick, not the next one. The pass
+   then sets the pill from `mTop` and seats the fan around the pill's now-full-height rect in one
+   pass, so the pill and the circles are positioned against each other consistently. */
+let _refan = { key: null, n: 0 };
+function liftAskClearOfFan(ap, tSafeV, capTV){
+  const msg = ap.querySelector(".apMsg"); if (!msg || !msg.style.top) return;
+  const btns = [...ap.querySelectorAll(".apBtn")].filter(b => b.style.left && b.offsetWidth > 4);
+  if (!btns.length) return;
+  const mr = fixedRect(msg);
+  if (!(mr.width > 0 && mr.height > 0)) return;
+  // Shape-aware, exactly as the gate is: a circle's CORNER clipping a text box is not a circle
+  // sitting on it. Taken as a function so the same test can be re-asked after the lift.
+  const sitsOn = box => btns.some(b => {
+    const r = fixedRect(b);
+    const bx = r.left + r.width / 2, by = r.top + r.height / 2, rad = Math.min(r.width, r.height) / 2;
+    const px = Math.max(box.left, Math.min(bx, box.right)), py = Math.max(box.top, Math.min(by, box.bottom));
+    return Math.hypot(bx - px, by - py) < rad - 2;
+  });
+  if (!sitsOn(mr)) return;
+  const blockTop = Math.min(...btns.map(b => fixedRect(b).top));
+  const lifted = Math.max(tSafeV - 34, Math.min(blockTop - mr.height - 10, capTV - mr.height - 8));
+  if (Math.abs((parseFloat(msg.style.top) || 0) - lifted) > 1){
+    msg.style.top = lifted + "px";
+    placeBackButton(ap, fixedRect(msg), tSafeV);
+  }
+  /* THE CAP IS NOT OPTIONAL. A board so full that no formation clears the pill would otherwise drop
+     the memo on EVERY tick — re-placing the fan forever, which is the runaway-probe failure this
+     repo has paid for twice. It BOUNDS the churn at three re-places; it does not "prevent" it, and
+     saying so would be another behavioural claim this function cannot honour.
+     KEYED PER PROMPT, NOT PER TURN. This first read `S.turnSerial + "|" + btns.length`, and
+     `turnSerial` only moves when the wheel passes to another captain — but ONE turn holds many
+     prompts (a trade alone walks "what'll ye do" -> the ingredient pick -> "coins only" -> "Offer
+     it!" -> the table's answer). Two of them with the same circle count shared a single budget, so
+     the first could spend all three and leave the second none. The question's own text is what
+     makes a prompt distinct, and this file already uses exactly that key for `S.frameKey` — reused
+     here rather than invented. (CEO review 4 caught the coarse key.) */
+  const stamp = S.turnSerial + "|" + (msg.textContent || "").slice(0, 60) + "|" + btns.length;
+  if (_refan.key !== stamp) _refan = { key: stamp, n: 0 };
+  if (sitsOn(fixedRect(msg)) && _refan.n < 3){ _refan.n++; S.radKey = null; }
+}
+function capBandBottom(){
+  const cap = $("pp4Cap");
+  if (!cap || isSideBySide()) return vhPx();
+  const r = cap.getBoundingClientRect();
+  return (r.height > 0 && r.top > 0) ? r.top : vhPx();
+}
+/* THE DESKTOP CAPTAINS COLUMN IS A FIXED, STABLE WIDTH — not re-measured every tick. Re-measuring
+   made it (a) collapse to a 220px floor at the opening, where empty holds gave it nothing to
+   measure, squeezing every name onto its coin (Wyatt's 2026-08-21 screenshot), and (b) jitter as
+   holds filled and emptied through the voyage (rule 8, consistency). 300px comfortably holds the
+   game's widest row — a full 8-crate hold laid out on its own line (8×34px chips + 7×3px gaps ≈
+   293) — and any name up to MAX_NAME_LEN (18) in the name column above it. The card's HEIGHT still
+   hugs its content (index.html); only the width is pinned. This is a layout dimension, not a game
+   quantity, so it does not fall under "nothing is a constant" (that rule is about values that shift
+   with game state — this one must NOT shift, which is the whole point). */
+const SIDE_CAP_MIN = 300;
+/* …and it GROWS into the room a wide window actually has (Wyatt, 2026-08-21: "there is absolutely
+   no reason on this wide screen that the captain's box is so narrow that the ingredients must move
+   onto a second line. The captain's box should take up more horizontal space, as needed and
+   available."). The ideal is DERIVED from index.html's own container query, not picked: `@container
+   captains (max-width:460px)` is what drops the chips onto their own row, and that 460px threshold
+   is itself derived there (name 106 + coins 40 + two 6px gaps = 158, plus 8 chips at 37px-3 = 293).
+   So a container just past 460px keeps a full hold inline; + #pp4Cap's own 12px side padding = 484,
+   rounded to 492 for daylight. The column takes min(ideal, what the window has spare) and never
+   less than SIDE_CAP_MIN, so a merely-wide-enough screen behaves exactly as before. */
+const SIDE_CAP_IDEAL = 540;
+/* 540, not 492, and the difference was MEASURED rather than reasoned (BOARD-RENDERING.md §7 — ask
+   the renderer, never your own arithmetic). At a 492px column the captains PANEL measured 468px
+   wide with a 466px client box, and its content box therefore landed just under the container
+   query's 460px threshold — so the chips still wrapped, which is the exact thing Wyatt asked to
+   stop. The markup costs ~34px between the column's outer width and the panel's content box, so
+   clearing 460 needs ~494 at the very edge; 540 leaves real daylight and still fits comfortably at
+   1400×900 (which has ~503px spare and simply takes what it has). */
+/* D-36 — ON DESKTOP THE DIRECTOR ZOOMS IN LESS (Wyatt, 2026-08-21): "zooming is important on mobile
+   because there's so much less screen real estate. on desktop, players want/need to see more of the
+   board in order to make strategic decisions." The zoom a phone needs is the zoom that makes a cell
+   finger-sized on a ≤600px board; on a bigger board the same cell size is reached at a lower zoom,
+   so the ceiling scales DOWN with the board's own rendered width and never below 1 (no zoom at all).
+   PHONE_MAX_W is index.html's own boundary — `@media (min-width:601px)` is where desktop begins —
+   so a phone board (≤600px wide) keeps today's framing byte-for-byte. Nothing here is a new number:
+   at his 1890×960 (876px board) a 2.2 ceiling becomes 1.51; at 1920×1080 (996px) 1.33. */
+const PHONE_MAX_W = 600;
+function zoomCap(z){
+  const bw = $("boardwrap");
+  const px = bw ? bw.getBoundingClientRect().width : 0;
+  if (!(px > PHONE_MAX_W)) return z;
+  return Math.max(1, z * PHONE_MAX_W / px);
+}
+// TEST-01: guarded because there is no browser global to bind to under Node, and a bare
+// `addEventListener(` at module scope threw a ReferenceError the instant anything imported this
+// file — the largest module in the new game at 1,545 lines, and the one every 4/ gate has to be
+// able to load. Same block-guard shape as 4/src/main.js:32, not an inline ternary.
+if (typeof window !== "undefined") {
+  window.addEventListener("resize", () => { ribHAt = -1e9; lastVB = ""; });
+}
+function camFrame(){
+  const c = S.cam;
+  if (S.tween){
+    const t = Math.min(1, (performance.now() - S.tween.t0) / S.tween.dur);
+    const e = easeInOutCubic(t);
+    c.x = S.tween.fx + (c.tx - S.tween.fx) * e;
+    c.y = S.tween.fy + (c.ty - S.tween.fy) * e;
+    c.w = S.tween.fw + (c.tw - S.tween.fw) * e;
+    if (t >= 1) S.tween = null;
+  } else { c.x = c.tx; c.y = c.ty; c.w = c.tw; }
+  const svg = svgEl(); if (!svg || !S.active) return;
+  // playtest 4: the stage strip runs from the BOTTOM of the ribbon (the board's top row must
+  // never hide under DAY + the captain circles) down to the captains box, which is always
+  // visible. When the zoomed-out board leaves blank water, the captains box rises to meet it.
+  const wrap = $("boardwrap"), cap = $("pp4Cap");
+  const ribH = topBandPx();
+  /* D-31 REOPENED (2026-08-21, Wyatt's two screenshots — Safari and Chrome, identical): this
+     function kept running the PHONE layout's arithmetic in side-by-side mode — reserving CAP_BASE
+     under the board for a captains card that D-31 had already moved BESIDE it, and writing the
+     card's `top` inline every frame, which beats the column's own CSS by the cascade. Result: a
+     960×630 board with 250px of empty teal under it and the card hanging off the bottom of the
+     window. ONE decision (computeStageGeometry's `pp4Side` class) is now read here too, so the
+     two can no longer disagree: beside the board means no reservation and no inline `top`. */
+  const side = isSideBySide();
+  // D-46 fault 3: what the card NEEDS (measured on the geometry clock), never 30% of the window.
+  // Falls back to the old fraction until the first measurement lands, so the very first frames of
+  // a voyage look exactly as they always did.
+  /* THE BOARD'S SQUARE OUTRANKS THE CAPTAINS CARD — Wyatt, 2026-08-23c (problems 1+4), with the
+     Day-9 screenshot as evidence: "the board cuts off the top row" and "the aspect ratio of the
+     board window on mobile is no longer square, but it needs to be." The card's measured need
+     (capped 250) came off the strip unconditionally, so on a real phone viewport (~664px of page
+     under Safari's chrome) the strip fell below the board's own width, the full-board frame became
+     a wide SLICE of the square viewBox, and the camera cropped rows — his ship on the top row,
+     clipped in half. The reservation is now also capped by the room a square leaves
+     (vh − band − width); when four fat rows need more than that, the card scrolls inside its own
+     max-height backstop instead of eating the board. Floor of 64 so the card never vanishes on a
+     freak-short viewport — at that point squareness gives way by exactly the overflow, which is
+     the least-bad corner. Side-by-side is untouched (no reservation at all, as before). */
+  /* PHONE ONLY (≤600px, the same boundary computeStageGeometry's branches use). The square rule
+     is about the full-bleed phone board, whose width is the viewport's. A stacked DESKTOP window
+     already keeps its board square by narrowing --pp4W instead — and its captains card is
+     bottom:auto (not pinned), so shrinking ITS reservation pushed the card past the window bottom:
+     bottom=1109 of 1080, caught by stage_layout_check before it shipped, twice (the first scoping,
+     portrait-vs-landscape, still let an 800×1080 stacked window through). */
+  /* T-256 — ONLY true phone width pins #pp4Cap's OWN `bottom:0` to the literal viewport edge
+     (index.html's base #pp4Cap rule; the desktop/tablet @media(min-width:601px) override sets
+     `bottom:auto`, so the card there simply ends where its content ends — never reaching the
+     footer, confirmed measured). So only there can the card's last row land under `#legalFooter`
+     (index.html:1241, z-index 1002, ALWAYS on top of this card's 22 — his `T-206` ruling, kept
+     intact: the links stay exactly as reachable as before, this only stops the card's OWN text
+     disappearing under them). Read the footer's REAL rendered height rather than a typed number
+     (rule 9) — it is cheap (one more element already on the geometry clock, ~900ms) and correct
+     if a future link is added and the bar grows a line. */
+  const phoneFootReserve = (!side && vwPx() <= 600) ? (() => {
+    const foot = document.getElementById("legalFooter");
+    if (!foot) return 0;
+    const fs = getComputedStyle(foot);
+    if (fs.display === "none" || fs.visibility === "hidden") return 0;
+    return Math.ceil(foot.getBoundingClientRect().height);
+  })() : 0;
+  const squareRoom = (vwPx() <= 600) ? Math.max(64, vhPx() - ribH - vwPx() - phoneFootReserve) : Infinity;
+  const CAP_BASE = side ? 0 : Math.min(250, S.capNeed || Math.round(vhPx() * 0.30), squareRoom);
+  const availH = Math.max(200, vhPx() - ribH - CAP_BASE - phoneFootReserve);
+  if (wrap){
+    if (Math.abs((parseFloat(wrap.style.top) || 0) - ribH) > 1) wrap.style.top = ribH + "px";
+    if (Math.abs((parseFloat(wrap.style.height) || 0) - availH) > 2) wrap.style.height = availH + "px";
+  }
+  const aspect = availH / vwPx();
+  let h = c.w * aspect;
+  if (h > 640) h = 640;                       // whole board fits vertically; width stays filled
+  const cy = c.y + c.w / 2;                   // keep the camera centre
+  let vy = cy - h / 2;
+  vy = Math.max(0, Math.min(640 - h, vy));
+  S.vh = h; S.vy = vy;
+  // rendered board bottom (meet, width-limited when h is clamped): captains rise to meet it —
+  // STACKED/PHONE ONLY. Beside the board (D-31 side-by-side) the column's CSS owns `top`/`bottom`,
+  // and a stale inline `top` from a window that was resized DOWN then UP must be cleared, not left.
+  if (cap && side){
+    if (cap.style.top) cap.style.removeProperty("top");
+    if (cap.style.bottom) cap.style.removeProperty("bottom");
+  } else if (cap){
+    const scale = vwPx() / c.w;
+    const boardBottom = ribH + Math.min(availH, h * scale);
+    const top = Math.round(Math.min(ribH + availH, boardBottom));
+    if (Math.abs((parseFloat(cap.style.top) || 0) - top) > 1) cap.style.top = top + "px";
+    // TRUE PHONE ONLY: pull the card's own bottom edge up off the true viewport edge by the
+    // footer's reserved height, so its last row ends where the reservation says, not wherever
+    // the base CSS rule's `bottom:0` happens to land it. STACKED (>600px) must NOT get an inline
+    // `bottom` at all — its own @media override sets `bottom:auto` and an inline style always
+    // beats it, which would re-pin the tablet/desktop card to the viewport edge it was fixed to
+    // never touch (T-142's own regression risk, one line over).
+    if (vwPx() <= 600) {
+      if (Math.abs((parseFloat(cap.style.bottom) || 0) - phoneFootReserve) > 1) cap.style.bottom = phoneFootReserve + "px";
+    } else if (cap.style.bottom) cap.style.removeProperty("bottom");
+  }
+  const vb = `${c.x} ${vy} ${c.w} ${h}`;
+  if (vb !== lastVB){
+    lastVB = vb;
+    svg.setAttribute("viewBox", vb);
+    // the boats live in their OWN svg overlay (#boardShips, same 640 space) — give it the same
+    // camera, or the ships stay parked on the full-board layout while the water zooms away
+    // beneath them (Wyatt, playtest 2).
+    const ships = $("boardShips");
+    if (ships) ships.setAttribute("viewBox", vb);
+    /* EVERY HTML LAYER MAPPED TO THE BOARD NEEDS THE CAMERA COMPOSED IN — as a transform:
+       rendered = scale(640/w) then translate(-v * W/640). The SVGs get it via their viewBox; an
+       HTML overlay has no viewBox, so without this it stays parked on the full-board layout while
+       the water zooms away beneath it.
+
+       KEPT AS A LIST, because this is the second time it has been got wrong by being a hand-written
+       pair. playtest 21: #rimHost (the trade-wind current) was added as a third layer and NOT added
+       here, so on any zoom the arrows detached from the board entirely and scattered across the
+       screen — Wyatt: "the wind arrows are not attached to the board! When the director zooms in,
+       they remain unaffected." The comment sitting right here already predicted it in as many
+       words for the sail squares. Adding a board-mapped overlay now means adding its id to this
+       array and nothing else. */
+    const layers = CAM_HTML_LAYERS.map(id => $(id)).filter(Boolean);
+    if (layers.length){
+      const W = vwPx(), s2 = 640 / c.w;
+      const t = `scale(${s2}) translate(${-(c.x / 640) * W}px, ${-(vy / 640) * W}px)`;
+      if (t !== lastRipT){
+        lastRipT = t;
+        for (const el of layers){ el.style.transformOrigin = "0 0"; el.style.transform = t; }
+      }
+    }
+  }
+}
+
+/* ================= gestures ================= */
+const ptrs = new Map();
+let pinch0 = null, panLast = null, lastTap = 0, moved = false;
+function gestures(wrap){
+  // playtest 4: pinching out over the board triggered Safari's tab-overview gesture. The board
+  // owns its touches: no browser pan/zoom on this surface, and multi-touch never reaches Safari.
+  wrap.style.touchAction = "none";
+  wrap.addEventListener("touchmove", e => { if (S.active) e.preventDefault(); }, { passive: false });
+  wrap.addEventListener("gesturestart", e => { if (S.active) e.preventDefault(); });
+  wrap.addEventListener("gesturechange", e => { if (S.active) e.preventDefault(); });
+  wrap.addEventListener("pointerdown", e => {
+    wake();   // a finger is on the sea — full frame rate for the pan/pinch that may follow
+    // playtest 5, hold-to-peek: while a finger is on the sea, every floating box steps aside so
+    // the board behind it can be read; lifting the finger brings it back.
+    //
+    // WIDENED, 02-05 (Wyatt, direct ruling, 2026-08-19): this used to arm only "while #pp4Prompt
+    // is showing", which meant a box that could be up with NO prompt on screen — a narration
+    // bubble sitting alone, or the D-07 chat flash — never dimmed on hold at all. CLAUDE.md §2
+    // (consistency): every floating box fades the same way on hold, including one that happens to
+    // be the only thing up. Arm on ANY sea touch, unconditionally; the two sanctioned exceptions
+    // (centre-stage intros, the flip veil) are what the body.pp4Peek CSS selector list excludes
+    // (index.html), not this arm site.
+    document.body.classList.add("pp4Peek");
+    // D-39: a HOLD is what teaches the gesture, and pp4Peek arms on any sea touch — including the
+    // tap that answers a sail square. Counting here would retire the hint after three ordinary
+    // taps and teach nobody. The duration is judged on release instead (see `up`).
+    peekArmedAt = Date.now();
+    ptrs.set(e.pointerId, [e.clientX, e.clientY]); moved = false;
+    if (ptrs.size === 2){ const p = [...ptrs.values()]; pinch0 = { d: Math.hypot(p[0][0]-p[1][0], p[0][1]-p[1][1]), w: S.cam.tw }; }
+    else panLast = [e.clientX, e.clientY];
+  });
+  wrap.addEventListener("pointermove", e => {
+    if (!ptrs.has(e.pointerId)) return;
+    ptrs.set(e.pointerId, [e.clientX, e.clientY]);
+    const svg = svgEl(); if (!svg) return;
+    const br = svg.getBoundingClientRect();
+    const sc = S.cam.w / Math.min(br.width, br.height);
+    if (ptrs.size === 2 && pinch0){
+      const p = [...ptrs.values()];
+      const d = Math.hypot(p[0][0]-p[1][0], p[0][1]-p[1][1]);
+      if (Math.abs(d - pinch0.d) > 6){ moved = true; S.lock = true;
+        const w = Math.max(640/2.6, Math.min(640, pinch0.w * pinch0.d / d));
+        const cx = S.cam.tx + S.cam.tw/2, cy = S.cam.ty + S.cam.tw/2;
+        camTo(cx - w/2, cy - w/2, w, true); }
+    } else if (ptrs.size === 1 && panLast){
+      const dx = e.clientX - panLast[0], dy = e.clientY - panLast[1];
+      if (Math.hypot(dx, dy) > 7){ moved = true; S.lock = true;
+        panLast = [e.clientX, e.clientY];
+        camTo(S.cam.tx - dx * sc, S.cam.ty - dy * sc, S.cam.tw, true); }
+    }
+  });
+  /* A FINGER THAT LEAVES THE BOARD STILL COMES UP — AND THE PEEK MUST END WHEN IT DOES.
+     Found while measuring Group G fault 5, and it is worse than the fault it was found under.
+     `pointerdown` on #boardwrap adds `pp4Peek` unconditionally (see the arm site above); this
+     handler, which is the only thing that ever removes it, was bound to #boardwrap ALONE, with no
+     pointer capture. So a pointer that goes down on the sea and comes up anywhere else — a pan
+     that runs off the edge, a drag that ends over the captains card, a phone swipe that lifts past
+     the bottom of the board — never disarms it.
+     MEASURED at 1890x960 (4/scripts/group_g_peek_probe.mjs, case D): press on the sea, move to the
+     captains column, release. `body.pp4Peek` is still set 2.5 seconds later, unattended, with
+     `#pp4Prompt` at opacity 0.13 AND pointer-events:none. Every prompt in the game is then both
+     invisible and untappable, and nothing on screen says why — the game reads as frozen. The only
+     way out is to tap the sea again, which nobody would think to do.
+     `ptrs` leaked the same way, taking the pinch and pan state with it.
+
+     Bound to the WINDOW, and it is the SAME function rather than a second copy, so there is one
+     answer to "is a finger still on the sea" instead of two kept in step (rule 23). The guard is
+     what makes one binding safe: a release whose pointerdown was not ours is not ours to act on,
+     which also stops a tap that BEGAN off the board from reaching the double-tap zoom.
+     setPointerCapture — which the End of Voyage drag one screen over already uses — was tried and
+     rejected here: capturing on #boardwrap retargets the compatibility mouse events too, and a
+     sail square answers a plain `click` (flow.js), so it would have broken sailing to fix a fade. */
+  const up = e => {
+    if (!ptrs.has(e.pointerId)) return;
+    const wr = wrap.getBoundingClientRect();
+    const onBoard = e.clientX >= wr.left && e.clientX <= wr.right &&
+                    e.clientY >= wr.top && e.clientY <= wr.bottom;
+    if (ptrs.size <= 1) setTimeout(() => document.body.classList.remove("pp4Peek"), 140);
+    // D-39: count it only if they actually HELD — long enough for the board to have been revealed
+    // and looked at. PEEK_HOLD_MS is the same 450ms a person needs before the fade reads as
+    // deliberate rather than as a tap that happened to linger.
+    if (peekArmedAt && Date.now() - peekArmedAt > PEEK_HOLD_MS) notePeekUse();
+    peekArmedAt = 0;
+    ptrs.delete(e.pointerId); pinch0 = null;
+    // …and a TAP is still only a tap that ends on the board. Releasing over the captains card is
+    // not a double-tap on the sea and must not zoom the camera or hurry a bubble.
+    if (ptrs.size === 0 && !moved && onBoard){
+      const now = Date.now();
+      if (now - lastTap < 300){                      // double-tap: fit-board <-> zoom on my ship
+        S.lock = true;
+        if (S.cam.tw > 500){ const g = appState.game, me = g && g.players[appState.mySeat ?? 0];
+          if (me) camToCell(me.pos, 2.0); } else camFull();
+        lastTap = 0;
+      } else lastTap = now;
+      /* ITEM 21 REDESIGN (Wyatt, 2026-08-24): tapping yer own boat during a sail prompt reveals
+         the NORMAL Stay put button — the same door the yellow stay square under the boat opens
+         (renderPickPrompt, flow.js). The old Aye/Keep-sailin' confirm pair is deleted at his word:
+         "Get rid of the Aye Stay Put and Keep Sailin' button flow entirely" — the Keep sailin'
+         circle broke the consistent-back-button value, and the pair coexisting with the radial
+         circle was his problem 3. One button, two ways to summon it, no confirm theatre. */
+      if (document.querySelector(".sailCell")){
+        const u = boatUXY(appState.mySeat ?? 0);
+        if (u){
+          const [bx, by] = toScreen(u[0], u[1]);
+          if (Math.hypot(e.clientX - bx, e.clientY - by) < 34){
+            const b = document.getElementById("apStay");
+            if (b) b.style.display = "";
+          }
+        }
+      }
+      if (S.hurry) S.hurry();                        // any tap hurries the live bubble
+    }
+  };
+  // the WINDOW, not the board — see the note on `up`. One binding, so there is one truth.
+  window.addEventListener("pointerup", up); window.addEventListener("pointercancel", up);
+}
+
+/* The tap-your-own-ship stay-put CONFIRM (the Aye / Keep-sailin' pair, playtest 11) lived here
+   until 2026-08-24 — deleted at Wyatt's word (item 21 redesign): the Keep sailin' circle broke
+   the consistent-back-button value and the pair read as a duplicate of the radial Stay put.
+   Tapping the boat now simply reveals the hidden #apStay (the pointer handler above), the same
+   door the yellow .pp4StayCell square under the boat opens. */
+
+/* ================= end-of-voyage card: the A+C park gesture (item 8, D-14) =================
+   Wyatt's pick, decoded 2026-08-21: the card starts fully up; scrolling it (normal overflow:auto,
+   already free) reveals whatever is below the fold; pulling past its OWN top — the standard
+   overscroll gesture, same shape as "pull to refresh" — carries the WHOLE card down until only its
+   header (winner + title) is left showing, landing exactly where #pp4Cap (the captains box) already
+   sits, so the board is fully revealed above it. Pulling up from there, or a plain tap on the
+   parked strip, restores it. Symmetric with the dismiss, as he asked.
+
+   NOTHING IS A CONSTANT (rule 9): every distance here is read off the DOM at drag time, not
+   hardcoded —
+     - the PARKED landing spot is #pp4Cap's own `getBoundingClientRect().top` (or, if that would
+       clip the header the card is supposed to still show, the header's own rendered bottom edge —
+       whichever leaves MORE of the header on screen wins, so a long winner name or a two-line
+       victory sentence never gets cut).
+     - the release THRESHOLD is a fraction of that same travel distance, not a fixed pixel count —
+       it scales with the captains box's own height, which itself scales with the number of
+       captains and the screen size.
+   Pointer Events cover touch, mouse-drag and pen in one listener set; wheel is handled separately
+   below because a trackpad/mouse scroll never fires a pointer drag. */
+// how long the wheel must be quiet before it counts as "let go" — the wheel's stand-in for a
+// pointerup, since a trackpad never sends one. An interaction feel, on the same footing as
+// EOV_PARK_RELEASE_FRACTION below.
+const WHEEL_QUIET_MS = 110;
+const EOV_PARK_RELEASE_FRACTION = 0.32; // a UI-feel ratio (how much of the travel counts as "let
+  // go of it"), not a game quantity — CLAUDE.md rule 9 governs prices, thresholds and caps the
+  // economy computes, not an interaction's own release feel. What IS derived is the pixel distance
+  // this fraction is taken OF (see eovParkGeometry) — that is what changes per device and per game.
+function eovTranslateY(wrap){
+  const m = /translateY\(([-\d.]+)px\)/.exec(wrap.style.transform || "");
+  return m ? parseFloat(m[1]) : 0;
+}
+function eovParkGeometry(wrap){
+  const banner = wrap.querySelector(".winner-banner");
+  const h3 = wrap.querySelector("h3");
+  const cap = $("pp4Cap");
+  const wrapRect = wrap.getBoundingClientRect();
+  const T0 = wrapRect.top - eovTranslateY(wrap);           // the card's resting top, transform-free
+  const VB = vhPx();
+  const capTop = cap ? cap.getBoundingClientRect().top : VB;
+  // headerH: how tall "winner + title" actually renders THIS voyage — read off the DOM, because a
+  // long captain name or a two-line victory sentence changes it. Transform-safe: both wrapRect and
+  // the banner's rect move together under the same translateY, so their difference does not.
+  const headerBottom = banner ? banner.getBoundingClientRect().bottom
+    : (h3 ? h3.getBoundingClientRect().bottom : wrapRect.top);
+  const headerH = Math.max(0, headerBottom - wrapRect.top);
+  // MEASURED, 2026-08-21: a naive Math.min(capTop, VB-headerH) parks the strip AT capTop whenever
+  // the header is shorter than the captains box's own slot (the common case — a short winner name,
+  // one-line victory sentence) — which leaves genuine dead space inside the strip, and the awards
+  // row's own top edge shows through it, mid-card. Wyatt's "the rest of the card is off-screen
+  // below" means NOTHING past the header shows, ever — so the strip's height is the SMALLER of the
+  // two derived quantities (never taller than the captains box's own slot, never taller than the
+  // header needs), which is Math.max on the TOP coordinate (a larger top = a shorter, tighter
+  // window). In the rare case the header itself is taller than the captains box's slot (a long
+  // captain name, a two-line victory sentence), this still refuses to eat MORE board than the
+  // captains box itself used to cover — the header's own last line/word clips instead, a much
+  // smaller cost than covering board the box never covered.
+  const parkedTop = Math.max(capTop, VB - headerH);
+  const dY = Math.max(0, parkedTop - T0);
+  return { dY, T0, VB };
+}
+let eovDrag = null;
+/* WHERE THE SCROLL LIVES — ONE ANSWER, READ IN BOTH PLACES THAT NEED IT.
+   Until 2026-08-27 #statsWrap was itself the scroller, and this gesture read `wrap.scrollTop`
+   directly in two spots: the pointerdown arm and the wheel handler. Moving the scroll into
+   #statsScroll (so Play again could be a footer instead of a sticky button riding over the award
+   cards) would have left both reads looking at an element whose scrollTop is now ALWAYS 0 —
+   arming the park drag on every touch and killing ordinary scrolling outright. That is the cost
+   BACKLOG.md predicted when it said "the gesture needs hand-verification".
+   Two reads kept in step by hand is the rule-23 fault; there is one of them, and it falls back to
+   the wrap so nothing breaks if the inner element is ever absent. */
+const eovScroller = wrap => wrap.querySelector("#statsScroll") || wrap;
+function wireEovDrag(){
+  const wrap = $("statsWrap"); if (!wrap || wrap._pp4DragWired) return;
+  wrap._pp4DragWired = true;
+  /* THE FULL-TRAVEL TIME IS THE STYLESHEET'S, READ ONCE, NOT RE-TYPED HERE. index.html owns
+     `transition:transform var(--pp4EovSettle,.25s)`; this reads that computed value before
+     anything has set the variable, so the two can never drift. Cached because the moment settle()
+     writes --pp4EovSettle, reading it back would return this function's own last answer. */
+  const fullMs = Math.round((parseFloat(getComputedStyle(wrap).transitionDuration) || 0.25) * 1000);
+  const settle = (y, park) => {
+    wrap.classList.remove("pp4EovDrag");
+    /* THE GLIDE IS AS LONG AS THE JOURNEY (W3-4). A flat quarter-second is right for the full
+       park and far too fast for the 30px correction a released drag usually needs — the same
+       distance-blind constant that made one wheel notch look like a slam. The floor keeps a tiny
+       settle from reading as an instant jump; it is an interaction feel, like
+       EOV_PARK_RELEASE_FRACTION above, not a game quantity. */
+    const g = eovParkGeometry(wrap);
+    const frac = g.dY > 0 ? Math.min(1, Math.abs(y - eovTranslateY(wrap)) / g.dY) : 1;
+    wrap.style.setProperty("--pp4EovSettle", Math.round(fullMs * Math.max(0.4, frac)) + "ms");
+    wrap.style.transform = y ? `translateY(${y}px)` : "";
+    wrap.classList.toggle("pp4EovParked", park);
+  };
+  wrap.addEventListener("pointerdown", e => {
+    if (e.target.closest("button,a")) return;              // Play Again etc. keep their own tap
+    // only capture the pull when there is nowhere further to scroll — the top of the content (a
+    // normal scroll down to see below the fold stays a normal scroll) — or the card is already
+    // parked, so pulling up from the strip can restore it from anywhere on the strip
+    if (!wrap.classList.contains("pp4EovParked") && eovScroller(wrap).scrollTop > 0) return;
+    /* A FINGER LANDING WITHIN THE WHEEL'S QUIET WINDOW CANCELS ITS RELEASE (CEO Review 23). The two
+       paths share the release rule's timing, not just its arithmetic: without this, a wheel notch
+       followed inside 110ms by a drag lets wheelRelease fire DURING the drag — settle() strips
+       pp4EovDrag, jumps the card to one end, and the next pointermove yanks it back. */
+    if (wheelIdle){ clearTimeout(wheelIdle); wheelIdle = null; wheelNet = 0; }
+    eovDrag = { id: e.pointerId, startY: e.clientY, base: eovTranslateY(wrap), moved: 0 };
+    wrap.setPointerCapture(e.pointerId);
+  });
+  wrap.addEventListener("pointermove", e => {
+    if (!eovDrag || eovDrag.id !== e.pointerId) return;
+    const raw = e.clientY - eovDrag.startY;
+    eovDrag.moved = Math.max(eovDrag.moved, Math.abs(raw));
+    if (eovDrag.moved < 4) return;                          // noise floor before this counts as a drag
+    const g = eovParkGeometry(wrap);
+    if (g.dY <= 0) return;                                  // degenerate geometry: no room to park
+    const y = Math.max(0, Math.min(g.dY, eovDrag.base + raw));
+    wrap.classList.add("pp4EovDrag");
+    wrap.style.transform = `translateY(${y}px)`;
+    e.preventDefault();
+  });
+  const up = e => {
+    if (!eovDrag || eovDrag.id !== e.pointerId) return;
+    const wasParked = wrap.classList.contains("pp4EovParked");
+    const g = eovParkGeometry(wrap);
+    if (eovDrag.moved < 4){
+      // a TAP, not a drag — symmetric with the pull-down dismiss: tapping the parked strip restores
+      if (wasParked) settle(0, false);
+    } else if (g.dY > 0){
+      const y = eovTranslateY(wrap);
+      const threshold = g.dY * EOV_PARK_RELEASE_FRACTION;
+      const park = wasParked ? y > threshold : y > (g.dY - threshold);
+      settle(park ? g.dY : 0, park);
+    }
+    eovDrag = null;
+  };
+  wrap.addEventListener("pointerup", up);
+  wrap.addEventListener("pointercancel", up);
+  /* THE WHEEL DRAGS THE CARD, IT DOES NOT FIRE IT — W3-4, and this is the half Wyatt actually
+     hit, because he is at a laptop. The old handler took the FIRST wheel notch past the top of the
+     content and called settle() for the entire journey: measured, one 4px trackpad notch threw the
+     card 688px in 250ms while his fingers were still moving, then bounced 28px past the captains
+     box. From where he sits that is not a scroll at all, it is a slam.
+     A wheel is now accumulated into the card's position exactly as a finger is — same clamp, same
+     class, same live transform — and when the wheel goes quiet the SAME release rule the pointer
+     drag uses decides which end it settles to. One rule, two input devices, so they cannot drift
+     apart (rule 23); before this they were two rules that already had. */
+  let wheelIdle = null, wheelNet = 0;
+  /* A WHEEL HAS NO POSITION, ONLY A DIRECTION — CEO Review 23, and it caught a regression I put in.
+     The finger's release rule asks WHERE the card ended up: an unparked card parks only if the drag
+     carried it past (dY - threshold), which is fine for one continuous swipe. A trackpad is also
+     one continuous swipe, so it inherits that happily. A CLICK-WHEEL MOUSE IS NOT: one detent is
+     about 100px against the 688px of travel measured on a 1200px desktop, and the 110ms of quiet
+     that stands in for a finger lifting falls BETWEEN detents. So every notch sprang straight back
+     and the card could no longer be parked or unparked at all — I had traded a slam for a shrug.
+     The shared parts are real and stay shared: both paths accumulate into the same transform, use
+     the same clamp, and commit on release. What differs is only the commit TEST, because the two
+     devices report different things — a finger reports a position and a wheel reports a rate. So
+     the wheel commits on the NET DIRECTION of the gesture it just made, which is the only thing a
+     wheel actually tells you, and the distance threshold stays where it belongs, on the finger.
+     Saying they share one rule outright would be the tidier sentence and it would not be true. */
+  const wheelRelease = () => {
+    wheelIdle = null;
+    const net = wheelNet; wheelNet = 0;
+    const g = eovParkGeometry(wrap);
+    if (g.dY <= 0){ wrap.classList.remove("pp4EovDrag"); return; }
+    const wasParked = wrap.classList.contains("pp4EovParked");
+    const park = wasParked ? !(net < 0) : net > 0;
+    settle(park ? g.dY : 0, park);
+  };
+  wrap.addEventListener("wheel", e => {
+    const parked = wrap.classList.contains("pp4EovParked");
+    const moving = wrap.classList.contains("pp4EovDrag");
+    /* THE LIST GETS THE FIRST INCH — Wyatt's ruling, 2026-08-29, on Q-20.
+       This used to engage the dock when the scroller was at its TOP, which is where the award list
+       always starts. So the very first wheel-down was always taken by the dock gesture and
+       preventDefault()ed, `scrollTop` could never rise above 0, and therefore no LATER wheel-down
+       could reach the content either: the awards below the fold were reachable by dragging or by
+       the scrollbar, never by scrolling. Not a regression — it had always been so — and on a laptop
+       scrolling is the first thing anyone tries.
+       Now the list scrolls normally and only a scroll at the very BOTTOM docks the card, which is
+       also the natural place for it: you have read the awards, you keep going, the card gets out of
+       the way. Docking by dragging is untouched, and so is the parked strip's tap-to-restore.
+       A card whose list does not overflow is at its bottom the moment it is at its top, so the
+       gesture behaves exactly as before there — which is most desktop games. */
+    const s = eovScroller(wrap);
+    const atBottom = s.scrollHeight - s.clientHeight - s.scrollTop <= 1;
+    // an ordinary scroll through the card's own content is left entirely alone
+    if (!(moving || parked || (atBottom && e.deltaY > 0))) return;
+    const g = eovParkGeometry(wrap);
+    if (g.dY <= 0) return;
+    const y = Math.max(0, Math.min(g.dY, eovTranslateY(wrap) + e.deltaY));
+    wrap.classList.add("pp4EovDrag");
+    wrap.style.transform = y ? `translateY(${y}px)` : "";
+    e.preventDefault();
+    // the wheel has no "finger up", so quiet stands in for it
+    wheelNet += e.deltaY;
+    if (wheelIdle) clearTimeout(wheelIdle);
+    wheelIdle = setTimeout(wheelRelease, WHEEL_QUIET_MS);
+  }, { passive: false });
+}
+
+/* ================= wind pill ================= */
+/* THE PILL IS ALWAYS ON SCREEN (Wyatt's afternoon list, item 5: "Wind pill from frame one —
+   `WIND NOW: ? · FORECAST: ?` placeholder so the board never jumps when the pill appears").
+   Before the first wind is rolled there is nothing to report, and this used to return "" — so
+   pillTick() hid the pill, boardBand() stopped reserving its strip, and the board sat that much
+   taller until the first wind landed and shoved everything down, once, in every single voyage.
+   Saying "?" costs one line and makes the band constant from the first frame. */
+function pillHTML(){
+  const g = appState.game; if (!g || !g.windNow || !AR[g.windNow]) return "WIND NOW: ? · FORECAST: ?";
+  const now = g.windNow, fc = g.forecastWind();
+  const nowS = `WIND NOW: ${now}${AR[now]}`;
+  const fcS = g.stormNext
+    ? ` · FORECAST: ⛈<span class="pp4Spin">↑</span>`
+    : (fc ? ` · FORECAST: ${fc}${AR[fc] || ""}` : "");
+  return nowS + fcS;
+}
+/* WHERE THE WIND PILL LIVES — ONE DECISION, READ TWICE (D-47 + D-52, rule 23).
+   The stylesheet's own `@media (min-width:601px)` is the boundary that decides whether the header
+   row has space for the wind; matchMedia asks THAT question rather than typing 601 here as well,
+   so the two can never drift. matchMedia reads the true viewport, which is exactly what the media
+   query reads — never vwPx(), which on the stage is body's own capped column. */
+const pillRidesRibbon = () => { try { return matchMedia("(min-width: 601px)").matches; } catch (e) { return false; } };
+function pillTick(){
+  const p = $("pp4Pill"); if (!p) return;
+  /* THE PILL IS A REAL CHILD OF THE HEADER ROW WHEREVER THE ROW HAS SPACE FOR IT.
+     Design note 2 moved it into the row visually and left it `position:fixed; left:50%`, so the
+     ribbon's flex children — which cannot know it exists — collided with it, and at z-index 19
+     under the ribbon the ribbon won: the gradient over the pill (D-47) and the ⏩ over the pill
+     (D-52) are the two symptoms of that one omission. Re-parenting is the fix, because spacing
+     and paint order then come free from the row itself.
+     Inserted BEFORE the clock chip, so the row reads DAY · boats · WIND · clock · ⏩ · 💬 · ☰ —
+     left group, wind, right group. Guarded on the current parent, so this is a no-op on all but
+     the one tick a window actually crosses the boundary; the phone keeps its own fixed pill below
+     the ribbon (D-18/D-31, the phone stays as it is). */
+  const rib = $("pp4Ribbon");
+  const wantRibbon = !!rib && pillRidesRibbon();
+  if (wantRibbon && p.parentNode !== rib) rib.insertBefore(p, $("pp4FF") || rib.lastElementChild);
+  else if (!wantRibbon && p.parentNode !== document.body) document.body.appendChild(p);
+  const h = pillHTML();
+  if (h !== S.lastPill){ p.innerHTML = h; S.lastPill = h; }
+  // statsWrap's visibility is toggled via its inline style — read that, never getComputedStyle
+  // (which forces style recalc and was running every frame; see the HOT-PHONE note above)
+  const sw = $("statsWrap");
+  // only the End of Voyage card takes the pill off screen now — `!h` can no longer be true (see
+  // pillHTML's note), and hiding on it was the source of the one-time board jump.
+  const want = (sw && sw.style.display !== "none") ? "none" : "";
+  if (p.style.display !== want) p.style.display = want;
+}
+
+/* ═══════════════ POLLY SPEAKS ═══════════════
+   His item 9's little box. Deliberately NOT stageFlash and NOT the narration channel: it is the
+   parrot switch reporting on itself, it must appear even while a prompt is up, and it is named
+   `polly` rather than `narr` at his explicit instruction so the two can never be confused in the
+   code. One element, created on first use and reused after that — a toggle that gets pressed
+   repeatedly must not litter the DOM.
+   THE REFLOW POKE IS LOAD-BEARING: without it, pressing the chip twice quickly re-adds a class
+   the element already has, no transition fires, and the second press looks like it did nothing —
+   which is the exact complaint this whole item exists to fix. */
+let pollyTimer = null;
+function pollySay(text){
+  let el = document.getElementById("pp4Polly");
+  if (!el){
+    el = document.createElement("div");
+    el.id = "pp4Polly";
+    el.setAttribute("role", "status");     // announced by a screen reader without stealing focus
+    el.setAttribute("aria-live", "polite");
+    document.body.appendChild(el);
+  }
+  /* ⭐ THE GAME'S PARROT, NEVER THE SYSTEM EMOJI — Wyatt, 2026-09-08: "Polly should always use the
+     game art, not the emoji!" and, on the ribbon chip, "Use the parrot game art icon, not the
+     emoji". Both were the same fault: emojify() already maps 🦜 to assets/icons/parrot.png and
+     panel() runs it over every prompt, so the parrot on every BUTTON was already the art. These two
+     places were the only ones that bypassed it — this one by writing textContent (which cannot hold
+     an image at all) and the chip by hand-writing innerHTML. Verified rather than assumed: emojify
+     was run over "⚓️ Yarrgh!", "🦜 Nah" and "🦜 Aye aye" and all three came back as <img>, variation
+     selector and all. */
+  el.innerHTML = emojify(text);
+  el.classList.remove("show");
+  void el.offsetWidth;                      // restart the fade on a repeat press
+  el.classList.add("show");
+  if (pollyTimer) clearTimeout(pollyTimer);
+  pollyTimer = setTimeout(() => { el.classList.remove("show"); }, 1900);
+}
+
+/* THE PARROT CHIP'S OWN STATE, in one place. It is the only control in the ribbon whose look
+   depends on something stored rather than on the live game, so it is synced on the toggle and at
+   build time rather than every ribbonTick — a per-frame localStorage read to draw an opacity would
+   be paying a real cost for nothing. */
+function syncHelpChip(){
+  const b = $("pp4Help"); if (!b) return;
+  const on = pilotIsOn();
+  b.classList.toggle("off", !on);
+  b.setAttribute("aria-pressed", String(on));
+  b.title = on ? "Yer parrot's watchin'" : "Yer parrot's restin'";
+}
+
+/* ================= ribbon ================= */
+function ribbonTick(){
+  // D-31: a captain's held ingredients change every turn, which changes the captains card's own
+  // natural width/height — the same tick that already runs every ~100ms is the cheapest existing
+  // pulse to keep that current, throttled here (not every tick — this forces a layout reflow to
+  // measure) rather than on its own timer, so there is exactly one clock deciding cadence for the
+  // whole stage, not two that can drift apart.
+  if (Date.now() - S.geomAt > 900) computeStageGeometry();
+  const r = $("pp4Round"), g = appState.game;
+  if (r && g) r.textContent = "DAY " + (g.round || 1);
+  const boats = document.querySelectorAll("#pp4Ribbon .pp4Boat");
+  const act = (S.activeSeat != null) ? S.activeSeat : (appState.curSeat ?? -1);
+  // playtest 15 item 1: the circles read LEFT TO RIGHT in the drawn TURN ORDER, not seat order
+  const ord = g && g.turnOrder;   // the engine's record, so a reloaded voyage keeps it (his note 4, 2026-09-11)
+  boats.forEach((b, i) => {
+    b.classList.toggle("on", i === act);
+    const want = (ord && ord.length) ? String(ord.indexOf(i) < 0 ? i : ord.indexOf(i)) : "";
+    if (b.style.order !== want) b.style.order = want;
+  });
+  // (The ribbon turn-clock chip #pp4Clock stood here — playtest 11/12. Left with the shot clock
+  // 2026-08-28; its span and toggle wiring went in the same commit.)
+  // the ⏩ chip shows only while a BOT holds the wheel and the voyage is live — on the player's
+  // own turn there is nothing to skip; while a skip runs it stays lit so a tap can't double-arm
+  const ff = $("pp4FF");
+  if (ff){
+    const g2 = appState.game;
+    // no ⏩ at a Pass & Play table (Wyatt's ruling, 2026-08-13) and no ⏩ in a crew game either
+    // (D-04, 02-03, 2026-08-19 — the skip's third mode, not a new ruling: "there is no skip in a
+    // multiplayer game -- this was decided earlier. skip is only for solo games"). The ⏩ exists to
+    // skip BOTS (348ccf4); a Pass & Play table and a networked table both hold nothing but people
+    // on the turns being waited on, so there is nothing left for either to skip. `appState.db &&
+    // appState.room` is the same networked test the chat panel already uses (orchestrator.js) —
+    // reused here rather than inventing a new flag, per the state module's own field for "am I in
+    // a room right now."
+    /* A PERFORMER CAPABILITY, not a mode check — the plan's §04.2: "the capability is universal;
+       only its offer is mode-gated". You are told someone is thinking when you are watching
+       another seat's turn and there is nobody in the room to tell you: on a shared device the next
+       captain is sitting beside you, on separate devices the wire carries their turn. The rule
+       reads two HARDWARE facts and no mode name. src/shared/visibility.js, pure and gated. */
+    const botsUp = !!g2 && showsThinkingIndicator({
+      sharedDevice: appState.passAndPlay,
+      networked: !!(appState.db && appState.room),
+      watchingAnotherSeat: act >= 0 && act !== (appState.mySeat ?? 0),
+      seatStillPlaying: !!(g2.players[act] && !g2.players[act].done),
+      voyageOver: appState.liveDone,
+    });
+    // explicit inline-flex/none — the CSS base is display:none, so writing "" would fall back to
+    // hidden. inline-flex, NOT block: playtest 21 item 8 gave the ⏩ and the clock one shared box
+    // rule that centres their contents with flex, and an inline `display:block` written here would
+    // silently defeat that centring on the ⏩ only — the exact drift the shared rule exists to stop.
+    const want = botsUp ? "inline-flex" : "none";
+    if (ff.style.display !== want) ff.style.display = want;
+    ff.classList.toggle("on", !!appState.ff);
+  }
+  // D-06: the 💬 chip lives only where there's someone to talk to — a crew game. `appState.db &&
+  // appState.room` is the SAME networked test the ⏩ chip just above (D-04, 02-03) and the classic
+  // #chatPanel display gate (orchestrator.js's beginGame(), "no chat in solo/pass-and-play — no one
+  // else to talk to") already use — reused a third time here rather than inventing a fourth copy.
+  const chat = $("pp4Chat");
+  if (chat){
+    const netUp = !!(appState.db && appState.room);
+    const wantChat = netUp ? "inline-flex" : "none";
+    if (chat.style.display !== wantChat) chat.style.display = wantChat;
+  }
+  // playtest 13: End of Voyage carries its own big PLAY AGAIN at the bottom. The real
+  // #btnPlayAgain lives in the stage-hidden controls row, so this proxy clicks it. Re-injected
+  // on this tick whenever a re-render rebuilds the stats panel.
+  const sw = $("statsWrap");
+  if (sw && sw.style.display !== "none" && !sw.querySelector(".pp4Again")){
+    const again = document.createElement("button");
+    again.className = "pp4Again"; again.type = "button"; again.textContent = "🔁 Play again!";
+    again.onclick = () => { const orig = $("btnPlayAgain"); if (orig && orig.onclick) orig.onclick(); };
+    /* APPENDED TO THE WRAP, NOT THE PANEL — it is a FOOTER now, a flex sibling of #statsScroll
+       rather than the last child of the scrolling content. That is the whole fix for the button
+       riding over the award cards. */
+    sw.appendChild(again);
+    /* NO PADDING RESERVATION ANY MORE, and deleting it is part of the fix rather than tidy-up.
+       It existed solely because a STICKY button floated over the scrolling content: the reserve
+       bought back the last rows that would otherwise sit permanently underneath it. The button is
+       a footer outside the scroller now, so nothing is ever behind it and there is nothing to
+       reserve. Leaving the padding would open a dead strip at the foot of the list.
+       (The bug it fixed is still worth knowing: ~52px of the stats list was unreachable at
+       390x844 because the reserve was made on #statsPanel, which does not scroll.) */
+  }
+}
+
+/* ================= THE BOARD'S WINDOW — one definition, and one clip ==================
+
+   Wyatt, playtest 22 item 7, and he asked for the RULE rather than the patch: "The narration boxes
+   must be occluded by the game board also. Do not patch this one by one; there is a generalizable
+   rule here: whatever is shown in the game board should only be visible within this game board
+   window; it should zoom naturally and be directed consistently... you can see 'Wyargh calls
+   crustbeard…' hovering over the captains box, which is bad. But it happened because the game board
+   is zoomed in, and spatially, wyargh would be down behind the captains box."
+
+   The old comment in index.html states the defect plainly and left it: "#pp4Prompt and the narration
+   bubbles are position:fixed on <body>, so the clip cannot reach them." #boardwrap clips (z5), the
+   captains box is z22, and the bubbles were z26 on <body> — so a bubble anchored to a ship that had
+   been zoomed off the bottom of the board still painted, over the captains box, describing
+   something the player could not see.
+
+   THE BAND is the region where the board is actually visible: below the wind ribbon, above the
+   captains box. capT and tSafe were already computed for the radial placement, but privately —
+   which is why the bubbles never learned about them. One function now, three consumers: the clip
+   host, the bubble placer and the ask pill.
+
+   THE CLIP is what makes it a rule rather than a promise. #pp4Fx is sized to the band and carries
+   overflow:hidden, so anything appended to it is PHYSICALLY unable to paint over the captains box or
+   over the ribbon, however wrong its own arithmetic goes. Placement still clamps inside the band —
+   clipping is the guarantee, clamping is what stops the guarantee from ever cutting a line in half. */
+export function boardBand(){
+  const cap = $("pp4Cap");
+  const rib = $("pp4Ribbon");
+  const capVisible = cap && getComputedStyle(cap).display !== "none";
+  const shown = el => {
+    if (!el) return false;
+    const cs = getComputedStyle(el);
+    return cs.display !== "none" && el.getBoundingClientRect().height > 0 && !!(el.textContent || "").trim();
+  };
+  const ribB = (rib && getComputedStyle(rib).display !== "none") ? rib.getBoundingClientRect().bottom : 44;
+  /* THE WIND PILL IS CHROME, NOT BOARD. Wyatt, 2026-08-20, after asking for a screen recording of
+     sailing into the trade winds in pass & play against solo — which is the check that found this,
+     and which three rounds of state measurement could not.
+
+     The recording showed "Mate: tap to sail" drawn straight over "WIND NOW: S↓ · FORECAST: …",
+     cutting the forecast off mid-word. MEASURED afterwards over eighteen sail prompts: the wind
+     pill occupies y 52–80, the ribbon ends at 45, and the ask pill was allowed anywhere from 51
+     down — so 1 in 5 sail prompts landed on the one readout that EXPLAINS the highlighted squares.
+     SOLO 1/9 and PASS & PLAY 2/9: the same placement rule, not a mode difference. His report that
+     "pass-and-play trade winds differ from solo" is very likely this — the winds are identical
+     (three independent measurements say so), but whether you can READ them is not.
+
+     The band already exists to answer "where is the board actually visible", and the pill sits
+     inside what it was calling board. Adding it here rather than at the pill's own placement is the
+     point: this function has three consumers (the clip host, the bubble placer, the ask pill), so
+     every board-anchored floater clears the wind readout from one edit — and the next one somebody
+     adds does too, without knowing the pill exists.
+
+     Guarded on having TEXT, not merely a box: pillHTML() returns "" before the first wind is rolled,
+     and an empty pill must not reserve a band it is not occupying. */
+  const pillB = shown($("pp4Pill")) ? $("pp4Pill").getBoundingClientRect().bottom : 0;
+  const top = Math.max(ribB, pillB) + 8;
+  const bottom = capVisible ? capBandBottom() : vhPx();
+  return { top, bottom, left: 8, right: vwPx() - 8 };
+}
+// the clipped host every board-anchored floater lives in. Re-sized from the band on the same tick
+// the camera moves, so a captains box that grows (a fourth captain, a wrapped hold) takes the
+// bubbles with it instead of letting them slide underneath.
+function fxHost(){
+  let h = $("pp4Fx");
+  if (!h){
+    h = document.createElement("div");
+    h.id = "pp4Fx";
+    h.setAttribute("aria-hidden", "true");
+    document.body.appendChild(h);
+  }
+  const b = boardBand();
+  const t = Math.round(b.top), ht = Math.max(0, Math.round(b.bottom - b.top));
+  if (h.dataset.t !== String(t)){ h.style.top = t + "px"; h.dataset.t = String(t); }
+  if (h.dataset.h !== String(ht)){ h.style.height = ht + "px"; h.dataset.h = String(ht); }
+  return h;
+}
+
+/* ================= bubbles ================= */
+// One live bubble at a time (flash() is awaited sequentially upstream). Captain lines anchor to
+// the speaker's ship under the CURRENT camera; table lines hover top-centre over the water.
+const plain = h => String(h).replace(/<[^>]*>/g, "").replace(/\s+/g, " ").trim();
+/* `opts.wait` — A WAIT LINE HAS NO DEADLINE. Item 19, Wyatt 2026-08-20: "It shouldn't disappear by
+   time, it should disappear when their teammates have played — otherwise the game can look stalled
+   with no description as to why or what's going on." A wait line is the one narration whose subject
+   is "nothing is happening yet", so the ordinary hold curve retires it precisely when it is still
+   the only thing on screen explaining the pause, and what is left is a dead board.
+   NOT SOLVED BY A BIGGER NUMBER (CLAUDE.md rule 9) — no constant here is touched, and the ceiling
+   at :578 is untouched. The mechanism already exists: stageFlash's first act is `S.hurry()`, which
+   retires the live bubble the instant a new one is shown, and the next real line is fired by the
+   event that actually ends the wait. So a wait bubble simply never registers a deadline and sits
+   there until something real replaces it.
+   SAFE ONLY BECAUSE NOTHING AWAITS A WAIT LINE. "A UI gate that can wait forever is a game that
+   can hang" (see the deadline note below) — every one of the four wait sites calls this
+   fire-and-forget: netIntroBarrier's waitMsg, watchDraftPrompt's waitMsg, recipeDraftNet's two
+   lines, and ask()'s "…is deciding…" broadcast. None is awaited by the game loop. If a future wait
+   line IS awaited, it must not use this flag. */
+function stageFlash(msg, ms, holdMs, variants, opts){
+  if (!S.active) return null;                        // pre-game: let the panel handle it
+  /* A REPLAY IS SILENT AND INSTANT — playtest 22, the other half of the stall report (Wyatt: "when
+     i refreshed the browser, the game RESTARTED").
+
+     It did not restart. A solo refresh REPLAYS the decision log to rebuild the voyage, and every
+     other surface in the game knows to do that silently: panel.js's own `sleep` is
+     `appState.replaying ? Promise.resolve() : …`, panel() returns early, renderLiveShips,
+     paintShipAt, paintShipAtPoint and animateSailRoute all open with the same guard. This function
+     was the one that did not — so the replay played every narration line at full length, 2.5-6.75
+     seconds each, hundreds of them, from Day 1 forward. What that looks like from the seat is a
+     brand new voyage, which is exactly what was reported: the state was never lost, it was being
+     re-narrated in real time.
+
+     Consistency, in this project's sense: `appState.replaying` is one condition honoured on every
+     surface, and a surface that quietly opted out is a bug even while every line it drew was
+     correct. Same shape as the `ff` guard directly below. */
+  if (appState.replaying) return Promise.resolve();
+  // ⏩ fast-forward: narration is dropped entirely (Wyatt picked cut-not-montage) — the recap at
+  // skip end covers it. Resolved (not null) so panel.flash treats it as handled and never falls
+  // back to the slow panel path.
+  if (appState.ff) return Promise.resolve();
+  // a line that just repeats the live prompt's own ask (the broadcast mirror of localAsk)
+  // would bubble the same words twice — the pill already says it
+  const liveMsg = document.querySelector("#actionPanel .apMsg");
+  if (liveMsg && typeof msg === "string" && plain(msg) && plain(msg) === plain(liveMsg.innerHTML)) return Promise.resolve();
+  /* …AND THE SAME LINE ARRIVING BEFORE THE PILL EXISTS. The dedup above can only see a prompt that
+     is ALREADY in the DOM, and ask()'s mirror is posted two milliseconds BEFORE panel() builds one
+     — which is the whole of Wyatt's items 2 and 8. The predicate is in util.js, evaluated here
+     because this is the one renderer the host's own game loop and a guest's watchNarr both reach:
+     a wait line for a captain sitting at THIS browser is not drawn, because they are getting the
+     question itself. Everyone else still reads "…is deciding…". */
+  if (waitLineIsSelfAddressed(variants, opts)) return Promise.resolve();
+  let subj = S.subject; S.subject = null;
+  /* DECIDED BEATS SNIFFED. `subjectSet` means an event was actually read and yielded this subject —
+     including a deliberate null for a line about two captains or the whole table. The sniff below
+     is a FALLBACK for lines that carry no event (turn-start banners), and it must not overturn a
+     decision that was made. Consumed here with the subject, so it cannot leak into the next line.
+     Both seats read this one flag: the host sets it from the event, the guest sets it from the
+     host's decision on the wire — one decision, drawn the same way on both screens (rule 23). */
+  const decided = !!S.subjectSet; S.subjectSet = false;
+  if (!decided && subj == null && typeof msg === "string"){
+    /* turn-start lines ("X sets sail") carry no event — sniff the speaker from pn()'s colour.
+       ONE CAPTAIN NAMED, OR NOBODY. T-08 — his checklist #32 (Wyatt, 2026-08-26): "the storm narration that reported
+       how players were moved appeared connected to the player 1; it shouldn't -- it should appear
+       in the dark blue narration box that reports table-wide events. this should be the behavior
+       across all modes, not just pass-and-play."
+
+       This used to take the FIRST colour it found. A storm summary names several captains, each
+       wrapped in their own colour by pn() — "Flaky Jack was swept…, Dough Hook held…" — so a
+       report about the whole table was pinned to whichever captain happened to be mentioned
+       first. That is his player 1, and the arbitrariness is the tell: the anchor was the reading
+       order of the sentence, not its subject.
+
+       A line naming two or more captains is BY DEFINITION about the table rather than about any
+       one of them, so it stays subject-less and draws in the table-wide box. The turn-start case
+       the sniff exists for names exactly one captain and is untouched. Nothing is mode-specific:
+       this is the one derivation every mode reads, which is why his "across all modes" comes for
+       free rather than needing three fixes. */
+    const named = [];
+    for (let i = 0; i < HEXCOL.length; i++) if (msg.indexOf(`color:${HEXCOL[i]}`) >= 0) named.push(i);
+    if (named.length === 1) subj = named[0];
+  }
+  if (S.hurry) S.hurry();                            // one live bubble: retire the old one NOW
+  // playtest 5: a manual pinch/pan holds the camera only until the next action — then the
+  // director takes the wheel again, so other captains' moves never play off screen.
+  S.lock = false;
+  const evType = S.evType; S.evType = null;
+  if (evType === "storm") camFull();                 // watch the shove land from above
+  /* playtest 12 item 10: while a battle card is live, the camera HOLDS on the battle — a flee
+     call can only be made by someone who can see the fight, not the caller's own boat.
+     playtest 22 extends that ruling to the WHOLE fight rather than to the card alone (Wyatt: "the
+     director should focus battles on the players fighting, not the player calling the battle").
+     The card is built after the calls are collected, so the `.btl` test could not cover the part
+     of a battle that asks a spectator anything: the crow's-nest call ran with the camera still on
+     whoever the opening line named, and then every "X calls Y" line glided it to the CALLER. So
+     the hold is now armed by the battle itself (S.battle, set at the top of asyncBattle) and the
+     card test stays as the belt to that braces. */
+  else if (S.battle) { /* hold the shot on the fight until it resolves */ }
+  else if (subj != null && !document.querySelector("#actionPanel .btl")) camToSeat(subj);
+  return new Promise(res => {
+    // HOW LONG A NARRATION LINE STAYS UP -- one call, and the model behind it lives in util.js
+    // beside the curve it replaced (narrationHoldMs, D-34/D-45).
+    //
+    // What used to be here, and why none of it survives:
+    //   Math.max(2550, Math.min(8775, round(msgHoldMs(msg, 3330) * 1.5)))
+    // The outer 8775 never bound -- an earlier attempt raised it from 6750, shipped, and measured
+    // as changing nothing, because msgHoldMs's own ceiling capped every line before this clamp saw
+    // it. The 2550 FLOOR is the one that mattered: it is what made a 27-character turn banner hold
+    // exactly as long as a 75-character sentence, which is Wyatt's item 6 ("medium narration lines
+    // drag"). D-34 replaced the whole model with reading speed, and the elegant version of that
+    // change DELETES the floor rather than lowering it -- so there is nothing left to clamp here.
+    //
+    // D-45 re-ruled D-10's long-line number in the open (5.3s -> 4.5s); the ceiling now lives in
+    // util.js, derived from D-10's own hold, and this call site names no milliseconds at all.
+    const hold = narrationHoldMs(msg);
+    const b = document.createElement("div");
+    b.className = "pp4Bub" + (subj == null ? " ambient" : "");
+    if (subj != null) b.style.borderColor = HEXCOL[subj] || "#177";
+    // playtest 10 item 7: bubbles bypass panel()'s emojify chokepoint, so ad-hoc narration lines
+    // (turn banners, flip results) kept raw ⚪/🌕 emoji instead of the game art. Emojify here.
+    b.innerHTML = `<div class="pp4BubIn">${emojify(String(msg))}</div>` + (subj != null ? `<div class="pp4Tail" style="border-color:${HEXCOL[subj] || "#177"}"></div>` : "");
+    const host = fxHost();
+    host.appendChild(b);
+    // playtest 4: lines type themselves in, the game's own reveal — and fade out on replace
+    try { typewriterReveal(b.querySelector(".pp4BubIn"), 9); } catch (e) {}
+    /* ONLY AS WIDE AS THE WORDS — playtest 23 item 3 (Wyatt): "the narration text boxes should only
+       be as wide as they need to be… For a single line text box the boxes should be only as wide as
+       they need to be to fit the text."
+
+       `width: max-content` rather than dropping the width and letting the absolute box shrink-wrap:
+       an abs-positioned element with `left` set sizes against the space LEFT of the containing
+       block's right edge, so a bubble for a ship near the right of the board would have wrapped a
+       line that fits perfectly well at the same font. max-content is the one-line width regardless
+       of where the box is standing; the cap then wraps only what genuinely cannot fit.
+
+       Safe against the typewriter, and this is the reason it is safe rather than lucky:
+       typewriterReveal() splits every text node into a shown span and a `visibility:hidden` span
+       holding the SAME full text, so the box's intrinsic width is the finished line's from the very
+       first frame. Nothing grows as the words arrive. (Same property panel.js records for height.)
+
+       Both other floating boxes already do this and are untouched: `.pp4Bub.ambient` is
+       `max-width:min(320px,86vw)` with no width, and the chat `.bubble` is `max-width:42%`. */
+    const CAP = () => Math.min(290, vwPx() - 24);
+    b.style.width = "max-content";
+    b.style.maxWidth = CAP() + "px";
+    let bh = 0, bw = 0, bhAt = -1e9;   // HOT-PHONE: offset* are layout reads — remeasure ~2x/s, not 60
+    const place = () => {
+      if (subj == null) return;                      // ambient: CSS position
+      const u = boatUXY(subj); if (!u) return;
+      const [sx, sy] = toScreen(u[0], u[1]);
+      const band = boardBand();
+      const h = fxHost();                            // keeps the clip in step with the captains box
+      const cap = CAP();
+      if (b.style.maxWidth !== cap + "px"){ b.style.maxWidth = cap + "px"; bhAt = -1e9; }
+      if (performance.now() - bhAt > 500){ bh = b.offsetHeight; bw = b.offsetWidth; bhAt = performance.now(); }
+      // MEASURED, not computed: the clamp and the tail both need the width the renderer actually
+      // gave the box, which is now the text's width and no longer a number this file chose.
+      const W = bw || cap;
+      let left = Math.min(Math.max(sx - W / 2, band.left), band.right - W);
+      /* ABOVE THE SHIP WHEN THERE IS ROOM, BELOW IT WHEN THERE IS NOT — playtest 22 item 4:
+         "When the boats are at the top of the map, the narration box should appear below them, so
+         that it doesnt cover them up." The old line clamped to a flat 54px, which for a ship near
+         the top meant the bubble was pushed DOWN onto the boat it was talking about. Flipping is
+         the only placement that keeps both the ship and the words visible. */
+      const above = sy - bh - 40;
+      const belowY = Math.min(sy + 44, band.bottom - bh - 4);
+      /* THE SIDE IS CHOSEN ONCE AND NEVER RE-CHOSEN (Wyatt, 2026-08-25 — see toScreenRest above).
+         It is latched off the RESTING screen position, so it is the side that will be correct when
+         the director stops, not the side that happens to fit mid-pan. Latched only once the box
+         has a measured height: deciding against bh=0 would pick "above" for everything. */
+      if (b._side == null && bh > 0){
+        const [, syRest] = toScreenRest(u[0], u[1]);
+        b._side = (syRest - bh - 40 >= band.top) ? "above" : "below";
+      }
+      const side = b._side || ((above >= band.top) ? "above" : "below");
+      let top = side === "above" ? above : belowY;
+      /* …AND NEVER OVER A SQUARE YOU HAVE TO CLICK — D-38 (Wyatt, 2026-08-21): "always keep the
+         prompt and buttons closer to the boat, even if they start to block some of the board
+         elements. One exception to this rule is for sailing squares, which you have to click and
+         you cannot click them if they are covered by something."
+         A bubble covering the sea, an island or a ship is now explicitly fine; a bubble covering a
+         legal move is not, because the move becomes unreachable. Measured by the playtest gate on
+         phone, where four sail squares at once sat under a bubble and its tail.
+         The search is deliberately tiny — the same two vertical spots this already chose between,
+         each also tried flush left and flush right in the band — and it takes the first placement
+         that covers NO square, else the least-bad one. It cannot wander, because every candidate
+         is one the old code would already have been happy with. */
+      /* THE OBSTACLE LIST IS EVERY THING THE PLAYER MUST READ OR TAP — not just sail squares.
+         Two measurements drove this. The judge kept finding a narration bubble sitting on the ASK
+         PILL ("Crustbeard declines" over "Take a deal, or walk away?") — the search had no idea the
+         pill existed. And posing a sail prompt on a 390x664 phone measured the bubble standing on
+         SEVEN of twenty-two sail squares, a straight D-38 violation, because six candidate spots on
+         a board that full are not enough and "least-bad" was genuinely bad.
+
+         WEIGHTED, so D-38's own exception cannot be traded away. A sail square is the thing Wyatt
+         singled out — you cannot make the move if you cannot tap it — so it outranks everything;
+         then the controls; then the question; then its helper line. Covering the sea, an island or
+         a ship stays explicitly free, exactly as D-38 says.
+
+         AND IT STILL PREFERS THE BOAT. Widening the search is what makes a clear spot findable, but
+         D-38 also says the words should stay near the ship, so distance from the boat is the
+         TIE-BREAK rather than a cost of its own: among equally clear spots the nearest wins, and no
+         amount of distance can buy covering a square. That is what stops a wider search wandering,
+         which is the risk the narrower version was written to avoid. */
+      /* ⚠ POSE THE BOARD BEFORE YOU TOUCH THIS. Wyatt, 2026-08-30: "don't touch bubble placement
+         again without a posed comparison — the same seeded sail prompt, before and after, two
+         screenshots. Three probe runs and three 85-minute trials couldn't settle a question that
+         two pictures would have. That's the lesson of the night, and it cost the night to learn
+         it." Two changes to this search were shipped on run-to-run counts that night and both
+         were reverted; the trials read 22 -> 26 -> 31 on the same ten legs. §5e of
+         docs/DRIVING-THE-GAME.md poses the state; two screenshots settle it in minutes. */
+      const OBST = [[".sailCell", 1000], [".apBtn,.btlBtn,#apStay", 60], [".apMsg", 40], [".apSub,.apSliderWrap", 15]]
+        .flatMap(([sel, w]) => [...document.querySelectorAll(sel)]
+          .filter(e => e !== b && !b.contains(e) && e.getBoundingClientRect().width > 4)
+          .map(e => ({ r: swellRect(e, fixedRect(e)), w })));   // the PEAK box, as the hint does
+      if (OBST.length){
+        const cost = (x, y) => OBST.reduce((n, o) =>
+          n + ((x < o.r.right && x + W > o.r.left && y < o.r.bottom && y + bh > o.r.top) ? o.w : 0), 0);
+        /* CANDIDATES ON THE LATCHED SIDE ONLY. The search may still slide the box along, and step
+           to the band's edge on its own side to clear a sail square — it may never cross the boat,
+           because crossing IS the flip he asked us to remove. */
+        const ys = [];
+        for (const y of (side === "above" ? [above, band.top + 4] : [belowY, band.bottom - bh - 4])) {
+          const yy = Math.max(band.top, Math.min(y, band.bottom - bh - 4));
+          if (!ys.some(v => Math.abs(v - yy) < 6)) ys.push(yy);
+        }
+        const xLo = band.left, xHi = Math.max(band.left, band.right - W), span = xHi - xLo;
+        const xs = [left, xLo, xHi];
+        for (let k = 1; k <= 5; k++) { const x = Math.round(xLo + span * k / 6); if (!xs.some(v => Math.abs(v - x) < 8)) xs.push(x); }
+        let best = null;
+        for (const y of ys) for (const x0 of xs){
+          const x = Math.max(xLo, Math.min(x0, xHi));
+          const c0 = cost(x, y);
+          const near = Math.hypot((x + W / 2) - sx, (y + bh / 2) - sy);   // tie-break only
+          if (!best || c0 < best[2] || (c0 === best[2] && near < best[3])) best = [x, y, c0, near];
+        }
+        if (best){ left = best[0]; top = best[1]; }
+      }
+      b.style.left = (left - 0) + "px";
+      b.style.top = (Math.max(band.top, Math.min(top, band.bottom - bh - 4)) - band.top) + "px";
+      b.classList.toggle("below", side === "below");   // the tail follows the LATCHED side
+      const t = b.querySelector(".pp4Tail");
+      // the tail tracks the ship, clamped INSIDE the box — and the box can now be narrow, so the
+      // two bounds are ordered rather than nested: with a fixed 290px width `Math.max(16, …W-32)`
+      // could never invert, and at max-content width it can.
+      if (t) t.style.left = Math.min(Math.max(sx - left - 8, 8), Math.max(8, W - 23)) + "px";
+    };
+    // Wyatt's recording, measured frame by frame: positioned on a 90ms interval, the bubble
+    // trailed the 60fps camera glide in visible 25-40px steps — a different loop than the board.
+    // It now rides tick() itself, repositioned in the SAME frame the camera moves.
+    let done = false;
+    const finish = () => {
+      if (done) return; done = true;
+      if (S.bubFinish === finish){ S.bubFinish = null; S.bubDue = 0; }
+      if (S.bubPlace === place) S.bubPlace = null;
+      if (S.hurry === finish) S.hurry = null;
+      if (S.waitFinish === finish) S.waitFinish = null;
+      b.classList.add("out");
+      setTimeout(() => b.remove(), 300);
+      res();
+    };
+    S.hurry = finish;
+    S.bubPlace = place;
+    /* THE HOLD IS A DEADLINE, NOT A TIMER — playtest 22, and this is the CRITICAL one (Wyatt: "the
+       game just completely stalled").
+
+       MEASURED, headless, and it is not a logic bug at all. Every narration line is awaited by the
+       game loop, and this promise used to be resolved by exactly one `setTimeout`. Instrumented:
+       the bubble's `finish` timer AND a canary armed on the same line with the same delay were
+       BOTH never delivered — neither was ever cleared, and a 250ms setInterval kept counting right
+       through it (272 ticks over 72s). A browser dropped two pending timeouts. The game had no
+       second way to continue, so it stopped for good: no prompt, no error, no clock — exactly what
+       a stall looks like from the seat. On a phone this is the ordinary case rather than the exotic
+       one, because backgrounding a tab is what people do with phones.
+
+       The rule is already written thirty lines up, for stageSettled: "A UI gate that can wait
+       forever is a game that can hang." This gate could, and did. So the deadline is recorded and
+       tick() — which is re-armed by BOTH rAF and setTimeout, and restarted outright on
+       visibilitychange — retires the bubble the moment the clock says it is due. The timeout stays
+       as the fast path; the deadline is the belt that means losing it costs a late line rather than
+       the voyage. A tab that comes back from the background finds the line already overdue and the
+       game carries straight on. */
+    // A WAIT LINE REGISTERS NEITHER — no deadline, no timeout. S.hurry is still armed above, so
+    // the next real narration retires it, and so does a tap. Every other bubble is unchanged.
+    // …and it registers ONE more thing, which is the whole of retireWait() below: a wait line is
+    // the only bubble that means "you are done, the others are not". The moment this screen is
+    // asked something again that statement is false, so promptTick retires it — precisely, without
+    // touching a narration line that merely happens to be on screen at the same moment. That
+    // registration is IMMEDIATE and is never deferred by the veil rule below: a wait line has no
+    // reading deadline to protect, and a promptTick that cannot find it is 3a80839's bug again.
+    const armHold = () => {
+      if (done) return;
+      S.bubDue = Date.now() + hold;
+      S.bubFinish = finish;
+      setTimeout(finish, hold);
+    };
+    /* A HOLD IS A DEADLINE FOR READING, AND IT MUST NOT RUN WHILE THE LINE CANNOT BE SEEN.
+       Measured on build h: "Claude flips TAILS" was on screen for 2862ms and spent 1140ms of that
+       — forty per cent — drawn UNDERNEATH the full-screen flip veil, because .pp4Bub's stacking
+       context #pp4Fx is z-index 21 and #pp4Veil is 44. The bubble's tail points at a boat the veil
+       is covering, and the veil is Wyatt's own sanctioned exception to hold-the-sea, so raising the
+       bubble above it would be wrong twice over. Fix the clock, not the z-order.
+       BOUNDED, BECAUSE THIS IS THE CRITICAL CLASS. Every narration hold is awaited by the game
+       loop, and "the game just completely stalled" is a playtest-22 finding — a deferral that can
+       wait forever is a stall with a good excuse. The cap is the ceremony's own two clocks added
+       together (the longest the veil can legitimately stand), not a new number; the poll runs on
+       the same 120ms beat cerWatchResult uses and clears itself on the first of three conditions. */
+    if (opts && opts.wait) S.waitFinish = finish;
+    else if (!$("pp4Veil")) armHold();
+    else {
+      const veilT0 = Date.now();
+      const veilIv = setInterval(() => {
+        if (done || !$("pp4Veil") || Date.now() - veilT0 >= CER_VEIL_WAIT_CAP_MS){
+          clearInterval(veilIv); armHold();
+        }
+      }, 120);
+    }
+    wake();   // a live bubble rides the ship — full frame rate while it's up
+    b.addEventListener("pointerdown", finish);
+    place();
+  });
+}
+
+/* ================= flip ceremony ================= */
+// Playtest 3 rebuild. The coin moves INTO the veil (root stacking context), flex-centred with
+// its caption right beneath it — no fixed-position tricks, nothing above it to grey it out.
+// Disarm does NOT tear down: the veil holds while the spin plays and the landed face shows,
+// then the flippenator goes home to the (hidden) controls row.
+/* THE CEREMONY IS CENTRED IN THE BOARD BAND, NOT IN THE WINDOW (Group G fault 1).
+   Judged on solo-phone-015 and -016: "the battle 'Broadside!' caption text is drawn on top of the
+   CAPTAINS card; the captain names show through the white text and both are hard to read." Two
+   screens, so not a fluke, and desktop is fine (solo-desktop-018/-019) because the captains sit in
+   a side column there.
+
+   MEASURED at 390x664: the veil is `inset:0`, so its flex column centres in the whole 664px window
+   — title y154.6, coin y203-419, stakes y445-464, tap-hint y490-509 — while the captains card
+   starts at y433. The stakes line lands 19.3px inside the card and the tap-hint 19px inside it,
+   with the column's foot spilling 76.4px past the card's top edge. The words are white-on-dim and
+   the card behind them is a pale box full of captain names, so both become unreadable at once.
+
+   THE FIX IS THE ROOM, NOT THE WORDS. The scrim still covers the whole screen — dimming the ribbon
+   and the card is its job — but the COLUMN is given only the board band to centre in, by padding
+   the veil's head and foot with the strips the ribbon and the captains card occupy. `boardBand()`
+   and `capBandBottom()` are the existing answers to where those strips are (the plan's own
+   instruction: do not invent a new number), and the second of them already returns the full
+   viewport height in side-by-side — which is what the `stacked` test below reads, so the DESKTOP
+   ceremony comes out byte-identical rather than merely close.
+
+   Re-read every tick rather than once, for the same reason fxHost() is: the card grows a row when
+   a fourth captain joins and grows again as holds fill, and a ceremony can be on screen while it
+   does. Written only when the number changes, so a still ceremony costs one integer compare. */
+function cerBandTick(){
+  const veil = $("pp4Veil"); if (!veil) return;
+  const band = boardBand();
+  /* PAD THE FOOT BY THE CAPTAINS CARD, AND THE HEAD BY THE RIBBON — but the head only when there
+     IS a card under the board. `capBandBottom()` already encodes that question: it returns the full
+     viewport height in side-by-side, so `stacked` is false on desktop, the head padding is zero,
+     and the desktop ceremony is byte-identical. Padding the foot alone was tried first and moved
+     the fault rather than fixing it: the column then centred in 0..433 instead of 88..433, and the
+     title landed at y39.1 against a ribbon that ends at y45 — 5.9px into it, and into the wind pill
+     below that. Fixing one overlap by making another is not a fix (rule 8). */
+  const stacked = capBandBottom() < vhPx();
+  const padT = stacked ? Math.max(0, Math.round(band.top)) : 0;
+  const padB = Math.max(0, Math.round(vhPx() - band.bottom));
+  if (veil.dataset.padT !== String(padT)){ veil.style.paddingTop = padT + "px"; veil.dataset.padT = String(padT); }
+  if (veil.dataset.padB !== String(padB)){ veil.style.paddingBottom = padB + "px"; veil.dataset.padB = String(padB); }
+  /* …AND THE COLUMN'S OWN AIR CLOSES UP WHEN THE BAND IS SHORT, because on a phone the ceremony is
+     TALLER THAN THE BAND IT HAS TO LIVE IN. Measured at 390x664: title 22.4 + coin slot 216.1 +
+     stakes 19.4 + tap-hint 19 = 276.9px of content, three 26px gaps on top of that = 354.9px, in a
+     band of 345px. Something has to give, and it is the AIR — never the words, and never the coin,
+     which is the thing being asked for.
+     DERIVED, and stable because no term in it depends on the gap: the four children's own rendered
+     heights, the band the renderer produced, and the 6px of clear air every other stacked floater
+     in this file already leaves. The ceiling is the stylesheet's own resting value, READ from
+     --pp4CerGapMax rather than copied here, so there is one 26 in the project and not two.
+     On any band with room to spare the arithmetic saturates at that ceiling, which is why the
+     desktop ceremony — and a tall phone — are unchanged rather than merely nearly unchanged. */
+  const kids = [...veil.children].filter(el => getComputedStyle(el).display !== "none");
+  if (kids.length < 2) return;
+  const gapMax = parseFloat(getComputedStyle(veil).getPropertyValue("--pp4CerGapMax")) || 26;
+  const AIR = 6;
+  const contentH = kids.reduce((n, el) => n + el.getBoundingClientRect().height, 0);
+  const room = Math.max(0, band.bottom - band.top) - AIR * 2;
+  const g = Math.max(0, Math.min(gapMax, Math.floor((room - contentH) / (kids.length - 1))));
+  if (veil.dataset.gap !== String(g)){ veil.style.rowGap = g + "px"; veil.dataset.gap = String(g); }
+}
+/* THE VEIL MUST NEVER OUTLIVE ITS OWN CAP — Wyatt, 2026-09-06, playing crew in two Safari windows:
+   "the director stopped refocusing the camera correctly for my guest view after I docked...
+   refreshing the page fixes this."
+
+   WHY THE CAMERA IS THE SYMPTOM OF A VEIL BUG. camTo() (:134) is the one door every director move
+   walks through, and while the ceremony veil is up it REMEMBERS a glide instead of performing it —
+   his own ruling, quoted at :118. So a veil that is left up does not look like a stuck veil; it
+   looks like a camera that stopped following, for the rest of the voyage.
+
+   HOW IT GETS STUCK. cerWatchResult()'s poll had two exits that clear the interval WITHOUT
+   guaranteeing a teardown: the landed branch tears down only `if (!flipCoinWrap.active)` — the
+   interval is already cleared by then, so an armed coin at that instant means nothing ever tears
+   down — and the `armedAgain` branch clears the interval outright, correctly expecting the next
+   flip to start a fresh watcher. If it does not, the veil stands with nothing watching it.
+   Docking IS a coin flip (docs/INTENDED-BEHAVIOUR.md), which is why his dock is where it bit.
+
+   NOT PATCHED PER-SIDE — his instruction, same message: solve it "architecturally through the
+   shared engine from which both host and guest drain; not through driftable patches." This is one
+   watchdog in the shared stage code, armed whenever the ceremony makes progress and cleared by any
+   real teardown. The cap is CER_VEIL_WAIT_CAP_MS, which already exists and is already DERIVED from
+   the ceremony's own two clocks — "the longest the veil can legitimately stand" (:1862). No third
+   number to keep in step. A guest whose coin state arrives over the wire is simply the likeliest
+   to hit the race; the rule does not know or care which side it is on. */
+let cerWatchdog = null;
+/* ⭐⭐ A VEIL OVER AN ARMED COIN IS NOT STUCK — IT IS WAITING FOR A PERSON.
+   Wyatt, 2026-09-08, and he called it a blocker: "when i was attacked by a bot, the stage didn't
+   appear... i had to refresh the page to continue the game, which is not okay." Then the detail
+   that identifies it exactly: "i was playing solo, it was a bot's turn, they were attacking me, I
+   wasn't watching the window, i was typing into the playtest window" — and, ruling out the obvious
+   wrong answer, "it was NOT hidden — i had both tabs open next to each other — the sound was still
+   audible." So: visible, unfocused, rAF running, nothing throttled. A real defect.
+
+   WHAT HAPPENED, IN SECONDS. A bot attacking a human ends at `hFlip("d", def)` — and a defend flip
+   is answered by THE COIN, not by a button (battleAsk's `isFlip` branch: setFlipActive, no
+   .btlBtn). setFlipActive raises this ceremony, and flipArmed() armed this watchdog on the very
+   instant the veil went UP — i.e. while it was waiting for a tap. CER_VEIL_WAIT_CAP_MS is
+   CER_FALLBACK_MS + CER_REVEAL_MS = 7100ms. Look away for seven seconds and the whole ceremony
+   tore itself down mid-question. The coin stayed armed, alone and chip-sized in the ribbon, and
+   the board looked like a game that had simply stopped. Refreshing is exactly what a player does.
+
+   THE WATCHDOG IS STILL RIGHT TO EXIST — a prompt that is cancelled must not leave a veil standing
+   forever. It was only ever wrong about ONE case, and the test is one line: is the coin still
+   ARMED? An armed coin means a question is still open and a person is still allowed to think about
+   it. Anything else — a landed face nobody retired, a cancelled prompt, a torn-down battle — is a
+   genuinely stuck veil and comes down on the deadline as before.
+
+   NO NEW CLOCK (rule 9): it re-arms the SAME cap rather than inventing a patience constant. */
+function cerArmWatchdog(){
+  if (cerWatchdog) clearTimeout(cerWatchdog);
+  cerWatchdog = setTimeout(() => {
+    cerWatchdog = null;
+    const c = $("flipCoinWrap");
+    if (c && c.classList.contains("active") && c.onclick){ cerArmWatchdog(); return; }
+    cerTeardown();
+  }, CER_VEIL_WAIT_CAP_MS);
+}
+function cerTeardown(){
+  if (cerWatchdog){ clearTimeout(cerWatchdog); cerWatchdog = null; }
+  const veil = $("pp4Veil"); if (!veil) return;
+  const fp = $("flipPanel"), row = $("controlsRow");
+  if (fp && row && fp.parentElement !== row) row.insertBefore(fp, row.firstChild);
+  veil.remove();
+  document.body.classList.remove("pp4Cer");
+  /* ⭐ AND THE VEIL TAKES THE FACE WITH IT — his ruling, 2026-09-08. setFlipCoin() defers a
+     blanking for as long as `pp4Cer` is on the body (see board.js), so this is the one call that
+     ends a ceremonial flip's picture. It runs AFTER the class is removed, or the guard there would
+     swallow this call too — order is load-bearing on these two lines.
+
+     ⚠ NEVER OVER AN ARMED COIN, AND THE RED-PROOF IS WHY THIS GUARD EXISTS. setFlipCoin() sets
+     `el.onclick = null` on its way through. While red-proofing the watchdog fix above — old
+     watchdog, new teardown — the probe measured `veil=false armed=FALSE` at t+8s and then threw a
+     TypeError calling a handler that was gone. That is strictly worse than the bug being fixed:
+     his build at least left an armed coin sitting in the ribbon, so a player who spotted it could
+     still answer. A teardown must never take away a question that is still open. */
+  const coin = $("flipCoinWrap");
+  if (!(coin && coin.classList.contains("active") && coin.onclick)) setFlipCoin("wait");
+  if (window.__pp4) window.__pp4.flipMsg = null;   // a later ceremony never inherits these words
+  S.cerHome = null;
+}
+/* THE CEREMONY'S OWN TWO CLOCKS, named rather than typed twice. CER_REVEAL_MS is how long the
+   landed face is shown before the veil leaves; CER_FALLBACK_MS is the veil's own teardown when no
+   face ever lands. Their SUM is the longest the veil can legitimately stand, and that is the only
+   number a hold deferred behind the veil is allowed to derive its cap from (nothing in this game
+   is a constant, and a new one here would be a third clock to keep in step with these two). */
+const CER_REVEAL_MS = 1100, CER_FALLBACK_MS = 6000;
+const CER_VEIL_WAIT_CAP_MS = CER_FALLBACK_MS + CER_REVEAL_MS;
+function cerWatchResult(){
+  // the flip flow swaps faces on #flipCoinWrap: spin -> heads/tails. Hold the veil until a face
+  // lands, show it a beat, then leave. Fallback teardown if nothing lands (e.g. prompt cancelled).
+  const coin = $("flipCoinWrap");
+  const t0 = performance.now();
+  const iv = setInterval(() => {
+    const c = $("flipCoinWrap");
+    const landed = c && (c.classList.contains("heads") || c.classList.contains("tails"));
+    const armedAgain = c && c.classList.contains("active");
+    if (landed){
+      clearInterval(iv);
+      // playtest 10 item 6: the landed face hits like a gavel — shudder + golden flare
+      c.classList.add("pp4Land");
+      setTimeout(() => c.classList.remove("pp4Land"), 700);
+      /* If the coin re-armed during the reveal beat, this used to do NOTHING — and the interval
+         above was already cleared, so the veil was left standing with no watcher at all. Watch
+         the new flip instead; the watchdog is the backstop, not the mechanism. */
+      setTimeout(() => {
+        if (!$("flipCoinWrap")?.classList.contains("active")) cerTeardown();
+        else { cerArmWatchdog(); cerWatchResult(); }
+      }, CER_REVEAL_MS);
+    }
+    // a new flip re-armed: veil stays, caption returns — but the watcher must be REPLACED, not
+    // simply dropped, or nothing is left to take the veil down when this flip lands.
+    else if (armedAgain){ clearInterval(iv); cerArmWatchdog(); cerWatchResult(); }
+    else if (performance.now() - t0 > CER_FALLBACK_MS){ clearInterval(iv); cerTeardown(); }
+  }, 120);
+}
+function flipArmed(el, onClick){
+  if (!S.active) return false;                       // pre-game: normal flippenator
+  if (appState.replaying) return false;              // a replay raises no ceremony — see stageFlash
+  if (!onClick){
+    // disarmed: the tap landed and the spin is starting — hold the stage and watch for the face
+    const veil = $("pp4Veil");
+    if (veil){ veil.classList.add("resolving"); cerWatchResult(); }
+    return true;
+  }
+  let veil = $("pp4Veil");
+  if (!veil){
+    veil = document.createElement("div"); veil.id = "pp4Veil";
+    // playtest 15 item 5: no "CALL IN THE AIR…" header — the coin and the stakes say it all
+    veil.innerHTML = `<div id="pp4CerSlot"></div>
+      <div class="pp4CerSub">Tap the coin, captain — let fate decide.</div>`;
+    document.body.appendChild(veil);
+    veil.addEventListener("pointerdown", ev => {
+      const coin = $("flipCoinWrap");
+      if (coin && coin.onclick){ ev.stopPropagation(); coin.onclick(); }
+    });
+  }
+  veil.classList.remove("resolving");
+  // …and before the first paint, not on the next tick: the slow gear is 125ms away, which is long
+  // enough for the ceremony to be seen once in the wrong place (Group G fault 1).
+  cerBandTick();
+  const fp = $("flipPanel"), slot = $("pp4CerSlot");
+  if (fp && slot && fp.parentElement !== slot) slot.appendChild(fp);
+  document.body.classList.add("pp4Cer");
+  cerArmWatchdog();   // from this instant the veil has a deadline it cannot miss
+  // playtest 10 item 5: the old prompt card is hidden under the veil (CSS body.pp4Cer) — its
+  // words move up here: the ask above the coin, the stakes line beneath it. Copied on the next
+  // frame, AFTER localAsk's panel() has rendered (the arm hook fires first), and with the
+  // typewriter's reveal spans un-hidden so the copy is whole from its first paint.
+  requestAnimationFrame(() => {
+    const v2 = $("pp4Veil"); if (!v2) return;
+    // localAsk stashes the flip prompt's own words on the bridge — a PURE flip never renders a
+    // panel to read, and the panel can still hold the PREVIOUS prompt's text at arm time
+    const fm = window.__pp4 && window.__pp4.flipMsg;
+    let t = v2.querySelector(".pp4CerTitle");
+    if (!t){ t = document.createElement("div"); t.className = "pp4CerTitle"; v2.insertBefore(t, $("pp4CerSlot")); }
+    t.innerHTML = fm ? emojify(String(fm.m)) : "";
+    let st = v2.querySelector(".pp4CerStakes");
+    if (!st){ st = document.createElement("div"); st.className = "pp4CerStakes"; v2.insertBefore(st, v2.querySelector(".pp4CerSub")); }
+    st.innerHTML = fm ? emojify(String(fm.s)) : "";
+    // playtest 20: a BATTLE flip borrows no words — the fight is drawn by renderBattle, not by
+    // localAsk — so the ceremony used to take the whole screen saying nothing about the one rule
+    // that settles a quarter of all fights. Read straight off the battle card's own wind badge
+    // rather than re-deriving the geometry, so the card and the ceremony can never disagree about
+    // who holds the wind. Built with DOM nodes, not innerHTML: the captain's name is player-typed.
+    const btl = document.querySelector("#actionPanel .btl");
+    if (!fm && btl){
+      const dwTag = btl.querySelector(".windTag.dw");
+      /* READ THE MARKED COLUMN, NOT THE BADGE'S NEIGHBOURHOOD. This was
+         `dwTag.parentElement.querySelector(".who")`, and `dwTag.parentElement` is `.btl-wind` —
+         a div that holds the badge and nothing else (src/orchestrator.js). `.who` lives two
+         branches away inside `.btl-col`, so this returned null on EVERY downwind battle and the
+         `else` below told the player "Crosswind" over a downwind fight. Measured and photographed:
+         judge-1914Z-shots/solo-tablet-wk-018.png says CROSSWIND, and -018-settled.png, the same
+         leg seconds later, says DAVY SCONES FIRES DOWNWIND.
+         renderBattle now stamps that column `.btl-col.dw` from the same `dw` that writes the
+         badge, so the card and the ceremony read ONE value and cannot disagree — which is what
+         the comment above always claimed and did not have.
+         Gate: scripts/qa/flip_ceremony_names_the_wind_check.mjs (RED before this line changed). */
+      const who = dwTag ? btl.querySelector(".btl-col.dw .who") : null;
+      t.textContent = "⚔️ Broadside!";
+      st.textContent = "";
+      if (who){
+        const b = document.createElement("b");
+        b.textContent = who.textContent.trim();
+        b.style.color = who.style.color || "";      // the captain's own boat colour, as everywhere else
+        st.appendChild(b);
+        // @copy misc.ceremony.windstakes — APPROVED as written, Wyatt 2026-08-14
+        st.appendChild(document.createTextNode(" is firin' downwind — two heads and the tie is theirs."));
+      } else {
+        st.textContent = "Crosswind — two heads and the cannonballs collide.";
+      }
+    }
+  });
+  return true;
+}
+
+/* ================= recipe compare (two-tap focus + island glow) ================= */
+let focusBtn = null;
+function recipeGuard(){
+  document.addEventListener("click", e => {
+    if (!S.active) return;
+    const btn = e.target.closest("#actionPanel .apBtn");
+    /* #13 (Wyatt, 2026-08-24): "tapping the board does not clear the selected state, so it should
+       not force two taps." This line used to reset focusBtn on ANY outside tap — the hold-the-sea
+       peek included — while the card's visible selection (pp4Focus, the Bake this! door, the dock
+       glow) all stayed. Pixels and state disagreed, and the next tap re-selected instead of
+       confirming. The internal state now follows the visible one: an outside tap changes nothing. */
+    if (!btn || !btn.querySelector(".recipeList")) return;
+    if (focusBtn === btn) { clearGlow(); clearBake(); focusBtn = null; return; }  // second tap: let it through
+    e.stopPropagation(); e.preventDefault();                          // first tap: focus + glow
+    focusBtn = btn;
+    document.querySelectorAll("#actionPanel .apBtn").forEach(x => x.classList.toggle("pp4Focus", x === btn));
+    clearGlow();
+    // playtest 19 item 2 (Wyatt: "the recipe choosing ux is confusing. we need a 'bake this' button
+    // to appear over the recipe after the first tap; maybe over the image?" — his pick: over the
+    // image). Nothing on screen used to say how to COMMIT: the first tap lit the docks and outlined
+    // the card, and the confirming second tap was undiscoverable.
+    // It is a SPAN, not a button, for two reasons that are really one: the recipe card is itself the
+    // <button>, so a nested button is invalid HTML and Chrome hoists it clean out of the card — and
+    // being inert (pointer-events:none) means a tap on it lands on the card underneath, which IS the
+    // second tap that already confirms. So the visible door and the old gesture are the same code
+    // path, and both keep working (Wyatt's pick: "yes — both work").
+    clearBake();
+    const thumb = btn.querySelector(".recipeThumb");
+    if (thumb){
+      const bake = document.createElement("span");
+      bake.className = "pp4Bake";
+      // @copy misc.stage.bakethis — APPROVED as written, Wyatt 2026-08-14. In-world register (the voice boundary:
+      // this is the game speaking to a captain, not the credits).
+      bake.textContent = "Bake this!";
+      btn.appendChild(bake);
+    }
+    const g = appState.game; if (!g) return;
+    /* THE RACE IS GONE, AND SO IS THE REVERSE LOOKUP.
+       This block used to read each ingredient's DISPLAYED NAME off the card and match it back
+       against ING_NAME through a DYNAMIC IMPORT — a second copy of the name->id mapping, resolved
+       asynchronously. That promise is what left "orange dock rings still on the water two days into
+       the voyage" (found 2026-08-20): the committing tap ran clearGlow() synchronously, then the
+       promise settled and appended rings onto a board with nothing left to remove them. It needed a
+       focusBtn re-check to paper over it, and nobody could hit it on a warm module cache.
+       The card now CARRIES the ids in data-ing (see recipeCardHTML), so the ids are in hand
+       synchronously, there is no second copy of the mapping, and there is no promise to lose a race
+       in. The fix deletes the guard as well as the bug. */
+    const cp = cellPx(), svg = svgEl();
+    {
+      const ids = [...btn.querySelectorAll("[data-ing]")].map(e => e.dataset.ing).filter(Boolean);
+      /* ── THE THIN ORANGE RING IS GONE, EVERYWHERE, FOR EVERYBODY ────────────────────────────
+         Wyatt, 2026-09-02: "I think what looks better is the pulsing x. That way, the players will
+         already have seeing the X marks the spot when they start sailing, and it'll kind of be a
+         learning moment before they even start."
+         So this is NOT a tutorial-only marker and it is not gated on a rung: the whole game's dock
+         preview becomes his X, at every rung, for every captain. That also answers his separate
+         standing complaint about these circles — "those dock circles should look substantially
+         different -- they need a UI redesign" — on all three counts at once. They were thin,
+         STATIC and ORANGE: orange is the game's `act now` colour, already spent on the gold squares
+         and the confirm pills, so a ring in it read as chrome rather than as the way in. The X
+         moves, is not orange, and carries meaning of its own.
+         ⚠ THE "Bake this!" PILL IS STILL #f5a623 AND STILL CORRECT. His playtest-21 ruling was
+         "the same bright color as the rings around the island" — the pill was matched TO the rings,
+         not the other way round. Retiring the rings does not retire the pill's colour, and the
+         index.html comment that ties them together is updated in this same commit rather than left
+         describing a pairing that no longer exists.
+         ── AND THE COURSE, at the moment he asked for it ──────────────────────────────────────
+         "that Dotted course should appear during the recipe choice phase to help them make a
+         decision." One continuous tour from the captain's own boat through every dock this card
+         would send them to — so the two cards are compared as VOYAGES, not as word lists. */
+      /* THE SEAT IS THE ACTIVE ONE, NOT `mySeat`, and the gate is right to insist.
+         `appState.mySeat` is the seat of whoever is WATCHING; on a pass-and-play device the picker
+         walks every captain in turn behind the pass screen, so mySeat would chart the wrong boat's
+         voyage for three of the four. S.activeSeat is the seat whose prompt is actually up — the
+         same source ribbonTick already reads — so this draws one captain's course from one rule
+         rather than forking on who is looking. (scripts/qa's mode-fork gate caught this on the
+         first run; it is exactly the class of thing that gate exists for.) */
+      chartFrontRecipe(btn);      // ONE place decides which docks a recipe sends you to
+    }
+  }, true);
+}
+/* THE ONE TEARDOWN. It still removes .pp4Glow — nothing draws those on the picker any more, but
+   the class is used elsewhere and a teardown that forgets a thing it used to own is how the rings
+   outlived their card once already (found 2026-08-20: orange rings still on the water two days
+   into a crew game). clearCourse() takes the dashes AND the markers. */
+/* ── THE STACK CONTROLLER — one card at a time, arrows AND swipe ────────────────────────────────
+   His ruling 24: "a lot of users are probably going to wanna swipe between them." So both gestures
+   drive one piece of state, and neither is the special case.
+
+   MOUNTED FROM THE PROMPT TICK, which runs every frame, so it is guarded by a key built from the
+   cards themselves: re-running on an unchanged picker must cost nothing, and a NEW picker (the next
+   captain, behind the pass screen) must rebuild. Comparing the card markup is what makes both true
+   without a flag anybody has to remember to clear.
+
+   FLIPPING RE-DRAWS THE DOTTED COURSE — his ruling 18 — and the front card's course is drawn as
+   soon as the picker opens rather than waiting for a tap, because that is what ruling 16 asks the
+   course to be for: "that Dotted course should appear during the recipe choice phase to help them
+   make a decision." Comparing two recipes is then comparing two VOYAGES. */
+let rcKey = null;
+
+/* ══════════════════════════════════════════════════════════════════════════════════════════════
+   THE PICKER'S FLIGHT — Wyatt, 2026-09-09, verbatim:
+
+     "the challenge is that we need BOTH the player to be able to see the board to make their
+      decision about which recipe to choose, AND the player to notice the recipe cards and not be
+      distracted by the board. I actually think what we want is for the recipe cards to appear over
+      the very middle of the board, then swap themselves ONCE to show that they can be swapped,
+      then after about 0.5 seconds they should move up to the top right of the board to reveal most
+      of the gameboard with the dotted line map fully visible; and there should be a small cream box
+      above them that explains '{player}, pick which recipe you want to bake'"
+
+   THIS REPLACES "cover the captains box" (his 2026-09-08 note and playtest r7). That design bought
+   noticeability with AREA — it sat on top of a thing you have to read. This one buys it with TIME:
+   the cards land in the middle where they cannot be missed, teach their own gesture, and then
+   leave. Nothing is permanently covered, so the tension he named actually resolves instead of
+   being traded from one side to the other.
+
+   ANCHORED TO THE DRAWN BOARD (`#board`, the SVG), never to #boardwrap and never to a viewport
+   fraction. #boardwrap is TALLER than the board — a trap the design this replaces paid for once
+   already, and it is the same trap here. "The middle of the board" and "the top right of the
+   board" are both questions only the drawn board's own rect can answer, and it answers them
+   identically at all three sizes with no breakpoint.
+
+   ONE TIMELINE, ONE OWNER. Every timer lives in rcFlightTimers and is cleared by rcFlightStop(),
+   which the picker's teardown calls — a half-run flight that outlives its picker would apply a
+   transform to whatever prompt came next.
+   ══════════════════════════════════════════════════════════════════════════════════════════════ */
+let rcSwapFn = null;         // the live stack's own swap(), handed over by mountRecipeStack
+let rcFlightKey = null;      // the rcKey this flight belongs to — one flight per picker, ever
+let rcFlightTimers = [];
+/* ⚠ TRUE FOR THE WHOLE TIMELINE, INCLUDING THE 620ms THE TRANSFORM IS TRANSITIONING BACK TO NONE.
+   `box.style.transform` CANNOT stand in for this and the difference is a real bug: releasing the
+   flight sets the inline transform to "", so the property reads empty while the box is still
+   visibly halfway across the board. Everything downstream in promptTick measures the box with
+   getBoundingClientRect(), which reports where it is PAINTED — so for those 620ms the panel's
+   maxHeight, the does-it-fit lift and the hint's dodge list would all be computed against the
+   middle of the board and then written back as the parked geometry. That is the
+   two-answers-for-one-number fault this picker has already paid for twice. */
+let rcInFlight = false;
+/* ⭐ IS THE PARKED LEFT FINAL YET? The flight computes its dx ONCE, from wherever the sheet is
+   parked at the instant it starts — so anything that moves the parked left afterwards silently
+   moves the flight's destination and its board-centre hold with it. Wyatt, playtest 2026-09-10:
+   "the cards should appear directly over the center of the board; in desktop this is not what
+   happened... there is a glitch with the cards moving over to the side, where they drop frames."
+   Measured: 244px right of centre, and eleven rewrites of the parked left during one arrival.
+   So the sound-icon alignment must finish BEFORE the flight starts and must not run again while it
+   is running — during the flight both the sheet (the flight) and the front card (the swap) are
+   under their own transforms, and every rect the alignment could read is a lie about where things
+   will come to rest. One write, on the tick the cards are first laid out; nothing after. */
+let rcAlignReady = false;
+/* The live animations, so a picker that is torn down mid-show does not leave a fill:both animation
+   pinning the sheet somewhere the tick is no longer writing. */
+let rcAnims = [];
+
+/* HIS "about 0.5 seconds" is the beat AFTER the swap, which is what he wrote. The beat BEFORE it
+   is mine and it is not the same number: the cards need to be seen as cards before they are seen
+   moving, or the swap reads as the arrival still settling rather than as a demonstration. */
+/* ⭐ HIS NUMBERS NOW, NOT MINE — Wyatt, 2026-09-09, after watching it: "They do exactly what you
+   say they should, it just feels glitchy. 1. can you have them fade in slower. 2. can you have them
+   swap with each other after 1 second? 3. when they move down the board, Can you ease in their
+   movement?"
+   THE DIAGNOSIS UNDERNEATH HIS THREE POINTS IS ONE THING: every beat started abruptly. The cards
+   appeared in a frame, the swap fired before the eye had settled, and the flight began at full
+   speed. "Glitchy" is what a correct sequence with no ease-in looks like. */
+/* His "50% bigger" as a ceiling rather than a target: 250 -> 375. The card only reaches it where
+   the captains column is wide enough to hold the stack, which is derived per window. */
+/* ⭐ HIS 2026-09-10 DESKTOP CARD WIDTH. The derivation below still measures the captains column and
+   still clamps to the glass — a card a captain cannot reach is the one outcome this project calls
+   unacceptable — but where there is room, this is the width he chose. */
+const RC_CARD_MAX = 400;
+/* ⭐ EVERY ONE OF THESE IS HIS, DIALLED ON THE TUNER AND PASTED BACK — 2026-09-10. They replace
+   numbers I had guessed at, and the shape of what he chose is worth reading: a LONG entrance
+   (1160ms) that starts BIGGER than final and settles down through a small overshoot, a full second
+   of stillness, a swap more than twice as slow as mine, three-quarters of a second to look at the
+   result, and a flight that anticipates — pulls back before it goes — and overshoots on arrival.
+   He asked for "more game feel and weight"; what he picked is a heavier, slower, springier card
+   than anything I proposed. Do not tighten these back up without asking him. */
+/* ⭐ THE BOARD GETS TWO SECONDS TO ITSELF FIRST — Wyatt, playtest 2026-09-10: "I want the cards to
+   appear after a 2-second delay, to let the users see the board first."
+   The sheet is pinned to opacity 0 for this whole window (promptTick sets it, rcFlightShow's
+   keyframes take it back), so it is genuinely invisible rather than drawn and then hidden.
+   ⭐ AND THE WAIT IS WHERE THE SHOW IS MEASURED FROM. The first version made this a `delay` on the
+   entrance keyframes, which meant the geometry was still read two seconds early — while the board
+   was still laying out at 1012px against the 1036px it settles at, which held the cards 87px right
+   of centre. Spending the delay first and measuring after costs nothing and makes every number in
+   the show a fact about a board that has stopped moving. His tuner numbers are untouched: they all
+   run from the end of this wait. */
+const RC_DELAY_MS = 2000;    // board alone, before anything arrives
+const RC_FADE_MS  = 1160;    // the entrance
+const RC_FROM     = 1.25;    // starts 25% LARGER and settles down — his choice, not a typo
+const RC_OVER     = 1.03;    // and dips a little past 1 on the way
+const RC_LAND_MS  = 950;     // still, before the swap
+const RC_SWAP_MS  = 380;     // the swap itself
+const RC_HOLD_MS  = 750;     // still again, after it
+const RC_FLY_MS   = 1070;    // the flight; matches the CSS transition on #pp4Prompt exactly
+const RC_LEAN     = 0.09;    // how far it leans past the mark on the way
+const RC_SQUASH    = 0.11;   // and how much it squashes while travelling
+
+function rcFlightStop(){
+  rcFlightTimers.forEach(clearTimeout);
+  rcFlightTimers = [];
+  rcAnims.forEach(a => { try { a.cancel(); } catch (e) {} });
+  rcAnims = [];
+  rcInFlight = false;
+}
+/* Put the box back to plain parked geometry. Called on teardown AND before every fresh flight, so
+   a picker that opens while the last one is still in the air cannot inherit its transform. */
+function rcFlightReset(){
+  rcFlightStop();
+  rcFlightKey = null;
+  rcAlignReady = false;
+  const box = $("pp4Prompt");
+  if (box) box.style.transform = "";   // (.pp4RcHold went with the CSS transition — see rcFlightRun)
+}
+const rcLater = (fn, ms) => { rcFlightTimers.push(setTimeout(fn, ms)); };
+
+/* The drawn board's rect, or null while it has no size yet (the first frames of a stage, and every
+   frame of a game that has not charted a board at all). Every caller treats null as "place it
+   parked and skip the show" rather than guessing a number. */
+/* ⚠ IN THE SAME COORDINATE SPACE `#pp4Prompt.style.left` IS WRITTEN IN — which on desktop is NOT
+   the viewport. body carries the item-22 width cap with `margin:0 auto`, so a position:fixed child
+   resolves `left` against body's SHIFTED box while getBoundingClientRect() keeps answering in true
+   viewport coordinates. Mixing the two is the exact fault that stacked the radial fan's four
+   buttons in one corner at 7am (docs/HARD-WON-LESSONS.md), and it bit this block too: the first run
+   of the flying picker measured the board with a raw gBCR and parked the sheet 4px PAST the board's
+   right edge on desktop, while reading correct on phone (where the cap never engages and the shift
+   is zero). fixedRect() is that shift, already written and already tested.
+   AND THAT IS WHY THE GLASS-EDGE CLAMP BELOW USES vwPx(), reversing the warning left by the design
+   this replaces ("it uses window.innerWidth, NOT vwPx()"). That warning was right for code that had
+   viewport-absolute numbers in its hands; here every number is body-relative, and in body-relative
+   space vwPx() IS the right-hand edge. One space, consistently — which is also what lets the
+   after-the-fact overflow nudge that used to sit here be deleted rather than kept. */
+function boardDrawnRect(){
+  const b = svgEl();
+  if (!b) return null;
+  const r = fixedRect(b);
+  return (r.width > 2 && r.height > 2) ? r : null;
+}
+
+/* ⭐ THE SHOW. Called ONCE per picker, with the box already sitting at its parked geometry.
+   dx/dy are measured here, from the box's own rect, because the parked place is set by four
+   different clamps above and re-deriving it would be a second answer to a question already
+   answered (rule 23). */
+function rcFlightRun(key, brd){
+  const box = $("pp4Prompt");
+  if (!box || !brd) return;
+  /* ⚠ BEFORE rcFlightReset(), AND THAT ORDER IS THE WHOLE POINT. dx below is measured ONCE and
+     never revisited, so the flight must not start while the sound-icon alignment still has a
+     correction to make — but rcFlightReset() CLEARS rcAlignReady, so testing it after the reset
+     tests a flag this function just falsified. Measured: the guard failed on every tick forever,
+     the entrance was never attached, and the opacity pin promptTick sets was never released — the
+     picker did not appear at all, at any size. Return before touching any state: nothing has been
+     reset and no key has been claimed, so this is simply "try again next tick". */
+  if (!rcAlignReady) return;
+  rcFlightReset();
+  rcFlightKey = key;
+
+  const REDUCED = typeof matchMedia === "function" && matchMedia("(prefers-reduced-motion: reduce)").matches;
+  /* ⚠ EVERY EXIT HANDS THE OPACITY BACK. promptTick pins the sheet to 0 before calling this so it
+     cannot flash un-animated; any path that does not attach the entrance owes it a release, or the
+     picker is invisible for the rest of the voyage. Reduced motion is the loudest case: the whole
+     show is skipped, so the sheet must simply BE there. */
+  const rcShow = () => { const b = $("pp4Prompt"); if (b) b.style.opacity = ""; };
+  if (REDUCED) { rcShow(); return; }        // parked, immediately, and no demo swap: the show IS motion
+
+  /* ⭐ THE WHOLE SHOW IS MEASURED WHEN IT STARTS, NOT WHEN IT IS SCHEDULED — and his two-second
+     delay is what makes that possible. dx is computed ONCE and every beat hangs off it, so reading
+     the geometry early bakes an early answer into all of them. Measured 2026-09-10: at the instant
+     the picker first ticks, the board is still laying out — 1012px wide against the 1036px it
+     settles at — and the cards held 87px right of centre because of it. Waiting the delay costs
+     nothing (the sheet is pinned invisible for exactly that window anyway) and every number below
+     is then read off a board that has stopped moving.
+     ⚠ fixedRect, NOT gBCR — `brd` arrives in body-relative space (see boardDrawnRect) and a delta
+     between two different coordinate spaces is off by exactly the item-22 shift. Both sides in one
+     space or neither. */
+  rcInFlight = true;                 // from NOW: the sheet is the show's, and promptTick keeps off it
+  rcLater(() => rcFlightShow(box, brd, rcShow), RC_DELAY_MS);
+}
+
+/* The show itself, one tick of the clock after rcFlightRun claimed the picker. Split out so the
+   measurement and the keyframes are the same statement — see the note at the call above. */
+function rcFlightShow(box, brd, rcShow){
+  if (!box.isConnected) { rcShow(); rcInFlight = false; return; }
+  const r = fixedRect(box);
+  if (r.width < 2 || r.height < 2) { rcFlightKey = null; rcInFlight = false; rcShow(); return; }
+  /* ⭐ THE CARD OVER THE MIDDLE, NOT THE SHEET — Wyatt, playtest 2026-09-10: "the cards should
+     appear directly over the center of the board; in desktop this is not what happened."
+     The sheet is wider than the card it carries: the swap circle and the back card's peek both
+     live inside it, off to the right, so a sheet centred on the board leaves the CARD left of
+     centre — measured at 88px on 1920 and 56px on 1280, and 5px on a phone where the sheet is
+     barely wider than the card, which is exactly why this only ever looked wrong on desktop.
+     Centre the thing he is looking at. The flight's transform is on the SHEET, so moving the sheet
+     by this delta moves the card by the same delta — measuring the card and translating the sheet
+     is not a mismatch, it is the only way to aim at the card at all. */
+  const aim = (() => {
+    const ap0 = $("actionPanel");
+    if (!ap0) return r;
+    const c = [...ap0.querySelectorAll(".apBtn")]
+      .filter(b => b.querySelector(".recipeList") && fixedRect(b).width > 2)
+      .sort((a, b) => fixedRect(a).left - fixedRect(b).left)[0];
+    const cr = c ? fixedRect(c) : null;
+    return (cr && cr.width > 2 && cr.height > 2) ? cr : r;
+  })();
+  const dx = Math.round((brd.left + brd.width  / 2) - (aim.left + aim.width  / 2));
+  const dy = Math.round((brd.top  + brd.height / 2) - (aim.top  + aim.height / 2));
+  if (!dx && !dy) { rcShow(); rcInFlight = false; return; }   // parked IS the middle (a board smaller than the sheet)
+
+  /* ⭐ DRIVEN BY THE WEB ANIMATIONS API, NOT BY A CSS TRANSITION — and that is what his tuner
+     numbers actually require. A transition can carry one value from A to B on one curve; it cannot
+     start a card at 125% and settle it through a 103% overshoot, and it cannot lean past the mark
+     and squash on the way. Those are keyframes, so they are written as keyframes.
+     IT ALSO REMOVES THE `.pp4RcHold` DANCE. That class existed to suppress the transition for one
+     write so the sheet APPEARED in the middle instead of visibly sliding there from the corner —
+     a workaround for a mechanism that is now gone: an animation simply starts where it starts. */
+  const ANIMS = [];
+  const hold = `translate(${dx}px, ${dy}px)`;
+
+  /* the delay is already spent — these are his numbers, from now */
+  const rcAt = ms => ms;
+
+  ANIMS.push(box.animate([
+    { opacity: 0, transform: `${hold} scale(${RC_FROM})`, offset: 0 },
+    { opacity: 1, transform: `${hold} scale(${RC_OVER})`, offset: .62 },
+    { opacity: 1, transform: `${hold} scale(1)`,          offset: 1 },
+  ], { duration: RC_FADE_MS, easing: "cubic-bezier(.2,.7,.3,1)", fill: "both" }));
+  rcShow();   // the keyframes own opacity from here — they fill backwards through the delay
+
+  /* AND IT HOLDS THERE. Without this the entrance's fill:both ends and the box snaps to its parked
+     place the instant the fade finishes — a second animation pinned to the same transform is what
+     keeps it over the middle of the board for his 950ms of stillness and the swap. */
+  ANIMS.push(box.animate([{ transform: hold }, { transform: hold }],
+    { duration: RC_LAND_MS + RC_SWAP_MS + RC_HOLD_MS, delay: rcAt(RC_FADE_MS), fill: "both" }));
+
+  /* THE DEMO SWAP NEVER FIGHTS THE PLAYER. It is there to show a newcomer that the cards trade
+     places; a captain who has already tapped a card has shown they know what the cards are, and
+     swapping their choice out from under their thumb is the one thing the show must not do. */
+  rcLater(() => { if (rcSwapFn && !document.querySelector("#actionPanel .apBtn.pp4Focus")) rcSwapFn(); }, rcAt(RC_FADE_MS + RC_LAND_MS));
+
+  rcLater(() => {
+    const b2 = $("pp4Prompt");
+    if (!b2) return;
+    /* THE FLIGHT. His curve anticipates and overshoots on its own; the lean is an EXTRA push past
+       the mark at 72%, and the squash is the card stretching along its travel and thinning across
+       it — the two things that read as weight rather than as speed. */
+    const lx = Math.round(-dx * RC_LEAN), ly = Math.round(-dy * RC_LEAN);
+    ANIMS.push(b2.animate([
+      { transform: `${hold} scale(1,1)`, offset: 0 },
+      { transform: `translate(${lx}px, ${ly}px) scale(${1 + RC_SQUASH}, ${1 - RC_SQUASH})`, offset: .72 },
+      { transform: "translate(0px, 0px) scale(1,1)", offset: 1 },
+    ], { duration: RC_FLY_MS, easing: "cubic-bezier(.68,-.55,.27,1.55)", fill: "both" }));
+  }, rcAt(RC_FADE_MS + RC_LAND_MS + RC_SWAP_MS + RC_HOLD_MS));
+
+  /* AND EVERYTHING IS CANCELLED WHEN THE SHOW ENDS, or a fill:both animation would hold the sheet
+     off its parked place for the rest of the voyage — the tick would keep writing left/top that
+     nothing on screen obeyed. rcFlightStop() clears the timers; this clears what they created. */
+  rcAnims = ANIMS;
+  rcLater(() => {
+    rcInFlight = false;
+    ANIMS.forEach(a => { try { a.cancel(); } catch (e) {} });
+    rcAnims = [];
+  }, rcAt(RC_FADE_MS + RC_LAND_MS + RC_SWAP_MS + RC_HOLD_MS + RC_FLY_MS + 40));
+}
+
+/* ⭐ THE HELPER PILL IS LOCKED UNDER THE CARDS — Wyatt, 2026-09-09: "make that 'tap a recipe'
+   helper locked underneath the recipe cards so it moves with them."
+   THIS REVERSES HIS OWN RULING OF AN HOUR AGO ("a normal helper pill over the sea, not covering any
+   of the islands"), and the reversal is the right call for a reason worth writing down: the sheet
+   DRAGS now. A pill pinned to the water is correct only while the thing it describes cannot move —
+   the moment the captain can carry the cards across the board, a helper anchored to the sea is a
+   label that has come off its object. So it stops being placed at all and simply becomes the last
+   child of the sheet's own column, below the cards.
+   WHAT THIS DELETED, deliberately: a 2D search that projected every island square through
+   toScreen() to find open water. It was correct and measured 0 island squares at all three sizes —
+   and it is gone because the question it answered stopped being asked. */
+
+/* ⭐ THE PICKER'S CHROME, TAKEN DOWN IN ONE PLACE — Wyatt, 2026-09-09: "look what happens after
+   choosing a recipe". The ask box and the helper pill were both left standing on the board, under
+   the narration that replaced them.
+   ⚠ THE CAUSE WAS THAT THE TEARDOWN EXISTED THREE TIMES AND THE PATH THAT MATTERED HAD NONE OF
+   THEM. promptTick has three exits: the empty-panel branch (had a copy), the radial fall-through
+   (had a copy), and CENTRE STAGE — which returns before either, and is exactly the exit a recipe
+   choice takes. One function now, called before ANY of those exits can be taken. */
+function rcChromeTeardown(box){
+  const a0 = box.querySelector(".pp4RcAsk");  if (a0) a0.remove();
+  const p0 = box.querySelector(".pp4RcHelp"); if (p0) p0.remove();
+  rcFlightReset();        // a transform must never outlive the box it moved
+  /* ⚠ AND NEITHER MAY THE OPACITY PIN. #pp4Prompt is the ONE box every prompt in the game is drawn
+     in, so a picker torn down between "pinned to 0" and "the entrance took over" would hand the
+     next question — a trade, a battle, the end card — a permanently invisible box. Same reasoning
+     as the transform on the line above, and the same one-line cure. */
+  box.style.opacity = "";
+}
+
+/* ⚠ THE DRAG IS GONE, ON PURPOSE, AND THIS NOTE IS ALL THAT SURVIVES IT — 2026-09-09.
+   For one evening the whole sheet could be picked up and carried across the board, because it sat
+   ON the board and he needed to see what was under it. Then it moved to where the captains box
+   sits, over nothing, and he said: "Now that the recipes aren't blocking the board, remove the
+   dragging behavior, and restore the swiping to swap behavior."
+   ⭐ WHEN THE REASON FOR A FEATURE IS REMOVED, REMOVE THE FEATURE. Keeping it would have cost the
+   swipe (one gesture cannot mean two things), left a slop threshold and a click-swallower alive to
+   be maintained, and left a grab cursor promising something pointless. About 70 lines deleted —
+   the native-image-drag fix went with them, which is worth knowing if a drag ever comes back:
+   pressing a card's <img> starts Chrome's own drag-and-drop and kills the pointer stream. */
+
+function mountRecipeStack(ap){
+  const cards = [...ap.querySelectorAll(".apBtn")].filter(b => b.querySelector(".recipeList"));
+  if (cards.length < 2){ rcKey = null; return; }
+  /* ⚠ THE KEY MUST NOT MOVE WHILE THE PICKER IS UP. It was `innerHTML.length`, which CHANGES the
+     moment the "Bake this!" pill is added — so selecting a card remounted the whole stack on the
+     next frame: arrows destroyed and rebuilt, and the dotted course re-charted, every frame the
+     pill was on screen. The recipe titles are what actually identifies this picker, and they are
+     fixed for as long as it is up. */
+  const key = cards.map(c => (c.querySelector(".recipeTitle") || {}).textContent || "").join("|");
+  if (key === rcKey) return;
+  rcKey = key;
+
+  /* ⭐ EACH TITLE RESERVES ITS PARTNER'S NAME, so a swap cannot move the stack — his 2026-09-10
+     item 1, the jump he filmed. The front card is the one in flow, so whichever recipe is in FRONT
+     decides how tall the stack is. At his two reference widths all 21 names sit on one line
+     (scripts/qa/_recipe_title_lines.mjs), but the card's border is a fixed 2px that does not scale,
+     so on a real 390px phone the longest tips onto a second line — measured, "Chocolate Genoise
+     Sponge Cake". Swapping to it grew the stack by a line. Reserving two lines on EVERY card would
+     put a blank line under names that never need it, which is not his card.
+     So each title carries the other card's name as a data attribute, and the CSS draws it as an
+     invisible ::after in the SAME grid cell as the real name (index.html, search data-ghost). The
+     title is then as tall as the longer of the two, on both cards, at every width, with nothing
+     measured: no per-frame cost, no answer that goes stale when the card scales, and nothing that
+     can read a hidden card as zero lines. Generated content is not in textContent or innerText, and
+     a visibility:hidden box is not in the accessibility tree, so the name a reader hears — and
+     every probe that reads a card — is unchanged. */
+  cards.forEach((c, i) => {
+    const t = c.querySelector(".recipeTitle");
+    const other = cards[(i + 1) % cards.length].querySelector(".recipeTitle");
+    if (t && other) t.dataset.ghost = other.textContent.trim();
+  });
+
+  let front = 0;
+  const row = cards[0].parentElement;
+
+  const paint = () => {
+    cards.forEach((c, i) => {
+      const isFront = i === front;
+      c.dataset.rcpos = isFront ? "front" : "back";
+      /* THE HIDDEN CARD IS HIDDEN FROM EVERYTHING, not just from the eye. It is a real <button>
+         sitting behind another one: without this it stays in the tab order and is announced by a
+         screen reader as a choosable recipe that cannot be reached, and the sea trial's structural
+         check found it exactly that way on four legs — "clickable covered by something else".
+         pointer-events:none already stopped the mouse; these stop the keyboard and the reader. */
+      /* THE BACK CARD IS SEEN BUT NEVER TAPPED — see the v4 note in index.html. It keeps its art
+         and its title (his 6.3) and stays out of the tab order and the accessibility tree, because
+         a <button> behind another <button> is what failed the sea trial's structural check twice.
+         What answers a tap on it is .pp4RcPeek below, which covers only the sliver that shows. */
+      c.setAttribute("aria-hidden", String(!isFront));
+      c.tabIndex = isFront ? 0 : -1;
+    });
+    chartFrontRecipe(cards[front]);
+  };
+
+  /* ⭐ THE SWAP — his 6.2 ("animate when swapping to look like they're switching front to back")
+     and his 6.7 ("Tapping the back card should trigger the two to animatedly swap. It should also
+     'cancel' the Bake this! state for the front card. Clicking the swap arrow should have the same
+     effect").
+     ONE FUNCTION FOR ALL THREE WAYS IN — the circle, the sliver and the swipe — so they cannot
+     drift and none of them can forget to cancel the pending bake. `swapping` guards a double tap
+     mid-animation, which would otherwise leave the row wearing .rcSwapping forever. */
+  const REDUCED = typeof matchMedia === "function" && matchMedia("(prefers-reduced-motion: reduce)").matches;
+  /* HIS TUNER NUMBER (380ms) REPLACES THE 150 HE ASKED FOR ON 2026-09-08. Both are his; the later
+     one wins, and the CSS transition below is derived from it rather than typed twice. */
+  const SWAP_MS = REDUCED ? 0 : RC_SWAP_MS;
+  let swapping = false;
+  const swap = () => {
+    if (swapping || cards.length < 2) return;
+    swapping = true;
+    resetRecipeFocus();                      // his 6.7: a pending "Bake this!" is cancelled
+    if (SWAP_MS) row.classList.add("rcSwapping");
+    setTimeout(() => {
+      /* THE COMMIT LANDS WITH NO TRANSITION — see .rcSnap in index.html. Exchanging data-rcpos
+         changes each card's target transform, and with the transition live they animated a SECOND
+         time from where they had just arrived. That double run IS the pause he described. The
+         reflow poke between the writes is load-bearing: without it the browser coalesces the class
+         removal with the position swap and never sees the untransitioned state at all. */
+      row.classList.add("rcSnap");
+      row.classList.remove("rcSwapping");
+      front = (front + 1) % cards.length;
+      paint();
+      /* ⚠ AND NO "BAKE THIS!" SURVIVES ON THE CARD THAT WENT BEHIND. The cancel at the top of the
+         swap runs when it STARTS; a tap during its 380ms slide lands after that and selects the
+         card that is on its way to the back. Measured, 2026-09-10 sea trial, solo-tablet: the
+         selected card ended up behind, wearing "Bake this!", unreachable — and the trial's mouse
+         spent thirteen minutes trying to confirm it. The back card can never be the one pending. */
+      if (cards.some(c => c.dataset.rcpos === "back" && c.classList.contains("pp4Focus"))) resetRecipeFocus();
+      void row.offsetWidth;
+      row.classList.remove("rcSnap");
+      swapping = false;
+    }, SWAP_MS);
+  };
+
+  row.querySelectorAll(".pp4RcArrow, .pp4RcSwap, .pp4RcPeek").forEach(a => a.remove());
+  {
+    /* stopPropagation on both, or the click also reaches recipeGuard's document listener and
+       counts as a tap on the card underneath — which would CHOOSE a recipe the captain was only
+       flicking past. That was true of the old arrows and is just as true of these. */
+    const stop = (fn) => (e) => { e.preventDefault(); e.stopPropagation(); fn(); };
+    const sw = document.createElement("button");
+    sw.type = "button"; sw.className = "pp4RcSwap";
+    sw.setAttribute("aria-label", "Show the other recipe");
+    /* HIS OWN ARROW, DRAWN — never a glyph (see .pp4RcSwap svg in index.html for why a character
+       cannot be vertically centred). A return arrow: across, round, and back on itself. */
+    sw.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" ' +
+      'stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">' +
+      '<path d="M20 7H9a4.5 4.5 0 0 0 0 9h3"/><polyline points="15.5 3 20 7 15.5 11"/></svg>';
+    sw.addEventListener("click", stop(swap));
+    row.appendChild(sw);
+
+    /* The sliver of the back card, made tappable. aria-hidden and out of the tab order because the
+       circle above is the SAME action already announced and reachable — two tab stops and two
+       announcements for one swap is worse than one. */
+    const pk = document.createElement("button");
+    pk.type = "button"; pk.className = "pp4RcPeek";
+    pk.setAttribute("aria-hidden", "true"); pk.tabIndex = -1;
+    pk.addEventListener("click", stop(swap));
+    row.appendChild(pk);
+  }
+
+  /* ⭐ THE SWIPE IS BACK, AND THE DRAG IS GONE — Wyatt, 2026-09-09: "Now that the recipes aren't
+     blocking the board, remove the dragging behavior, and restore the swiping to swap behavior."
+     HE IS RIGHT AND THE REASON IS WORTH KEEPING: dragging existed so he could see what the sheet was
+     covering. Once the sheet sits where the captains box does — over nothing — there is nothing to
+     look under, so the drag is a gesture solving a problem that no longer exists, and it was
+     costing the swipe. When the reason for a feature is removed, remove the feature.
+     THE SWIPE. Pointer events, not touch events, so a trackpad drag and a finger are one path.
+     A 34px threshold and a dominant-axis test: the panel scrolls vertically, so a swipe that is
+     mostly up or down must be left to it rather than eaten here. */
+  /* ⚠ THE JS HALF OF THE SAME GUARD. -webkit-user-drag is non-standard and Firefox ignores it
+     entirely; `dragstart` is standard and every engine fires it. Both, because the symptom — a
+     swipe that dies after its first frame — looks like a broken gesture rather than a browser
+     feature, and cost a full debugging round the first time. */
+  row.addEventListener("dragstart", (e) => e.preventDefault());
+  let sx = 0, sy = 0, live = false;
+  row.addEventListener("pointerdown", (e) => { sx = e.clientX; sy = e.clientY; live = true; });
+  row.addEventListener("pointerup", (e) => {
+    if (!live) return; live = false;
+    const dx = e.clientX - sx, dy = e.clientY - sy;
+    if (Math.abs(dx) < 34 || Math.abs(dx) <= Math.abs(dy)) return;
+    // a real swipe is not a tap: stop it before recipeGuard reads it as one
+    e.preventDefault(); e.stopPropagation();
+    /* Either direction swaps: there are exactly two recipes, so a swipe has no "next" to be
+       distinct from a "previous" — the same reasoning that turned two arrows into one circle. */
+    swap();
+  }, true);
+  row.addEventListener("pointercancel", () => { live = false; });
+  /* ⭐ THE DEMO SWAP DRIVES THIS EXACT FUNCTION — Wyatt, 2026-09-09: "then swap themselves ONCE to
+     show that they can be swapped". Handing the choreography the real `swap` rather than a
+     look-alike animation is the whole point: what he is being shown IS what a tap does, including
+     the cancel-the-pending-bake and re-chart-the-course that come with it. A second, cosmetic
+     version of this would be two things kept in step by nothing. */
+  rcSwapFn = swap;
+  paint();
+}
+
+/* The front card's docks, charted. Shared by the stack above and by recipeGuard's first tap, so
+   "which docks does this recipe send me to" is answered in ONE place. */
+function chartFrontRecipe(card){
+  const g = appState.game; if (!g || !card) return;
+  const ids = [...card.querySelectorAll("[data-ing]")].map(e => e.dataset.ing).filter(Boolean);
+  const seat = (S.activeSeat != null) ? S.activeSeat : appState.curSeat;
+  const me = (seat != null && g.players) ? g.players[seat] : null;
+  if (me) showCourseFor(g, me, svgEl(), cellPx(), ids);
+  else paintMarks(ids.map(i => (g.dockOf && g.dockOf[i]) || (g.islandOf && g.islandOf[i])).filter(Boolean), cellPx());
+}
+
+function clearGlow(){ document.querySelectorAll(".pp4Glow").forEach(e => e.remove()); forgetCourse(); }
+/* Put the picker back to "nothing chosen yet" — his 6.7. It exists because THREE things carry the
+   selected state and all three have to go together: the module's `focusBtn`, the card's .pp4Focus
+   outline, and the "Bake this!" pill. recipeGuard's own second-tap branch already did exactly this
+   inline; the swap needs it too, so it lives in one place rather than being written twice and
+   drifting the first time one of the three gains a fourth sibling. */
+function resetRecipeFocus(){
+  if (!focusBtn) return;
+  focusBtn = null;
+  clearGlow(); clearBake();
+  document.querySelectorAll("#actionPanel .apBtn.pp4Focus").forEach(x => x.classList.remove("pp4Focus"));
+}
+function clearBake(){ document.querySelectorAll(".pp4Bake").forEach(e => e.remove()); }
+
+/* ========== the trade-wind ride preview (playtest 20, Mando's three lost turns) ========== */
+// "I was stuck here for 3 turns trying to get milk. Just couldn't get to the dock from this
+// direction since I didn't want to get stuck in the trade winds."
+//
+// Landing on the rim does not park you there — the current carries you to that arc's clockwise
+// end (RULES-V2 line 24), which can be most of the board away. The only way to learn that was to
+// spend a turn on it. So a swept square now ANSWERS FIRST: one tap draws where you would actually
+// end up, and only a second tap commits.
+//
+// A DELIBERATE EXCEPTION to the one-tap sail gesture, and Wyatt's own pick (2026-08-13): every
+// other legal square still commits on the first tap. The confirmation is bought only where the
+// square does something the player cannot see coming.
+let sweepBtn = null;
+function clearSweep(){ document.querySelectorAll(".sweepPath,.sweepEnd,.sweepGhost").forEach(e => e.remove()); }
+function sweepGuard(){
+  document.addEventListener("click", e => {
+    if (!S.active) return;
+    const cell = e.target.closest && e.target.closest(".sailCell");
+    /* ANY TAP THAT IS NOT ON A PREVIEWED SQUARE CLEARS THE PREVIEW AND FORGETS IT — and until
+       2026-08-29 that sentence was true only of the comment. The teardown was nested inside
+       `if (!cell)`, so it fired only when the tap missed EVERY sail square; tap a plain yellow one
+       and `cell` exists, the guard returned, and the dashed track, the end circle and the ghost hull
+       all stayed on the board. That is Wyatt's W3-5, and it is rule 6 in the shape the rulebook
+       names: a comment is a statement of intent by somebody who has since left the room.
+       The teardown is unconditional now. The two-tap gesture is untouched — the SAME square still
+       commits on its second tap, one line below. */
+    if (!cell || !cell.classList.contains("sailSwept")){ clearSweep(); sweepBtn = null; return; }
+    if (sweepBtn === cell){ clearSweep(); sweepBtn = null; return; }   // second tap: let it through
+    e.stopPropagation(); e.preventDefault();                           // first tap: show the ride
+    sweepBtn = cell;
+    clearSweep();
+    /* ZOOM OUT TO SHOW HOW FAR THE BOAT WOULD GO — Wyatt, 2026-08-20, in those words, after
+       watching a screen recording of a trade-wind ride at PHONE width.
+
+       The preview's whole job is to answer "where would I end up", and at 390px it usually could
+       not: the current carries a ship most of the way round the board, so the destination is off
+       camera far more often than not, and what he saw was a dashed line leaving the corner of the
+       screen with no end circle and no ghost hull. A preview that runs off the screen answers
+       nothing — it is the question restated.
+
+       The SAME call the real ride already makes (__pp4.sweepCam, used by animateRimSweepRun in
+       ui/flow.js) rather than a second framing rule of its own: the preview is a promise about what
+       the ride will look like, so it must be framed the way the ride is framed, or the promise is
+       about a different shot. Consistency is a core value, and this is the cheap kind — one
+       existing call, no new numbers.
+
+       Safe against the two-tap gesture, checked rather than assumed: the camera moves by writing
+       the SVG's viewBox (tick(), :270), never by redrawing the board, so `cell` is the same element
+       on the second tap and `sweepBtn === cell` still commits. */
+    S.lock = false; camFull();
+    const to = (cell.dataset.sweptTo || "").split(",").map(Number);
+    const g = appState.game, svg = svgEl();
+    if (!g || !svg || to.length !== 2 || !isFinite(to[0])) return;
+    // the tapped square carries its own grid cell (data-gx/gy from sailHighlightRect)
+    const fx = +cell.dataset.gx, fy = +cell.dataset.gy;
+    if (!Number.isFinite(fx) || !Number.isFinite(fy)) return;
+    const cp = cellPx();
+    const x1 = (fx + 0.5) * cp, y1 = (fy + 0.5) * cp;
+    const x2 = (to[0] + 0.5) * cp, y2 = (to[1] + 0.5) * cp;
+    // bow the track AWAY from the board's middle, so it reads as running round the rim rather
+    // than cutting straight across the sea the current never crosses
+    const mid = 320, bx = (x1 + x2) / 2, by = (y1 + y2) / 2;
+    const ox = bx - mid, oy = by - mid, len = Math.hypot(ox, oy) || 1;
+    const bow = Math.min(140, Math.hypot(x2 - x1, y2 - y1) * 0.35);
+    const cxq = bx + (ox / len) * bow, cyq = by + (oy / len) * bow;
+    const mk = (tag, attrs, cls) => {
+      const n = document.createElementNS("http://www.w3.org/2000/svg", tag);
+      for (const k in attrs) n.setAttribute(k, attrs[k]);
+      n.classList.add(cls); svg.appendChild(n); return n;
+    };
+    mk("path", { d: `M${x1},${y1} Q${cxq},${cyq} ${x2},${y2}` }, "sweepPath");
+    mk("circle", { cx: x2, cy: y2, r: cp * 0.42 }, "sweepEnd");
+    // a ghost of YOUR hull waiting at the far end — the clearest possible "this is where you'd be"
+    const seat = appState.mySeat ?? 0;
+    const gh = document.createElementNS("http://www.w3.org/2000/svg", "image");
+    /* BOAT_IMG, not a path typed again here. There used to be two spellings of the hull art in this
+       file and one in shared/index.js, and on 2026-09-02 the format changed underneath all three —
+       exactly the drift rule 23 is about. One list, four hulls, everybody reads it. */
+    gh.setAttribute("href", BOAT_IMG[seat]);
+    gh.setAttribute("x", x2 - cp * 0.32); gh.setAttribute("y", y2 - cp * 0.32);
+    gh.setAttribute("width", cp * 0.64); gh.setAttribute("height", cp * 0.64);
+    gh.classList.add("sweepGhost"); svg.appendChild(gh);
+  }, true);
+}
+
+/* ================= stage assembly ================= */
+function buildStage(){
+  const wrap = $("boardwrap"); if (!wrap) return;
+  document.body.classList.add("pp4Stage");
+  // ribbon
+  const rib = document.createElement("div"); rib.id = "pp4Ribbon";
+  const order = [0, 1, 2, 3];
+  rib.innerHTML = `<span id="pp4Round">DAY 1</span>
+    <span class="pp4Boats">${order.map(i => `<img class="pp4Boat" src="${BOAT_IMG[i]}">`).join("")}</span>
+    <button id="pp4FF" type="button" title="Skip to yer next turn">⏩</button>
+    <button id="pp4Chat" type="button" title="Scuttlebutt">💬<span id="pp4ChatDot"></span></button>
+    <button id="pp4Help" type="button" title="Yer parrot">${emojify("🦜?")}</button>
+    <button id="pp4Menu" type="button">☰</button>`;
+  document.body.appendChild(rib);
+  /* THE PARROT IS A TWO-STATE TOGGLE — his ruling, chosen over a three-step, because an
+     unlabelled three-state control gets pressed at random. ON puts every ladder back to the top
+     and says so; OFF silences it. One line of narration each way, drawn through flash() so it
+     arrives in the box the game already speaks from — nothing here is a tooltip (he killed one of
+     those for the Muse button on 2026-08-27 and the ruling is respected, not argued with). */
+  $("pp4Help").onclick = () => {
+    const on = pilotToggle();
+    syncHelpChip();
+    /* OFF MEANS OFF, THIS INSTANT. Measured on the posed pair: without this the words stopped at
+       the next prompt but the course stayed drawn on the board, so the control looked broken for a
+       whole turn — a toggle that does not visibly do anything is worse than no toggle. Switching
+       ON does not draw a course here on purpose: the guide belongs to a prompt, and it arrives with
+       the next one rather than appearing over whatever is on screen now. */
+    /* ⭐ THE TOGGLE ANSWERS IN BOTH DIRECTIONS NOW — Wyatt, 2026-09-07 playtest item 9: "when i
+       click parrot on again, the dotted line doesn't return — it should though! re-enabling parrot
+       should immediately restore all the hint state."
+       The comment that stood here defended the old behaviour ("the guide belongs to a prompt, and
+       it arrives with the next one rather than appearing over whatever is on screen now"). That
+       was my call and he has overruled it, for the reason that killed the original one-way
+       version: a control that visibly does nothing when you press it reads as broken. redrawCourse
+       re-derives the tour from the LIVE game, so what comes back is where the captain must go now.
+       The WORDS still arrive with the next prompt — pilotToggle() has just put every ladder back
+       to rung 0 — and that half was never the complaint. */
+    if (on) redrawCourse(); else clearCourse();
+    /* ⭐ POLLY SAYS WHICH WAY THE SWITCH WENT, AND SHE SAYS IT EVERY TIME.
+       His item 9, second half: "when parrot is enabled/disabled, there should be a little helper
+       box (it should look like a narration box but we can call it something different so you don't
+       get confused in the code) that says 'Polly's helping!' when on, and 'Polly's not helping'".
+       ⚠ THIS REPLACES A stageFlash THAT WAS SUPPRESSED WHENEVER A PROMPT WAS UP. That suppression
+       was real and measured — at 320px the toggle's line drew straight over the sail prompt's own
+       helper line and half of each was unreadable — but it meant the control was silent at exactly
+       the moment he was most likely to press it. Polly gets her own element and her own place
+       (pinned under the ribbon, never in the narration column), so there is nothing left to
+       collide with and the suppression can go. Named `polly`, not `narr`, at his instruction. */
+    pollySay(on ? "🦜 Polly's helping!" : "🦜 Polly's not helping");
+  };
+  syncHelpChip();
+  // FAST-FORWARD (Wyatt's spec, 2026-08-12): ONE tap arms ONE skip — everything paces instantly
+  // until the next prompt that involves him (his sail, a flip, a battle call, an offered trade),
+  // which ends the skip at normal speed and never re-arms it (flow.js ffEndNow is the other half:
+  // it also builds the one-clause-per-bot recap of what he didn't witness). Solo only by design
+  // (D-04) — never Pass & Play, never a crew game — and the flag drives pure UI pacing, never the
+  // engine.
+  //
+  // T-02-10 (02-03): hiding the chip is not proof the flag can't be set — appState.ff also
+  // shortens sleep() in orchestrator.js/flow.js, and on the HOST those calls pace the entire
+  // runLiveNet loop, so an armable-but-invisible flag would still rush every guest's narration
+  // even with #pp4FF's own display stuck at "none". The arm refuses here, in the handler body,
+  // using the same networked test the visibility tick above uses — a guard rather than a
+  // conditionally-attached handler, so it holds even if this device's mode were ever to change
+  // after buildStage() already ran (never happens today — a room's networked-ness is fixed for a
+  // voyage's whole lifetime — but the guard doesn't have to trust that staying true).
+  $("pp4FF").onclick = () => {
+    if (appState.ff) return;
+    if (appState.db && appState.room) return; // D-04: no arming the skip in a crew game, chip visible or not
+    appState.ff = true;
+    appState.ffFromEv = appState.game ? appState.game.events.length : 0;
+    if (S.hurry) S.hurry();          // the live bubble goes NOW — the skip starts this instant
+    wake();
+  };
+  // D-06: chat's slide-up sheet re-parents the classic #chatPanel wholesale — the same
+  // build-a-container-then-move-the-existing-node pattern this function already uses below for
+  // #controlsRow/#captainsPanel/#actionPanel. That's what leaves #chatLog/#chatForm/#chatInput's
+  // ids, and the orchestrator's own wiring to them (sendChat/watchChat/the #chatForm submit
+  // handler, orchestrator.js:1711), completely untouched — no second chat log, no edit there.
+  const chatSheet = document.createElement("div"); chatSheet.id = "pp4ChatSheet";
+  document.body.appendChild(chatSheet);
+  const chatPanelEl = $("chatPanel"); if (chatPanelEl) chatSheet.appendChild(chatPanelEl);
+  // Opening clears the unread mark and focuses the input; closing does nothing further — nothing
+  // about chat persists, and the log is already wiped by startGame()'s own reset
+  // (orchestrator.js:1551). The dot is toggled directly here (not through panel.js's own setter,
+  // which this plan's second task adds) so this task's own commit stays self-contained.
+  $("pp4Chat").onclick = () => {
+    const opening = !document.body.classList.contains("pp4Chat");
+    document.body.classList.toggle("pp4Chat");
+    if (opening){
+      const dot = $("pp4ChatDot"); if (dot) dot.classList.remove("on");
+      const inp = $("chatInput"); if (inp) inp.focus();
+    }
+  };
+  // wind pill
+  const pill = document.createElement("div"); pill.id = "pp4Pill";
+  document.body.appendChild(pill);
+  // playtest 4: no sheet. The captains box is ALWAYS on screen, pinned under the board and
+  // rising to meet it when the zoomed-out board leaves blank water. Prompts float at the ship.
+  const capBox = document.createElement("div"); capBox.id = "pp4Cap";
+  document.body.appendChild(capBox);
+  /* THE DESKTOP COLUMN (D-50). Empty and display:none until computeStageGeometry() decides the
+     window is wide enough, at which point mountColumn() MOVES the captains card and the menu into
+     it. Built here rather than lazily so there is exactly one of it for the life of the stage. */
+  const col = document.createElement("div"); col.id = "pp4Col";
+  document.body.appendChild(col);
+  const cr = $("controlsRow"), ap = $("actionPanel");
+  if (cr) capBox.appendChild(cr);              // parked hidden — the ceremony borrows the coin from here
+  const cap = $("captainsPanel"); if (cap) capBox.appendChild(cap);
+  // playtest 11: rows are one line (recipe hidden) — tapping a row reveals that captain's recipe
+  // line again. Rows are stable elements, so the open state survives re-renders.
+  capBox.addEventListener("click", e => {
+    const row = e.target.closest(".player-row");
+    if (row && !e.target.closest("a,button")) row.classList.toggle("pp4Open");
+  });
+  const prompt = document.createElement("div"); prompt.id = "pp4Prompt";
+  document.body.appendChild(prompt);
+  if (ap) prompt.appendChild(ap);
+  /* T-17 — his checklist #24 (Wyatt, 2026-08-26): "tapping the card, or the space around it, should instant-appear all
+     of the text. this is a nice affordance for players who are familiar with the game and follows
+     the same logic where they get to progress bot turns by tapping."
+
+     Delegated from the box, so it covers the card AND the space around it in one listener, and so a
+     card rebuilt for the next prompt inherits it without rewiring.
+
+     A TAP ON A CONTROL IS NOT A TAP TO HURRY. If the target is a button, a link, a crate, a recipe
+     card or anything else that answers, this stands aside completely — otherwise the first
+     impatient tap on "Pass" would be spent skipping text instead of passing, which is a worse game
+     than the one he is complaining about. Everything else is fair game: the message, the padding,
+     the sea showing through the box.
+
+     `capture:true` so the decision is made before the panel's own handlers run, and no
+     preventDefault anywhere — this never consumes an event, it only ever hurries alongside one. */
+  prompt.addEventListener("pointerdown", ev => {
+    if (ev.target.closest(".apBtn,.btlBtn,button,a,input,select,textarea,.recipeCard,.bkoBowl,#flipCoinWrap")) return;
+    const msg = prompt.querySelector(".apMsg:not(.fadeOut)");
+    if (msg && typeof msg._revealNow === "function") msg._revealNow();
+  }, { capture: true });
+  /* The ribbon clock chip's toggle wiring stood here (D-51 kept it the ONE control after the menu
+     row left, Wyatt 2026-08-21). Removed 2026-08-28 with the shot clock. */
+  const foot = $("footerRow");
+  /* ONE LIST, and this class is what says so (D-50, rule 23). The card look, the full-width rows
+     and the sound row all hang off it in index.html, so they follow the list into whichever mount
+     it is standing in. There is no second builder and there must never be one. */
+  if (foot) foot.classList.add("pp4MenuList");
+  // playtest 10 item 2: the sound toggle was orphaned at the top-left of the stage (the horn
+  // peeking under the ribbon in Wyatt's screenshots) — it lives in the ☰ menu now
+  const ms = $("muteSlot");
+  if (ms && foot){
+    // FIRST in the list, which is where it has always rendered — it used to be inserted before
+    // the turn-clock row and that row has gone (D-51), so it anchors to the list's own head now.
+    foot.insertBefore(ms, foot.firstChild); ms.style.cssText = "display:flex;justify-content:center;";
+    /* AND BRING THE BUTTON WITH IT. Wyatt, 2026-08-20: "the host has no mute button (guest does)."
+       Moving the SLOT into the menu is not enough, because placeMuteButton() (ui/board.js) may
+       already have moved the BUTTON out of it and into #controlsRow — which enterStage parks inside
+       #pp4Cap and index.html hides outright. Whether it had is a matter of which measurement ran
+       last, so one client kept its mute button and the other lost it, and it looked like a
+       host/guest parity bug when it was a race.
+       board.js now refuses to send the button to #controlsRow while the stage is up; this line is
+       the other half — it retrieves one that was already sent there, at the exact moment the two
+       homes change hands. Together they make the answer the same on every client, every time. */
+    const mb = $("btnMute");
+    if (mb && mb.parentNode !== ms) ms.appendChild(mb);
+  }
+  if (foot){
+    const stamp = document.createElement("div");
+    stamp.id = "pp4Stamp";
+    /* A-4 (Wyatt, 2026-08-28): the commit code goes ON ITS OWN LINE. The deploy script appends
+       -staging@<sha> to the stamp; splitting at the @ keeps the human-readable build number on
+       one line and the exact-commit identity on the next, instead of one long string. A build
+       with no @ (local, production) renders a single line, unchanged. textContent per line —
+       never innerHTML — so the stamp can never carry markup. */
+    const at = PP4_STAMP.indexOf("@");
+    if (at >= 0) {
+      stamp.append("Build " + PP4_STAMP.slice(0, at), document.createElement("br"), "@" + PP4_STAMP.slice(at + 1));
+    } else {
+      stamp.textContent = "Build " + PP4_STAMP;
+    }
+    stamp.style.cssText = "opacity:.55;font-size:11px;text-align:center;padding:6px 0 2px;letter-spacing:.04em;line-height:1.5";
+    foot.appendChild(stamp);
+  }
+  $("pp4Menu").onclick = () => { document.body.classList.toggle("pp4Foot"); };
+  // playtest 12 item 6: tapping anywhere outside the open menu closes it. D-06 extends this SAME
+  // capture-phase listener for the chat sheet rather than adding a second one — a second condition
+  // block, not a folded selector, since the ☰ menu and the chat sheet close against different
+  // "outside" targets and toggle different body classes.
+  document.addEventListener("pointerdown", e => {
+    if (document.body.classList.contains("pp4Foot") && !e.target.closest("#footerRow,#pp4Menu"))
+      document.body.classList.remove("pp4Foot");
+    if (document.body.classList.contains("pp4Chat") && !e.target.closest("#pp4ChatSheet,#pp4Chat"))
+      document.body.classList.remove("pp4Chat");
+  }, true);
+  const svg = svgEl();
+  if (svg) svg.setAttribute("preserveAspectRatio", "xMidYMin meet");   // full-board hugs the ribbon
+  const shipsSvg = $("boardShips");
+  if (shipsSvg) shipsSvg.setAttribute("preserveAspectRatio", "xMidYMin meet");
+  gestures(wrap);
+  wireEovDrag();   // item 8 (D-14): the end-of-voyage card's pull-to-park gesture
+  camFull();
+  S.active = true;
+  S.recipePicked = false;      // a new voyage starts with an empty captains box again (capEmptyTick)
+  computeStageGeometry();   // D-31: size the stage before the first paint, not after
+  if (!S.geomBound){
+    S.geomBound = true;
+    let t = 0;
+    window.addEventListener("resize", () => {
+      clearTimeout(t);
+      t = setTimeout(computeStageGeometry, 120);   // debounced — a drag-resize fires dozens of times
+    });
+  }
+}
+
+/* ================= D-31: the desktop stage's own size ================= */
+/* Derives body's own capped box (`--pp4W`) and, in side-by-side mode, the captains column's own
+   width (`--pp4CapColW`) from the window's real geometry and the captains panel's OWN rendered
+   content — never a breakpoint table (CLAUDE.md, "nothing is a constant"). Everything downstream
+   of body's own rect — `stageCappedRect()`/`vwPx()`/`vhPx()`/`fixedOrigin()`/`fixedRect()`/
+   `toScreen()` (util.js, this file) — is completely unchanged by this: it already reads body's
+   own rendered box, so handing that box a computed width instead of a literal 430px is invisible
+   to every board-anchored overlay (rule 23, ONE DISPLAY PATH — nothing about WHAT is drawn moved,
+   only how wide the "screen" it is drawn against is).
+   PHONE (<=600px) IS UNTOUCHED: this function returns having cleared every custom property/class
+   it might have left behind (a window resized DOWN through the breakpoint mid-game must not carry
+   a leftover --pp4W into the phone's own `@media(min-width:601px)`-gated CSS, which never applies
+   there regardless — this clears the properties for exactly the same reason a stale inline style
+   would otherwise sit there unused but discoverable, which is the kind of thing a future debugging
+   session should never have to explain away). */
+function measureCapNaturalHeight(widthPx){
+  // D-31 BUG, FOUND BY THE VERIFICATION GATE ITSELF (not a code read): stacked mode at 960x1080
+  // pinned the board to the 240px FLOOR — every derived width, unrelated to the window — and the
+  // radial fan's "cornered beyond hope" fallback (this file, promptTick) then stacked three trade
+  // buttons on top of each other, unclickable, exactly the RED ALERT failure mode
+  // (`.planning/debug/resolved/desktop-radial-fan-offset.md`) this file was already once fixed for.
+  // Measured root cause (probe: sampled `cap.scrollHeight` at widths 240..900px — EVERY width
+  // reported the identical 993px, which is what "the box stretched to fill, not to its content"
+  // looks like as a number): this function's inline override sets `top:0` and `height:auto` but,
+  // like measureCapNaturalWidth above, never touches `bottom` — which #pp4Cap's OWN base rule
+  // (index.html) sets to `0`. For a `position:fixed` box, `height:auto` sandwiched between two
+  // EXPLICIT insets (`top:0` here, `bottom:0` inherited) does not ask the content how tall it is —
+  // per the CSS spec it stretches to fill the gap between them. So `scrollHeight` read back
+  // (near-)the full viewport height every single time, regardless of `widthPx` — which is exactly
+  // why `boardSideStacked = ih - capH` collapsed to the `Math.max(240, …)` floor: `ih - capH` was
+  // reliably negative. `bottom:auto` frees `height:auto` to do what its name says — size to content.
+  const cap = $("pp4Cap"); if (!cap) return 0;
+  const save = cap.getAttribute("style") || "";
+  cap.style.cssText = `position:fixed;visibility:hidden;left:-9999px;top:0;right:auto;bottom:auto;width:${widthPx}px;` +
+    "height:auto;max-height:none;";
+  void cap.getBoundingClientRect();
+  const h = Math.ceil(cap.scrollHeight);
+  cap.setAttribute("style", save);
+  return h;
+}
+function computeStageGeometry(){
+  if (typeof document === "undefined") return;
+  const body = document.body;
+  if (!body.classList.contains("pp4Stage")) return;
+  S.geomAt = Date.now();
+  const iw = document.documentElement.clientWidth || window.innerWidth;
+  const ih = document.documentElement.clientHeight || window.innerHeight;
+  const cap = $("pp4Cap");
+  if (iw <= 600){
+    // PHONE: the `@media(min-width:601px)` rule this feeds never matches here regardless, but
+    // clear the properties anyway (see the function-header note) — D-18's byte-identical promise.
+    body.classList.remove("pp4Side");
+    mountColumn(false);
+    body.style.removeProperty("--pp4W"); body.style.removeProperty("--pp4CapColW"); body.style.removeProperty("--pp4Top"); body.style.removeProperty("--pp4Left");
+    if (cap) cap.style.removeProperty("max-height");
+    /* D-46 fault 3 — HOW MUCH ROOM THE CAPTAINS NEED IS A MEASUREMENT, NOT A PERCENTAGE.
+       camFrame() reserves the band under the board for this card and reserved 30% of the window
+       for it. At the honest phone height (390x664, D-42) 30% is 199px and four captain rows are
+       231px, so the fourth row — "Flaky Jack" — was sliced by the bottom edge of the screen and
+       25px of the card lived behind its own scrollbar. Measured, not inferred: cap.scrollHeight
+       minus cap.clientHeight came back 25 on the recipe screen.
+       A percentage cannot be right for a table that has two, three or four captains and a hold
+       that grows all voyage (rule 9). measureCapNaturalHeight() already computes the honest answer
+       for the desktop branches; caching it here on the geometry clock — which is the same ~900ms
+       beat the card's own width already rides — lets camFrame read it without a reflow per frame.
+       The 250px ceiling is unchanged: it is what stops a big roster crushing the board. */
+    S.capNeed = measureCapNaturalHeight(iw);
+    refreshNameMarquees();   // the column just widened back to full — drop any stale scroll
+    return;
+  }
+  // The board's own full-height square side — the height UNDER the ribbon/wind-pill band. camFrame()
+  // has always started the board strip BELOW the band (playtest 4/17), so a square of the full
+  // viewport height was too tall for the strip and the camera cropped it. topBandPx() is the same
+  // measurement camFrame uses, so the derived square and the painted strip agree by construction.
+  const topBand = topBandPx();
+  const boardSideFull = Math.max(240, ih - topBand);
+  const capGap = parseFloat(getComputedStyle(body).getPropertyValue("--pp4CapGap")) || 0;
+  // ENTER side-by-side on the MINIMUM (so widening the column never costs a screen the layout it
+  // already qualified for), then GROW the column into whatever is actually spare.
+  if (iw >= boardSideFull + capGap + SIDE_CAP_MIN){
+    const spare = iw - boardSideFull - capGap - 28;      // 28 = breathing room at the window's edge
+    const capColW = Math.round(Math.max(SIDE_CAP_MIN, Math.min(SIDE_CAP_IDEAL, spare)));
+    // SIDE-BY-SIDE (Wyatt's "full desktop"): the board takes the whole height under the band; the
+    // captains column sits beside it, level with the board's top, at a fixed comfortable width and
+    // hugging its own content height (index.html).
+    body.classList.add("pp4Side");
+    /* the wall-to-wall rule is a STACKED-layout question only — beside the board the card is a
+       column with its own gap, and Wyatt's ruling was about the card UNDER the board. */
+    body.classList.remove("pp4CapBleed");
+    mountColumn(true);
+    body.style.setProperty("--pp4W", boardSideFull + "px");
+    body.style.setProperty("--pp4Top", topBand + "px");
+    body.style.setProperty("--pp4CapColW", capColW + "px");
+    // centre the PAIR, not the board: body's own `margin:0 auto` centres the board and then hangs
+    // the column off its right edge — at 1400×900 the column ran 141px past the window. The left
+    // margin centres board+gap+column as one unit.
+    body.style.setProperty("--pp4Left", Math.max(0, Math.round((iw - boardSideFull - capGap - capColW) / 2)) + "px");
+    if (cap){ cap.style.removeProperty("max-height"); cap.style.removeProperty("top"); }
+    // D-31 fix: buildPlayerRows()'s own marquee check ran (if at all) against whatever column
+    // width was live BEFORE this geometry pass — usually wider, sometimes the 430px fallback —
+    // so a name that fits THAT column but not this narrower derived one was never marked to
+    // scroll, and sat statically clipped with no cue anything was hidden. Re-check now that the
+    // column's real width is on the page.
+    refreshNameMarquees();
+    return;
+  }
+  // STACKED (Wyatt's "half desktop"): same overlay architecture as phone (board full-bleed behind
+  // the ribbon, captains card floats over the void the letterboxed square leaves below it) — the
+  // ONLY lever available is how wide (== how tall, since the board is square) that letterboxed
+  // square is allowed to be. Shrinking it WIDENS the void, which is where the derivation happens:
+  // measure the captains card's natural height at a first-pass candidate width, then narrow the
+  // board by exactly that much so the void is never smaller than the card actually needs.
+  // `max-height` + `overflow-y:auto` (already on #pp4Cap) is kept as a backstop regardless — a
+  // single measurement pass is an estimate, not a fixed-point solve, and the backstop is what turns
+  // any remaining error into an internal scrollbar instead of a clipped top row.
+  body.classList.remove("pp4Side");
+  mountColumn(false);
+  body.style.removeProperty("--pp4CapColW"); body.style.removeProperty("--pp4Top"); body.style.removeProperty("--pp4Left");
+  const candidate = Math.max(240, Math.min(boardSideFull, iw));
+  /* THE VOID HAS TO HOLD THE CARD *AND* THE AIR UNDER IT (D-52), and the card's SIDES follow a
+     separate rule that Wyatt set on 2026-08-28: "I want tablet view to go wall to wall in line with
+     the board. I want desktop view to have some padding around it like it currently is."
+
+     WHAT SEPARATES HIS TWO CASES IS ALREADY COMPUTED HERE, so nothing needs a typed breakpoint
+     (rule 9). On a tablet the board fills the window and there is no surround beside it; on desktop
+     it is letterboxed with the page's gradient showing either side. The board's own surround IS
+     that difference: (iw - board) / 2. When there is less surround per side than the air we would
+     inset by, there is nothing for the card to sit inside and it goes wall-to-wall with the board.
+     When there is more, the card keeps its air and the two desktop branches still draw the same
+     component the same way — which is the rule-8 reason the inset existed in the first place, one
+     comment up, and which his ruling deliberately preserves for desktop only.
+
+     TWO PASSES, BECAUSE THE MEASUREMENT AND THE DECISION DEPEND ON EACH OTHER. The card's natural
+     height depends on how wide it is; how wide it is depends on whether it insets; whether it
+     insets depends on the board size, which depends on the card's height. So: measure once at the
+     full width to get an honest board size, decide from that, and re-measure only if the card turns
+     out to be inset after all. Deterministic, no loop.
+     `capGapBelow` is the VERTICAL air under the card and is a different quantity from the side
+     inset — they were one variable before, which is exactly the fault W4-4 was fixing one layer up.
+     It still reads the same @media (min-width:601px) boundary the CSS uses, not a second copy. */
+  const insetCard = pillRidesRibbon();                 // the same @media (min-width:601px) boundary
+  const capGapBelow = insetCard ? capGap : 0;          // vertical air under the card — NOT a side inset
+  let capH = measureCapNaturalHeight(Math.max(240, candidate));
+  let boardSideStacked = Math.max(240, Math.min(candidate, ih - capH - capGapBelow));
+  const surroundPerSide = (iw - boardSideStacked) / 2;
+  const capBleeds = !insetCard || surroundPerSide < capGap;
+  body.classList.toggle("pp4CapBleed", capBleeds);
+  if (!capBleeds) {                                    // desktop: the card really is inset, so measure it that way
+    capH = measureCapNaturalHeight(Math.max(240, boardSideStacked - capGap * 2));
+    boardSideStacked = Math.max(240, Math.min(candidate, ih - capH - capGapBelow));
+  }
+  S.capNeed = capH;   // camFrame's band reservation reads the same measurement (D-46 fault 3)
+  body.style.setProperty("--pp4W", boardSideStacked + "px");
+  if (cap) cap.style.setProperty("max-height", Math.max(capH, ih - boardSideStacked - capGapBelow) + "px");
+  refreshNameMarquees();   // same reason as the side-by-side branch above — the board (and with
+                           // it the name column, which spans the same derived width) just resized
+}
+
+// a menu is 1-5 apBtn choices with SHORT labels and no rich content — the N4 radial case.
+// Playtest 10 (Wyatt: "ALL of the action prompts should be [radial]"): single-button prompts
+// qualify too, and a button whose ask() option carries a `short` label qualifies regardless of
+// its full label's length — the circle shows the short form, the pill carries the sentence.
+function menuButtons(ap){
+  /* `input` disqualifies a prompt from the radial bloom because a text field cannot live in a ring
+     of circles. The quantity SLIDER (playtest 21 item 7) is an <input type=range> and was therefore
+     knocking its own prompt out of radial mode entirely — measured, not guessed: with the slider
+     present #pp4Prompt carried NO classes at all, so every radial rule for the pill, the arc and
+     the slider bar silently stopped applying and the whole prompt fell back to a flat card.
+     It is exempted by class rather than by type: any OTHER input still disqualifies, which is the
+     behaviour this guard exists for. */
+  if (ap.querySelector(".btlBtn,.bkoRow,.recipeList,input:not(.apSlider),select")) return null;
+  const btns = [...ap.querySelectorAll(".apBtn")];
+  // playtest 15: up to EIGHT circles — the trade's what-do-ye-WANT step (7 crates) fans too;
+  // the open-side fan wraps to a second arc row past four, so big menus stay one tight group
+  if (btns.length < 1 || btns.length > 8) return null;
+  if (!btns.every(b => b._shortHtml != null || b.textContent.trim().length <= 16)) return null;
+  return btns;
+}
+
+/* SIZE THE LABEL TO THE DISC — one rule, at the one place a petal's label is set (T-017).
+ *
+ * WYATT'S EVIDENCE, three sightings on three configurations: a trade-offer circle cannot hold the
+ * captain's name it names. `solo-tablet-014-settled.png` — *Crustbeard* crossing both rims of its
+ * own disc while "Walk away" in the identical circle beside it fits with room to spare;
+ * `crew-desktop-guest-012-settled.png` — *Flaky Jack* hanging out of both sides;
+ * `solo-desktop-wk-021-settled.png` — WebKit, build 2026.09.01.8, reading `rustbea`. Chromium
+ * tablet, Chromium crew-desktop, WebKit desktop: neither engine-, size- nor mode-specific.
+ * His standing instruction on the call circles: "Fix this universally, not through patches."
+ *
+ * WHY IT IS HERE AND NOT IN THE TRADE CODE. The name is not special — it is simply the longest
+ * thing anyone has put in a petal yet, and a player may type a longer one still. Every radial
+ * label goes through the swap below, so fitting here covers the trade circles, the sail choices,
+ * the dock, the battle calls and anything added later, without any of them knowing this happened.
+ * Fixing `flow.js`'s two trade lines would have fixed two labels and left the rule unwritten.
+ *
+ * WHY IT SHRINKS RATHER THAN CLIPS OR TRUNCATES. `overflow:hidden` would hide the very word the
+ * circle exists to say — it would turn a visible fault into a silent one, which is how "rustbea"
+ * happened in the first place. This repo already rejected truncation for exactly this reason one
+ * scale up: `refreshNameMarquees` (src/ui/util.js:183) scrolls an over-long captain name "instead
+ * of blowing out the layout or truncating unreadably". Same value, smaller box.
+ *
+ * NOTHING IS A CONSTANT (rule 9). The starting size is whatever the stylesheet computed — the
+ * inline size is cleared first, so this reads the CSS rather than a number copied out of it, and a
+ * restyle of `#pp4Prompt.radial .apBtn` carries through with nothing here to update. The floor is
+ * a FRACTION of that same size, not a typed px value, and the boundary is the disc's own painted
+ * box rather than arithmetic about 66px and its border.
+ *
+ * MEASURED, not reasoned: at the shipped 9.5px, "Davy Scones" and "Dough Hook" wrap to two lines
+ * and put ink 5.3-5.6px ABOVE the rim at all three sizes, while "Walk away" — one line, in the
+ * same disc — stays inside at every one. `scripts/qa/trade_circle_name_fits_check.mjs` is that
+ * measurement and it FAILED before this function existed. */
+/* IS EVERY PAINTED LINE OF THIS LABEL INSIDE THE PETAL'S RIM?
+ *
+ * THE BOUNDARY IS THE CIRCLE, NOT THE SQUARE AROUND IT — and getting that wrong once shipped a
+ * green check over a still-broken screen. The petal is `border-radius:50%` (index.html:1892), so its
+ * widest point is its middle and it narrows to nothing at the top. A first cut compared each line
+ * against the button's bounding RECT and every name passed, while the posed picture still showed
+ * them crossing the painted rim: CEO 136, reading that pair — "the check passes while the screen he
+ * photographed is still wrong… this is not a corner case, it is THE case, because that is exactly
+ * where these labels sit."
+ * So each line's four corners must lie inside the inscribed circle. getClientRects() gives one rect
+ * per LINE, so a name that wraps is judged on the lines it really draws — which matters because
+ * "Dough Hook" can wrap and "Crustbeard" is one unbreakable word that cannot.
+ *
+ * IT IS A SEPARATE FUNCTION BECAUSE TWO PASSES NOW ASK IT — the fan grows the disc until this is
+ * true, and a petal that ran out of room then shrinks its type until this is true. Two copies of
+ * this predicate would be two things kept in step by discipline, which is rule 23's own test: what
+ * makes these two agree? There is one of them. */
+function labelInsideDisc(b){
+  const br = b.getBoundingClientRect();
+  const cx = br.left + br.width / 2, cy = br.top + br.height / 2;
+  // the PAINTED rim sits inside the border, so the usable radius is the border-box radius less it
+  const bw = parseFloat(getComputedStyle(b).borderTopWidth) || 0;
+  const r = Math.min(br.width, br.height) / 2 - bw;
+  if (!(r > 0)) return true;                       // not laid out — nothing to judge
+  const r2 = (r + 0.5) * (r + 0.5);                // half a pixel of rounding tolerance
+  for (const n of b.childNodes){
+    if (!n.textContent || !n.textContent.trim()) continue;
+    const rng = document.createRange(); rng.selectNodeContents(n);
+    for (const q of rng.getClientRects()){
+      if (q.width <= 0 && q.height <= 0) continue;
+      for (const [x, y] of [[q.left, q.top], [q.right, q.top], [q.left, q.bottom], [q.right, q.bottom]]){
+        const dx = x - cx, dy = y - cy;
+        if (dx * dx + dy * dy > r2) return false;
+      }
+    }
+  }
+  return true;
+}
+
+function fitLabelToDisc(b){
+  /* Re-fitting every frame would cost a forced layout per petal per frame for a box that has not
+     changed. The key is the content AND the disc's width, so a genuine restyle or a size change
+     re-fits and nothing else does — including the disc the fan just grew. */
+  const key = String(b._shortHtml) + "|" + b.clientWidth + "x" + b.clientHeight;
+  if (b._fitKey === key) return;
+  b.style.fontSize = "";                      // always start from what the stylesheet says
+  const base = parseFloat(getComputedStyle(b).fontSize);
+  if (!(base > 0) || !b.clientWidth){ b._fitKey = null; return; }   // not laid out yet — try again
+  // bounded by construction: half-pixel steps from `base` down to 60% of it, ~8 iterations at 9.5px
+  for (let px = base; !labelInsideDisc(b) && px > base * 0.6; ){
+    px -= 0.5; b.style.fontSize = px + "px";
+  }
+  b._fitKey = key;
+}
+
+/* HOW BIG MAY THE FAN'S DISC GET BEFORE THE FAN STOPS FITTING THE SCREEN?
+ *
+ * NOTHING IS A CONSTANT (rule 9): every term here is either measured off the page this frame or is
+ * the SAME fraction the placement search itself uses thirty lines below, so a restyle moves both
+ * together instead of drifting apart.
+ *   - `sep` is the placement's own separation expressed in D's: `--pp4GrowPeak` (the swell the
+ *     attention vocabulary applies to a petal) plus the quarter-of-a-circle gap Wyatt chose.
+ *   - `room` is the band the circles are actually placed in, read from `boardBand()` and
+ *     `capBandBottom()` — the same two bounds `xMin/xMax/yMin/yMax` are built from.
+ *   - `ring` is how wide a ring has to be to seat n petals at that separation: n·sep/π, in D's.
+ * The fan needs the ring plus one petal's width to fit inside the shorter side of that band, so
+ * D·(ring + 1) ≤ room. That is the whole ceiling.
+ *
+ * IT TIGHTENS AS THE FAN GETS BUSIER, WHICH IS THE POINT. A four-way trade may grow a long way; an
+ * eight-circle sail prompt on a phone may barely grow at all — and in that case the label falls
+ * back to shrinking, which is his OTHER ruling on this same screen, not a failure of this one.
+ * It never returns less than the stylesheet's own disc: this function may enlarge a petal, never
+ * shrink one below what `#pp4Prompt.radial .apBtn` declares. */
+function fanDiscCeiling(base, n){
+  if (!S.growPeak) S.growPeak = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--pp4GrowPeak")) || 1.15;
+  const sep = S.growPeak + 0.25;
+  const room = Math.min(vwPx() - 16, capBandBottom() - (boardBand().top + 32) - 8);
+  if (!(room > 0)) return base;                    // nothing laid out yet — do not grow on a guess
+  const ring = (n * sep) / Math.PI;
+  return Math.max(base, room / (ring + 1));
+}
+
+/* GROW THE CIRCLE BEFORE SHRINKING THE NAME.
+ *
+ * WYATT'S RULING, 2026-09-03, on the build that shrank instead: "Do bigger circles, not smaller
+ * text." He had been shown a trade circle whose captain's name only fitted by dropping from the
+ * stylesheet's 9.5px to a 5.5px floor, and he rejected the trade. Measured on that build by
+ * `scripts/qa/trade_circle_type_size_check.mjs`: all four shipped captain names drawn at 5.5–6px at
+ * phone, tablet and desktop, while "Walk away" in the identical disc kept its full 9.5px.
+ *
+ * AND HIS OTHER RULING IS THE FALLBACK, NOT A CONTRADICTION: "Only shrink the long words/phrases/
+ * names." When the ceiling above binds — a busy fan on a small screen — the disc stops growing and
+ * `fitLabelToDisc` shrinks whatever is still too long, which by construction is only the long ones.
+ *
+ * ONE DIAMETER FOR THE WHOLE FAN, not one per petal. Consistency is a core value (rule 8) and a ring
+ * of circles at four different sizes reads as a mistake; the placement search below also takes its
+ * D, GAP, SEP and band bounds from `menu[0].offsetWidth`, so petals of differing widths would be
+ * spaced against whichever one happened to be first.
+ *
+ * COST: this forces layout, so it is keyed on the labels AND the viewport and runs only when one of
+ * those actually changes — not per frame. The key is cleared on the way out of radial mode, because
+ * the widths are cleared there too and a stale key would leave a returning fan at the base size. */
+function fitFanToLabels(menu){
+  if (!menu.length) return;
+  const key = menu.map(b => String(b._shortHtml)).join("") + "|" +
+              Math.round(vwPx()) + "x" + Math.round(vhPx());
+  /* ⛔ THE KEY LIVES ON THE BUTTONS, NOT IN MODULE STATE, AND THAT IS THE WHOLE POINT OF IT.
+     The first cut kept ONE `S.fanKey` for the module and returned early when it matched. CEO 184
+     found the hole and it is real: `panel()` builds FRESH `.apBtns` for every ask (src/ui/flow.js),
+     and `menuButtons()` admits a fan whose buttons carry no `_shortHtml` at all provided every
+     label is 16 characters or less — for such a fan the short-swap never runs, so nothing cleared
+     the key. Two radial prompts in a row with the same labels at the same viewport would then share
+     one key and THE SECOND FAN'S BRAND-NEW BUTTONS WOULD BE SKIPPED ENTIRELY: base disc, base type,
+     and a label like "Call Crustbeard" back outside its rim — the original T-017 bug, restored by
+     its own fix. The module key described work done to elements that no longer existed.
+     Keying each BUTTON means an element that has never been fitted cannot inherit another
+     element's verdict. It is the shape `_fitKey` already uses one function up, and it makes a stale
+     key impossible to hold, because the thing holding it is the thing that was sized. */
+  if (menu.every(b => b._fanKey === key)) return;
+  // always start from what the stylesheet says — this reads the CSS, never its own last answer
+  for (const b of menu){ b.style.width = ""; b.style.height = ""; b.style.fontSize = ""; b._fitKey = null; b._fanKey = null; }
+  const base = parseFloat(getComputedStyle(menu[0]).width);
+  if (!(base > 0) || !menu[0].clientWidth) return;   // not laid out yet — no key written, so retry
+  const ceil = fanDiscCeiling(base, menu.length);
+  // bounded by construction: 2px steps from the declared disc up to the ceiling, and a hard guard
+  for (let d = base, guard = 0; d < ceil && guard < 64 && !menu.every(labelInsideDisc); guard++){
+    d = Math.min(ceil, d + 2);
+    for (const b of menu){ b.style.width = d + "px"; b.style.height = d + "px"; }
+  }
+  // whatever room was left, the long ones still shrink — his other ruling, as the fallback
+  for (const b of menu){ fitLabelToDisc(b); b._fanKey = key; }
+}
+// enterCenterStage() — flip the prompt box to centre-stage mode NOW, synchronously. promptTick
+// calls it on its own beat; the bake-off (via __pp4.stageCenterNow) calls it BEFORE building its
+// panel, because panel() measures its height at build time and a measurement taken under the
+// PREVIOUS prompt's radial CSS reads ~zero — radial makes every child position:fixed — which
+// pinned the intro's box to a clipped nothing for the whole typewriter (playtest 16: a dimmed sea
+// with no card on it). Idempotent, exactly as the promptTick branch it was extracted from.
+function enterCenterStage(){
+  const box = $("pp4Prompt"), ap = $("actionPanel");
+  if (!box || !ap) return;
+  /* A CARD TAKING THE STAGE ENDS THE WAIT IT WAS WAITING FOR. Wyatt, 2026-08-20, twice in a row:
+     "the 'Recipe Chosen! Waiting for the rest of the crew' narration box behind the stage shouldn't
+     persist behind the 'The crew draws lots' box", and "when both host and guest are on recipe
+     choice, the 'waiting for yer mateys' card only appears to host. this is a parity problem."
+
+     Both are one fault and it is MINE, from Stage 1. Wait lines were given NO dismissal deadline
+     (item 19 — "it should disappear when their teammates have played"), on the understanding that
+     stageFlash's S.hurry() retires them the instant the next line lands. That holds for narration.
+     It does not hold for a CENTRE-STAGE CARD, which is not a narration line and never calls
+     stageFlash — so a wait bubble sat behind the ceremony card with nothing on any timer to remove
+     it. It reads as a parity bug because whoever clicked through FIRST is the one holding a wait
+     line when the card arrives; the other captain never had one to strand.
+
+     Here rather than at the call sites, for the same reason the sound dedup went into
+     playForEvent: this is the one function every stage card passes through — the ceremony barriers,
+     the recipe draft and the bake-off (via __pp4.stageCenterNow) — so one line makes it true for
+     all of them, on both tiers, and stays true for the next card someone adds. */
+  if (S.hurry) S.hurry();
+  /* D-20 (item 11): promptTick()'s own `want` gate (below) never runs for a centre-stage prompt —
+     the `ap.dataset.pp4Stage || ap.querySelector(".bko")` branch calls straight into this function
+     and returns before reaching it, so a ceremony card (the ahoy barrier, "the crew draws lots",
+     the bake-off intro) was popping its dimmed box up here, unconditionally, on every tick this
+     runs — the exact "popup before the camera/ships settle" complaint, just via a second display
+     assignment promptTick's own fix never touched. Same flag, same reasoning: `pendingReveal` is
+     the one thing that already tracks "is this prompt's reveal (typewriter AND stageSettled())
+     done yet", so re-checking it here rather than adding a second clock keeps the two gates unable
+     to disagree. Evaluated fresh on every call (not just the pp4Center class transition below),
+     because promptTick() calls this function on every tick a stage-flagged prompt is up. */
+  /* pendingStage, NOT pendingReveal (Wyatt's blank-space lag, 2026-08-23 tier 1): this gate is
+     D-20's "no popup until the camera and ships have stopped" — which is exactly what pendingStage
+     tracks. Reading pendingReveal here made the ceremony card also wait for its own typewriter,
+     typed invisibly behind display:none: "the crew draws lots" arrived after seconds of dead air,
+     which is the LONG blank he reported by name. The buttons inside still wait for the full reveal
+     through the unchanged pendingReveal CSS. */
+  box.style.display = ap.classList.contains("pendingStage") ? "none" : "flex";
+  // centre within the water, not the viewport: the captains box owns the bottom of the screen,
+  // and a stage column tall enough to reach it (the bake-off intro was first) had its button
+  // clipped mid-letter at the panel's top edge. Padding, not a shorter box — the dim paints
+  // through padding, so the captains stay under the veil while the content centres above them.
+  /* CENTRED ON THE STAGE, LIFTED ONLY AS FAR AS IT HAS TO BE — playtest 22 item 10 (Wyatt): "the
+     bakeoff box stage should be vertically centered on the stage; it is too high here."
+     The padding above was the captains box's FULL height, unconditionally. On a four-captain table
+     that is ~250px, so a short card was centred in the top two-thirds of the screen and read as
+     floating. The reason it existed is real and kept: a column tall enough to reach the captains
+     box had its button hidden behind it.
+     So compute the lift instead of assuming it. Centred, the column's bottom sits at
+     (vh + need) / 2; it only needs lifting by however far THAT dips below the captains box, and
+     with align-items:center a lift of N costs 2N of bottom padding. A card that already clears the
+     captains box gets no padding at all and is centred on the stage, which is the ask. */
+  const cap = $("pp4Cap");
+  // D-31 REOPENED (2026-08-21, Wyatt: "the ARRGH button is the only thing visible!"): this lift
+  // clears the captains box, which on phone/stacked sits BELOW the board — so capH is the height it
+  // eats off the bottom. In SIDE-BY-SIDE the captains box is BESIDE the board, not under it, and
+  // reading its `top` (~45px) made capH ≈ the whole viewport height, shoving the ceremony button up
+  // to the ribbon and clipping it. Beside the board there is nothing below the centre to clear, so
+  // capH is 0 and the ceremony centres on the board exactly as intended.
+  const capH = (cap && !isSideBySide()) ? Math.max(0, Math.round(vhPx() - cap.getBoundingClientRect().top)) : 0;
+  const need = ap.offsetHeight || 0;
+  const dip = Math.max(0, Math.round((vhPx() + need) / 2 - (vhPx() - capH)));
+  /* ITEM 9 (Wyatt, 2026-08-23c, the black-market card): "it was not centered vertically and the
+     top of it was nested behind the header row." The lift above clears the captains box but
+     nothing guarded the TOP — a tall card (the black-market ceremony is the longest in the game)
+     was hoisted until its title ran under the ribbon. The lift is now also capped by the room the
+     top band leaves: with align-items:center and a bottom pad of P, the card's top sits at
+     (vh − P)/2 − need/2, so keeping it below the band means P ≤ vh − 2·band.top − need. When even
+     P=0 cannot fit the card, the card overlaps the CAPTAINS box instead of the header — the
+     captains are passive; the title is not. */
+  const topRoom = Math.max(0, Math.round(vhPx() - 2 * boardBand().top - need));
+  const pad = dip > 0 ? Math.min(capH, dip * 2, topRoom) + "px" : "";
+  if (box.style.paddingBottom !== pad) box.style.paddingBottom = pad;
+  // same teardown as the empty-tick branch: a hint or maxHeight surviving from the recipe
+  // sheet must never share the centre stage (see the strip bug above)
+  const h1 = box.querySelector(".pp4PeekHint"); if (h1) h1.remove();
+  if (ap.style.maxHeight) ap.style.maxHeight = "";
+  if (ap.style.minHeight) ap.style.minHeight = "";
+  box.classList.remove("pp4Recipes");
+  if (!box.classList.contains("pp4Center")){
+    box.classList.add("pp4Center"); box.classList.remove("radial", "centered");
+    S.radKey = null;
+    box.style.left = ""; box.style.top = ""; box.style.width = "";
+    [...ap.querySelectorAll(".apBtn")].forEach(b => { b.style.position = ""; b.style.left = ""; b.style.top = ""; });
+    const m = ap.querySelector(".apMsg"); if (m){ m.style.position = ""; m.style.left = ""; m.style.top = ""; }
+  }
+}
+/* THE PEEK HINT IS PLACED LAST IN THE TICK — seam (a) of the two named in 260821-qwv.
+   It is the one floater that always yields (see peekHintTick), which only works if it can see
+   where everything else has actually ended up. Called from tick() AFTER promptTick, rather than
+   from inside the radial branch where it used to sit, so it can never again be dodging last
+   frame's layout. One call site, so nothing has to remember: the radial prompt is the only style
+   that teaches the gesture (D-39), and every other style has already removed the hint by the time
+   this runs. */
+/* ONE MOMENT SAYS ITS WORDS ONCE (D-46 fault 1, and it is rule 23's own signature).
+   The dock flip put the SAME sentence on screen twice — "Docking at Glitter Bay – dig for
+   treasure!" as the ceremony's big cream title, and again as a narration bubble half-hidden behind
+   the coin (solo-phone-017/018). Two paths, one moment: ask() broadcasts the ask as a narration
+   line for the deciding seat, and localAsk stashes the same words for the flip ceremony's title.
+   The de-dupe for this already existed — it lived inside the radial branch and compared the live
+   bubble against `.apMsg` — but A PURE FLIP RENDERS NO PANEL AT ALL, so there was no `.apMsg` to
+   compare against and the check could not fire. That is the seam, and it is the second time a
+   prompt style has fallen out of a rule written for one of them.
+   So the question is asked properly and in one place: is the live bubble already being said by
+   whatever is ASKING right now? The ask pill and the ceremony title are the two things that ever
+   are, and this runs every tick from tick(), for every prompt style there is or ever will be,
+   rather than from inside the one branch that happens to have a panel.
+   An empty bubble is not a duplicate of an empty title — the typewriter blanks both for their
+   first frames, and `"" === ""` once retired a perfectly good narration line. */
+function retireEchoBubble(){
+  if (!S.hurry) return;
+  const bub = document.querySelector(".pp4Bub");
+  if (!bub) return;
+  const bubT = plain(bub.textContent);
+  if (!bubT) return;
+  const asking = [$("actionPanel") && $("actionPanel").querySelector(".apMsg"),
+                  document.querySelector("#pp4Veil .pp4CerTitle")];
+  for (const a of asking){
+    if (a && plain(a.textContent) === bubT){ S.hurry(); return; }
+  }
+}
+function peekHintLast(){
+  const box = $("pp4Prompt");
+  /* W4-5 — IT ALSO RUNS WHEN A CARD IS UP, and until 2026-08-29 it did not. The guard was
+     radial-only, so with the recipe picker on screen the placement search NEVER RAN: the hint stayed
+     wherever the last radial prompt had put it, which is why Wyatt saw it stranded at the far end of
+     the board from the card (measured 295px at 1200 and 768, 222px at 390). It was not mis-placed —
+     it was UNPLACED, a stale position from a previous prompt.
+     THE COMMENT ON peekHintTick SAID "inside whichever prompt box is up" AND THAT WAS INTENT, NOT
+     RUNTIME — rule 6, again, and the reason the first attempt at this item changed the preference
+     order and moved nothing at all.
+     A card prompt is over the board exactly as the radial one is, so D-39's rule ("a prompt IS over
+     the board here, so the gesture is taught until it has been learned") applies unchanged. The
+     condition is DERIVED from what is on screen — a visible panel — not from a list of prompt class
+     names that would need editing every time a new prompt kind appears. */
+  if (!box) return;
+  /* ⚠ NARROWED AFTER CEO REVIEW 18, WHICH CAUGHT A REGRESSION THIS FUNCTION HAD JUST INTRODUCED.
+     The first cut ran for ANY prompt with a visible panel. But promptTick() deliberately REMOVES
+     the hint for plain card prompts (`if (hint) hint.remove()`), and peekHintTick() re-creates one
+     when it does not find it — so the hint reappeared on prompts that had chosen not to show it,
+     INCLUDING "Stay put", a trade's ✓ and "Call Flaky Jack": the exact three screens the five judge
+     findings of 2026-08-21 were about. Nobody measured that; it was a side effect.
+     THE RULE NOW: this function PLACES a hint, it never decides one should exist. It runs for the
+     radial bloom (which creates its own), or when a hint is ALREADY in the box because something
+     upstream chose to show it. Whoever owns "should the gesture be taught on this screen" keeps
+     that decision; this only answers "where". */
+  const already = !!box.querySelector(".pp4PeekHint");
+  if (!box.classList.contains("radial") && !already) return;
+  peekHintTick(box);
+}
+/* ⭐ AN EMPTY CAPTAINS BOX SHOWS NOTHING, SO IT SHOWS NOTHING — Wyatt, 2026-09-09, item 4 of seven:
+   "for this whole section of the pre-game where the captain's box is empty, hide it — from
+    desktop/tablet/mobile. make it appear after the recipe has been selected."
+   THE TEST IS THE GAME'S OWN FACT, not a screen state and not a flag: is there a captain holding a
+   recipe yet? Before the draft resolves the answer is no for everyone, which is precisely "the box
+   is empty" — so this cannot get stuck on, cannot disagree with what is drawn, and needs nobody to
+   remember to turn it back on.
+   ⚠ visibility, NOT display. The picker anchors itself to this box's rect (see the placement in
+   promptTick), and display:none would collapse the layout and take the target with it. Hidden-but-
+   laid-out is what lets the sheet sit exactly in the space the box will occupy. */
+function capEmptyTick(){
+  const cap = $("pp4Cap");
+  if (!cap) return;
+  /* ⚠ "HAS A RECIPE" IS NOT THE TEST, AND I TRIED IT FIRST. Every captain already holds a `recipe`
+     before the draft even opens — measured, all four seats, while the picker was still on screen:
+     `recipeChoices` is the PAIR to choose between and `recipe` is seeded from it. So that test was
+     true from the first frame and the box never hid once.
+     THE HONEST SIGNAL IS THE ONE WE JUST BUILT: the engine's `recipeSet` event, which fires at the
+     exact moment he named — "make it appear after the recipe has been selected". It is raised by the
+     one event consumer (so host, guest, solo and pass-play all get it identically) and cleared when
+     a voyage begins, so it cannot carry over into the next game. */
+  /* ⚠ AND THE FLAG ALONE IS NOT ENOUGH ON A RESUME — Wyatt, playtest 2026-09-10, item 12: "When i
+     reloaded, there was no wind particle animation and no captain's box — but the ships were in the
+     right place."
+     `S.recipePicked` is set by CONSUMING a recipeSet event. A solo resume rebuilds the voyage by
+     replaying its decision log, and that replay does not re-run the live consumer — so the flag
+     stayed false for a game whose recipes were chosen twenty turns ago, and the captains box hid
+     itself for the rest of the voyage. A hide that depends on having WITNESSED a moment cannot
+     survive a reload; the moment has to be readable from the game.
+     The event stream IS that record, and it is rebuilt by the replay. Read it only while the flag
+     is false — which is only during the draft, when there are a handful of events — and latch it,
+     so this costs one scan of a short array and nothing at all thereafter. */
+  if (!S.recipePicked && appState.game && Array.isArray(appState.game.events)
+      && appState.game.events.some(e => e && e.t === "recipeSet")) S.recipePicked = true;
+  const want = (appState.game && !S.recipePicked) ? "hidden" : "";
+  if (cap.style.visibility !== want) cap.style.visibility = want;
+}
+function promptTick(force){
+  const box = $("pp4Prompt"), ap = $("actionPanel");
+  if (!box || !ap) return;
+  capEmptyTick();
+  // AT PORT: this loop keeps running (it is the shared stage rAF, not per-game), and it owns
+  // box.style.display. Without this it re-shows the prompt one frame after hideStageLayer() hides
+  // it — T-12's second half. Returning early leaves the hidden display exactly as set.
+  if (stageDown) return;
+  // textContent, not innerText — innerText forces a layout pass, and this runs every frame
+  const has = ap.textContent.trim().length > 0 || ap.querySelector(".apBtn,.btlBtn,.bkoRow");
+  /* D-20 (playtest 22 item 11 / 02.2 item 11, Wyatt): "no popup appears until the director camera
+     AND the ships have stopped moving." panel.js's `pendingReveal` gate already exists and already
+     waits on exactly that — stageSettled() (the camera tween AND the ship's rendered transform,
+     hard-bounded by SETTLE_CAP_MS) alongside the typewriter reveal — but it was only ever applied
+     to hide the BUTTON ROW (.apBtns/.apSub/.apBack) inside an already-visible box. The box itself,
+     and the board-dimming backdrop this wrapper owns, still popped up the instant panel() gave the
+     actionPanel any content, so a captain could watch an empty white card with a dimmed board
+     arrive while their ship (or the director) was still gliding into place — the button fan simply
+     bloomed into it a beat later.
+     Reusing the SAME flag for the wrapper's own visibility (rather than inventing a second gate
+     that could disagree with the first) means the whole popup — box, dim and buttons alike — now
+     waits together. `pendingReveal` is only ever added when the prompt HAS buttons (panel.js:546),
+     so a buttonless wait-line or battle flip-card (already framed synchronously by
+     window.__pp4.battle, and not what D-20 was complaining about) is untouched by this and keeps
+     appearing immediately, exactly as before. */
+  /* pendingStage, NOT pendingReveal (Wyatt's blank-space lag, 2026-08-23 tier 1). The paragraph
+     above still holds — the whole popup waits for the BOARD — but the flag it read also waited for
+     the prompt's own typewriter, which typed invisibly behind display:none: fade + resize +
+     20ms/char of dead air before anything appeared, on every prompt, every trade step. pendingStage
+     is the board-settled half alone; the box now appears the moment the camera and ships are still,
+     the old line fades in view, the new text types in visibly, and the buttons keep arriving last
+     through the unchanged pendingReveal CSS (top-to-bottom rule intact). */
+  const want = (has && !ap.classList.contains("pendingStage")) ? "block" : "none";
+  if (box.style.display !== want) box.style.display = want;
+  /* BEING ASKED SOMETHING IS THE END OF WAITING — Wyatt, 2026-08-20, and this is the half of his
+     two wait-line reports that survived the first fix. A screenshot of the HOST at the recipe
+     picker with "⚓ Waiting for yer mateys…" still floating over the sea, overlapping the "tap and
+     hold the sea" hint: he had clicked through the Ahoy barrier first, been told he was waiting,
+     and then been handed his own recipe choice with the wait line still standing.
+
+     A wait line has no deadline and no timeout by design (item 19 — "it should disappear when their
+     teammates have played"), so the ONLY things that retire one are a tap, the next narration line,
+     and — since this morning — a centre-stage card. A recipe sheet is none of those. Neither is a
+     radial bloom, or a battle call, or a trade offer. So whoever finished first sat under a stale
+     "waiting" line through every prompt until narration happened to land.
+
+     ONE PLACE, and it is this one: promptTick runs on both tiers (host and guest render into the
+     same #actionPanel) and covers every prompt style there is or ever will be — no call site has to
+     remember. Deliberately NOT S.hurry(): that would also cut a narration line short the instant a
+     prompt appeared, which is a pacing change nobody asked for. Only the wait line goes.
+
+     A RISING EDGE, NOT A LEVEL — and the level version was written first, shipped nothing, and was
+     caught by measuring my own fix rather than trusting it. A wait line is BORN one beat after its
+     owner answered a prompt, and the panel is not always empty by then; a `has`-is-true test
+     therefore retired the line in the same frame it appeared. Both runs agreed: 0 frames of a live
+     wait line, and the only samples that saw one at all were catching its fade. That is the whole
+     feature deleted while every check still said PASS, because "the line is gone" is what the check
+     was asking for.
+     The honest question is "has a NEW question arrived since you were told to wait", so the panel
+     going empty -> non-empty is the signal, and an already-open panel simply waits for the next one. */
+  /* ⭐ A NEW QUESTION ALSO RETIRES IT, NOT ONLY AN EMPTY PANEL — Wyatt, playtest 2026-09-10, item
+     14.1: "'waiting for yer mateys' appears ONLY on host, while both host and guest are picking
+     recipes. expectation: this does not appear UNTIL host is actually waiting for guest to decide."
+     THE NOTE ABOVE ALREADY NAMED THIS GAP: "an already-open panel simply waits for the next one."
+     That is exactly the crew path. The host answers the Ahoy barrier and is told to wait; the guest
+     then answers, the draft opens, and the recipe picker replaces the Ahoy card WITHOUT the panel
+     ever passing through an empty tick — so `!S.hadPrompt` is false, waitFinish never fires, and a
+     line that means "nothing is happening yet" sits over the host's screen while he is being asked
+     to choose a recipe. It reads as though the game is waiting on somebody else when it is waiting
+     on HIM, which is the opposite of what the line is for.
+     `revealSeq` is panel.js's own per-prompt stamp — it increments once per question asked — so a
+     CHANGE in it is the honest form of "a new question has arrived", with no second clock and no
+     guessing from text. The empty->non-empty test stays exactly as it was for the prompts that have
+     no button row and therefore no stamp. */
+  /* ⚠ AND A FALLBACK IDENTITY, because the stamp is not always written — CEO review, 2026-09-10.
+     panel.js only stamps revealSeq when the prompt HAS BUTTONS and motion is not reduced, so a
+     reduced-motion captain got no stamp, this test never fired, and 14.1 came straight back for
+     them. The panel's own text is a serviceable identity when there is no stamp: it changes when
+     the question does, which is the whole thing being asked.
+     (The stamp counts panel RENDERS rather than questions strictly speaking — a re-render of the
+     same prompt bumps it. Harmless here: retiring a wait line while a real question is on screen is
+     the correct outcome either way, and it cannot fire at birth because panel() runs this tick
+     synchronously before the wait line is shown.) */
+  const seq = ap.dataset.revealSeq || ap.textContent.trim().slice(0, 60);
+  const newQuestion = has && (!S.hadPrompt || (seq && seq !== S.lastSeq));
+  if (newQuestion && S.waitFinish) S.waitFinish();
+  S.lastSeq = seq;
+  S.hadPrompt = has;
+  if (!has){
+    // full mode teardown — the recipes->lots transition never passes through an empty tick, and a
+    // stale .pp4PeekHint left in the box becomes a FLEX SIBLING of the panel on the next centre
+    // stage, crushing the message into a one-word-wide strip (Wyatt's 2:10 screenshot)
+    box.classList.remove("radial", "pp4Center", "pp4Recipes");
+    S.radKey = null;
+    const h0 = box.querySelector(".pp4PeekHint"); if (h0) h0.remove();
+    rcChromeTeardown(box);
+    if (ap.style.maxHeight) ap.style.maxHeight = "";
+  if (ap.style.minHeight) ap.style.minHeight = "";
+    if (box.style.paddingBottom) box.style.paddingBottom = "";
+    return;
+  }
+  // playtest 12 item 1/3: intro barriers (ahoy, turn order) play CENTER STAGE — the board dims,
+  // the message sits dead centre and its button pulses right beneath it
+  // ...and the bake-off shell (.bko) stages ITSELF, by content rather than flag: it is hand-built
+  // (never through localAsk), it must stay staged through the verdict reveal, and keying off the
+  // content means the stage ends at the exact moment the next narration replaces it — no window
+  // where the shell could flash back to the old card style (playtest 16).
+  /* ⚠ BEFORE THE CENTRE-STAGE RETURN, NOT AFTER IT. This one line is the whole fix for the picker
+     chrome outliving the picker — see rcChromeTeardown. It asks the panel what it is holding rather
+     than trusting a flag, which is the same test the picker itself is switched on by four lines
+     down, so the two can never disagree about whether a picker is up. */
+  const hasRecipes = !!ap.querySelector(".recipeList");
+  if (!hasRecipes) rcChromeTeardown(box);
+  if (ap.dataset.pp4Stage || ap.querySelector(".bko")){
+    enterCenterStage();
+    return;
+  }
+  box.classList.remove("pp4Center");
+  if (box.style.paddingBottom) box.style.paddingBottom = "";   // centre-stage-only inset
+  // playtest 10 item 1: the recipe chooser becomes a BOTTOM sheet — the sea it asks you to read
+  // stays visible above the cards, holding a finger on the sea peeks behind them (the gesture
+  // that already works on every card), and a hint line teaches it. Draft copy — Wyatt's to rewrite.
+  const recipes = hasRecipes;
+  box.classList.toggle("pp4Recipes", recipes);
+  let hint = box.querySelector(".pp4PeekHint");
+  if (recipes) mountRecipeStack(ap);
+  if (recipes){
+    box.classList.remove("radial", "centered");
+    /* THE PICKER SITS AS LOW AS IT CAN WHILE STILL FITTING — it is no longer a flat 45% of the
+       viewport. 0.45 is a constant standing in for a quantity that moves (rule 9), and the honest
+       phone height found it out: at 844 tall it leaves 456px for a card that wants ~370 and all is
+       well, but at the 664 a real iPhone Safari actually gives the page it leaves 357, so BOTH
+       recipe cards were cut off by the bottom edge of the screen with no visible cue that the panel
+       scrolls — on the very first screen of the game. Measured before the fix at 390x664: cards
+       ended at y=663 of a 664-tall viewport, and the panel's content was 370px in a 353px box.
+       The 844 emulation hid it completely, which is D-42's whole point.
+       The lift itself is applied after the cards exist and can be measured — see the note by the
+       maxHeight cap below. This stays the STARTING point, so nothing changes on a tall screen. */
+    /* ── ⭐ THE PARKED PLACE: THE TOP RIGHT OF THE DRAWN BOARD ────────────────────────────────
+       Wyatt, 2026-09-09: "they should move up to the top right of the board to reveal most of the
+       gameboard with the dotted line map fully visible."
+       ⚠ THE TRAP, KEPT FROM THE DESIGN THIS REPLACES BECAUSE IT IS STILL LIVE: #boardwrap is
+       TALLER than the drawn board, so anchoring to IT would park the sheet above the water with a
+       band of nothing under it. svgEl() is the board that is actually drawn, and its rect is the
+       only thing that can answer "the top right of the board" — at every size, with no breakpoint.
+       WHY THE PARKED PLACE IS THE LAYOUT and the middle is a transform: everything downstream in
+       this block measures the box (the panel's maxHeight, the peek hint's dodge list, the overflow
+       nudge). Measuring a box that is mid-flight gives a different answer every frame, which is
+       exactly the two-answers-for-one-number fault the old picker paid for twice. */
+    const brd = boardDrawnRect();
+    /* THE SHEET'S WIDTH IS DERIVED FROM THE STACK IT HAS TO HOLD (rule 9), never typed. The row
+       declares its own geometry in --rcW and needs `card x 1.4 + 8` for card-plus-two-peeks; the
+       panel and the box each add their own padding, read from the renderer rather than guessed.
+       Capped to the board, then to the glass — on a phone the board is nearly the full width, so
+       "top right of the board" and "the full width" converge, which is correct rather than a
+       special case. */
+    const rcRow = ap.querySelector(".apBtns");
+    /* ⭐ THE CARD IS AS BIG AS ITS COLUMN ALLOWS — Wyatt, 2026-09-09 item 3, "in desktop Make the
+       cards 50% bigger", and I got this wrong twice before getting it right.
+
+       ⚠ MISTAKE ONE: I SIZED IT FROM THE PANEL. #actionPanel is shrink-to-fit, so its width depends
+       on the card, so sizing the card from it is a loop — this file documents that exact failure
+       twenty lines below ("attempt 2 — measure it once in JS... four sizes for one card"), and it
+       measured 248px on a phone where 225 was correct. Correctly backed out.
+
+       ⚠ MISTAKE TWO, AND IT IS THE ONE HE CAUGHT: I then declared the whole thing impossible and
+       quoted arithmetic to prove it — "the captains column is ~382px, so a 375px card cannot fit".
+       That 382 was measured on a 1280x900 EMULATION and stated as though it were a fact about his
+       screen. It is not. On his own window the column is closer to 550, which is exactly what he
+       was pointing at: "i don't understand your math -- there is SO much horizontal AND vertical
+       space here". A number measured on one viewport is not a constraint; it is one sample.
+
+       ⭐ THE COLUMN IS THE HONEST SOURCE, AND IT IS NOT CIRCULAR. #pp4Cap's width is decided by the
+       page layout and owes nothing to the card, so reading it cannot feed back — which is the whole
+       reason the panel could not be used and this can. Solve the stack's own arithmetic for the
+       card: it needs `card x 1.4 + 8` (card plus a peek either side, since the row centres), plus
+       the row's and the box's padding. Capped at his 375 so it never grows past what he asked for.
+
+       WHAT THIS GIVES, on the two windows I can measure: ~245 at 1280 (unchanged — the card was
+       already at its ceiling there, which is why my 382 sample fooled me) and ~365 on a 550px
+       column, which is his 50%. It also grows on any wider screen without another change, which a
+       typed 375 never would. */
+    if (rcRow){
+      const capNow = (() => { const c = $("pp4Cap"); if (!c) return null;
+        const r = fixedRect(c); return (r.width > 2) ? r : null; })();
+      const pad = el => { const c = getComputedStyle(el);
+        return (parseFloat(c.paddingLeft) || 0) + (parseFloat(c.paddingRight) || 0); };
+      /* ⚠ ONLY WHERE THE CAPTAINS BOX IS A COLUMN BESIDE THE BOARD. On a phone and a tablet it is
+         the FULL-WIDTH STRIP under the board, and its width is then no bound on the card at all —
+         measured, this handed a 390px phone a 237px card, overriding the 225 the media query below
+         sets. That 225 is not a preference: it is the width at which the card, its peek and the
+         swap circle still fit, worked out in the CSS three paragraphs above the query. An inline
+         style beats a media query, so deriving everywhere would have silently broken a constraint
+         somebody had already measured. */
+      /* ⚠ "IS IT A COLUMN?" IS A STRUCTURAL QUESTION, NOT A SHAPE ONE — and my first test got it
+         wrong in the one mode I had not driven. `capNow.left > 40 && width < 75% of the glass` is a
+         heuristic about proportions, and pass-and-play's captains strip on a PHONE satisfies both:
+         it is inset and it is not very wide. So the card was derived up to 244px on a 390px screen
+         where the CSS had measured 225 as the ceiling, and the back card's peek ran off the right
+         edge — the sea trial caught it as `clickable off-screen: Vanilla Bean Crème Brûlé` on
+         passplay-phone, which is D-38's one unacceptable outcome: a control a captain cannot reach.
+         THE HONEST TEST IS WHERE THE BOX SITS RELATIVE TO THE BOARD. A column is beside the board;
+         a strip is below it. That is a fact about the layout, not a proportion, and it cannot be
+         satisfied by a narrow strip on a phone. */
+      const beside = capNow && brd && capNow.left >= brd.right - 4;
+      /* AND THE GLASS ALWAYS WINS, as a belt. Even a true column must not let the stack grow wider
+         than the screen can show — the note at the old overflow nudge says it plainly: when the
+         question is "does this fit on the glass", only the glass can answer. */
+      const room = beside ? Math.min(capNow.width, vwPx() - 16) : 0;
+      const avail = beside ? Math.round(room - pad(rcRow) - pad(ap) - pad(box) - 4) : 0;
+      /* ⚠ 1.4 WAS THE PEEK, HARDCODED, AND THE PEEK HAS MOVED. The row reserves card + a peek on
+         EACH side (see its min-width), which was 1 + 2x0.20 = 1.4 while the peek was 20%. Wyatt set
+         it to 18% on 2026-09-10, so the true factor is 1.36 and this was quietly costing the card
+         width he had asked for. Read it from --rcPeek instead of naming it twice — rule 9, and the
+         two can no longer disagree. */
+      /* ⚠ READ AS A PLAIN NUMBER. The first version of this read `--rcPeek` and `--rcW` and divided
+         them — but getComputedStyle hands a calc() custom property back UNRESOLVED, so `--rcPeek`
+         came back as the string "calc(var(--rcW) * 0.18)", parseFloat made NaN of it, and every
+         call fell through to the hardcoded 0.18. Right by coincidence, reading nothing. The peek
+         is its own number now (--rcPeekFrac), so this reads what it claims to. */
+      const peekFrac = (() => {
+        const f = parseFloat(getComputedStyle(rcRow).getPropertyValue("--rcPeekFrac"));
+        return (f > 0.02 && f < 0.6) ? f : 0.145;     // a sane band; never let a bad read shrink the card
+      })();
+      const factor = 1 + peekFrac * 2;
+      const want = avail > 140 ? Math.max(160, Math.min(RC_CARD_MAX, Math.floor((avail - 8) / factor))) : 0;
+      /* ⭐ WRITES THE WIDTH AS A NUMBER, and the whole card scales with it. Wyatt, 2026-09-10: "I
+         don't care about the objective absolute sizes. I just care about the ratios." The CSS turns
+         --rcWn into --rcW (a length) and into --rcK (actual / the width he tuned at), and every
+         dimension inside the card is his number times --rcK. So when this derivation gives 376
+         instead of his 400, the card does not just get narrower — it gets SMALLER, in proportion,
+         and stays his. */
+      const now = parseFloat(rcRow.style.getPropertyValue("--rcWn")) || 0;
+      if (want && Math.abs(want - now) > 1) rcRow.style.setProperty("--rcWn", String(want));
+      if (!want && now) rcRow.style.removeProperty("--rcWn");   // no column to measure: back to the CSS
+    }
+    const sheetW = (() => {
+      const capW = Math.min(brd ? Math.round(brd.width) : vwPx() - 16, vwPx() - 16);
+      if (!rcRow) return capW;
+      const rs = getComputedStyle(rcRow);
+      /* the NUMBER, not --rcW: --rcW is a calc() now, and getComputedStyle would return it
+         unresolved, so parseFloat would silently hand back the 250 fallback every time */
+      const rcW = parseFloat(rs.getPropertyValue("--rcWn")) || 250;
+      const pad = (el) => { const c = getComputedStyle(el);
+        return (parseFloat(c.paddingLeft) || 0) + (parseFloat(c.paddingRight) || 0)
+             + (parseFloat(c.borderLeftWidth) || 0) + (parseFloat(c.borderRightWidth) || 0); };
+      /* card + a peek each side — the same factor the width above was derived from, read from his
+         peek rather than a remembered 1.4 (that was the peek at 20%; he set 18%) */
+      const pf = parseFloat(rs.getPropertyValue("--rcPeekFrac"));
+      const want = Math.ceil(rcW * (1 + 2 * ((pf > 0.02 && pf < 0.6) ? pf : 0.145)) + 8 + pad(rcRow) + pad(ap) + pad(box));
+      return Math.max(200, Math.min(want, capW));
+    })();
+    const RC_INSET = 10;
+    box.style.width = sheetW + "px";
+    /* ⭐ IT SITS WHERE THE CAPTAINS BOX SITS, AND THE CAPTAINS BOX GETS OUT OF THE WAY — Wyatt,
+       2026-09-09, items 4 and 5 of seven:
+         "for this whole section of the pre-game where the captain's box is empty, hide it — from
+          desktop/tablet/mobile. make it appear after the recipe has been selected."
+         "make the recipe picker appear in the space where the captains box usually is (but now, is
+          invisible)."
+       ⭐ THIS DISSOLVES THE TENSION THAT HAS COST THREE DESIGNS. Every previous placement traded
+       one thing against another — cover the captains box, or cover the board, or sit in the gap
+       between them. There was never a fourth option because the captains box was always THERE. It
+       is empty during the draft (nobody holds anything yet), so it is showing nothing at the one
+       moment its space is worth the most. Hide it and the argument disappears: the sheet covers
+       NOTHING, and the whole board stays clear.
+       ⚠ visibility:hidden, NOT display:none, AND THAT IS THE WHOLE MECHANISM. A hidden box keeps
+       its rect, so the picker can be anchored to the exact space the box would have occupied —
+       measured from the renderer, never arithmetic of mine (the same rule every anchor in this file
+       follows). display:none would collapse the layout and take the target with it.
+       WHEN IT COMES BACK is a GAME fact, not a screen state: the moment any captain holds a recipe.
+       That is literally "the box is no longer empty", so it needs no flag and cannot get stuck. */
+    const capR = (() => {
+      const cap = $("pp4Cap");
+      if (!cap) return null;
+      const r = fixedRect(cap);
+      return (r.width > 2 && r.height > 2) ? r : null;
+    })();
+    /* ⚠ `top` IS FUNCTION-SCOPED AND HAS TO BE. Code further down this block reads it (the panel's
+       maxHeight falls back to it when the panel has no rect yet), and my first version declared it
+       with `const` inside each branch — which left the later read hitting a temporal dead zone and
+       threw "Cannot access 'top' before initialization" on the very first tick. The picker rendered
+       its cards and then #pp4Prompt was never given a display, so the whole sheet was invisible
+       while the panel underneath was perfectly correct. Caught by reading window.onerror, not by
+       any gate: node --check passes a TDZ every time. */
+    /* ⭐ THE RIGHT-HAND EDGE OF THE SCREEN, IN THE SPACE THESE COORDINATES LIVE IN — and this is
+       NOT vwPx(). On desktop the stopgap caps `body` to the BOARD (measured: 1036px at 1920, its
+       own box running gBCR 165→1201), while the captains column and the menu sit OUTSIDE that box
+       entirely, at 1215→1755. vwPx() answers "how wide is the capped stage", so clamping anything
+       that has to reach the menu against it forbids the whole right-hand column: the alignment
+       below computed a correct left of 976 and the clamp crushed it to 493, which is why the card
+       kept landing 468px left of the sound icon with the code apparently "in".
+       documentElement.clientWidth is the LAYOUT viewport (never Safari's pinched visual one — the
+       distinction vwPx() itself was written for), and fixedOrigin().x is the shift between that and
+       body-relative space, read the same way every other anchor in this file reads it. */
+    const glassR = (document.documentElement.clientWidth || vwPx()) - fixedOrigin().x;
+    let top;
+    /* ⚠ FUNCTION-SCOPED FOR THE SAME REASON `top` IS, and I made the identical mistake two screens
+       below the comment that explains it. The sound-icon alignment reads `colL` AFTER this block
+       closes; declared `const` inside the branch it threw "colL is not defined" on every tick, so
+       #pp4Prompt was never given a display and the ENTIRE PICKER was invisible — cards, sheet and
+       all — on the branch. `node --check` passes it, all 109 gates pass it, and the seven-check
+       printed "every card fully on the glass? YES" while measuring a hidden element. Nothing but
+       loading the page and reading window.onerror finds this class of fault. */
+    let colL = null;
+    if (capR){
+      /* ⭐ LEFT-ALIGNED WITH THE MENU BELOW IT — Wyatt, 2026-09-09, item 2, drawn as a red line down
+         his screenshot: "in desktop, the cards should be left-aligned with the board, in vertical
+         alignment with the menu options."
+         THE MENU IS THE THING TO ALIGN TO, not the captains box. #footerRow's own left edge is
+         where "Sound", "How to play" and the rest begin, and it is what his line was drawn through
+         — so the sheet reads as belonging to that column rather than floating in it. Measured from
+         the renderer, and it falls back to the captains box's left when the menu is not laid out
+         (on a phone the menu is elsewhere and the box IS the column). */
+      /* ⚠ ONLY WHEN THE CAPTAINS BOX IS A COLUMN BESIDE THE BOARD. His item 2 says "in DESKTOP the
+         cards should be left-aligned… in vertical alignment with the menu options" — on a phone the
+         menu is not a column and #footerRow's left is 0, which left-aligned the sheet to the screen
+         edge and undid the centring he had already approved. Measured: phone and tablet both jumped
+         to left:0 the moment this went in unguarded. */
+      const beside = capR.left > 40 && capR.width < vwPx() * 0.75;
+      colL = (() => {
+        if (!beside) return null;
+        const f = $("footerRow");
+        if (!f || getComputedStyle(f).display === "none") return capR.left;
+        const r = fixedRect(f);
+        return (r.width > 2 && r.left > capR.left - 60 && r.left < capR.right) ? r.left : capR.left;
+      })();
+      const w = colL != null ? Math.round(Math.max(160, capR.right - colL))
+                             : Math.min(sheetW, Math.round(capR.width));
+      /* ⚠ SAME WRONG BOUND, one line apart: with vwPx()=1036 and a column at 1050 this computed
+         `1036 - 1050 - 8` = -22 and assigned `width:-22px`, which is invalid CSS the browser drops
+         on the floor — so the sheet silently fell back to its content width and the bug was
+         invisible. A clamp that can go negative is not clamping. */
+      box.style.width = Math.max(160, Math.min(w, Math.round(glassR - (colL != null ? colL : 0) - 8))) + "px";
+      box.style.left = Math.round(colL != null ? colL : capR.left + (capR.width - w) / 2) + "px";
+      const sheetH = Math.max(1, Math.round(fixedRect(box).height));
+      top = Math.round(Math.max(topBandPx(),
+        Math.min(capR.top + (capR.height - sheetH) / 2, vhPx() - sheetH - 8)));
+    } else {
+      // no captains box laid out yet — centre on the board and let the next tick place it properly
+      box.style.left = Math.max(8, Math.round(brd ? brd.left + (brd.width - sheetW) / 2
+                                                  : (vwPx() - sheetW) / 2)) + "px";
+      const sheetH = Math.max(1, Math.round(fixedRect(box).height));
+      top = Math.round(Math.max(topBandPx(), brd ? brd.top + brd.height / 2 - sheetH / 2
+                                                 : vhPx() * 0.4));
+    }
+    box.style.top = top + "px";
+    /* ⭐ THE FRONT CARD'S LEFT EDGE LINES UP WITH THE SOUND ICON'S — Wyatt, 2026-09-10: "in desktop
+       widescreen the left pixel of the front card should be horizontally aligned with the left
+       pixel of the sound icon."
+       ⚠ IT IS THE CARD THAT MUST ALIGN, NOT THE SHEET, and that is why this cannot be done by
+       setting box.style.left alone: the card sits centred inside a row, inside a panel, inside the
+       box, and the sum of those insets is not a number worth deriving by hand. So the sheet is
+       placed first (above), the two rects are read from the renderer, and the box is shifted by the
+       difference — ONE correction, and it is stable by construction: moving the box moves the card
+       by exactly the same amount, so the second pass finds them already aligned rather than
+       oscillating. That is the difference between this and the panel-measuring loop that had to be
+       backed out yesterday — there the measured thing FED the thing being measured; here it does
+       not. Desktop-column only, where "the sound icon" is a thing beside the board at all. */
+    /* ⚠ GATED ON THE COLUMN, NOT ON `capR` — and `capR` is null exactly when this runs. The
+       captains box is EMPTY during the draft (that is the whole premise of hiding it), so it has a
+       real width and a height of ZERO, and capR's `height > 2` test rejects it. Placement therefore
+       falls to the board-centre branch, colL stays null, and this block never ran: measured, the
+       front card sat 468px left of the sound icon at 1920 with the code "in". The sizing code two
+       hundred lines up already had this right — it tests width only, and asks the STRUCTURAL
+       question (is the box beside the board, or a strip below it) rather than a shape one. Same
+       test here, because his ask is purely horizontal and must not disturb the vertical placement
+       he has already approved. */
+    const capCol = (() => {
+      const c = $("pp4Cap"); if (!c || !brd) return null;
+      const r = fixedRect(c);
+      return (r.width > 2 && r.left >= brd.right - 4) ? r : null;
+    })();
+    /* NOT WHILE IT IS FLYING. Everything this block measures is under an animation's transform
+       once the show starts — see rcAlignReady where it is declared. */
+    /* A LAYOUT WITH NO COLUMN NEVER ALIGNS, so it is ready by definition — a phone and a tablet
+       must not wait for a step that will never run. */
+    if (!capCol) rcAlignReady = true;
+    if (capCol && !rcInFlight){
+      /* THE ICON, NOT THE ROW. #btnMute is the whole menu line — "Sound: ON – blocked by yer
+         browser", 540px of it — and he said "the left pixel of the SOUND ICON". The glyph is the
+         <img class="narrIcon"> inside it; the row's own left differs from it by whatever padding
+         the row carries, so ask for the image and fall back to the row only if it is not there. */
+      const row = $("btnMute");
+      const icon = (row && row.querySelector("img.narrIcon")) || row;
+      /* ⚠ FOUND BY WHAT IT CONTAINS, NOT BY data-rcpos. The attribute selector matched a
+         ZERO-SIZED element and the alignment silently did nothing (measured: card rect 0,0,0 while
+         the icon read 1203,723). Whatever that element is, the card a captain looks at is the one
+         holding a .recipeList and having a real box — so ask for that. */
+      const front = [...ap.querySelectorAll(".apBtn")]
+        .filter(b => b.querySelector(".recipeList") && fixedRect(b).width > 2)
+        .sort((a, b) => fixedRect(a).left - fixedRect(b).left)[0];
+      /* the ROW's display, not the image's: an <img> inside a display:none row is itself
+         `inline`, so asking the image answers a different question than the one intended. */
+      if (icon && front && row && getComputedStyle(row).display !== "none"){
+        const iR = fixedRect(icon), fR = fixedRect(front), bR = fixedRect(box);
+        if (iR.width > 2 && fR.width > 2){
+          /* ⭐ THE CARD'S INSET INSIDE THE SHEET, NOT ITS POSITION ON SCREEN — and that difference
+             is the whole of Wyatt's playtest item 2 ("the cards should appear directly over the
+             center of the board; in desktop this is not what happened... there is a glitch with
+             the cards moving over to the side, where they drop frames").
+             MEASURED, 2026-09-10: this block used to read the card's LIVE left and add the
+             difference to the sheet's parked left. During the arrival the flight puts a transform
+             on the sheet, so that live left is wherever the ANIMATION currently has it — and this
+             ran on every tick of a four-second animation. One arrival rewrote the parked left
+             ELEVEN times at 1920 (1207 -> 991 -> 943 -> 989 -> 976) and ten times at 1280. Three of
+             his findings fall out of that one mistake:
+               · rcFlightRun computes its dx ONCE, from the parked left at flight start; moving that
+                 left afterwards means translate(dx) no longer lands on the board's centre, so the
+                 cards held 244px right of it;
+               · a style write plus a rect read, every tick, is layout thrashing — 6 frames over
+                 33ms at 1920 (worst 91ms) against ZERO on a phone, which is the one size where
+                 this block does not run;
+               · and the entrance reads wrong because the thing it is scaling is also jumping.
+             The sheet's transform moves the card and the sheet by exactly the same amount, so
+             `card.left - sheet.left` is INVARIANT under it. Ask for that, and the answer is the
+             same on every frame: it settles in one tick and writes nothing after. */
+          const inset = fR.left - bR.left;
+          const parked = parseFloat(box.style.left || 0) || 0;
+          const want = Math.round(iR.left - inset);
+          rcAlignReady = true;          // the cards are laid out and this tick has the final answer
+          if (Math.abs(want - parked) > 1){
+            /* never off the glass: the alignment is a preference, reachability is not.
+               ⚠ CLAMPED AGAINST THE PAINTED WIDTH, not `box.style.width` — the board-centre branch
+               above never assigns a width, so reading the inline style there measures 0 and the
+               clamp silently permits the sheet to leave the screen. */
+            const bw = Math.round(bR.width) || 0;
+            box.style.left = Math.max(8 - fixedOrigin().x, Math.min(want, glassR - bw - 8)) + "px";
+          }
+        }
+      }
+    }
+    /* THE TWO HINTS TEACH TWO DIFFERENT SURFACES, SO THEY LIVE ON THE SURFACE THEY TEACH.
+       playtest 21 (Wyatt), items 2 and 4. They used to be a stacked pair of pills wedged in the gap
+       between the board and the sheet, where the sea one sat nowhere near the sea it names and the
+       recipe one sat outside the card it is about.
+         - "tap and hold the SEA"    -> a pill over the water, up in the open sea near the top of the
+                                        board, away from the sheet entirely.
+         - "tap a RECIPE"            -> inside the card, small italics, under the ask and above the
+                                        cards it describes.
+       The recipe line goes after .apMsg and before .apBtns, which is its VISUAL position — so the
+       top-to-bottom reveal rule carries it for free: back, message, this, cards. */
+    /* ⭐ THE CREAM BOX ABOVE THE CARDS — Wyatt, 2026-09-09: "there should be a small cream box
+       above them that explains '{player}, pick which recipe you want to bake'".
+       IT NAMES THE CAPTAIN BEING ASKED, not the captain holding the phone — the same seat the
+       course chart uses (S.activeSeat, falling back to the game's current seat), so on a shared
+       device the box and the dotted line on the water always agree about whose turn this is.
+       pname() is the game's one name-resolver and it escapes what it returns, which is why this is
+       written as HTML rather than textContent: a captain who typed their own name gets it back
+       byte-identically, and a captain who typed markup does not get to render it. */
+    /* ⚠ NEVER appState.curSeat. That is whichever seat the ENGINE is on, which on a guest is the
+       HOST — and naming the host on the guest's own picker is exactly the bug Wyatt caught in crew
+       (see draftDispatch's note in flow.js, where the real fix lives). S.activeSeat is now
+       published by the dispatcher on EVERY local ask rather than only on the pass-play path, so it
+       is authoritative here.
+       ⚠ AND THERE IS NO FALLBACK AT ALL, WHICH THE MODE-FORK GATE IS RIGHT TO INSIST ON. My first
+       attempt fell back to appState.mySeat and the gate caught it the same minute: stage.js went
+       9 forks to 10, "a place two captains can see different games". It was also the wrong instinct
+       — a fallback here is a GUESS at somebody's identity, and guessing is what put the host's name
+       on the guest's screen in the first place. Both seams that raise a local prompt now publish
+       the seat before the panel is drawn, so this is never null in practice; if it somehow is, the
+       box simply does not appear for a tick. No name beats the wrong name. */
+    const askSeat = S.activeSeat;
+    let ask = box.querySelector(".pp4RcAsk");
+    if (askSeat == null){ if (ask) ask.remove(); ask = null; }
+    else if (!ask){
+      ask = document.createElement("div");
+      ask.className = "pp4RcAsk";
+      box.insertBefore(ask, ap);
+    }
+    if (ask){
+      /* ⭐ ITEM 2 + ITEM 6, 2026-09-09. His shorter line, and his own colour on his own name:
+         "shorten the text: '{player}, pick yer recipe:'" and "including the colored playername".
+         HEXCOL is the seat palette every other surface names a captain in — the ribbon, the
+         captains box, the narration bubbles — so the box agrees with all of them by using the same
+         array rather than a colour chosen here. */
+      const who = askSeat;
+      /* ⚠ THE TAIL IS ITS OWN SPAN, and that is what lets the name have every pixel the sentence
+         does not need. Wyatt, playtest 2026-09-10, on the guest's card: "the text box showing
+         their name was unnecessarily narrow, so their name was cut off with a '...' — the text box
+         should be allowed to be wider, the cutoff seemed unnecessarily slim."
+         It was capped at 45% of the ask's own width, which is circular: the ask is sized to
+         max-content, and its content includes a name being capped at a fraction of the result. As
+         two real flex items — an unshrinkable tail and a name that takes the rest — the split is
+         MEASURED by the browser instead of guessed by me, and "Wyargh phone" simply fits. */
+      const askHtml = `<span class="pp4RcWho" style="color:${HEXCOL[who] || "#1f2d33"}">${pname(who)}</span><span class="pp4RcSay">, pick yer recipe:</span>`;
+      if (ask.dataset.rcAsk !== askHtml){ ask.dataset.rcAsk = askHtml; ask.innerHTML = emojify(askHtml); }
+    }
+    /* THE SEA HINT SITS OUT THE SHOW. peekHintTick() places this pill by dodging whatever else is
+       on screen, and the sheet is one of its obstacles — during the flight it would chase a moving
+       box around the board. It is also teaching a gesture the captain cannot use yet. */
+    if (hint) hint.style.visibility = rcInFlight ? "hidden" : "";
+    if (!hint){
+      hint = document.createElement("div"); hint.className = "pp4PeekHint";
+      hint.innerHTML = `<span>${peekHintText()}</span>`;   // D-40: one sentence, device-correct verb
+      box.insertBefore(hint, ap);
+    }
+    /* ⚠ THE PIN THAT USED TO BE HERE IS GONE, AND THIS REVERSES AN EARLIER RULING OF WYATT'S.
+       It read `hint.style.top = br.top + br.height * 0.10` — "over the SEA, high on the board" —
+       and the comment above records that HE ASKED FOR THAT in playtest 21 item 2: "a pill over the
+       water… away from the sheet entirely."
+       W4-5 IS HIM CHANGING HIS MIND, IN HIS OWN WORDS: "move the tooltip closer to the recipe card,
+       and give it the same pulse as the buttons — in a way, it is a button, a button that reveals
+       the sea." His newer ruling wins; the older one is recorded here rather than quietly deleted,
+       because CEO Review 15 caught exactly this reversal-without-saying-so one item ago and CEO
+       Review 18 caught it again here.
+       IT IS ALSO A ONE-WRITER FIX. For a while both this line and peekHintTick() set the hint's
+       position — this one first, overwritten a moment later — which is two things kept in step by
+       nothing (rule 23). peekHintTick() is now the only writer, so the placement cannot disagree
+       with itself, and the comment above no longer describes something the screen contradicts. */
+    /* THE PILOT SPEAKS THROUGH THE LINE THAT IS ALREADY HERE.
+       This hint is the recipe draft's own helper text, and it is where the ladder belongs — the
+       first attempt put the rung in the panel's .apSub instead and the picker ended up carrying TWO
+       sentences saying nearly the same thing, one above the card and one below it. Caught by
+       looking at the screenshot, not by a gate.
+       The shipped wording is passed IN, so at the bottom rung this element renders exactly the
+       string it always did. */
+    /* ⭐ ITEM 3, 2026-09-09: "Put the helper text in a normal helper pill over the sea, not covering
+       any of the islands." It used to sit inside the card, under the ask — and with the card behind
+       the recipes gone (item 1) there is no longer a surface for it to sit on. It is now the same
+       pill the sea hint wears, placed over open water. */
+    let help = box.querySelector(".pp4RcHelp");
+    if (!help){
+      help = document.createElement("div");
+      help.className = "pp4RcHelp";
+      help.innerHTML = "<span></span>";
+      box.appendChild(help);          // last child of the column: under the cards, and it travels with them
+    }
+    {
+      const words = pilotMsg("recipe.draft", "Tap a recipe to see its route");
+      const sp = help.firstElementChild;
+      if (sp.textContent !== words){ sp.textContent = words; pilotSee("recipe.draft"); }
+    }
+    // playtest 19: the cap is the room left UNDER THE PANEL'S OWN TOP, not under the box's. The
+    // hint pills are flex siblings above the panel, so measuring from `top` handed the panel the
+    // hint's height as extra allowance and it ran off the bottom of the screen by exactly that
+    // much — 47px, seen when slow-loading art made the cards tall enough to reach the cap.
+    /* ⚠ EVERYTHING FROM HERE READS THE BOX'S PAINTED POSITION, so it is skipped while the box is
+       in the air — see the rcInFlight note where it is declared. The values it would have written
+       were already written correctly on the tick the flight STARTED (the flight is armed at the
+       very end of this same block, after every clamp has run), so skipping is not deferring a
+       decision: it is refusing to overwrite a right answer with a wrong one. */
+    /* ⭐ AND THE REVEAL'S HEIGHT PIN IS RELEASED ONCE THE ART HAS LANDED.
+       MEASURED at 390x844: the white sheet ran 132..445 while its content ended at 346 — 99px of
+       blank cream under the card. The cause is not this block: runHeightSequence (panel.js) pins
+       #apGrid's row to the height it measured so the typewriter cannot type into a box that is
+       still the old size, and releases it to max-content on settle. For the recipe picker that
+       measurement happens BEFORE the two recipe thumbnails have decoded, so the pin holds a height
+       the card no longer needs, and the row never shrinks back.
+       IT WAS ALWAYS THERE — the design this replaces forced the sheet to the captains box's own
+       bottom, which was taller still, so the pin was never the binding constraint and nobody saw
+       it. Removing the forced height is what exposed it.
+       RELEASED ONLY WHEN THE ART IS ACTUALLY IN (every img complete). max-content cannot clip — it
+       fits whatever is in the box — so the fault the pin guards against (Wyatt's P3/P5, "the 2nd
+       line is cut off during writing") cannot come back through this door.
+       ⭐ AND BEFORE THE SHOW, NOT AFTER IT (2026-09-11). This block used to sit below the flight's
+       arming, so on the one tick where it could run the flight had just set rcInFlight and it
+       waited out the whole show. Measured at 390x664: for ~5s the row stayed pinned at 292.75px —
+       the TWO cards' height, laid out one above the other before the stack mounted — under a 148px
+       stack, so "Tap a recipe to see its route" hung 153px below the cards, off the board, against
+       his 2026-09-09 ruling ("locked underneath the recipe cards so it moves with them"). Every
+       phone pick in sea trial 2043 was photographed like that. Released here, the lift below also
+       measures the real height rather than the pin's. */
+    const grid = $("apGrid");
+    if (grid && !rcInFlight && /px$/.test(grid.style.gridTemplateRows || "")){
+      const imgs = [...ap.querySelectorAll(".recipeCard img")];
+      if (imgs.length && imgs.every(i => i.complete)) grid.style.gridTemplateRows = "max-content";
+    }
+    const apTop = rcInFlight ? -1 : ap.getBoundingClientRect().top;
+    /* LIFT THE WHOLE BOX IF THE CARDS DO NOT FIT UNDER IT (D-42's find, see the note at `top`).
+       Measure what the panel actually wants — scrollHeight is the content's own height, produced by
+       the renderer rather than by any arithmetic here — and if the starting 45% cannot hold it,
+       raise the box by exactly the shortfall. Never RAISE it on a screen where it already fits (the
+       min() keeps a tall phone byte-identical), and never lift it above the board's own top band,
+       which is where the ribbon and the wind pill live. */
+    if (apTop > 0){
+      const want = ap.scrollHeight + (apTop - parseFloat(box.style.top || 0)) + 8;
+      const floor = topBandPx();
+      /* ⭐ THE MENU IS THE FLOOR, NOT THE SCREEN — Wyatt, 2026-09-10, green underline on his
+         screenshot: "Tap a recipe to see its route" was sitting ON TOP of the Sound row.
+         The helper pill is the sheet's LAST CHILD (his 2026-09-09 ruling — "locked underneath the
+         recipe cards so it moves with them"), so it adds its own height to the sheet. This lift
+         then asked whether the sheet fits above the VIEWPORT's bottom edge, and it always did:
+         the menu sits a couple of hundred pixels higher up the same column, and nothing in this
+         calculation knew it was there. So the sheet "fit" while its last child lay across
+         "Sound: ON".
+         The honest bottom is whichever comes first — the glass, or the top of the menu. Measured
+         from #footerRow rather than assumed, and only when the menu is actually laid out as a
+         column (on a phone it is elsewhere and its rect must not be allowed to squeeze the card). */
+      const bottom = (() => {
+        const f = $("footerRow");
+        if (!f || getComputedStyle(f).display === "none") return vhPx();
+        const r = fixedRect(f);
+        if (!(r.height > 2 && r.width > 2)) return vhPx();
+        const boxL = parseFloat(box.style.left || 0) || 0;
+        // the same column as the sheet? then it is a real floor. Otherwise it is somewhere else
+        // on the glass and cannot be in the way.
+        const sameColumn = r.left < boxL + (fixedRect(box).width || 0) && r.right > boxL;
+        return sameColumn ? Math.min(vhPx(), r.top - 8) : vhPx();
+      })();
+      const fitTop = Math.max(floor, bottom - want);
+      if (fitTop < apTop - 1){
+        box.style.top = Math.round(Math.min(parseFloat(box.style.top || 0), fitTop)) + "px";
+      }
+    }
+    const apTop2 = ap.getBoundingClientRect().top;
+    const capFrom = apTop2 > 0 ? apTop2 : top;
+    const maxH = Math.max(160, vhPx() - capFrom - 8);
+    ap.style.maxHeight = maxH + "px";
+    /* ⭐ NO FORCED HEIGHT ANY MORE. The old design stretched the sheet down to the captains box's
+       own bottom, because "entirely cover the captain's box" was the instruction. The flying picker
+       covers nothing on purpose, so a height that big would be blank cream over the sea — the
+       emptiness a CEO review measured at ~44% of the sheet. It is as tall as the cards are.
+       maxHeight above still stands: that is the screen's limit, not a look. */
+    ap.style.minHeight = "";
+    /* ⭐ AND THEN, ONCE PER PICKER, THE SHOW RUNS — his three beats, in order: land in the middle,
+       swap once, fly to the corner. Fired from HERE, at the end of the placement pass, because the
+       flight measures the parked box and the parked box is only correct once every clamp above has
+       been applied (the lift, the width, the overflow nudge). Keyed to rcKey, so a picker that
+       simply re-ticks costs nothing and the NEXT captain's picker gets its own flight. */
+    /* ⚠ NOTHING IS SHOWN UNTIL THE ENTRANCE OWNS IT. rcFlightRun can legitimately decline a tick
+       or two — waiting for the sheet to be laid out, and now for the sound-icon alignment to
+       settle — and for those ticks the sheet is displayed with no animation attached, i.e. fully
+       opaque at its parked place. Measured after adding the alignment gate: the cards appeared for
+       one frame, vanished for the two seconds Wyatt asked for, then faded in. Hold it at zero
+       until the entrance's own keyframes take over (they fill backwards through the delay, so
+       opacity 0 is exactly what they would have painted anyway). */
+    if (rcKey && rcFlightKey !== rcKey){
+      box.style.opacity = "0";
+      rcFlightRun(rcKey, brd);
+    }
+    return;
+  }
+  if (hint) hint.remove();
+  // (the picker's own chrome is already down — rcChromeTeardown ran above, before every exit)
+  ap.style.maxHeight = "";
+  ap.style.minHeight = "";
+  // N4 radial: choices bloom around the ship, right where the eyes are (the plan's own words).
+  const menu = menuButtons(ap);
+  const uu = boatUXY(appState.mySeat ?? 0);
+  if (menu && uu){
+    box.classList.add("radial"); box.classList.remove("centered");
+    /* SEAM (a): peekHintTick() USED TO RUN HERE, FIRST, and that was the whole fault. It dodges
+       the pill, the helper line and every circle by reading their rendered rects — but at this
+       point in the tick none of them has been re-placed yet, so it always dodged where they were
+       LAST frame and was one tick behind wherever they ended up (measured on solo-phone-021: the
+       hint and the helper line overlapping by 1.75px, with .apSub already in the hint's own
+       obstacle list). It now runs at the very end of tick(), after this whole placement pass —
+       see peekHintLast(). D-39's rule is unchanged: a prompt IS over the board here, so the
+       gesture is taught until it has been learned. */
+    // ITEM 22 (D-18): 100%, not 100vw — an inline style always wins the cascade, so this literal
+    // viewport-width string would have overridden the CSS %-based fix (index.html) and kept the
+    // radial fan's box pinned to the true desktop width regardless of item 22's stopgap cap.
+    box.style.left = "0px"; box.style.top = "0px"; box.style.width = "100%";
+    // playtest 10: circles carry the SHORT form of a long action (Wyatt's pick: "short verbs,
+    // details in the pill") — the full label is kept for the card fallback and restored there
+    menu.forEach(b => {
+      if (b._shortHtml != null && !b._radSwapped){ b._fullHtml = b.innerHTML; b.innerHTML = emojify(String(b._shortHtml)); b._radSwapped = true; b._fitKey = null; b._fanKey = null; }
+    });
+    /* T-017: whatever labels this fan ended up with, make the CIRCLES fit them — Wyatt's ruling,
+       "Do bigger circles, not smaller text." It runs over the whole menu at once because one fan
+       gets one diameter; see fitFanToLabels. Shrinking is still in there, as the fallback for when
+       the screen has no more room to give. */
+    fitFanToLabels(menu);
+    const [sx, sy] = toScreen(uu[0], uu[1]);
+    /* A CHOICE ABOUT SOMEONE ELSE'S SHIP SITS ON THAT SHIP — Wyatt's pick, playtest 22. The battle
+       call is the case that needs it: "Call Dough Hook" belongs over Dough Hook's boat, not fanned
+       around the caller's own, which the director no longer has on screen now that it frames the
+       fight. It is the same rule the fan already follows — circles bloom around the ship, right
+       where the eyes are — applied to the ship a button NAMES rather than the one choosing.
+       Opt-in and all-or-nothing: an option carries `seat` (localAsk writes data-seat) and every
+       button in the menu must carry one, or the ordinary fan runs untouched. */
+    const anchors = menu.map(b => {
+      const s = b.dataset ? b.dataset.seat : null;
+      const u = s == null ? null : boatUXY(+s);
+      return u ? toScreen(u[0], u[1]) : null;
+    });
+    const onBoats = anchors.length > 0 && anchors.every(Boolean);
+    // the SEATS those anchors belong to — the framing needs captains, not screen points
+    const anchorSeats = menu.map(b => b.dataset ? +b.dataset.seat : NaN).filter(n => Number.isFinite(n));
+    const cap = $("pp4Cap");
+    const capT = capBandBottom();   // NOT the card's own top — see capBandBottom()
+    /* DERIVED FROM THE BAND, NOT RE-DERIVED FROM THE RIBBON. This line used to compute its own
+       answer to "where does the board start" while boardBand() computed another — two things kept
+       in step by nobody, which is the fault this whole phase has been unpicking, one scale down.
+       boardBand()'s own note says it out loud: "capT and tSafe were already computed for the radial
+       placement, but privately — which is why the bubbles never learned about them." tSafe never
+       learned about the band either, so teaching the band about the wind pill would have fixed the
+       bubbles and left the ask pill still sitting on it.
+       ARITHMETICALLY IDENTICAL to what it replaced whenever there is no wind pill: the band is
+       ribbonBottom + 8 and this was ribbonBottom + 40, so +32 preserves every existing number. */
+    const tSafe = boardBand().top + 32;
+    /* THE FALLBACK HAD NO FLOOR, AND MY OWN CHECK FOUND IT. Walking the placement rule across every
+       sail-window top (rather than trusting the live sample, which had not produced one) showed the
+       "put it BELOW instead" branch landing back on the wind pill: `Math.min(cb.b + 8, capT - 44)`
+       clamps how far DOWN the pill may go and never how far up, so a sail window whose bottom edge
+       is itself high on screen puts the pill straight back where it was not allowed to be.
+       Pre-existing, not introduced by the tSafe change above — and it would have quietly undone it.
+       The anchored-boats branch a few lines down has carried this Math.max all along; these two
+       simply never got it. */
+    const clampTop = y => Math.max(tSafe - 34, y);
+    /* THE BOAT BEING ASKED IS ALWAYS ON THE WATER — playtest 22 (Wyatt: "the director did not
+       correctly center my boat, so the board looks weird"), from a screenshot with his own ship
+       drawn up over the ribbon and the wind pill, its action fan hanging beneath it.
+
+       Only the SAIL prompt framed anything: camFitSail fits the sail window (which contains the
+       ship by construction), and every other prompt simply inherited whatever shot the last
+       narration left. A ship that had just sailed to the edge of that shot therefore got its
+       question asked off the board. This became worth fixing rather than tolerating the moment
+       #boardwrap started clipping (see index.html): what used to paint over the ribbon would now
+       be cut off entirely, and a boat you cannot see is worse than a boat in the wrong place.
+
+       Fires ONCE per prompt — S.frameKey is the turn serial, the ask itself, and the captains it
+       names (T-211), so a re-place during the glide cannot re-aim the camera at every frame and
+       chase itself: nothing in that key moves while a boat glides. Only when the boat
+       is genuinely outside the band the circles have to live in; a boat merely near the edge is
+       left alone, because the director moving on its own is startling when it was not needed. */
+    /* FRAME WHAT THE QUESTION IS ABOUT, NOT WHOEVER IS ANSWERING IT — playtest 22 item 6 (Wyatt):
+       "The director is not correctly centering the players who are engaging in a battle, when
+       asking a player to call the battle. The player is centered; instead, the two battling
+       captains should be."
+       Exactly what this did. `sx,sy` is MY ship and camToSeat(mySeat) re-aimed at MY ship, for
+       EVERY prompt — including the call-the-winner prompt, which is a question about two other
+       captains and whose own circles are anchored to THEM. So the director pulled the shot off the
+       fight onto a bystander, and the two circles then bloomed around boats that had just been
+       shoved to the edge, which is the second half of his report ("the logic is broken on
+       displaying the action buttons"). The buttons were placed correctly around the wrong shot.
+       `camFitSeats` already exists and is what __pp4.battle uses — the fight simply was not asking
+       for it here. */
+    /* THE KEY CARRIES *WHERE* THE CAPTAINS ARE, NOT JUST WHO THEY ARE — T-211, 2026-09-03.
+       It used to be `turnSerial + the ask's TEXT` alone, and `turnSerial` moves only when the wheel
+       passes to another captain (see `actor:` at the foot of this file). So TWO PROMPTS INSIDE ONE
+       CAPTAIN'S TURN THAT SHARE A SENTENCE SHARED A KEY, and the director was told the shot was
+       already right while what it had to frame had moved. `flow.js:2538` asks **"Attack whom?"** —
+       a fixed sentence, asked again after a Back and a move, with the boats somewhere else.
+       Rule 23's question one scale down: what made the shot and its subject agree? Nothing.
+       ⚠ SEATS ALONE ARE NOT ENOUGH, AND THAT WAS THIS WATCH'S FIRST, WRONG FIX — it added
+       `anchorSeats` to the key, which is CONSTANT whenever the same captains are asked about twice,
+       and the gate below went 18/30 to 21/30. The quantity that actually moves is the SQUARE.
+       IT IS THE LOGICAL SQUARE (`players[i].pos`), NOT the rendered transform, on purpose: `pos`
+       changes once per move and is still during a glide, so the "cannot re-aim at every frame and
+       chase itself" property the note above depends on is preserved exactly. */
+    if (!S.lock && sx != null){
+      const gp = appState.game && appState.game.players;
+      const where = gp ? anchorSeats.map(s => (gp[s] && gp[s].pos ? gp[s].pos.join(".") : "?")).join(",") : "";
+      const key = S.turnSerial + "|" + (ap.querySelector(".apMsg") || {}).textContent
+                + "|" + anchorSeats.join(",") + "|" + where;
+      if (S.frameKey !== key){
+        S.frameKey = key;
+        const inBand = (px, py) => px >= 8 && px <= vwPx() - 8 && py >= tSafe && py <= capT - 8;
+        if (onBoats && anchorSeats.length){
+          // every captain the question is about has to be on screen, not just one of them
+          if (!anchors.every(a => inBand(a[0], a[1]))) camFitSeats(anchorSeats);
+        } else if (!inBand(sx, sy)) camToSeat(appState.mySeat ?? 0);
+      }
+    }
+    /* D-48 — PASS IS ALWAYS THE LOWEST CIRCLE ON SCREEN. Wyatt, 2026-08-21, typed at the keyboard:
+       "the Pass button is always the lowest one, so it's seen as the last option of what to do."
+       This is the other half of item 14 of the twenty-two, which 02.2-01 left open as "never
+       reproduced"; it is no longer a bug report, it is an instruction.
+
+       flow.js already pushes Pass LAST into `opts`, which is exactly why the flat CARD fallback has
+       always been right — DOM order puts the last option at the bottom. The fan then maps array
+       index -> spot and chooses the most OPEN heading from the boat, so the moment it fans upward
+       or sideways the "last" spot is no longer the lowest one on screen: measured on a posed
+       four-crate fan at 390×664 with the boat against the bottom rail, Pass came out at y307 with
+       three crates BELOW it at y390, and against the right rail with three below it again.
+
+       So the rule is stated the way the card already behaves — THE LAST OPTION TAKES THE LOWEST
+       SPOT — and it is applied once, to whichever set of points the search finally produced, so it
+       holds for the formation, for the outward rings, for the cornered dock and for the anchored
+       boats alike. A SWAP, not a re-sort: everything else keeps the order the fan gave it, and the
+       circle that had been lowest takes the place Pass vacated, which is the smallest disturbance
+       that satisfies him.
+       It needs no new field and nothing on the wire, so a guest gets it by construction — the same
+       reason the card fallback never needed one (rule 23). */
+    /* ITEM 16 (Wyatt, 2026-08-23c) AMENDS D-48: "when right-to-left orientation of buttons, pass
+       should be on the right, not the left — humans read left to right, so when you put it on the
+       left we read it first... decide where pass goes based on whether the fan is more horizontal
+       or more vertical, at the 45 degree cutoff." So the rule is READING ORDER, not gravity: a fan
+       spread wider than it is tall reads left-to-right and Pass takes the RIGHTMOST spot; taller
+       than wide reads top-to-bottom and Pass keeps D-48's LOWEST spot. The cutoff is the spread's
+       own aspect (width ≥ height ⇔ the fan's axis is within 45° of horizontal). Still a SWAP, for
+       D-48's own reason: everything else keeps the order the fan gave it. */
+    const lastLowest = pts => {
+      if (!pts || pts.length < 2) return pts;
+      const xs = pts.map(p => p[0]), ys = pts.map(p => p[1]);
+      const horizontal = (Math.max(...xs) - Math.min(...xs)) >= (Math.max(...ys) - Math.min(...ys));
+      const last = pts.length - 1;
+      let target = 0;
+      for (let i = 1; i < pts.length; i++){
+        if (horizontal ? (pts[i][0] > pts[target][0]) : (pts[i][1] > pts[target][1])) target = i;
+      }
+      if (target === last) return pts;
+      const outPts = pts.slice();
+      outPts[last] = pts[target]; outPts[target] = pts[last];
+      return outPts;
+    };
+    /* THE CIRCLE'S SIZE COMES FROM THE RENDERER, AND THE GAP IS A FRACTION OF IT (D-44, rule 9).
+       `D` was the literal 66 copied out of the stylesheet — but a RENDERED petal is 70px, because
+       `#pp4Prompt.radial .apBtn` carries a 2px border outside its 66px box. So every spacing in
+       this function was computed against a circle 4px smaller than the one on screen, and the
+       "6px gap" a player was supposed to get measured 2.8–4.2px on a posed eight-button fan at
+       390×664 (2026-08-22). Reading the width the renderer produced is BOARD-RENDERING §7's rule
+       one scale down: never compare against arithmetic of your own when the real box is right
+       there. Falls back to the stylesheet's 66 only if nothing has been laid out yet.
+
+       A QUARTER OF THE CIRCLE, derived rather than typed, so it tracks D at every screen size:
+       four petals plus three quarter-gaps is 4×70 + 3×17 = 331px, which still fits inside a 390px
+       phone's band with room either side — the measurement Wyatt was shown when he chose this.
+       R is the circle's own width plus a hair, which is byte-identical to the 70 this line has
+       always carried at the old D, and now grows with the petal instead of drifting from it. */
+    const D = Math.round((menu[0] && menu[0].offsetWidth) || 66);
+    const GAP = Math.round(D / 4);
+    /* THE PETAL BREATHES — the attention vocabulary (index.html) swells it to --pp4GrowPeak.
+       Separation must reserve that room: at D+GAP two diagonal neighbours closed to under 1px of
+       painted gap at every pulse peak (2026-08-24e layout gate). offsetWidth is layout size, so
+       measuring mid-swell cannot double-count. The || fallback is the declared token's own value,
+       for a pathological boot order only — the declaration lives in the vocabulary block. */
+    if (!S.growPeak) S.growPeak = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--pp4GrowPeak")) || 1.15;
+    const SEP = Math.round(D * S.growPeak) + GAP;
+    const R = D + 4;
+    /* ⛔ THE BAND AND THE BOATS ARE READ ONCE, HERE, BECAUSE THE PILL AND THE CIRCLES BOTH NEED THEM.
+       These four bounds used to be declared beside the circles, 130 lines below, and the boat's own
+       rendered radius 30 lines below that — so the ask pill, which is placed FIRST, had no way to ask
+       where the circles were going to end up. It guessed with a constant, and `T-013` is what the
+       guess cost. Pure hoist: the expressions are unchanged and every consumer below reads these.
+       It sits after D, growPeak and R because it is built from them. */
+    const xMin = 8, xMax = vwPx() - D - 8, yMin = tSafe, yMax = capT - D - 8;
+    const shipsNow = boardShipEls() || [];
+    // the boat's own rendered size. A translate cannot change a box's WIDTH, so this is the one
+    // number that is safe to read off a ship mid-glide; its position comes from the anchors.
+    const boatRad = i => { const el = shipsNow[i]; if (!el) return D / 2;
+      const r = fixedRect(el); return Math.max(r.width, r.height) / 2 || D / 2; };
+    const placed = [];
+    // playtest 10 item 3: the sail prompt is radial too — its legal squares are the answer space,
+    // so every sail highlight is an obstacle nothing of ours may cover
+    // RED ALERT FIX (2026-08-21): fixedRect(), not a raw getBoundingClientRect() — these obstacle
+    // boxes are compared against sx/sy (now body-relative, per toScreen()'s own fix above) and feed
+    // the fan's placement search and the sail-window card dodge below; a raw viewport-absolute rect
+    // mixed into that arithmetic is the same offset bug in a different spot.
+    const cellRects = [...document.querySelectorAll(".sailCell")].map(r => fixedRect(r));
+    let cb = null;
+    if (cellRects.length){
+      cb = { l: 1e9, t: 1e9, r: -1e9, b: -1e9 };
+      cellRects.forEach(r => { cb.l = Math.min(cb.l, r.left); cb.t = Math.min(cb.t, r.top);
+        cb.r = Math.max(cb.r, r.right); cb.b = Math.max(cb.b, r.bottom); });
+    }
+    // the ask itself rides as a compact pill above the ship — never hidden, so the panel's
+    // type-then-reveal order survives; the bloom below it is the answer space
+    const msg = ap.querySelector(".apMsg");
+    // the ask's broadcast mirror can land as a bubble BEFORE the panel exists — if a live
+    // bubble is just this pill's own words, retire it (the pill already says it)
+    const bub = document.querySelector(".pp4Bub");
+    /* BOTH SIDES MUST ACTUALLY SAY SOMETHING. Found by the Group E instrument, which could not
+       measure a hold at all until it was explained: the typewriter reveal blanks a bubble's text
+       for its first frames, and an ask pill mid-reveal is blank too — so `"" === ""` matched and
+       this dedup retired a perfectly good narration line the instant any prompt was on screen.
+       An empty bubble is not a duplicate of an empty pill. */
+    /* the de-dupe that used to be written out here now lives in retireEchoBubble(), called from
+       tick() for EVERY prompt style — a pure flip renders no panel, so this branch could never see
+       the one case that was actually duplicating (D-46 fault 1). `bub` is still read above because
+       the fan's own placement wants to know whether a bubble is on screen. */
+    // HOT-PHONE memo: the placement search below re-ran every frame even with everything parked.
+    // Re-place only when an input actually moved (camera/ship/viewport/menu/cells).
+    // playtest 21 item 7: the slider's presence is part of the placement key. Without it a prompt
+    // that differs from the previous one ONLY by gaining a slider reuses the memoised layout and
+    // the bar is never positioned — it would render at 0,0 in the corner.
+    const hasSlider = ap.querySelector(".apSliderWrap") ? 1 : 0;
+    // the anchors are a placement INPUT, so they belong in the memo key — without them the layout
+    // would be computed once, on the first frame of the camera's glide into the fight, and frozen
+    // there while the boats slid across the screen underneath it
+    const radKey = [S.turnSerial, menu.length, sx | 0, sy | 0, Math.round(capT), Math.round(tSafe),
+      cellRects.length, vwPx(), hasSlider, menu.map(b => b.textContent.length).join(","),
+      anchors.map(a => a ? (a[0] | 0) + "," + (a[1] | 0) : "-").join(";")].join("|");
+    /* THE MEMO KEY DESCRIBES THE LAYOUT, NOT THE BUTTONS — so two consecutive prompts that happen
+       to agree on it (same count, same label lengths, same ship square: two trade offers in a row
+       are exactly this) produced the same key, the placement early-returned, and the prompt's
+       BRAND NEW buttons were never positioned at all. Unpositioned radial buttons are
+       `position:fixed` with no offsets, so they render stacked at the panel's static spot — which
+       is precisely the "overlapping controls: Dough Hook/Walk away" the playtest gate kept
+       reporting, and it is not a placement failure but a placement that never ran.
+       Checking that every button actually carries a position is cheap, and it is a fact about the
+       DOM rather than another thing to remember to put in the key. */
+    /* THE PILL AND THE FAN CAN DRIFT INTO EACH OTHER AFTER PLACEMENT, so this runs on EVERY tick,
+       above the memo. formationOK already refuses any layout that overlaps the ask pill — and the
+       measurement showed a circle sitting on the pill anyway, with the pill still at the top the
+       placement pass gave it. The reason is that the pill is not the size it will be when the fan
+       is placed: `.apMsg` reveals progressively, so its rect is captured small, the fan legitimately
+       avoids that small box, and the pill then grows into the circles while the layout is frozen by
+       the memo. Re-checking is cheap (a handful of rects) and it is the only version that cannot be
+       out of date. Shape-aware for the same reason the gate is: these are circles, and a corner
+       clipping a text box is not a circle sitting on it. */
+    liftAskClearOfFan(ap, tSafe, capT);
+    clampAskToScreen(ap, tSafe);
+    const unplaced = menu.some(b => !b.style.left);
+    if (radKey === S.radKey && !unplaced) return;
+    /* A LAYOUT COMPUTED WHILE THE BOX WAS `display:none` IS A GUESS, AND THE MEMO WOULD KEEP IT
+       FOR THE WHOLE PROMPT. Nothing in radKey changes when the prompt becomes visible — same turn,
+       same buttons, same ship, same viewport — so the guess computed behind panel.js's
+       `pendingReveal` gate was frozen in place and never re-measured. Refusing to memoise a pass
+       that had no layout to read costs one extra placement per prompt and removes the whole class. */
+    S.radKey = (msg && !msg.offsetWidth) ? null : radKey;
+    let pillB = null, stackAt = null, stackCx = null;
+    if (msg){
+      msg.style.position = "fixed";
+      /* THE ASK PILL MUST FIT THE SCREEN, NOT JUST BE AIMED AT IT. `mw` was clamped to
+         `vwPx() - 20` and then used only to CHOOSE a left edge — the element itself kept its
+         natural width, so a long ask on a phone stayed wider than the screen and ran off the right
+         edge, cutting the first line mid-word. The vision judge caught it in plain words on the
+         phone leg: "trade prompt text box is clipped by the right screen edge, cutting off the
+         first line mid-word ('Speckled Eggs the t...')". Capping the box makes it WRAP instead,
+         which is what the clamp was always assuming had happened. */
+      // NEVER WIDER THAN THE STYLESHEET ALREADY ALLOWS. index.html caps this box at `max-width:88%`;
+      // an inline `vwPx()-20` is LARGER than that on a phone (370 vs 343) and, being inline, wins —
+      // so the first version of this cap made the very overflow it was meant to stop slightly worse.
+      // Take the tighter of the two and the cap can only ever help.
+      /* THE PILL LEAVES ROOM FOR ITS OWN BACK CIRCLE. Capping the box to fit the screen turned a
+         long trade ask into a 343px box on a 390px phone, which is the whole width — so the ‹ circle
+         that hangs off its shoulder had nowhere to stand and ended up two-thirds hidden UNDER the
+         pill, a half-tappable escape hatch. Reserving the circle's own footprint (38 + 8 gap + 4
+         margin, the numbers the shoulder placement already uses) costs a long ask one extra line
+         and keeps both fully on screen and fully touchable — which is the trade D-38 already made
+         for every other control. Nothing is reserved when the prompt has no back option. */
+      const backGap = ap.querySelector(".apBack") ? 50 : 0;
+      msg.style.maxWidth = (Math.min(vwPx() - 20, Math.round(vwPx() * 0.88)) - backGap) + "px";
+      msg.style.boxSizing = "border-box";
+      /* CAP FIRST, MEASURE SECOND — this read used to sit ABOVE the two lines it depends on, so it
+         measured a box that had not been capped yet and then chose a left edge for a width the box
+         was about to stop having. Order is the whole fix here; the arithmetic below is unchanged. */
+      const mw = Math.min(msg.offsetWidth || 200, vwPx() - 20);
+      // playtest 15 (Wyatt: "over the course of a single turn, it doesn't move around"): the
+      // pill's spot is chosen at the FIRST prompt of the turn and every later prompt in the
+      // same turn reuses it — only the width re-clamps so a longer ask stays on screen.
+      let cxA, mTop;
+      /* ABOVE THE BOATS WHEN THE BAND HAS ROOM, BELOW THEM WHEN IT DOES NOT — one rule, both
+         branches. `top` is the highest boat the question is about and `bot` the lowest; with a
+         single ship they are the same number, so the ordinary branch below is byte-for-byte what
+         it always was and this is a convergence rather than a second placement path (rule 23).
+
+         WHY IT HAD TO BECOME SHARED. The anchored branch only ever went ABOVE and then clamped at
+         the band's ceiling, so a fight near the top of the board pinned the pill at `tSafe - 34`
+         while the circles beside those same boats were pinned at the band's own floor — and the
+         two landed on each other with nowhere left to move. liftAskClearOfFan() is the net for
+         exactly that and it is CLAMP-BOUND here: it may not rise above the same ceiling the pill
+         is already sitting on, so it asks and is refused, three times, and gives up.
+         MEASURED, posed, 2026-09-02 (scripts/qa/w54_call_clear_of_ask.mjs, 14 posed fights on a
+         390x844 phone and a 768px tablet): 2 fights put a call circle on the question, both with
+         the pill at 84 while the lift wanted 62 and 54. This is the release trial's one
+         player-facing finding — passplay-phone, "Call Flaky Jack" over "Davy Scones - a battle's
+         brewi[ng]". The below-the-boats spot is uncrowded precisely when the above one is not:
+         a fight jammed against the ribbon has the whole sea underneath it. */
+      /* `below` IS WHERE THE PILL MAY SIT WHEN IT GOES UNDER THE SHIPS, AND THE ANCHORED BRANCH IS
+         THE ONLY CALLER THAT PASSES ONE. Omitted, this is byte-for-byte the rule it has always
+         been — see the anchored call below for what `bot + R + 34` could not know. */
+      const pillSpotFor = (top, bot, below) =>
+        (top - R - 96 >= tSafe - 34) ? top - R - 96
+                                     : clampTop(Math.min(below != null ? below : bot + R + 34, capT - 44));
+      // an ask about other people's ships is centred over THEM, and does not take or reuse the
+      // turn's pill lock: that lock exists so a pill does not wander during YOUR turn, and this
+      // prompt belongs to a fight in the middle of someone else's
+      if (onBoats){
+        cxA = anchors.reduce((a, p) => a + p[0], 0) / anchors.length;
+        /* ⛔ T-013 — THE PILL GOES BELOW THE CIRCLES, NOT BELOW THE BOATS, AND THOSE ARE DIFFERENT
+           LINES. `bot + R + 34` is a CONSTANT STANDING IN FOR A BOAT PLUS A PETAL (rule 9), and it
+           was sized on a phone. It is wrong in two ways that only ever showed up as "the call button
+           is next to the wrong captain":
+
+             - A BIGGER BOARD HAS BIGGER BOATS. The circle sits `rad + HALF + AIR` out from the hull
+               it names, so its bottom edge is `rad + HALF + AIR + D/2` below the boat's centre —
+               96px past a 35px phone boat, 114px past a 74px tablet one. The pill's 104 clears the
+               first by 8px and lands ON the second.
+             - A BOAT ABOVE THE BAND DRAGS ITS CIRCLE DOWN TO THE CEILING. When the fight is at the
+               top of the board the circle clamps to `yMin` — and the pill's below-spot, measured
+               from a boat that is higher still, clamps to the very same ceiling. Both land on
+               `tSafe` and the pill is drawn on top of the answer.
+
+           Either way the pill push (see the `onPill` note below) then throws the circle clear of a
+           whole pill, which is 100px+ in one jump — and it lands beside whichever captain happens to
+           be there. THAT is Wyatt's report, twice: W5-2, "directly beside the boats", and
+           INBOX-20260901T1332Z, "not on top of, or next to, someone else".
+
+           MEASURED, posed, 2026-09-03 (`scripts/qa/t013_call_circle_beside_check.mjs`): 8 of 23
+           judged circles were not beside their own captain, and in EVERY failing pose the circle's
+           top was the pill's bottom plus the swell's overhang, to the pixel.
+
+           So the drop is DERIVED from where each circle will actually be — its own boat's rendered
+           radius, the petal at the top of its pulse, the file's AIR, and the SAME band clamp the
+           circles are about to get — rather than from a number that assumed a phone. The `max` over
+           the anchors is because the pill must clear the LOWEST circle, not the lowest boat.
+
+           ⚠ AND THE CLEARANCE IS THE EVICTION TEST'S OWN, NOT THE BOX'S — this cost a whole extra
+           measured pass. The first version cleared the circle's BOTTOM EDGE plus the file's 6px of
+           air (`t + D + 6`). But `onPill` below does not ask about the box: it treats the petal as a
+           DISC of radius `SWELL/2 + 2` around its centre, because that is what a swollen circle
+           actually paints. On a 390x664 phone that is 40px against the box's 33 — so the pill landed
+           ONE PIXEL inside the disc, `onPill` fired, and the circle was evicted 165px anyway with
+           every number in this block otherwise correct. Two things asking "is the circle on the
+           pill?" and answering differently is rule 23 at one-pixel scale, and one pixel is all it
+           takes. The clearance is now built from the same `SWELL/2 + 2` the push uses, plus the
+           file's air on top so a fix does not sit exactly on the threshold it satisfies. */
+        const SWELL0 = Math.round(D * S.growPeak), HALF0 = SWELL0 / 2, AIR0 = 6;
+        const belowCircles = Math.max(...anchors.map(([, ay], k) => {
+          const t = Math.min(Math.max(ay + (boatRad(anchorSeats[k]) + HALF0 + AIR0) - D / 2, yMin), yMax);
+          return t + D / 2 + HALF0 + 2 + AIR0;
+        }));
+        mTop = pillSpotFor(Math.min(...anchors.map(p => p[1])), Math.max(...anchors.map(p => p[1])), belowCircles);
+      }
+      /* THE LOCK IS PER TURN *AND* PER SHIP POSITION — playtest 22 item 8 (Wyatt): "'Wyargh whatll
+         ye do' is far below my boat instead of above it, which is where it should be, and this
+         happens even though there is space above it."
+         The lock exists for a good reason (playtest 15: "over the course of a single turn, it
+         doesn't move around"), but it keyed on the turn ALONE. The first prompt of a turn is the
+         SAIL prompt, whose pill deliberately dodges the sail window and drops BELOW it when the
+         squares reach the ribbon — and then the ship sails away and the action menu inherits that
+         low spot, with the whole sea empty above it. Adding the ship's square to the key keeps the
+         pill still while the ship is still, which is what he actually asked for, and re-picks the
+         moment the ship has moved. */
+      else if (S.pillLock && S.pillLock.key === S.turnSerial && S.pillLock.at === (sx|0)+","+(sy|0)){
+        cxA = S.pillLock.cx; mTop = S.pillLock.top;
+      } else {
+        cxA = sx;
+        // above the boat when the band has room, below it when it does not — the same rule the
+        // narration bubble now follows (item 4), so one gesture has one behaviour
+        mTop = pillSpotFor(sy, sy);
+        // a sail prompt's pill dodges the whole sail window: above it if there's room under
+        // the ribbon, else just below it
+        if (cb){ mTop = (cb.t - 42 >= tSafe - 34) ? cb.t - 42 : clampTop(Math.min(cb.b + 8, capT - 44)); }
+        S.pillLock = { key: S.turnSerial, at: (sx|0)+","+(sy|0), cx: cxA, top: mTop };
+      }
+      /* …AND THE PILL'S BOTTOM CLEARS THE CAPTAINS CARD, WHICHEVER SPOT WAS CHOSEN (Group G
+         fault 3, judged on solo-phone-023: "the ask pill's bottom edge meets the top edge of the
+         CAPTAINS card with no gap between them").
+
+         `capT - 44` above is a CONSTANT STANDING IN FOR THE PILL'S HEIGHT — 44 is one line of pill
+         plus the 6px of air, and it has been right only for one-line asks. A trade's answer runs to
+         three lines and a counter-offer to five, so the taller the question the further it reaches
+         past the card. Measured at 390x664 on a posed five-line ask: the pill is 99px tall and its
+         bottom lands 65.4px INSIDE the captains card. RED-PROOF, same pill, boat high on the board:
+         229px of clear air — so this measures the placement and not merely "a big pill".
+
+         Two reasons it is applied HERE rather than by fixing the 44:
+           - the three branches above choose between four spots (above the boat, below it, above the
+             sail window, below it) and only two of them clamp at all; the ABOVE-the-boat spot,
+             which is the one that actually overran in the measurement, never had a bottom bound.
+             One clamp on the answer beats four copies of it (rule 23).
+           - the pill lock reuses a spot across a whole turn, so a later, TALLER prompt in the same
+             turn inherits a top chosen for a shorter one. Clamping on use rather than on store
+             means the lock keeps the pill still while the words keep it legible.
+
+         DERIVED, NOT TYPED: the pill's own rendered height, and the 6px of air every other stacked
+         floater in this file already leaves (`stackAt = pillB.bottom + 6`, the fan's own gap, the
+         peek hint's AIR). Never lifted above the band's own ceiling, which is what tSafe - 34 is. */
+      const mh = msg.offsetHeight || 0;
+      mTop = Math.max(tSafe - 34, Math.min(mTop, capT - 6 - mh));
+      msg.style.left = Math.min(Math.max(cxA - mw / 2, 10 + backGap), vwPx() - mw - 10) + "px";
+      msg.style.top = mTop + "px";
+      // RED ALERT FIX (2026-08-21): fixedRect(), not a raw getBoundingClientRect() — msg is itself
+      // position:fixed, so its rendered box is always viewport-absolute regardless of what we just
+      // wrote; the back button below (also position:fixed) needs it back in the same body-relative
+      // frame everything else in this function is now working in.
+      pillB = fixedRect(msg);
+      // the back option, when present, is a small circle on the pill's shoulder
+      placeBackButton(ap, pillB, tSafe);
+      stackAt = pillB.bottom + 6; stackCx = cxA;
+    }
+    /* THE SLIDER AND THE HELPER LINE ARE PLACED WHETHER OR NOT THERE IS AN ASK PILL, AND ARE
+       ALWAYS CLAMPED INTO THE BAND. Both used to live inside `if (msg)`, hanging off the pill's
+       bottom — so a prompt that carries a slider but no `.apMsg` never gave the slider a `top` at
+       all. `.apSliderWrap` is `position:fixed` by CSS in this mode, and a fixed element with no
+       offsets renders at its STATIC position, which on this stage is up inside the ribbon's band —
+       and the ribbon is z-index 40 against the prompt's 30, so it sits ON TOP and eats the click.
+       Measured by 4/scripts/playtest_gate.mjs, which named the occluder outright
+       ("apSlider <- covered by #pp4Ribbon") after six straight voyages of
+       "slider click did not move its readout": the counter-offer slider could not be dragged at
+       all. Same family as the side-bet circles, same cure — nothing a player must touch may be
+       placed without being clamped below the band.
+       playtest 21 item 7's ordering is kept: slider first, helper text pushed below it. */
+    /* ONE FUNCTION FOR EVERYTHING THAT RIDES UNDER THE PILL, because the pill MOVES after this.
+       It was a bare block that ran once, before the fan was placed; the cornered-dock fallback
+       then lifts the pill clear of the circles and the helper line stayed behind, stranded on top
+       of them (measured: the line lying 23px deep across three crates on a posed eight-button fan
+       at 390×664). The slider and the helper line hang off the pill's bottom edge, so they have
+       to be re-stacked wherever the pill ends up — one definition, two call sites, rather than two
+       copies of the arithmetic to keep in step. */
+    const stackUnderPill = (cxS, startTop) => {
+      let stackTop = startTop;
+      const floor = tSafe;                       // never above the band…
+      const ceil = Math.max(floor, capT - 60);   // …and never under the captains card
+      const slw = ap.querySelector(".apSliderWrap");
+      if (slw){
+        const qw = Math.min(slw.offsetWidth || 220, vwPx() - 20);
+        slw.style.left = Math.min(Math.max(cxS - qw / 2, 10), vwPx() - qw - 10) + "px";
+        slw.style.top = Math.min(Math.max(stackTop, floor), ceil) + "px";
+        stackTop = Math.min(Math.max(stackTop, floor), ceil) + (slw.offsetHeight || 40) + 6;
+      }
+      // helper text (greyed-circle reasons) rides just beneath the pill
+      const sub = ap.querySelector(".apSub");
+      if (sub){
+        // SAME BUG AS THE ASK PILL, ONE ELEMENT OVER: the width was clamped to choose a left edge
+        // while the element kept its natural width, so "Attacking costs ye 2 for powder. Firing
+        // downwind wins ties!" ran clean off the right of a 390px phone. Cap it so it wraps.
+        sub.style.maxWidth = Math.min(vwPx() - 20, Math.round(vwPx() * 0.88)) + "px";
+        sub.style.boxSizing = "border-box";
+        const sw = Math.min(sub.offsetWidth || 200, vwPx() - 20);
+        sub.style.left = Math.min(Math.max(cxS - sw / 2, 10), vwPx() - sw - 10) + "px";
+        /* ⭐ AND IT DOES NOT LAND ON A SQUARE YE ARE BEING ASKED TO TAP — Wyatt, 2026-09-08:
+           "This is legible, but it's painted over a sailing square in a bad way."
+           MEASURED at 390x844 before the fix: the helper covered 4 of the 15 gold squares.
+           THE RULE ALREADY EXISTS IN THIS FILE and this placement simply never consulted it — the
+           obstacle table used by the bubble search weights `.sailCell` at 1000 against 40 for a
+           message and 15 for this very element, i.e. "cover anything before ye cover a square a
+           captain must hit". So the line now tries its natural home first and falls back upward,
+           to the band between the message card and the ribbon, when that home is on the squares.
+           IT NEVER MOVES WHEN IT DOES NOT HAVE TO: on a board whose squares are nowhere near the
+           pill this is the same position it always had, so nothing changes on most turns. */
+        const subH = sub.offsetHeight || 30, subL = parseFloat(sub.style.left) || 10;
+        const cells = [...document.querySelectorAll(".sailCell")].map(c => c.getBoundingClientRect());
+        const hits = t => cells.reduce((n, r) =>
+          n + ((r.right < subL || r.left > subL + sw || r.bottom < t || r.top > t + subH) ? 0 : 1), 0);
+        const home = Math.min(Math.max(stackTop, floor), Math.max(floor, capT - 30));
+        const msgR = (ap.querySelector(".apMsg") || {}).getBoundingClientRect
+          ? ap.querySelector(".apMsg").getBoundingClientRect() : null;
+        /* Candidates, best-first: where it has always gone; tucked under the message card with no
+           gap (so the two read as one object); and the top band just below the ribbon. */
+        const tries = [home];
+        if (msgR && msgR.height > 0){
+          tries.push(Math.round(msgR.bottom + 2));
+          tries.push(Math.round(Math.max(floor, msgR.top - subH - 4)));
+        }
+        tries.push(Math.round(floor));
+        /* ⭐ AND IT DOES NOT LAND ON THE MESSAGE EITHER — Wyatt's 2026-09-09 phone screenshot,
+           DAY 4: the italic "Sailin' into the wind only gets ye half the distance." drawn straight
+           across "Wyargh: Tap a gold square to sail…", both lines unreadable. He did not name it;
+           it is in the picture.
+           ⚠ THE CAUSE IS THAT THIS SEARCH ONLY EVER COUNTED SQUARES. A candidate sitting on the
+           message scored zero — perfect — so it could and did win. The fix is not a new rule: it is
+           the rule the comment above already cites, applied. That obstacle table weights `.sailCell`
+           at 1000 and `.apMsg` at 40, meaning "cover the message before ye cover a square a captain
+           must hit, but do not cover either if there is anywhere else to be". Scoring both with
+           those same weights is what the paragraph above always claimed was happening. */
+        const SQUARE_W = 1000, MSG_W = 40;
+        const overMsg = t => (msgR && msgR.height > 0 &&
+          !(msgR.right < subL || msgR.left > subL + sw || msgR.bottom < t || msgR.top > t + subH)) ? 1 : 0;
+        const score = t => hits(t) * SQUARE_W + overMsg(t) * MSG_W;
+        let best = home, bestScore = score(home);
+        for (const t of tries){
+          if (bestScore === 0) break;
+          const sc = score(t);
+          if (sc < bestScore){ best = t; bestScore = sc; }
+        }
+        sub.style.top = best + "px";
+      }
+    };
+    stackUnderPill(stackCx != null ? stackCx : sx, stackAt != null ? stackAt : tSafe);
+    // ---- playtest 15, ONE placement rule (Wyatt's pick): a TIGHT FAN on the open side ----
+    // Find the most open direction from the boat (clear of screen edges, the captains box, the
+    // pill and every sail square), then lay ALL the buttons along snug arc rows centred on it —
+    // circles nearly touching, wrapping to a second row past four. A cornered boat fans toward
+    // whatever water is open; the group stays together instead of scattering.
+    // the band (xMin/xMax/yMin/yMax) is declared once, up beside `SEP` — the ask pill needs it to
+    // know where these circles will land, and it is placed long before they are (T-013).
+    // ---- each circle on the boat it names (see `onBoats` above) ----
+    if (onBoats){
+      /* SEPARATE, THEN CLAMP, THEN SEPARATE AGAIN — and the ORDER is the whole bug. This used to
+         push overlapping circles apart and THEN clamp each one into the band, so two boats near the
+         top of the board had their circles pushed apart vertically and then squashed straight back
+         together by the clamp: both landed on yMin, piled on each other, with the upper one partly
+         under the ribbon where nothing can click it. Found twice by 4/scripts/playtest_gate.mjs
+         inside one voyage ("overlapping controls: Call Crustbeard/Call Flaky Jack") and again by
+         stage_layout_check at 1920×1080, where the driver STALLED on it exactly as a player would —
+         a side bet you cannot answer and cannot dismiss.
+         Clamping first and re-separating after means separation is the last word, and running it a
+         few times lets a pair that is pinned against one edge walk along that edge instead of
+         through it. */
+      const clampSpot = s => [Math.min(Math.max(s[0], xMin), xMax), Math.min(Math.max(s[1], yMin), yMax)];
+      /* BESIDE THE BOAT, NEVER ON IT — W5-2 (Wyatt): "The buttons to call other battling captains
+         sit on top of their boats… They should be directly beside the boats — side, top or bottom
+         — so the player can read the wind and the situation."
+         The seed was `ay + 26`, and 26 IS A CONSTANT STANDING IN FOR HALF A BOAT (rule 9). A boat
+         is drawn `cell` wide, so it grows with the board: measured with the real prompt posed in
+         Chromium, the circle covered 0–5% of its own hull on a 390px phone (35px boats), 12% on a
+         1200px desktop (67px) and 24–27% on a 768px tablet (83–88px). The bigger the board, the
+         more of the hull the answer hides — which is the half of his complaint about reading the
+         wind, because what the circle covers is the hull and its flag.
+         So the offset is DERIVED from the boat the button names: its own rendered half-size, plus
+         half a petal AT THE TOP OF ITS PULSE (--pp4GrowPeak, the same swell every other spacing in
+         this function already reserves), plus the 6px of air every stacked floater here leaves.
+         The SIDE is chosen rather than assumed — the four cardinals scored on staying inside the
+         band, clearing every hull, and pointing AWAY from the other captains in the fight, so two
+         circles open outward instead of colliding over the water between the boats. */
+      // `shipsNow` and `boatRad` are declared once, up beside `SEP`, because the ask pill needs the
+      // boat's size to know where these circles will end up (T-013). Same expressions.
+      const ships = shipsNow;
+      // every hull, projected through the SAME camera the anchors used — a rect read straight off
+      // a gliding ship would disagree with a target-transform anchor by however far it has left to go
+      const hulls = ships.map((_, i) => { const u = boatUXY(i); if (!u) return null;
+        const [bx, by] = toScreen(u[0], u[1]); const rad = boatRad(i);
+        return { l: bx - rad, t: by - rad, r: bx + rad, b: by + rad }; }).filter(Boolean);
+      const AIR = 6;
+      const HALF = Math.round(D * S.growPeak) / 2;
+      const onHull = (l, t) => hulls.some(h => l < h.r && l + D > h.l && t < h.b && t + D > h.t);
+      const inBand = (l, t) => l >= xMin && l <= xMax && t >= yMin && t <= yMax;
+      /* NOT ON A HULL IS NOT THE SAME AS NOT BESIDE ONE — found by re-running the probe on the
+         shipped tree, which is the whole reason it is committed. A circle placed 11px above the
+         boat it names sat 4px from a THIRD captain's hull, diagonally up-left: nothing covered,
+         nothing overlapping, and a player reading the board is still told the wrong thing. So the
+         side is also scored on how much clear water it leaves round every OTHER hull — edge to
+         edge, because "beside" is about adjacency, not about which centre is closer. A full petal
+         of clearance is treated as unambiguous; beyond that there is nothing left to buy. */
+      const clearOfOthers = (l, t, mine) => {
+        let worst = Infinity;
+        hulls.forEach((h, i) => {
+          if (i === mine) return;
+          const dx = Math.max(h.l - (l + D), l - h.r, 0), dy = Math.max(h.t - (t + D), t - h.b, 0);
+          worst = Math.min(worst, Math.hypot(dx, dy));
+        });
+        return worst === Infinity ? D : worst;
+      };
+      let spots = anchors.map(([ax, ay], k) => {
+        const rad = boatRad(anchorSeats[k]);
+        // the heading away from everyone else this question is about
+        let away = [0, 1];
+        if (anchors.length > 1){
+          const o = anchors.filter((_, j) => j !== k);
+          const cx = o.reduce((t2, p) => t2 + p[0], 0) / o.length, cy = o.reduce((t2, p) => t2 + p[1], 0) / o.length;
+          const dx = ax - cx, dy = ay - cy, m = Math.hypot(dx, dy);
+          if (m > 1) away = [dx / m, dy / m];
+        }
+        let best = null;
+        for (const [ux, uy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]){
+          const l = ax + ux * (rad + HALF + AIR) - D / 2, t = ay + uy * (rad + HALF + AIR) - D / 2;
+          /* whole-band and clear-of-every-hull first, then how much water it leaves round the
+             OTHER boats, and the away heading breaks what is left. The clearance term outweighs
+             the heading deliberately: opening outward is a nicety, standing unambiguously beside
+             one boat is the ask. */
+          const score = (inBand(l, t) ? 2 : 0) + (onHull(l, t) ? 0 : 2)
+            + 1.5 * Math.min(1, clearOfOthers(l, t, anchorSeats[k]) / D)
+            + (ux * away[0] + uy * away[1]);
+          if (!best || score > best.score) best = { score, spot: [l, t] };
+        }
+        return clampSpot(best.spot);
+      });
+      const NEED = SEP;   // D-44: derived, never typed — swollen petal + quarter-gap, see the SEP note above
+      for (let pass = 0; pass < 4; pass++){
+        let moved = false;
+        for (let i = 0; i < spots.length; i++)
+          for (let j = i + 1; j < spots.length; j++){
+            const dx = spots[j][0] - spots[i][0], dy = spots[j][1] - spots[i][1];
+            const d = Math.hypot(dx, dy);
+            if (d >= NEED) continue;
+            moved = true;
+            // when two circles land exactly on top of each other the direction is undefined —
+            // separate them ALONG THE BAND (horizontally), which is the axis that always has room,
+            // rather than vertically into the edge that just clamped them together.
+            const ux = d > 0.5 ? dx / d : 1, uy = d > 0.5 ? dy / d : 0, push = (NEED - d) / 2 + 0.5;
+            spots[i] = [spots[i][0] - ux * push, spots[i][1] - uy * push];
+            spots[j] = [spots[j][0] + ux * push, spots[j][1] + uy * push];
+          }
+        spots = spots.map(clampSpot);
+        if (!moved) break;
+      }
+      // LAST RESORT, so the fan can never come out piled: if the band is too tight for the circles
+      // to separate at all, lay them out as an even row across the band's own width.
+      const stillPiled = spots.some((a, i) => spots.some((b2, j) => j > i && Math.hypot(a[0] - b2[0], a[1] - b2[1]) < NEED - 1));
+      if (stillPiled){
+        const n = spots.length, span = Math.min((n - 1) * NEED, Math.max(0, xMax - xMin));
+        const startX = Math.min(Math.max(spots.reduce((t, p) => t + p[0], 0) / n - span / 2, xMin), Math.max(xMin, xMax - span));
+        const rowY = Math.min(Math.max(spots.reduce((t, p) => t + p[1], 0) / n, yMin), yMax);
+        spots = spots.map((_, i) => [startX + (n > 1 ? (span / (n - 1)) * i : 0), rowY]);
+      }
+      /* …AND ONE LAST PUSH OFF ANY HULL THE SEPARATION OR THE CLAMP LANDED ON. The passes above
+         only know about each other; the band clamp and the even-row fallback know about neither.
+         Out along whichever edge is nearest — the smallest disturbance that satisfies the rule. */
+      for (let pass = 0; pass < 3; pass++){
+        let shifted = false;
+        spots = spots.map(sp => {
+          const h = hulls.find(hh => sp[0] < hh.r && sp[0] + D > hh.l && sp[1] < hh.b && sp[1] + D > hh.t);
+          if (!h) return sp;
+          shifted = true;
+          const outs = [[h.l - D - AIR - sp[0], 0], [h.r + AIR - sp[0], 0], [0, h.t - D - AIR - sp[1]], [0, h.b + AIR - sp[1]]];
+          outs.sort((a, b2) => (Math.abs(a[0]) + Math.abs(a[1])) - (Math.abs(b2[0]) + Math.abs(b2[1])));
+          for (const [dx, dy] of outs){
+            const c = clampSpot([sp[0] + dx, sp[1] + dy]);
+            if (!onHull(c[0], c[1])) return c;
+          }
+          return sp;
+        });
+        if (!shifted) break;
+      }
+      /* …AND OFF THE QUESTION ITSELF, WHICH IS WHAT THE ORDINARY FAN HAS ALWAYS DONE AND THIS
+         BRANCH NEVER DID. The fan runs `formationOK`, which refuses any layout hitting `pillB`;
+         the anchored branch scores its four cardinals on the band, the hulls and the other
+         captains — and has no term for the ask at all. Two paths that must agree about what may be
+         covered, kept in step by nobody (rule 23), which is why the trial caught a call circle on
+         the words that name it.
+
+         WHY THIS IS NEEDED AS WELL AS THE PILL'S OWN NEW BELOW-SPOT ABOVE. On a 390x844 phone the
+         pill has somewhere to go and moving it is the better answer — the circles stay beside the
+         boats they name, which is W5-2's whole point. On a 390x664 phone it does NOT: `capT - 44`
+         sits below `tSafe - 34`, so the below-spot clamps straight back to the ceiling, the pill
+         hangs its 34px of licence into the band, and the circles are already pinned on the band's
+         floor. Measured posed on that exact viewport: pill 84..138, circles at 118, five fights in
+         seven with a circle 20px deep in the question. When the question cannot move, the circle
+         must.
+
+         SAME SHAPE AS THE HULL PUSH ABOVE — out along whichever edge is nearest, re-clamped, and
+         only accepted if it lands clear of the pill AND of every hull, so this cannot buy the
+         question back by re-breaking W5-2. The test is the gate's own circle-versus-box, two
+         pixels tighter than the gate so a fix does not sit exactly on the threshold it satisfies. */
+      if (pillB && pillB.height > 0){
+        const pill = { l: pillB.left, t: pillB.top, r: pillB.right, b: pillB.bottom };
+        /* THE PETAL BREATHES, SO THE CLEARANCE RESERVES THE SWELL — D-44's rule, which every other
+           spacing in this function already obeys and the first version of this one did not. The
+           attention vocabulary grows a circle to --pp4GrowPeak; a 70px petal paints ~80px at the
+           peak, so a margin measured against the resting box very nearly vanishes exactly when the
+           circle is largest. The gate reads the PAINTED rect, so a fix that only clears the resting
+           one would pass here and still be flagged there. `SWELL` is the same expression `HALF` and
+           `SEP` above are built from — never a second number to keep in step. */
+        const SWELL = Math.round(D * S.growPeak);
+        const onPill = (l, t) => {
+          const px2 = Math.max(pill.l, Math.min(l + D / 2, pill.r));
+          const py2 = Math.max(pill.t, Math.min(t + D / 2, pill.b));
+          return Math.hypot(l + D / 2 - px2, t + D / 2 - py2) < SWELL / 2 + 2;
+        };
+        for (let pass = 0; pass < 3; pass++){
+          let shifted = false;
+          spots = spots.map(sp => {
+            if (!onPill(sp[0], sp[1])) return sp;
+            shifted = true;
+            const OUT = (SWELL - D) / 2 + AIR;   // the swell's overhang, plus the file's own air
+            const outs = [[0, pill.b + OUT - sp[1]], [0, pill.t - D - OUT - sp[1]],
+                          [pill.r + OUT - sp[0], 0], [pill.l - D - OUT - sp[0], 0]];
+            outs.sort((a, b2) => (Math.abs(a[0]) + Math.abs(a[1])) - (Math.abs(b2[0]) + Math.abs(b2[1])));
+            /* AND WHEN THE ONLY WAY OFF THE QUESTION IS ONTO A HULL, TAKE IT — that is D-38, not a
+               compromise of it. Wyatt, 2026-08-21: "always keep the prompt and buttons closer to
+               the boat, even if they start to block some of the board elements", with sail squares
+               the one exception because you have to tap those. Covering a hull is sanctioned and
+               costs a player some scenery; covering the question costs them the question. So the
+               clear-of-everything spot is tried first and a hull is accepted only if nothing else
+               clears the ask. Measured: without this the circle stays trapped between the pill and
+               its own boat and the fix reaches 3 of 21 posed fights instead of 0. */
+            for (const strict of [true, false]){
+              for (const [dx, dy] of outs){
+                const c = clampSpot([sp[0] + dx, sp[1] + dy]);
+                if (onPill(c[0], c[1])) continue;
+                if (strict && onHull(c[0], c[1])) continue;
+                return c;
+              }
+            }
+            return sp;
+          });
+          if (!shifted) break;
+        }
+      }
+      /* D-48 IS DELIBERATELY NOT APPLIED HERE, AND THAT IS THE SECOND HALF OF W5-2. Wyatt: the
+         call buttons are "often on the WRONG boat". lastLowest() is a SWAP between two spots, which
+         is harmless while every spot is interchangeable — a fan around your own ship, where "Pass"
+         may take any of them. These spots are NOT interchangeable: each one is anchored to the boat
+         its label names. Whenever the LAST option's captain was not already the rightmost (or, on a
+         vertical spread, the lowest), the swap moved each circle to the other captain's boat.
+         MEASURED, by posing the same prompt with the options in the order that fires the swap: on a
+         768px tablet "Call Captain 2" landed 425px from Captain 2 and sat 24% on Captain 1's hull,
+         and vice versa — both circles beside the wrong boat, in one prompt. It fires whenever the
+         attacker's boat is right of the defender's, which is about half of all fights. "Often."
+         D-48 still governs the ordinary fan below, where it belongs. */
+      /* EACH CIRCLE TAKES THE SPOT NEAREST ITS OWN BOAT — the answer to "what makes these two
+         agree?" (rule 23), one scale down. Everything above was still index-matched: spot i was
+         option i's only because nothing upstream had reordered the array, and the wrong-boat bug
+         was precisely something upstream reordering the array. A CEO review made that concrete by
+         re-introducing the swap BY HAND, three lines above this one, without using the name the
+         gate was watching for — the exact fault Wyatt reported, fully restored, and every source
+         check still green. A gate that reads text can always be walked past by writing different
+         text; this cannot, because the assignment is decided by distance to the named boat rather
+         than by position in a list.
+         Greedy nearest-pair, which is optimal at the two-to-four options this branch ever sees and
+         is deterministic — the same prompt always lays out the same way. */
+      const claim = spots.map(() => -1);
+      const taken = spots.map(() => false);
+      for (let n = 0; n < spots.length; n++){
+        let bi = -1, bj = -1, bd = Infinity;
+        for (let i = 0; i < anchors.length; i++){
+          if (claim[i] >= 0) continue;
+          for (let j = 0; j < spots.length; j++){
+            if (taken[j]) continue;
+            const d = Math.hypot(spots[j][0] + D / 2 - anchors[i][0], spots[j][1] + D / 2 - anchors[i][1]);
+            if (d < bd){ bd = d; bi = i; bj = j; }
+          }
+        }
+        if (bi < 0) break;
+        claim[bi] = bj; taken[bj] = true;
+      }
+      menu.forEach((b, i) => {
+        const sp = spots[claim[i] >= 0 ? claim[i] : i];
+        b.style.position = "fixed";
+        b.style.left = sp[0] + "px";
+        b.style.top = sp[1] + "px";
+      });
+      return;
+    }
+    const hitRect = (bx, by, r, m) =>
+      bx < r.right + m && bx + D > r.left - m && by < r.bottom + m && by + D > r.top - m;
+    const obstacles = cellRects.slice();
+    if (pillB) obstacles.push(pillB);
+    /* SEAM (b), MEASURED IN 260821-qwv AND FIXED HERE: THE HELPER LINE IS AN OBSTACLE TOO.
+       Only the ask pill was ever in this list, and nothing lifts `.apSub` the way
+       liftAskClearOfFan lifts the pill — so on passplay-phone-021 the italic line explaining why a
+       circle is greyed sat ON the Pass circle, and on a posed eight-button fan at 390×664 it lay
+       across FOUR of them, 23px deep. It is text a captain has to read to understand a dead
+       control: the same standing as the question itself, which has been an obstacle all along.
+       Pushed as the RENDERED rect (fixedRect, body-relative like everything else in this
+       function), not the styled one — the line wraps, so its height is only knowable after
+       layout. */
+    const subObs = ap.querySelector(".apSub");
+    if (subObs && subObs.style.top){
+      const sr = fixedRect(subObs);
+      if (sr.width > 2 && sr.height > 2) obstacles.push(sr);
+    }
+    const inBounds = (bx, by) => bx >= xMin && bx <= xMax && by >= yMin && by <= yMax;
+    const clash = (bx, by) =>
+      placed.some(q => Math.hypot(bx - q[0], by - q[1]) < SEP) ||
+      Math.hypot(bx + D / 2 - sx, by + D / 2 - sy) < D / 2 + 26 ||
+      obstacles.some(r => hitRect(bx, by, r, 2));
+    // Playtest 16 (Wyatt: "fan them out in a more symmetrical orderly way"): the fan is a RIGID
+    // FORMATION, not per-button slot-filling. Straight rows perpendicular to the open heading,
+    // each row centred on the heading axis (7 -> 4 across + 3 staggered behind, like pins), and
+    // validity judged for the WHOLE formation — if anything collides the entire fan rotates to
+    // the next-best heading or steps outward, so it can never come out ragged or lopsided. Arc
+    // rows were tried first and rejected: at this radius a row of four wraps ~200° round the
+    // boat and reads as a ring, not a fan. Only the hopeless case docks as a strip.
+    const rowSplit = n => n <= 4 ? [n] : n === 5 ? [3, 2] : n === 6 ? [3, 3] : n === 7 ? [4, 3] : [4, 4];
+    const formation = (a0, r0) => {
+      const ux = Math.cos(a0), uy = Math.sin(a0);       // out from the boat
+      const vx = -uy, vy = ux;                          // across the row
+      const pts = [];
+      const split = rowSplit(menu.length);
+      for (let ri = 0; ri < split.length; ri++){
+        const along = r0 + ri * SEP;
+        const n = split[ri];
+        for (let j = 0; j < n; j++){
+          const off = (j - (n - 1) / 2) * SEP;
+          pts.push([sx + ux * along + vx * off - D / 2, sy + uy * along + vy * off - D / 2]);
+        }
+      }
+      return pts;
+    };
+    const formationOK = pts => pts.every(([cx, cy]) =>
+      inBounds(cx, cy) &&
+      Math.hypot(cx + D / 2 - sx, cy + D / 2 - sy) >= D / 2 + 26 &&
+      !obstacles.some(rc => hitRect(cx, cy, rc, 2)));
+    // headings ranked by open water, then fine-tuned by half-steps; radius grows as a last resort
+    const headings = [];
+    for (let k = 0; k < 16; k++){
+      const a = k * Math.PI / 8;
+      let reach = 0;
+      for (let r = R; r <= R + 150; r += GAP){
+        const cx = sx + r * Math.cos(a) - D / 2, cy = sy + r * Math.sin(a) - D / 2;
+        if (!inBounds(cx, cy) || obstacles.some(rc => hitRect(cx, cy, rc, 2))) break;
+        reach = r;
+      }
+      headings.push({ a, reach });
+    }
+    headings.sort((p, q) => q.reach - p.reach);
+    /* WHEN NOTHING FITS, THE CLUSTER DRIFTS AWAY FROM THE BOAT — IT NEVER PILES (D-44).
+       Wyatt, asked with the measurement in front of him: keep the circles full size, give them a
+       real gap, and let the group move out toward open water when the corner is tight. D-38's
+       "circles hug the boat" preference yields here, and he had already said why — a control you
+       cannot hit is the one unacceptable outcome.
+       The ladder used to be three fixed steps (0, 14, 28): a quarter of a circle's worth of
+       search, after which the cornered GRID took over and packed eight crates into a slab. Now it
+       steps outward in rings of half a circle-and-gap until the band's own diagonal is exhausted,
+       so the dock is reached only when there is genuinely nowhere in the band that holds the
+       formation at the required gap. Derived from the band, so it cannot be wrong at a size
+       nobody tested. Bounded by construction: the loop breaks the moment a layout passes. */
+    const rings = [];
+    for (let g = 0, lim = Math.hypot(Math.max(0, xMax - xMin), Math.max(0, yMax - yMin)),
+             stepG = Math.max(8, Math.round(SEP / 2)); g <= lim; g += stepG) rings.push(g);
+    let pts = null;
+    outer:
+    for (const grow of rings){
+      for (const h of headings){
+        for (const da of [0, Math.PI / 16, -Math.PI / 16]){
+          const cand = formation(h.a + da, R + grow);
+          if (formationOK(cand)){ pts = cand; break outer; }
+        }
+      }
+    }
+    if (!pts){
+      /* CORNERED BEYOND HOPE (a phone-narrow band): the group docks as a compact GRID above the
+         captains box. It used to dock as a single ROW, spaced D+6 apart, and then clamp each circle
+         into the band — and a row of eight at 72px apart needs 504px, which a 390px phone does not
+         have, so the outer circles clamped straight onto their neighbours and a trade prompt came
+         out as a pile of unclickable crates. Measured by the playtest gate's phone leg, repeatedly:
+         "overlapping controls: Fresh Milk/Cacao Pods, Cacao Pods/Speckled Eggs".
+         This is the SAME mistake the anchored-boats branch above was fixed for an hour earlier —
+         spread first, clamp second, and let the clamp undo the spreading. The cure is the same in
+         spirit: never lay out more per row than the band genuinely holds. Wrap instead, and stack
+         the rows upward from the captains box. */
+      const gap = GAP, step = SEP;
+      const perRow = Math.max(1, Math.floor((xMax - xMin + gap) / step));
+      const rowsN = Math.ceil(menu.length / perRow);
+      const blockH = rowsN * step - gap;
+      const block = (cx, ty) => {
+        const top0 = Math.min(Math.max(ty, yMin), Math.max(yMin, yMax - (blockH - D)));
+        return menu.map((b, n) => {
+          const r = Math.floor(n / perRow), c = n % perRow;
+          const inRow = Math.min(perRow, menu.length - r * perRow);
+          const rowW = inRow * step - gap;                        // left-edge span of this row
+          // xMax is the greatest LEFT coordinate a circle may take, so the row's own start is bounded
+          // by xMax minus the row's width beyond its first circle.
+          const startX = Math.min(Math.max(cx - rowW / 2, xMin), Math.max(xMin, xMax - (rowW - D)));
+          return [startX + c * step, top0 + r * step];
+        });
+      };
+      const dockY = Math.max(yMin, Math.min(capT - blockH - 10, Math.max(yMin, yMax)));
+      /* …AND THE DOCK MUST NEVER LAND ON A SQUARE YOU HAVE TO TAP. D-38 (Wyatt, 2026-08-21) lets a
+         prompt cover the board and names exactly one exception: "sailing squares, which you have to
+         click and you cannot click them if they are covered by something." Every OTHER placement in
+         this function already treats the sail rects as obstacles; the cornered dock is the one that
+         did not, because it is what runs precisely when the obstacle-aware search has already given
+         up — so it docked the block above the captains box and dropped it straight onto the sail
+         window. That is all three of the 2026-08-21 passplay-phone structural failures at once, one
+         screen, one circle: `sail-clickable: 9 sail square(s) covered <- #apStay`, plus the `no-pile`
+         and `not-occluded` rules reporting the same overlap from their own angle.
+         The search is deliberately the SAME SHAPE the narration bubble already uses for the same
+         rule (see place() above): the two vertical spots the layout would consider anyway — clear
+         below the sail window, clear above it — each tried at the boat's own column, flush left and
+         flush right, taking the first that covers NO square and otherwise the least-covering. It
+         cannot wander: every candidate is one the old code would already have been happy with, and
+         with no sail window on screen the first candidate IS the old behaviour, unchanged. */
+      const covers = ps => cellRects.reduce((n, rc) =>
+        n + (ps.some(p => hitRect(p[0], p[1], rc, 0)) ? 1 : 0), 0);
+      const ys = cb ? [dockY, cb.b + 8, cb.t - blockH - 8] : [dockY];
+      const xs = [sx, -1e6, 1e6];        // the boat's column, then flush left, then flush right
+      let bestN = Infinity;
+      for (const ty of ys){
+        for (const cx of xs){
+          const cand = block(cx, ty);
+          const n = covers(cand);
+          if (n < bestN){ bestN = n; pts = cand; }
+          if (n === 0) break;
+        }
+        if (bestN === 0) break;
+      }
+      /* AND IF EVEN THE DOCK CANNOT HOLD THEM, SAY SO OUT LOUD (D-44). Wyatt's ruling ends "a
+         layout that still cannot satisfy the gap must be reported, never silently accepted." The
+         layout gate already catches a pile from the outside, geometrically; this names it from the
+         inside, with the numbers, so a driven run is loud rather than merely red — a fallback that
+         quietly hands back overlapping circles is exactly the reassuring-green failure this
+         project keeps paying for. */
+      if (pts && pts.some((a, i) => pts.some((b2, j) => j > i && Math.abs(a[0] - b2[0]) < D && Math.abs(a[1] - b2[1]) < D)))
+        console.warn(`[pp4] fan fallback piled: ${menu.length} circles of ${D}px at a ${GAP}px gap do not fit the ${Math.round(xMax - xMin + D)}×${Math.round(yMax - yMin + D)} band`);
+    }
+    /* THE QUESTION MUST SURVIVE ITS OWN ANSWERS. D-38 lets the fan cover the BOARD, and holding
+       the sea reveals what is underneath — but holding the sea does not reveal text sitting under
+       a button, so a circle parked on the ask pill hides the very sentence it is answering. The
+       formation search already treats the pill as an obstacle; the cornered GRID fallback above
+       cannot, because it is what runs precisely when nothing avoidable is left. So the pill gives
+       way instead: it lifts to just above the block, still inside the band. Measured repeatedly by
+       the playtest gate ("no-cover-ask: 'Toasty Wheat' over 'What do ye WANT from the table'"). */
+    if (msg && pillB){
+      const hit = pts.some(p => p[0] < pillB.right && p[0] + D > pillB.left &&
+                                p[1] < pillB.bottom && p[1] + D > pillB.top);
+      if (hit){
+        const blockTop = Math.min(...pts.map(p => p[1]));
+        /* THE WHOLE ASK MOVES, SO THE WHOLE ASK HAS TO FIT. Lifting only the pill's own height
+           put its bottom 10px above the circles and then re-stacked a 23px helper line into that
+           10px — measured: the line back across three crates, 20px deep, which is the fault this
+           lift exists to prevent, reintroduced by the lift itself. Measure what actually hangs
+           below the pill (the slider and the helper line, with the same 6px air stackUnderPill
+           gives them) and clear the block by all of it. */
+        const under = [".apSliderWrap", ".apSub"].reduce((t, sel) => {
+          const el = ap.querySelector(sel); if (!el || !el.style.top) return t;
+          const r = fixedRect(el); return r.height > 0 ? t + r.height + 6 : t;
+        }, 0);
+        const lifted = Math.max(tSafe - 34, blockTop - pillB.height - under - 10);
+        msg.style.top = lifted + "px";
+        pillB = fixedRect(msg);
+        placeBackButton(ap, pillB, tSafe);
+        // …AND THE HELPER LINE COMES WITH IT. The back circle already followed the pill here; the
+        // slider and `.apSub` did not, so the one piece of text that explains a greyed circle was
+        // left lying across the very circles it explains.
+        stackUnderPill(stackCx != null ? stackCx : sx, pillB.bottom + 6);
+      }
+    }
+    pts = lastLowest(pts);   // D-48 — applied to whichever search produced this layout
+    menu.forEach((b, i) => {
+      const spot = pts[i];
+      placed.push(spot);
+      b.style.position = "fixed"; b.style.left = spot[0] + "px"; b.style.top = spot[1] + "px";
+    });
+    return;
+  }
+  box.classList.remove("radial");
+  S.radKey = null;
+  [...ap.querySelectorAll(".apBtn")].forEach(b => {
+    b.style.position = ""; b.style.left = ""; b.style.top = "";
+    // T-017: the fit is a RADIAL affordance — a card has room, so hand BOTH sizes back to the
+    // stylesheet on the way out, or a petal that once held a long name keeps a grown disc and a
+    // shrunken label as a card. Each button's own fan key goes with them, because the key means
+    // "THIS element already carries that fit" and the fit is exactly what this line just undid.
+    b.style.fontSize = ""; b.style.width = ""; b.style.height = ""; b._fitKey = null; b._fanKey = null;
+    if (b._radSwapped){ b.innerHTML = b._fullHtml; b._radSwapped = false; }   // card shows the full label
+  });
+  /* W3-1 (Wyatt, 2026-08-27): "the battle box choreography is glitchy... it appears for an
+     instant, [then] it moves down to centre." MEASURED, frame by frame (scripts/qa/
+     w31_battle_choreography.mjs): the card's first visible frame carried a stale inline `top`
+     from whatever prompt was on screen before it, and only snapped to `.centered` on a LATER
+     frame. The cause was this throttle: syncPrompt() (below) calls promptTick() SYNCHRONOUSLY,
+     at panel()'s own chokepoint, specifically so a freshly-built prompt is laid out in the frame
+     it was built — but the throttle bailed out before ever reaching the isBattle/big-card
+     placement below, because `fc` (only ever incremented by the real rAF loop in tick()) is not
+     a multiple of 3 on most synchronous calls. The centre-stage path above (`enterCenterStage()`,
+     called before this line) never had this problem for exactly that reason: it never passes
+     through the throttle at all. `force` is that same exemption for this half of the function —
+     true only from syncPrompt's one-off call, so the continuous per-frame case (tick(), where
+     this comment's HOT-PHONE reasoning still applies in full) is unchanged. */
+  // HOT-PHONE: the card path reads offsetHeight (layout) — 20Hz is plenty when nothing glides
+  if (!force && !S.tween && fc % 3) return;
+  const big = box.offsetHeight > vhPx() * 0.42;
+  const u = boatUXY(appState.mySeat ?? 0);
+  /* T-07 (Wyatt, 2026-08-26): "when you observe other players battling, the battle box moves around
+     in a glitchy way, and sometimes it's offscreen; it almost looks like it's trying to hover the
+     box over my own boat, which is unnecessary. expectation: it should be centered over the game
+     board and stay there."  It IS hovering his own boat: `u` above is MY seat, and the card is hung
+     off that hull below. A battle between two OTHER captains has nothing to do with my ship, and
+     the camera is meanwhile holding on the pair who are fighting — so the card is anchored to a
+     boat the director is not even looking at.
+
+     MEASURED, both screens, one real battle (4/scripts/qa/battle_watch_probe): the watching guest's
+     card travelled 435,453 -> 350,176 -> 261,227 in 600ms and then jittered +/-10px for the rest of
+     the fight; the host's went 304,167 -> 306,166 and stopped. The 600ms is the camera's 650ms
+     tween — the guest aims its camera at the same instant the card is born, so the card rides the
+     tween. And `top = sy + 34` is NOT clamped to the viewport the way `left` is, which is the
+     "sometimes it's offscreen" half: an anchor ship above the visible band sends top negative.
+
+     CENTRED IS ALREADY A SOLVED CASE HERE — it is what an over-tall card does, one line up. So the
+     battle card joins it rather than getting placement logic of its own. This function runs on both
+     tiers, so host and guest take the rule from the same line; nothing is branched on who is
+     watching. */
+  const isBattle = !!box.querySelector(".btl");
+  if (big || isBattle || !u){ box.classList.add("centered"); box.style.left = ""; box.style.top = ""; return; }
+  box.classList.remove("centered");
+  const W = Math.min(330, vwPx() - 16);
+  box.style.width = W + "px";
+  const H = box.offsetHeight;
+  const cap = $("pp4Cap");
+  const capTop = capBandBottom();
+  const pill = $("pp4Pill");
+  const topSafe = (pill && pill.style.display !== "none")
+    ? pill.getBoundingClientRect().bottom + 8
+    : ($("pp4Ribbon") ? $("pp4Ribbon").getBoundingClientRect().bottom + 8 : 56);
+  const [sx, sy] = toScreen(u[0], u[1]);
+  let left, top;
+  const cells = [...document.querySelectorAll(".sailCell")];
+  if (cells.length){
+    // playtest 6: during a sail prompt the card must NEVER sit on the sail window — the camera
+    // promised every legal square stays visible, so the card dodges to the clearest band:
+    // below the window, above it, or hugging the captains box, recomputed as the camera moves.
+    let x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9;
+    // RED ALERT FIX (2026-08-21): fixedRect(), not a raw getBoundingClientRect() — x0/x1 feed
+    // `left` below, clamped against vwPx() (body-relative); a raw viewport-absolute rect here is
+    // the same seam this whole fix is about, just in the card-mode fallback instead of the radial one.
+    cells.forEach(c => { const r = fixedRect(c);
+      x0 = Math.min(x0, r.left); y0 = Math.min(y0, r.top);
+      x1 = Math.max(x1, r.right); y1 = Math.max(y1, r.bottom); });
+    left = Math.min(Math.max((x0 + x1) / 2 - W / 2, 8), vwPx() - W - 8);
+    const below = (capTop - 8) - (y1 + 8);
+    const above = (y0 - 8) - topSafe;
+    if (below >= H) top = y1 + 8;
+    else if (above >= H) top = y0 - 8 - H;
+    else {
+      /* LEAST-BAD IS STILL NOT ALLOWED TO COVER A SQUARE — the same D-38 rule the radial dock
+         above now obeys, on the card the sail prompt falls back to when the fan cannot be drawn.
+         The two vertical spots ARE the two branches above; all that is left to try here is the
+         row's horizontal position, so the card slides to whichever end of the band covers fewest
+         legal moves. On a 390px phone the card is 330 wide and that buys 44px of travel — say so
+         rather than pretend otherwise; it is the same search shape as the bubble's and it is what
+         there is room for. Zero-cover wins outright when it exists. */
+      top = capTop - H - 6;                    // least-bad: hug the captains box
+      const cr = cells.map(c => fixedRect(c));
+      const hits = (lx, ty) => cr.reduce((n, r) =>
+        n + ((lx < r.right && lx + W > r.left && ty < r.bottom && ty + H > r.top) ? 1 : 0), 0);
+      let bn = hits(left, top);
+      if (bn > 0) for (const lx of [8, Math.max(8, vwPx() - W - 8)]){
+        const n = hits(lx, top);
+        if (n < bn){ bn = n; left = lx; }
+      }
+    }
+  } else {
+    left = Math.min(Math.max(sx - W / 2, 8), vwPx() - W - 8);
+    top = sy + 34;                             // just under the hull
+    if (top + H > capTop - 6) top = Math.max(topSafe, sy - H - 44);
+  }
+  box.style.left = left + "px"; box.style.top = top + "px";
+}
+// HOT-PHONE, measured by ablation (idle at a sail prompt, headless): the 60Hz rAF loop itself
+// cost ~17% of a core — more than every CSS animation combined — just by waking the renderer
+// every frame. So the loop now has two gears: full rAF while anything actually moves (camera
+// tween, live pinch/pan, a bubble riding a ship), and an 8Hz heartbeat otherwise. wake() snaps
+// back to the fast gear the instant motion starts, so nothing ever glides at 8fps.
+let fc = 0;
+// activate once a voyage is actually on screen — solo, pass-and-play, OR networked. Extracted
+// from tick() so syncPrompt() can run the SAME check synchronously: the stage was only ever built
+// on the tick loop's own beat, so the very first prompt of a voyage could render before
+// body.pp4Stage existed at all — and then no amount of laying it out helps, because every stage
+// rule is scoped to that class. That is what left the recipe cards at 306px (unstyled flex) for
+// the first frames of the chooser.
+//
+// 02-03 (MP-10/MP-11): this used to also require `!appState.room`, written 2026-08-13 while `4/`'s
+// Firebase tags were off and appState.room could never be non-null — a no-op at the time, not a
+// deliberate "networked games use the classic layout" choice. Restoring multiplayer (02-01) turned
+// that no-op into a real bug: appState.room stays truthy for a room's entire lifetime, so this
+// guard silently stopped the stage — and with it #pp4Ribbon, #pp4FF, everything this phase's
+// mode-gating work depends on — from ever building in a networked game, confirmed by direct
+// measurement (headless host+guest voyage: `pp4Stage` absent from body, `#pp4Ribbon`/`#pp4FF`
+// absent from the DOM, even with `gameStarted:true`). `gameEl`'s display plus `appState.game`
+// already fully capture "the voyage view is on screen" for every mode alike (`showGameView()`,
+// `4/src/ui/lobby.js`, runs identically for solo/pass-and-play/networked) — the room check added
+// nothing even when it was harmless, and removing it is not a new mechanism, just the two
+// conditions that were always sufficient on their own.
+function maybeBuildStage(){
+  if (S.active) return;
+  const gameEl = $("game");
+  if (gameEl && getComputedStyle(gameEl).display !== "none" && appState.game) buildStage();
+}
+function needFast(){ return !!(S.tween || S.bubPlace || ptrs.size > 0); }
+export function wake(){
+  if (S.hidden) return;   // nothing to wake for while the page is hidden — see the listener below
+  if (S.slow){ clearTimeout(S.raf); S.slow = false; S.raf = requestAnimationFrame(tick); }
+}
+function tick(){
+  fc++;
+  camFrame();
+  // the narration deadline, honoured by whichever gear is running — see stageFlash's note. This is
+  // the only thing standing between a dropped timer and a voyage that never continues.
+  if (S.bubDue && Date.now() >= S.bubDue){ const f = S.bubFinish; S.bubDue = 0; S.bubFinish = null; if (f) f(); }
+  if (S.bubPlace) S.bubPlace();   // the live bubble moves in the same frame as the camera
+  if (S.active){
+    // item 7: the move the stage held back plays the moment the stage is gone — see camTo()
+    if (S.camHeld && !stageHoldsAttention()){ const t = S.camHeld; S.camHeld = null; camTo(t[0], t[1], t[2]); }
+    // pill and ribbon change on human timescales — 10Hz in the fast gear, every beat in slow
+    if (S.slow || S.tween || fc % 6 === 0){ pillTick(); ribbonTick(); }
+    // sail squares on screen are FRAMED on screen — the containment pass (see camFitSail's
+    // sibling above). Same human-timescale cadence as the pill; it self-throttles further.
+    if (S.slow || fc % 6 === 0) sailContainTick();
+    promptTick();
+    retireEchoBubble();   // D-46: one moment, one sentence — every prompt style, not just the fan
+    cerBandTick();    // the ceremony's words stay off the captains card, however tall it grows
+    peekHintLast();   // SEAM (a): the hint is the LAST thing placed, so it dodges this tick's layout
+
+  }
+  else if (S.slow || fc % 6 === 0) maybeBuildStage();
+  if (S.hidden) { S.raf = 0; return; }   // backgrounded: stop dead, don't re-arm
+  if (needFast()){ S.slow = false; S.raf = requestAnimationFrame(tick); }
+  else { S.slow = true; S.raf = setTimeout(tick, 125); }
+}
+/* WATCHDOG — because the thing that failed is the thing tick() is re-armed BY.
+   playtest 22. The stall above was a dropped `setTimeout`; the slow gear re-arms itself with
+   `setTimeout(tick,125)`, so the very same loss can kill the tick loop, and then the deadline check
+   inside tick() never runs either. A belt that hangs off the same hook as the thing it is holding up
+   is not a belt.
+   `setInterval` is the independent hook, and that is measured rather than assumed: in the run that
+   found this, a 250ms interval delivered 272 ticks across 72 seconds — through the whole stall —
+   while two timeouts armed in the middle of it were never delivered at all.
+   Half a second, and all it does when nothing is wrong is compare two integers: no layout, no DOM,
+   nothing that shows up on a hot phone. It never restarts the loop while the page is hidden — that
+   would undo playtest 20's battery fix, and visibilitychange already restarts it on the way back —
+   but it DOES honour a narration deadline while hidden, which is what the timeouts used to do. */
+setInterval(() => {
+  if (S.bubDue && Date.now() >= S.bubDue){ const f = S.bubFinish; S.bubDue = 0; S.bubFinish = null; if (f) f(); }
+  if (!S.hidden && !S.raf){ S.slow = false; tick(); }        // the loop stopped: pick it up again
+}, 500);
+// playtest 20 (Wyatt: "see if those continue when the game is idle in the background on mobile,
+// and pause them"). Measured with the page hidden: a requestAnimationFrame loop stops on its own
+// (92 ticks -> 92 across 1.5s), but a setTimeout loop KEEPS FIRING (12 -> 14). This tick has two
+// gears and the idle one is `setTimeout(tick,125)`, so the stage went right on running — camera
+// maths, pill and ribbon updates, prompt placement — on a phone in a pocket, for as long as the
+// tab lived. Nothing was painting, so every bit of it was waste.
+// Stops on hide and restarts on show. The restart is a plain tick(): every layout input it caches
+// (ribbon height, viewBox, ripple transform) is re-read on the first pass, so there is no stale
+// frame to clear first. board.js's own visibilitychange listener is untouched — it resets the wind
+// meter's frame reference and must keep doing that independently of this.
+if (typeof document !== "undefined" && document.addEventListener){
+  document.addEventListener("visibilitychange", () => {
+    const hidden = document.visibilityState === "hidden";
+    if (hidden === !!S.hidden) return;
+    S.hidden = hidden;
+    if (hidden){
+      clearTimeout(S.raf); cancelAnimationFrame(S.raf); S.raf = 0;
+    } else if (!S.raf){
+      S.slow = false; tick();
+    }
+  });
+}
+
+/* FIX-01 (D-01/D-02) — the ONE-TIME removal of the shared, un-namespaced turn-clock key.
+ *
+ * WHY. playpastrypirates.com and playpastrypirates.com/4 are two games on ONE origin, so they share
+ * one localStorage namespace. Until this commit the new game wrote pp_timerOff, which the live
+ * game reads at src/orchestrator.js:1399 and PUSHES TO THE WHOLE ROOM at :1404 — so opening /4
+ * switched the clock off in the game real players play, and a host who had visited /4 handed that
+ * setting to everyone at their table. The new game now writes pp4_timerOff at all five of its own
+ * sites; this function clears the key it should never have written. D-01, Wyatt 2026-08-18:
+ * "Not migrate, not leave." The standing rule it comes from is D-04 — share who you are, split how
+ * you play — which is why pp_id / pp_lastName / pp_muted are deliberately NOT namespaced.
+ *
+ * WHY IT IS MARKER-GUARDED AND NOT A DELETE-ON-EVERY-LOAD (D-02, the whole point). Deleting the
+ * shared key on every visit would mean /4 permanently vandalises the live game's preference — every
+ * time a live-game session set it, the next /4 load would wipe it again. That is the exact defect
+ * FIX-01 exists to fix, re-committed from the other direction. It runs once per browser; after that
+ * a re-planted legacy key belongs to the live game and is left strictly alone.
+ *
+ * WHY THE MARKER IS TESTED WITH `!= null` AND THE LEGACY VALUE IS NEVER READ AT ALL. "0" and ""
+ * are both legitimate stored values and both are falsy (HARD-WON-LESSONS §3, the falsy zero). A
+ * truth-test would treat a browser storing "0" as never having been cleaned, and would skip an
+ * empty-string legacy key as though there were nothing to remove. removeItem() is unconditional
+ * precisely so no falsy-but-present value can be missed.
+ *
+ * `store` is a parameter rather than a direct localStorage reference so the behaviour is drivable
+ * against a fake store under Node — that is what 4/scripts/pp4_timeroff_check.js does, and it costs
+ * exactly one argument. The try/catch swallows silently with no logging, matching this codebase's
+ * storage convention at 4/src/ui/audio.js:177-183 (Safari private mode throws on write).
+ *
+ * Returns true when this call performed the cleanup, false when it was already done or storage
+ * threw — the boolean is what lets the gate assert the marker semantics instead of inferring them.
+ *
+ * NOTE TO THE NEXT EDITOR: every mention of a key name in PROSE here is deliberately UNQUOTED.
+ * 4/scripts/pp4_timeroff_check.js counts QUOTED occurrences of the legacy literal and requires
+ * exactly one tree-wide — the removeItem call below. Quoting a key name in a comment makes that
+ * gate red, which is the trap HARD-WON-LESSONS §1b records: a check that cannot tell prose from
+ * code makes writing the explanation an offence. Quotes are code here; prose goes bare.
+ */
+export function cleanupLegacyTimerKey(store){
+  try {
+    if (store.getItem("pp4_timerOffCleaned") != null) return false;
+    store.removeItem("pp_timerOff");
+    store.setItem("pp4_timerOffCleaned", "1");
+    return true;
+  } catch (e) { return false; }
+}
+
+export function initStage(){
+  // FIX-01: clear the shared legacy key once per browser, BEFORE the seed below reads anything.
+  // Wrapped again here because a browser can throw on merely touching localStorage (Safari private
+  // mode) — the boot path must not go down for a housekeeping call.
+  try { cleanupLegacyTimerKey(localStorage); } catch (e) {}
+  // solo clock: off by default on /4 (the toggle in the sheet still works and persists).
+  // D-03: the OFF default is DELIBERATE and is not what FIX-01 changes — only the key changed.
+  // Wyatt, 2026-08-18: "multiplayer is played between friends, who can communicate through the
+  // chat." The shot clock is not this game's dropped-player mechanism. REQUIREMENTS.md:169.
+  // (The D-03 off-by-default timer seed stood here. The shot clock left 2026-08-28; players'
+  // pp4_timerOff preference stays on their devices untouched, to be honoured on its return.)
+  // bridge for the classic modules (no import cycles): panel/flow/board call these if present
+  window.__pp4 = {
+    flash: stageFlash,
+    /* `variants` USED TO BE DROPPED HERE, AND THAT WAS PAR-14's OWN SEAM. netNarrate picked a
+       variant and handed this entry a bare string; watchNarr handed flash() the RAW payload and
+       flash() picked for itself — two shapes for one drawn thing, and the shape the HOST used
+       could not carry the fact the renderer needed. It is forwarded now, so both tiers hand
+       stageFlash the same five arguments and any rule about a payload is written exactly once. */
+    narr: (html, opts, variants) => (S.active ? stageFlash(html, undefined, undefined, variants, opts) : null),
+    set subject(v){ S.subject = v; }, get subject(){ return S.subject; },
+    /* subjectSet NEEDS ITS OWN ACCESSOR, and forgetting it made W4-2's fix a no-op that MEASURED as
+       working. This object is a BRIDGE, not the state — `subject` and `evType` reach S only through
+       the pairs above. panel.js writes `window.__pp4.subjectSet = true`; without this line that set
+       a plain property on the bridge and never arrived, so `decided` was always false, the colour
+       sniff always ran, and a battle result naming one captain was re-anchored exactly as before.
+       Caught by driving the real flash() path and reading the bubble's class — the seam test that
+       matters, as opposed to the one I ran first, which evaluated panel.js's expression alone and
+       reported success on a fix that did nothing. */
+    set subjectSet(v){ S.subjectSet = v; }, get subjectSet(){ return S.subjectSet; },
+    set evType(v){ S.evType = v; }, get evType(){ return S.evType; },
+    // `pos` (optional) is the asked captain's authoritative square off the prompt spec — see
+    // camFitSail. renderPickPrompt passes it; the spectating host's pickCell call passes seat only.
+    sailCells: (seat, pos) => { if (S.active) camFitSail(seat, pos); },
+    /* THE SHOT IS THE FIGHT, AND IT IS HELD. Called at the top of asyncBattle (before the opening
+       line, so the camera is already there when it speaks) and again by every battle-card render.
+       It used to centre the MIDPOINT at a fixed 2.0x, which frames two adjacent ships and crops two
+       that are not — camFitSeats derives the zoom from the gap instead, so both boats are on screen
+       whatever the fight looks like. Re-fitting only when the pair changes: an unchanged re-fit
+       would restart the 650ms tween — and hold the tick loop in its fast gear — on every round. */
+    battle: (a, d) => { if (!S.active) return;
+      const g = appState.game; if (!g || !g.players[a] || !g.players[d]) return;
+      const same = S.battle && S.battle[0] === a && S.battle[1] === d;
+      S.battle = [a, d]; S.lock = false;
+      if (!same) camFitSeats([a, d]); },
+    battleEnd: () => { S.battle = null; },
+    flip: flipArmed,
+    // turnSerial: bumps whenever the wheel changes hands — the pill-lock and placement memo key
+    // on it, so a NEW turn re-anchors the ask pill and an ongoing one never moves it (playtest 15)
+    // the captains box stops hiding the instant a recipe is actually chosen — see capEmptyTick
+    recipePicked: () => { S.recipePicked = true; },
+    actor: seat => { if (S.activeSeat !== seat) S.turnSerial = (S.turnSerial || 0) + 1; S.activeSeat = seat; },
+    // a rim ride spans the whole board — pull out so the sweep never plays off screen; the
+    // narration that follows glides the camera back down to the ship at its whirlpool
+    sweepCam: () => { if (S.active){ S.lock = false; camFull(); } },
+    /* THE STORM IS THE ONE MOMENT THE WHOLE TABLE MOVES AT ONCE — playtest 22 item 1 (Wyatt): "The
+       director should zoom out to show all boats and their end squares before moving them in a
+       storm." A storm takes every ship three squares downwind simultaneously; framed on one boat,
+       the player watches their own ship slide and has to infer the rest from the narration.
+       The window is every ship's square AND the square the wind is driving it toward. That target
+       is computed the plain way (pos + dir x STORM_PUSH) rather than asked of the engine, and that
+       is deliberate: a ship that fetches up short on land or another hull ends INSIDE this window,
+       never outside it, so an over-estimate is always safe and an engine query would have to mutate
+       the board to answer. Called before the first ship moves, so the shot is already wide when the
+       storm starts rather than chasing it. */
+    stormCam: (dirKey) => { if (!S.active) return;
+      const g = appState.game; if (!g) return;
+      const d = DIRS[dirKey]; if (!d) return;
+      const cells = [];
+      for (const p of g.players){
+        if (!g.inPlay || !g.inPlay(p) || !p.pos) continue;
+        cells.push(p.pos);
+        cells.push([p.pos[0] + d[0] * STORM_PUSH, p.pos[1] + d[1] * STORM_PUSH]);
+      }
+      if (!cells.length) return;
+      S.lock = false;
+      camFitCells(cells, 2.0); },
+    // playtest 16: the bake-off flips to centre stage BEFORE building its panel, so panel()'s
+    // height measurement runs under centre CSS rather than the outgoing radial prompt's (see
+    // enterCenterStage's own note for the clipped-to-nothing failure this prevents)
+    stageCenterNow: () => { if (S.active) enterCenterStage(); },
+    // playtest 19: panel() calls this at the end of every prompt render, so a new prompt is styled
+    // and placed in the SAME frame it was built instead of waiting for the next tick — which, in
+    // the slow gear, is up to 125ms away. That window is what made the recipe cards flash at 110px
+    // before settling to 163.5px. promptTick is idempotent and already runs every frame, so this
+    // is the same work a beat earlier, not extra work.
+    // force=true (W3-1, 2026-09-01): this is a ONE-OFF synchronous call outside the rAF loop, so
+    // the module-level frame counter promptTick's own HOT-PHONE throttle reads (fc, only ever
+    // incremented by tick()) is not something this call controls — without force, roughly 2 calls
+    // in 3 bailed out before reaching the layout work this comment exists to run early, which is
+    // exactly the "painted before it is placed" bug he reported on the battle card.
+    syncPrompt: () => { maybeBuildStage(); if (S.active) promptTick(true); },
+    settled: stageSettled,
+  };
+  recipeGuard();
+  sweepGuard();   // playtest 20: the trade-wind ride preview
+  // playtest 18: Pass & Play sails again — the refit note comes off and the card is live.
+  // (The shipyard greying was this block; the whole hand-off/privacy flow ships in
+  // lobby.js/flow.js/board.js and the /4 stage sweep landed with it.)
+  tick();
+}

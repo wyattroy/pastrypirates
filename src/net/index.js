@@ -18,24 +18,24 @@
 import { detach, detachRoom, detachAll, size, list } from "./registry.js";
 import {
   netWatchFlip, netWatchConnected, netWatchPresence,
-  netWatchTimerOff, netWatchClock, netWatchChat, netWatchBattle,
+  netWatchChat, netWatchBattle,
   netWatchRecovery, netWatchDraftPrompt, netWatchEvents, netWatchPrompt,
   netWatchNarr,
-  netWatchSeats, netWatchStatus, netWatchTurnOrder, netWatchRecipes,
-  netWatchResponse, netWatchDraftResponse, netWatchPaused,
+  netWatchSeats, netWatchStatus, netWatchRecipes,
+  netWatchResponse, netWatchDraftResponse,
 } from "./watchers.js";
 import {
-  netSetFlip, netSetClock, netSetTimerOff,
+  netSetFlip,
   netSetPrompt, netRemovePrompt, netSetResponse,
   netSetNarr, netPushChat,
   netSetBattle, netRemoveBattle,
-  netSetRecipes, netSetDraftPrompt, netRemoveDraftPrompt, netSetDraftResponse,
-  netSetTurnOrder, netUpdateRoom, netDeleteRoom,
+  netSetRecipes, netSetDraftPrompt, netRemoveDraftPrompt, netSetDraftResponse, netUpdateRoom, netDeleteRoom,
   netSetMeta, netWriteGameLog,
-  netMarkPresence,
+  netMarkPresence, netMarkHostGoneOnDisconnect, netClearHostGone,
+  netForfeitOnDisconnect, netClearForfeitOnDisconnect,
   netSetDlog, netPushEvent,
   netSetRecovery, netRemoveRecovery,
-  netCreateRoom, netSetFeedback, netSetPaused,
+  netCreateRoom, netSetFeedback,
 } from "./writers.js";
 import {
   netReadMeta, netReadRoom, netReadDlog, netReadEv, netClaimSeat,
@@ -43,24 +43,24 @@ import {
 
 export {
   netWatchFlip, netWatchConnected, netWatchPresence,
-  netWatchTimerOff, netWatchClock, netWatchChat, netWatchBattle,
+  netWatchChat, netWatchBattle,
   netWatchRecovery, netWatchDraftPrompt, netWatchEvents, netWatchPrompt,
   netWatchNarr,
-  netWatchSeats, netWatchStatus, netWatchTurnOrder, netWatchRecipes,
-  netWatchResponse, netWatchDraftResponse, netWatchPaused,
+  netWatchSeats, netWatchStatus, netWatchRecipes,
+  netWatchResponse, netWatchDraftResponse,
 };
 export {
-  netSetFlip, netSetClock, netSetTimerOff,
+  netSetFlip,
   netSetPrompt, netRemovePrompt, netSetResponse,
   netSetNarr, netPushChat,
   netSetBattle, netRemoveBattle,
-  netSetRecipes, netSetDraftPrompt, netRemoveDraftPrompt, netSetDraftResponse,
-  netSetTurnOrder, netUpdateRoom, netDeleteRoom,
+  netSetRecipes, netSetDraftPrompt, netRemoveDraftPrompt, netSetDraftResponse, netUpdateRoom, netDeleteRoom,
   netSetMeta, netWriteGameLog,
-  netMarkPresence,
+  netMarkPresence, netMarkHostGoneOnDisconnect, netClearHostGone,
+  netForfeitOnDisconnect, netClearForfeitOnDisconnect,
   netSetDlog, netPushEvent,
   netSetRecovery, netRemoveRecovery,
-  netCreateRoom, netSetFeedback, netSetPaused,
+  netCreateRoom, netSetFeedback,
 };
 export {
   netReadMeta, netReadRoom, netReadDlog, netReadEv, netClaimSeat,
@@ -93,6 +93,11 @@ export function cfgReady() {
 // a later phase's job, not this one's.
 export function netInit() {
   if (!cfgReady()) return null;
+  // v2 ships without the Firebase SDK tags (solo / pass-and-play only), so the global is simply
+  // absent. That is a supported configuration here, not a failure — check for it before touching
+  // it, so a solo build boots with a clean console instead of a thrown ReferenceError caught one
+  // line later. `typeof` is the one operator safe on an undeclared identifier.
+  if (typeof firebase === "undefined") return null;
   try {
     firebase.initializeApp(firebaseConfig);
     return firebase.database();

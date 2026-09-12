@@ -237,3 +237,60 @@ numbering restarts at 1. Intake research: `.planning/research/v2.0-intake/`.*
 
 <!-- Prior footer, retained for provenance: -->
 *2026-07-26 — after Phase 14 (Engine-Adjacent Gameplay Fixes & Determinism) complete: STORM-01, AI-01, VERIFY-02 validated and human-verified. The determinism corpus was re-recorded once behind a blocking human decision and grew 30 → 31 seeds to preserve `shipwrecked` coverage; the gate is green at 31/31. STORM-01's scope was amended to solo/host — multiplayer guest storm animation is backlogged as STORM-02, because delivering it would require changing the engine event stream and forcing another corpus re-record.*
+
+### D-55 — A guest gets the REAL coin slider. It was never a decision. (Wyatt, 2026-08-23)
+
+**His words:** *"guest should OBVIOUSLY get the real coin slider, and you already know why — guests
+and hosts are given the same experience. stop asking stupid questions and refer to your documents."*
+
+**He is right, and the correction is worth recording because a session queued it as an open question
+he had to answer.** It is not open. It is already settled twice over:
+
+- **Rule 23 / `docs/DISPLAY-RULES.md` §1** — *"Host/guest decides WHO COMPUTES the game and WHO
+  CREATES THE ROOM. It never decides WHAT IS DRAWN."* A remote seat handed a different control is
+  the exact thing that rule forbids.
+- **Rule 8, consistency** — the same gesture behaves the same way everywhere unless he chose the
+  exception. He did not choose this one; `4/src/ui/util.js:1437-1442` flags it in the code as an
+  open hole, which is an admission, not a ruling.
+
+So MP-08's criterion is **the stepper fallback is deleted and every seat gets the slider** — one
+control reached from both tiers. It is a convergence job, and it belongs to `ask()`, prompt fork 2
+in DISPLAY-RULES §4, which is still unconverged. The stepper exists *because* of that fork.
+
+**THE PROCESS LESSON, which is the reason this is written down at all.** CLAUDE.md already says:
+*"A checkpoint his existing rulings already answer is NOT a reason to stop. Resolve it from the
+record, name which ruling you used, and keep going."* The ROADMAP's own phrasing — *"or the stepper
+fallback is a decision Wyatt made and recorded"* — invited the question, and a session took the
+invitation instead of checking whether the standing rules already closed it. **When a roadmap line
+offers a choice that a standing rule has already made, the rule wins and the roadmap line is stale.**
+
+### D-56 — For the overnight run of 2026-08-23: THE DOCUMENTS ARE HIS INPUT (Wyatt, 2026-08-23)
+
+**His words:** *"for the next 8 hours, any time you think you need my input, instead look to all of
+your documents to understand my intention."*
+
+**This is not permission to guess. It is an instruction to READ.** The difference matters, and D-55
+is why this exists: a session queued a question he had already answered twice in writing, and the
+cost was his sleep interrupted by a correction that a grep would have made unnecessary.
+
+**Where his intention actually lives, in the order to consult it:**
+
+1. **`.claude/CLAUDE.md`** — the 23 rules, and the boxed statement at the top that outranks all of
+   them: *"the game is efficiently made more and more joyfully playable by people."* When two rules
+   seem to conflict, that sentence decides.
+2. **The subsystem doc for whatever is being touched** — `DISPLAY-RULES.md`, `BOARD-RENDERING.md`,
+   `TRADE-SYSTEM.md`, `BOT-DESIGN-PRINCIPLES.md`, `AUDIO.md`, `DRIVING-THE-GAME.md`,
+   `GIT-AND-DEPLOY.md`. CLAUDE.md §4 already requires this before a line is written.
+3. **`docs/HARD-WON-LESSONS.md`** — what to distrust, re-read at the TRIGGER rather than once.
+4. **The decision log** — `PROJECT.md` § Key Decisions and `02.2-CONTEXT.md`'s D-01..D-56. Fifty-six
+   rulings of his are written down; almost any "should we…?" is already in there.
+5. **THE GIT LOG — the graveyard.** A doc says how a thing works; the log says what was tried and
+   thrown away, and which numbers are deliberately held.
+   `git log --all --oneline --grep="<subsystem>" -i` and `git log -S "<the number>"`.
+
+**The test to apply instead of asking:** *can I name the ruling, the doc section, or the commit that
+decides this?* If yes, cite it and proceed. If no, pick the REVERSIBLE option, write down what was
+chosen and what the alternative was, and keep going — a decision recorded in the open costs a
+sentence to overturn in the morning, whereas a stalled run costs him the whole window.
+
+**Binding on every agent dispatched during this run, not just the orchestrator.**

@@ -1,0 +1,113 @@
+// cdp.mjs — a tiny Chrome DevTools Protocol client: launch a headless Chrome, drive it, screenshot
+// it, kill it — scoped to its own ports so it never touches another agent's probe (HARD-WON-LESSONS §8).
+// Shared by playtest.mjs (and reusable by any future browser gate). Nothing game-specific lives here.
+import { spawn, execSync } from "node:child_process";
+import { killProfile } from "./stray_probes.mjs";
+import fs from "node:fs";
+import path from "node:path";
+import os from "node:os";
+import { CHROME, LINUX_ARGS, PYTHON } from "./chrome.mjs";
+
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+/* withTimeout — bounds any promise so a caller can never hang forever waiting on it.
+   INBOX-20260904T004944Z: send()'s promise below used to resolve ONLY when Chrome's WebSocket
+   answered back, so a Runtime.evaluate awaiting a page-side promise that never settles (or a
+   crashed tab) hung the whole script -- and anything awaiting it, like `npm test` -- forever
+   instead of failing loud. Pure and CDP-agnostic on purpose, so it can be tested with a promise
+   that never resolves and no real Chrome (scripts/qa/cdp_timeout_check.mjs). */
+export function withTimeout(promise, ms, label) {
+  return new Promise((resolve, reject) => {
+    const t = setTimeout(() => reject(new Error(`CDP call timed out after ${ms}ms: ${label}`)), ms);
+    promise.then(v => { clearTimeout(t); resolve(v); }, e => { clearTimeout(t); reject(e); });
+  });
+}
+
+// one Chrome tab, driven over CDP. `serveRoot` is served on `httpPort` (fresh port = fresh module
+// cache, DRIVING-THE-GAME.md §1). Returns a rich handle; call .close() when done.
+/* freshProfileDir — a clean profile path, even when the old one is held open.
+   Both mounts wipe their profile before launching, and on WINDOWS you cannot unlink a file
+   another process still has open: a browser left behind by a killed run makes the next leg die
+   with EBUSY before it starts (measured 2026-09-01, crew-desktop). Linux and macOS unlink open
+   files happily, so this can only ever bite on the Razer.
+   A profile is scratch, so the answer is not to try harder at deleting but to stop insisting on
+   that exact path: fall back to a sibling with a suffix and carry on. Returns the directory to
+   actually use. */
+export function freshProfileDir(profileDir) {
+  if (!profileDir) return profileDir;
+  /* THE SAME /tmp MAPPING mp_rig's launch() has carried since 2026-09-03, here too, because the
+     WebKit mount (lib/wk.mjs) and openChrome() come through THIS function and not that one: a
+     literal "/tmp/wk-edge" is a directory Windows does not have, and the browser dies without a
+     word. os.tmpdir() IS /tmp on a Mac, so nothing changes there. */
+  if (process.platform === "win32" && /^\/tmp\//.test(profileDir)) profileDir = path.join(os.tmpdir(), profileDir.slice(5));
+  /* TWO WAYS A WIPE FAILS, and only one of them throws. rmSync raises EBUSY when a file is held
+     open (the measured case), but a partial delete can also leave the directory standing with
+     content in it. Check the result rather than trusting the call. */
+  try {
+    fs.rmSync(profileDir, { recursive: true, force: true, maxRetries: 3, retryDelay: 120 });
+    if (!fs.existsSync(profileDir)) return profileDir;
+  } catch { /* held open by something still running -- fall through */ }
+  const alt = `${profileDir}-${Date.now().toString(36)}`;
+  try { fs.rmSync(alt, { recursive: true, force: true }); } catch { }
+  return alt;
+}
+export async function openChrome({ W, H, dbgPort, httpPort, serveRoot, profileDir, mobile = false, dsf = 1 }) {
+  const srv = httpPort ? spawn(PYTHON, ["-m", "http.server", String(httpPort)], { cwd: serveRoot, stdio: "ignore" }) : null;
+  profileDir = freshProfileDir(profileDir);
+  const args = [...LINUX_ARGS, "--headless=new", "--mute-audio", `--remote-debugging-port=${dbgPort}`,
+    `--user-data-dir=${profileDir}`, "--no-first-run", "--no-default-browser-check",
+    `--window-size=${W},${H}`, "--autoplay-policy=no-user-gesture-required", "about:blank"];
+  const proc = spawn(CHROME, args, { stdio: "ignore" });
+  await sleep(1200);
+  let tgt; for (let i = 0; i < 30 && !tgt; i++) { try { tgt = await (await fetch(`http://127.0.0.1:${dbgPort}/json/new?about:blank`, { method: "PUT" })).json(); } catch { await sleep(300); } }
+  if (!tgt) { try { proc.kill("SIGKILL"); } catch {} if (srv) try { srv.kill("SIGKILL"); } catch {} throw new Error(`chrome never came up on ${dbgPort}`); }
+  const ws = new WebSocket(tgt.webSocketDebuggerUrl);
+  let id = 0; const pend = new Map(); const consoleErrs = [];
+  await new Promise(r => ws.onopen = r);
+  ws.onmessage = e => { const m = JSON.parse(e.data);
+    if (m.id && pend.has(m.id)) { pend.get(m.id)(m); pend.delete(m.id); }
+    if (m.method === "Runtime.exceptionThrown") consoleErrs.push("EXC " + (m.params.exceptionDetails?.exception?.description || m.params.exceptionDetails?.text || "").slice(0, 2000));
+    if (m.method === "Runtime.consoleAPICalled" && m.params.type === "error") consoleErrs.push("ERR " + m.params.args.map(a => a.value ?? a.description ?? "").join(" ").slice(0, 2000)); };
+  const send = (method, params = {}, timeoutMs = 120000) => {
+    const i = ++id;
+    const p = new Promise(res => { pend.set(i, res); ws.send(JSON.stringify({ id: i, method, params })); });
+    return withTimeout(p, timeoutMs, method).catch(e => { pend.delete(i); throw e; });
+  };
+  const ev = async (expr) => { const r = await send("Runtime.evaluate", { expression: expr, returnByValue: true, awaitPromise: true });
+    if (r.result?.exceptionDetails) return { __err: r.result.exceptionDetails.exception?.description || r.result.exceptionDetails.text }; return r.result?.result?.value; };
+  await send("Page.enable"); await send("Runtime.enable");
+  /* THE PAGE MUST BELIEVE IT IS FOCUSED AND VISIBLE, OR THE GAME CORRECTLY PAUSES ITSELF.
+     A headless tab that loses foreground reports `document.hidden === true`; Pastry Pirates then
+     does exactly the right thing and pauses (its tab-hide gate), `waitWhilePaused()` waits forever,
+     and the harness reports a frozen event stream — an immaculate forgery of a game-stopping stall
+     (see docs/HARD-WON-LESSONS.md, 2026-08-21). `Page.bringToFront` was tried first and does not
+     hold in headless: the gate logged "would not come to front" once a second for six minutes.
+     setFocusEmulationEnabled is the API meant for this — it makes the page permanently believe it
+     is focused and active, so the pause can never be triggered by the harness's own backgrounding. */
+  await send("Emulation.setFocusEmulationEnabled", { enabled: true }).catch(() => {});
+  await send("Emulation.setDeviceMetricsOverride", { width: W, height: H, deviceScaleFactor: dsf, mobile });
+  /* `mobile:true` alone does NOT make `matchMedia('(pointer: coarse)')` true — it governs viewport
+     meta and text autosizing. Touch emulation is what flips the pointer type, and without it a
+     390x844 leg still takes every DESKTOP branch of anything that asks what kind of pointer it has.
+     Measured: the phone leg's screenshot came back reading "Click and hold the sea" where a real
+     phone says "Tap and hold" (D-40). A phone leg that does not emulate a phone tests the wrong game. */
+  if (mobile) await send("Emulation.setTouchEmulationEnabled", { enabled: true, maxTouchPoints: 1 }).catch(() => {});
+  let shotN = 0;
+  const shot = async (file) => { const r = await send("Page.captureScreenshot", { format: "png" }); fs.writeFileSync(file, Buffer.from(r.result.data, "base64")); return file; };
+  const clickXY = async (x, y) => {
+    await send("Input.dispatchMouseEvent", { type: "mouseMoved", x, y });
+    await send("Input.dispatchMouseEvent", { type: "mousePressed", x, y, button: "left", clickCount: 1 });
+    await send("Input.dispatchMouseEvent", { type: "mouseReleased", x, y, button: "left", clickCount: 1 }); };
+  const type = async (text) => send("Input.insertText", { text });
+  const nav = async (url) => send("Page.navigate", { url });
+  /* ⛔ SCOPED BY PROFILE, NEVER BY PORT — Wyatt, 2026-09-10: "will finally { killAll() } kill
+     processes running in other claude sessions? it must not." It could: a port is not an identity
+     (every probe picks one as `base + pid % N`, and the bases overlap), and `http.server <port>`
+     matches ANY python server on that number, including the one he runs on 8000. See killProfile. */
+  const close = () => { try { ws.close(); } catch {} try { proc.kill("SIGKILL"); } catch {}
+    killProfile(profileDir);
+    if (srv) { try { srv.kill("SIGKILL"); } catch {} } };
+  return { W, H, httpPort, send, ev, shot, clickXY, type, nav, close, consoleErrs, sleep };
+}
+
+export { sleep };

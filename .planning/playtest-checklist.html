@@ -1,0 +1,209 @@
+<title>Pastry Pirates — playtest checklist</title>
+<style>
+:root{
+  --ink:#12303a; --muted:#5b7580; --line:#d8e3e7; --card:#fffdf7; --bg:#eef4f6;
+  --pass:#1f9d6b; --fail:#d1495b; --accent:#0f7f96; --shadow:0 1px 2px rgba(16,48,58,.08),0 6px 18px rgba(16,48,58,.06);
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme=light]){
+  --ink:#e8f1f4; --muted:#93aab3; --line:#22414c; --card:#12262e; --bg:#0b1a20;
+  --pass:#3ec38c; --fail:#ff7085; --accent:#4fc3dd; --shadow:0 1px 2px rgba(0,0,0,.4),0 6px 18px rgba(0,0,0,.3);
+}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);
+  font:16px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;
+  padding:0 0 120px}
+header{position:sticky;top:0;z-index:10;background:var(--card);border-bottom:1px solid var(--line);
+  padding:14px 18px;box-shadow:var(--shadow)}
+.wrap{max-width:920px;margin:0 auto}
+h1{margin:0 0 2px;font-size:19px;letter-spacing:.2px}
+.sub{color:var(--muted);font-size:13.5px}
+.sub a{color:var(--accent)}
+.bar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:10px}
+.count{font-variant-numeric:tabular-nums;font-weight:700;font-size:13.5px}
+button{font:inherit;font-size:13.5px;padding:7px 13px;border-radius:9px;border:1px solid var(--line);
+  background:var(--card);color:var(--ink);cursor:pointer}
+button.primary{background:var(--accent);color:#fff;border-color:transparent;font-weight:600}
+button:active{transform:translateY(1px)}
+section{max-width:920px;margin:22px auto 0;padding:0 18px}
+h2{font-size:15px;text-transform:uppercase;letter-spacing:.9px;color:var(--muted);
+  margin:26px 0 10px;font-weight:700}
+.note{background:var(--card);border:1px solid var(--line);border-left:3px solid var(--accent);
+  border-radius:10px;padding:12px 14px;margin:0 0 14px;font-size:14.5px;box-shadow:var(--shadow)}
+.item{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px;
+  margin:0 0 12px;box-shadow:var(--shadow)}
+.item.pass{border-left:4px solid var(--pass)}
+.item.fail{border-left:4px solid var(--fail)}
+.top{display:flex;gap:11px;align-items:flex-start}
+.n{flex:0 0 auto;min-width:26px;height:26px;padding:0 7px;border-radius:7px;background:var(--bg);
+  color:var(--muted);font-size:12.5px;font-weight:700;display:flex;align-items:center;justify-content:center}
+.txt{flex:1 1 auto;min-width:0}
+.look{font-weight:650}
+.right{color:var(--muted);font-size:14.5px;margin-top:3px}
+.why{color:var(--muted);font-size:13px;margin-top:5px;font-style:italic;opacity:.85}
+.acts{display:flex;gap:7px;margin:11px 0 0;flex-wrap:wrap}
+.acts button{min-width:74px}
+.acts button[aria-pressed=true][data-v=pass]{background:var(--pass);color:#fff;border-color:transparent;font-weight:650}
+.acts button[aria-pressed=true][data-v=fail]{background:var(--fail);color:#fff;border-color:transparent;font-weight:650}
+textarea{width:100%;margin-top:9px;min-height:0;height:38px;padding:8px 10px;border-radius:9px;
+  border:1px solid var(--line);background:var(--bg);color:var(--ink);font:inherit;font-size:14.5px;resize:vertical}
+textarea:focus{outline:2px solid var(--accent);outline-offset:1px;height:84px}
+textarea.has{height:84px;background:var(--card)}
+.saved{color:var(--muted);font-size:12.5px}
+dialog{border:none;border-radius:12px;padding:0;max-width:680px;width:92vw;box-shadow:var(--shadow);background:var(--card);color:var(--ink)}
+dialog::backdrop{background:rgba(6,20,26,.55)}
+dialog .in{padding:16px}
+dialog textarea{height:46vh;font:13px/1.45 ui-monospace,SFMono-Regular,Menlo,monospace}
+@media print{header{position:static}.acts,button{display:none}.item{break-inside:avoid}}
+</style>
+
+<header><div class="wrap">
+  <h1>Pastry Pirates — playtest checklist</h1>
+  <div class="sub">Build <strong id="stamp">2026-08-25g</strong> · <a href="https://playpastrypirates.com/4" target="_blank" rel="noopener">playpastrypirates.com/4</a>
+   — if the menu shows an older stamp, stop and tell me: there's no build step, so an old stamp means it isn't deployed.</div>
+  <div class="bar">
+    <span class="count" id="count">0 / 0</span>
+    <button class="primary" id="copy">Copy my notes</button>
+    <button id="reset">Clear all</button>
+    <span class="saved" id="saved">saves as you type</span>
+  </div>
+</div></header>
+
+<section id="list"></section>
+
+<dialog id="out"><div class="in">
+  <p style="margin:0 0 8px"><strong>Paste this back to me.</strong> Only items you marked or commented on are included.</p>
+  <textarea id="outtxt" readonly></textarea>
+  <div style="display:flex;gap:8px;margin-top:10px">
+    <button class="primary" id="docopy">Copy to clipboard</button>
+    <button id="close">Close</button>
+  </div>
+</div></dialog>
+
+<script>
+const DATA = [
+ {h:"Today — 2026-08-25, everything since your last sheet"},
+ {note:"<strong>Six builds landed since 24f: a, b, c, d, e, f.</strong> The pulse bug is dead — you confirmed that one yourself on your iPhone, so #1 is now just the standing check. The rest of this section is new and unlooked-at."},
+ {n:1,look:"SAIL somewhere — then look at the fan that comes up",right:"The circles swell and settle, same as when ye stay put.",why:"THE pulse bug, and sailing was the whole trigger: the buttons were built while the boat glided, and yer phone's WebKit never creates an animation for something it isn't drawing yet. You already confirmed this green — it's here so a regression can't slip past."},
+ {n:2,look:"A narration bubble that appears while the camera is still moving — watch it for its whole life",right:"It picks a side ONCE and stays there. It travels with the camera, but it never jumps from below the boat to above it partway through.",why:"It now latches its side from where the boat ENDS UP, not where it is mid-glide. Red/green: 2 flips before, 0 after — on a reproduction ye described yourself (sail north, then a far-off boat pushes yer own to the top edge)."},
+ {n:3,look:"Anything sitting near a swelling circle — the peek hint, a narration bubble beside the fan",right:"Nothing shuffles or re-jumps as the circle breathes.",why:"Two placements were measuring the button LIVE while it pulsed — it swings 66px → 75.9px, so they re-decided every tick. They now all read the same reserved peak box. Ye guessed this cause yerself."},
+ {n:4,look:"ANY question with options — look under the question pill for a grey helper line",right:"There is none. Every explanation now sits on the circle it belongs to, with a little tail pointing at it.",why:"Measured before deleting: the shared line sat 6px under the question and 182px away from the nearest button it was actually about. Every sentence in it was already on the button."},
+ {n:5,look:"The ONE exception — a dock coin flip",right:"Its line is still there: “⚪ HEADS strikes buried treasure (+3🌕) · ⚫ TAILS is a turn's work on the docks (+1🌕). Either way, ye may then buy a crate.”",why:"Ye kept it on purpose — “it's useful.” It's the only helper line left in the game. If ye see any OTHER grey line under a question, that's a miss."},
+ {n:6,look:"The Bake-Off recipe card",right:"“Add them in this exact order or it's a ruined mess.” is inside the card itself now, word for word.",why:"It was the one helper sentence that wasn't already on a button, so it moved rather than died."},
+ {n:7,look:"Sail prompts, over and over — watch for a red shout",right:"Never. No red “SAIL BUG” text, ever, in any game.",why:"It was never a player message — it's my alarm. The check behind it still runs and still shouts in the console; it just stopped shouting at YOU."},
+ {n:8,look:"Any number in any sentence the game says to ye",right:"A numeral — 2, 3, 16 — never the word.",why:"Yer standing rule, swept across the copy."},
+
+ {h:"Shipped 2026-08-24f — from your evening notes"},
+ {note:"Unchanged since that sheet. Skip any ye already checked."},
+ {n:9,look:"Crew game: as the HOST, close the tab mid-voyage, take your time, then reopen the site",right:"The GUEST reads “⚓ Yer matey has left the game… let's give 'em 30 seconds to return before callin' off yer voyage.” — and when ye get back inside the window, the voyage simply continues. Nobody is kicked.",why:"Yer design, built verbatim. Measured: the message reaches the guest within 2 seconds; a host back at 8s resumed with the guest never seeing the death card."},
+ {n:10,look:"Crew game: the host leaves for GOOD",right:"The guest keeps the message for the full 30 seconds, and only then gets the “left the voyage” card.",why:"Measured: the card landed at 32 seconds — yer 30 plus one poll beat."},
+ {n:11,look:"The recipe card: tap one to select it, hold the sea to peek the board, release — then tap the card ONCE",right:"That single tap confirms it.",why:"The internal selection was being silently reset by any outside tap while the visible one stayed — pixels and state disagreed."},
+ {n:12,look:"Type yer name and hit Enter — name popup, join screen, or a pass-and-play name row",right:"Enter presses that screen's continue button. No mouse trip.",why:"Swept across every name field. The chat box keeps its own Enter."},
+ {n:13,look:"A sail prompt — the whole stay-put flow",right:"NO Stay put button at first. A yellow flashing square sits UNDER yer own boat. Tap the boat (or the square) and the Stay put circle appears. “Aye, stay put” and “Keep sailin'” are gone.",why:"Behind the boat came free — the sail-square layer already draws under the ships."},
+ {n:14,look:"Everything on a STAGE — flip coin, ceremony buttons, battle buttons, Start in every mode",right:"All breathe the same orange glow. One ring, one definition.",why:"Start buttons pulse now; they never had any rule at all."},
+ {n:15,look:"A greyed circle — an Attack ye can't afford",right:"Never pulses. A button that isn't asking for a tap stays still."},
+
+ {h:"Still unchecked — carried over"},
+ {note:"Nothing here has changed; these have simply never been looked at."},
+ {n:16,look:"IF any reconnect ever sits there — about 15 seconds",right:"“⚓ Still reconnectin'…” with a Back to port button. Ye can never be stranded."},
+ {n:17,look:"Crew game: a GUEST reaches the ovens (host makes the room from /4/?ovens=1)",right:"They bake in their OWN browser — recipe, five face-down crates, shuffle, tapping, reveal."},
+ {n:18,look:"Crew game: while ANY captain bakes, the other screens",right:"Same face-down bench, same shuffle, same badges, same verdict, everywhere."},
+ {n:19,look:"Crew game: “Watch again 🌕1” as a guest",right:"Purse drops on yer screen, shuffle replays, host ends on the same number."},
+ {n:20,look:"Crew game: close a tab mid-bake",right:"That captain forfeits in ~2½ seconds; the voyage carries on."},
+ {n:21,look:"Solo with ?ovens=1: the moment yer bake is scored",right:"A few seconds to read it, then back to the board."},
+ {n:22,look:"Solo: the rest of that day, and attempt 2",right:"Nothing hides behind a spent card; a fresh Bake-Off card arrives for attempt 2."},
+ {n:23,look:"A storm that sweeps someone into the trade winds",right:"ONE report, in the post-storm summary. Never a separate line during the storm."},
+ {n:24,look:"The black market's first dry shelf — and every centre-stage card",right:"Clear of the header row, vertically comfortable."},
+ {n:25,look:"Pass, in every direction the fan points",right:"Side-to-side fan: Pass rightmost. Up-and-down: lowest. 45° cutoff."},
+ {n:26,look:"The greyed-Buy explainer — flip TAILS at a dock ye can't afford",right:"“It costs 3🌕 and ye've 1🌕 — 2🌕 short.” Sits with its own circle, not across another box."},
+ {n:27,look:"Every coin flip — yers, a bot's, dock and battle",right:"All one second; bots' dock coins spin and land like yers."},
+ {n:28,look:"A narration bubble while sail squares are up",right:"Lands on open water — never on a square or the question."},
+ {n:29,look:"⚠️ Crew: does the GUEST draw the wind pill, clock chip and day counter?",right:"Still UNPROVEN. Missing any of the three is a real finding.",why:"PAR-02."},
+ {n:30,look:"Crew: as a GUEST, counter-offer with coins",right:"A real slider, same as the host. No ± circles."},
+ {n:31,look:"Counter-offer, then refresh mid-voyage",right:"Replays to the same place — yer number remembered."},
+ {n:32,look:"❓ PASS-AND-PLAY: a second captain's trade-answer prompt with NO hand-off card",right:"YER TASTE CALL — recorded as correct, one line either way."},
+
+ {h:"Whole voyages — the real bar"},
+ {note:"A stretch of play is not QA. These three are the gate, and they found a nine-day-old softlock the first night they were run."},
+ {n:33,look:"Solo, all the way to the end card"},
+ {n:34,look:"Pass-and-play, all the way to the end card"},
+ {n:35,look:"A crew game — two devices — to the end card, BOTH screens",right:"Same game on both: same wording, same moment, cameras agreeing."},
+
+ {h:"Already known — please do NOT spend time reporting these"},
+ {note:"<strong>1.</strong> Phone, trade with the coin slider: offer text hidden behind the slider box, “Toasty Wheat” clipped.<br><strong>2.</strong> Desktop recipe picker: “Bake this!” covering the plate icon on the selected card.<br><strong>3.</strong> Occasional stacked circles in a crowded fan — known, intermittent, mine to catch.<br><strong>4.</strong> Extreme window shapes letterbox the board deliberately.<br><strong>5. Multi-captain trades still ask each holder one at a time</strong> — two holders costs about 18 seconds of everyone else reading “…is deciding”. Known, open, and it is what I am building right now."}
+];
+
+const KEY="pp4-playtest-2026-08-25f";
+/* GUARDED, for the same reason as its two siblings: this sheet is opened as a hosted page on his
+   PHONE, and in a private tab the accessor itself THROWS rather than returning null -- an
+   unguarded read here would take the whole page down and leave him a blank screen instead of a
+   checklist. A storage failure costs him his saved marks and nothing else. */
+const store = {
+  read(){ try{ return JSON.parse(localStorage.getItem(KEY)||"{}"); }catch(e){ return {}; } },
+  write(v){ try{ localStorage.setItem(KEY,JSON.stringify(v)); return true; }catch(e){ return false; } },
+  drop(){ try{ localStorage.removeItem(KEY); }catch(e){} }
+};
+let state=store.read();
+const save=()=>{const ok=store.write(state);const s=document.getElementById("saved");s.textContent=ok?"saved ✓":"can’t save here — copy yer notes before ye leave";clearTimeout(save._t);save._t=setTimeout(()=>s.textContent="saves as you type",1200);tally();};
+const list=document.getElementById("list");
+
+for(const d of DATA){
+  if(d.h){const h=document.createElement("h2");h.textContent=d.h;list.appendChild(h);continue;}
+  if(d.note){const p=document.createElement("div");p.className="note";p.innerHTML=d.note;list.appendChild(p);continue;}
+  const it=document.createElement("div");it.className="item";it.id="i"+d.n;
+  it.innerHTML=`<div class="top"><div class="n">${d.n}</div><div class="txt">
+      <div class="look"></div>${d.right?'<div class="right"></div>':""}${d.why?'<div class="why"></div>':""}
+    </div></div>
+    <div class="acts">
+      <button data-v="pass" aria-pressed="false">Passed</button>
+      <button data-v="fail" aria-pressed="false">Problem</button>
+    </div>
+    <textarea placeholder="Notes on #${d.n}…"></textarea>`;
+  it.querySelector(".look").textContent=d.look;
+  if(d.right) it.querySelector(".right").textContent=d.right;
+  if(d.why) it.querySelector(".why").textContent=d.why;
+  const st=state[d.n]||{};
+  const ta=it.querySelector("textarea");
+  ta.value=st.c||""; if(ta.value) ta.classList.add("has");
+  if(st.v) it.classList.add(st.v);
+  it.querySelectorAll(".acts button").forEach(b=>{
+    if(st.v===b.dataset.v) b.setAttribute("aria-pressed","true");
+    b.onclick=()=>{
+      const cur=state[d.n]||{}; const v=cur.v===b.dataset.v?null:b.dataset.v;
+      state[d.n]={...cur,v};
+      it.classList.remove("pass","fail"); if(v) it.classList.add(v);
+      it.querySelectorAll(".acts button").forEach(o=>o.setAttribute("aria-pressed", String(o.dataset.v===v)));
+      save();
+    };
+  });
+  ta.oninput=()=>{state[d.n]={...(state[d.n]||{}),c:ta.value};ta.classList.toggle("has",!!ta.value);save();};
+  it._d=d; list.appendChild(it);
+}
+function tally(){
+  const items=DATA.filter(d=>d.n);
+  const done=items.filter(d=>(state[d.n]||{}).v).length;
+  const bad=items.filter(d=>(state[d.n]||{}).v==="fail").length;
+  document.getElementById("count").textContent=`${done} / ${items.length} checked${bad?` · ${bad} problem${bad>1?"s":""}`:""}`;
+}
+tally();
+document.getElementById("copy").onclick=()=>{
+  const L=[`Pastry Pirates playtest — build ${document.getElementById("stamp").textContent}`,""];
+  for(const d of DATA){ if(!d.n) continue; const s=state[d.n]||{}; if(!s.v && !(s.c||"").trim()) continue;
+    L.push(`#${d.n} [${s.v==="pass"?"PASSED":s.v==="fail"?"PROBLEM":"—"}] ${d.look}`);
+    if((s.c||"").trim()) L.push(`    ${s.c.trim().replace(/\n/g,"\n    ")}`);
+  }
+  const items=DATA.filter(d=>d.n), skipped=items.filter(d=>!(state[d.n]||{}).v).map(d=>d.n);
+  if(skipped.length) L.push("", `Not checked: ${skipped.join(", ")}`);
+  if(L.length<=2) L.push("(nothing marked yet)");
+  document.getElementById("outtxt").value=L.join("\n");
+  document.getElementById("out").showModal();
+};
+document.getElementById("docopy").onclick=async()=>{
+  const t=document.getElementById("outtxt"); t.select();
+  try{ await navigator.clipboard.writeText(t.value); document.getElementById("docopy").textContent="Copied ✓"; }
+  catch(e){ document.execCommand("copy"); document.getElementById("docopy").textContent="Copied ✓"; }
+  setTimeout(()=>document.getElementById("docopy").textContent="Copy to clipboard",1500);
+};
+document.getElementById("close").onclick=()=>document.getElementById("out").close();
+document.getElementById("reset").onclick=()=>{ if(!confirm("Clear every mark and note?"))return;
+  state={}; store.drop(); location.reload(); };
+</script>

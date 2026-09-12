@@ -5,23 +5,23 @@
 <link rel="icon" type="image/png" href="favicon.png">
 <link rel="shortcut icon" href="favicon.ico">
 <link rel="apple-touch-icon" href="favicon.png">
-<title>About — Pastry Pirates on the Sugar Seas</title>
-<meta name="description" content="What Pastry Pirates is, how a round plays, who made it, and a look at a game in progress — before you set sail.">
+<title>About — Pastry Pirates</title>
+<meta name="description" content="What Pastry Pirates is, who made it, and a look at a game in progress — before you set sail.">
 <link rel="canonical" href="https://playpastrypirates.com/about.html">
 <!-- The large-image-preview permission below is a per-URL directive — this page carries the
      in-page screenshot META-01 exists to let Google promote, so it needs the same permission
      index.html already has. -->
 <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1">
 <meta property="og:type" content="website">
-<meta property="og:title" content="About — Pastry Pirates on the Sugar Seas">
-<meta property="og:description" content="What Pastry Pirates is, how a round plays, who made it, and a look at a game in progress — before you set sail.">
+<meta property="og:title" content="About — Pastry Pirates">
+<meta property="og:description" content="What Pastry Pirates is, who made it, and a look at a game in progress — before you set sail.">
 <meta property="og:url" content="https://playpastrypirates.com/about.html">
 <meta property="og:image" content="https://playpastrypirates.com/og-image.jpg">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="663">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="About — Pastry Pirates on the Sugar Seas">
-<meta name="twitter:description" content="What Pastry Pirates is, how a round plays, who made it, and a look at a game in progress — before you set sail.">
+<meta name="twitter:title" content="About — Pastry Pirates">
+<meta name="twitter:description" content="What Pastry Pirates is, who made it, and a look at a game in progress — before you set sail.">
 <meta name="twitter:image" content="https://playpastrypirates.com/og-image.jpg">
 <!-- No Firebase SDK — no game logic runs on this page (D-07). -->
 <!-- No JSON-LD VideoGame block — the game already has one canonical URL, the homepage. -->
@@ -74,6 +74,10 @@
   .abtRules p { margin: 8px 0; }
 
   /* -------- rule rows: text left, game art right at a consistent half-width -------- */
+  /* The privacy card's list. Same measure and rhythm as .abtRules p, so the card reads as one
+     piece rather than a bolted-on notice — this is Wyatt speaking to a parent, not a legal box. */
+  .abtPrivacy { margin: 8px 0 12px; padding-left: 20px; }
+  .abtPrivacy li { margin: 8px 0; }
   .abtRuleRow { display: flex; align-items: flex-start; gap: 24px; margin: 12px 0 20px; }
   .abtRuleRow p { margin: 0; flex: 1 1 50%; min-width: 0; }
   /* DIRECT child only — the inline .narrIcon art lives inside the <p>, and an unscoped
@@ -91,6 +95,12 @@
   .capCrustbeard{ --cap: #1d96a6; --capBg: #e8f6f8; }
   .capDough     { --cap: #27c78d; --capBg: #e7f9f1; }
   .capFlaky     { --cap: #f5a623; --capBg: #fef4e4; }
+
+  /* The rules-page pointer that replaced the deleted "How it plays" section. Same prose size as
+     .abtCredits so the three cards down the page read as one family. */
+  .abtRulesLink { font-size: 13.5px; line-height: 1.55; margin: 0 0 10px; }
+  .abtRulesLink:last-child { margin-bottom: 0; }
+  .abtRulesLink a { color: var(--teal); font-weight: 700; }
 
   .abtCredits { list-style: none; margin: 0; padding: 0; font-size: 13.5px; line-height: 1.5; }
   .abtCredits li { margin: 0 0 8px; }
@@ -139,6 +149,13 @@
     .abtTestimonials { grid-template-columns: 1fr; }
   }
 </style>
+<!-- Google Analytics, COOKIELESS — his two rulings, 2026-09-03: "The public pages only — the
+     game, About and Rules" and "Cookieless, no banner". ONE module, loaded in one line on each of
+     the three pages, because a snippet pasted three times is three things kept in step by
+     discipline (rule 23). It denies all four storage types BEFORE the tag is fetched — that order
+     is the whole safety property — and it refuses to run anywhere but the live domain, so a sea
+     trial and staging can never inflate his own figures. Gate: analytics_consent_check.mjs. -->
+<script type="module" src="src/analytics.js"></script>
 </head>
 <body>
 <div class="abtPage">
@@ -152,7 +169,7 @@
       <h1>About Pastry Pirates</h1>
       <p>Pastry Pirates is a free browser pirate board game — sail
       <img class="narrIcon" src="assets/icons/sailboat.png" alt=""> a grid of islands, gather baking
-      ingredients <img class="narrIcon" src="assets/ingredients/cocoa.png" alt="cocoa"><img class="narrIcon" src="assets/ingredients/sugar.png" alt="sugar"><img class="narrIcon" src="assets/ingredients/vanilla.png" alt="vanilla">,
+      ingredients <img class="narrIcon" src="assets/ingredients/cocoa.webp" alt="cocoa"><img class="narrIcon" src="assets/ingredients/sugar.png" alt="sugar"><img class="narrIcon" src="assets/ingredients/vanilla.webp" alt="vanilla">,
       trade <img class="narrIcon" src="assets/icons/handshake.png" alt=""> and battle
       <img class="narrIcon" src="assets/icons/dagger.png" alt=""> rival captains, and race home to become
       the Best Baker on the Sugar Seas <img class="narrIcon" src="assets/icons/crown.png" alt="">.
@@ -164,42 +181,43 @@
     </div>
   </div>
 
+  <!-- "How it plays" LIVED HERE and was DELETED 2026-09-03 on Wyatt's ruling (Glass question
+       "rules page 2 of 4", 2026-09-02T22:50:32Z, confirmed by him in the question UI two minutes
+       later — "That's the whole instruction"):
+           "Agree with your rec -- delete "how it plays"
+       About keeps "What the captains are saying" and "Credits". The rules get ONE findable page,
+       /rules.html, built from the current game — his ruling 1 of 4, the same minute.
+
+       WHY IT HAD TO GO RATHER THAN BE CORRECTED. It was hand-typed prose about a moving game, and
+       it had drifted four ways: it offered a FISH action (deleted from the game entirely,
+       src/ui/flow.js), said a dock flip won you a CRATE (it pays coins; buying a crate is a
+       separate step at a price that rises as the island empties), said FIRST BAKER HOME WINS with
+       the bake-off as a tiebreak (BAKEOFF_ENABLED is true — baking is how every captain wins, and
+       two home on the same day bake together), and told a stranger the wind set a SAILING BUDGET,
+       "cheap with it, dear against it" (index.html: "Sailing is free" — the wind caps the range,
+       it never charges). The in-game How-to-play modal said none of those things, because its
+       numbers derive from rulesFacts(cfg) and its prose is fenced by a gate. This section had
+       neither. Rule 23: two things that must agree are one thing, or they will drift.
+
+       scripts/qa/rules_page_check.mjs §5 now fails the build if a second rules surface reappears
+       here. Three images are left orphaned by this deletion — assets/about-recipes.jpg,
+       about-flippenator.jpg, about-home-island.jpg — and are deliberately NOT removed: nobody
+       shrinks or deletes art in this repo without measuring first, and scripts/qa/about_art_resize.mjs
+       still points at them. Filed, not swept up. -->
+
+  <!-- The second half of the same ruling (SPEC-RULES-PAGE-SPLIT.md, Q2): "Delete 'How it plays' and
+       replace it with two or three sentences plus a link to the rules page." T-114 did the
+       deleting; this is the replacement, and until it landed a stranger on this page had no route
+       to the rules at all. rules_page_check.mjs §6 fails the build if this link goes away.
+
+       PLAIN VOICE, NOT PIRATE SPEAK — rule 12. This is Wyatt speaking to a real person about his
+       game, and the page it links to is where the pirate starts talking. -->
   <div class="abtCard">
-    <h2>How it plays</h2>
-    <div class="abtRules">
-      <h3>The goal</h3>
-      <div class="abtRuleRow">
-        <p>Every captain starts with a secret recipe of five ingredients —
-        <img class="narrIcon" src="assets/ingredients/wheat.png" alt="wheat"><img class="narrIcon" src="assets/ingredients/dairy.png" alt="dairy"><img class="narrIcon" src="assets/ingredients/sugar.png" alt="sugar"><img class="narrIcon" src="assets/ingredients/eggs.png" alt="eggs"><img class="narrIcon" src="assets/ingredients/cocoa.png" alt="cocoa"><img class="narrIcon" src="assets/ingredients/spice.png" alt="spice"><img class="narrIcon" src="assets/ingredients/vanilla.png" alt="vanilla">
-        — drawn fresh each voyage. Collect them all, sail home to the Isle of Tortuga
-        <img class="narrIcon" src="assets/icons/anchor.png" alt="">, and declare victory: first baker
-        home wins <img class="narrIcon" src="assets/icons/crown.png" alt="">.</p>
-        <img src="assets/about-recipes.jpg" width="1328" height="1000" alt="Two example recipe cards, a Mexican Chocolate Torte and a Cinnamon Sponge Cake, each listing its five required ingredients.">
-      </div>
-      <h3>Your turn</h3>
-      <div class="abtRuleRow">
-        <p>Each round the wind <img class="narrIcon" src="assets/icons/wind-gust.png" alt=""> sets your
-        sailing budget for the turn — cheap with it, dear against it. Once you've sailed, you take one
-        action: <b>dock</b> <img class="narrIcon" src="assets/icons/anchor.png" alt=""> at an island and
-        flip a coin <img class="narrIcon" src="assets/icons/flip-heads.png" alt=""> for a crate,
-        <b>attack</b> <img class="narrIcon" src="assets/icons/dagger.png" alt=""> a nearby ship for a shot
-        at their cargo, <b>trade</b> <img class="narrIcon" src="assets/icons/handshake.png" alt=""> with any
-        other captain, or <b>fish</b> <img class="narrIcon" src="assets/icons/fish.png" alt=""> for a quick
-        coin <img class="narrIcon" src="assets/icons/coin-emoji.png" alt="">. Storms
-        <img class="narrIcon" src="assets/icons/storm-cloud.png" alt=""> roll in occasionally and shove
-        every ship a few squares, so keep an eye on the sky.</p>
-        <img src="assets/about-flippenator.jpg" width="554" height="226" alt="The Flippenator — the coin captains flip for every action, with the turn clock counting down beside it.">
-      </div>
-      <h3>Coming home</h3>
-      <div class="abtRuleRow">
-        <p>Every island you raid <img class="narrIcon" src="assets/icons/island-silhouette.png" alt=""> fills
-        another slot in your hold. Once you've gathered every ingredient on your map, race back to the
-        Isle of Tortuga <img class="narrIcon" src="assets/icons/anchor.png" alt="">. If more than one
-        captain makes it home the same round, it comes down to a head-to-head bake-off
-        <img class="narrIcon" src="assets/icons/cupcake.png" alt="">.</p>
-        <img src="assets/about-home-island.jpg" width="540" height="436" alt="The Isle of Tortuga, the home island every captain races back to, with all four ships tied up at its docks.">
-      </div>
-    </div>
+    <h2>The rules</h2>
+    <p class="abtRulesLink">The full rules live on their own page — the wind and the ghost needle,
+    how crate prices climb as an island empties, how a broadside resolves, the storms, and the
+    bake-off that ends the voyage. It is the same text the game shows you at the table.</p>
+    <p class="abtRulesLink"><a href="rules.html">Read how to play Pastry Pirates →</a></p>
   </div>
 
   <div class="abtCard">
@@ -210,6 +228,27 @@
       <li class="capFlaky">"YARRRRRGH I always be flippin' tails."<span>— Flaky Jack</span></li>
       <li class="capDough">"Have ye met me pet candycrab?"<span>— Dough Hook</span></li>
     </ul>
+  </div>
+
+  <!-- ⚑ HIS RULING, 2026-09-03, from the question UI: "Short line, and the detail on About." The
+       front card keeps one small true sentence and links here; the real explanation lives on this
+       page, "which is already in your own plain voice rather than pirate speak".
+       ⛔ SO THIS SECTION IS NOT IN PIRATE SPEAK, AND THAT IS THE RULE, NOT AN OVERSIGHT. About sits
+       OUTSIDE the game world — it is Wyatt speaking to a real person, and a parent reading about
+       what happens to their child's data is the last place for a costume. A retroactive audit once
+       "fixed" the credits into pirate voice and the shipped text had been right all along.
+
+       ⚑ SUPERSEDED IN PART, 2026-09-04T00:35:50Z (qid:t206-privacy-line): "move all of it off of
+       the main screen into a privacy policy that is in its own html... with small links to Privacy
+       Policy and About at the bottom of the index.html screen." The real explanation now lives at
+       /privacy.html (the "its own html" his new ruling asks for) so there is one canonical copy,
+       not two drifting in step by discipline (rule 23). This card keeps a short pointer rather than
+       the full text it held before — the plain-English, not-pirate rule above still applies. -->
+  <div class="abtCard abtRules" id="privacy">
+    <h2>What we record</h2>
+    <p>Anonymised play data, and — through cookieless Google Analytics — basic visit numbers. No
+      cookies, no ads, nothing sold to anyone. The full explanation is on its own page:
+      <a href="privacy.html">Privacy Policy</a>.</p>
   </div>
 
   <div class="abtCard">

@@ -1,0 +1,68 @@
+=== crew bake probe (drop-mid-bake) — http://127.0.0.1:8841/4/?ovens=1 ===
+room DJYV
+voyage started
+  open host: Arrgh!
+  open guest: Arrgh!
+  recipes drafted on every seat
+
+--- 00-voyage-open (after the draft)
+    HOST  bench=none  bowls=0    whose=n/a  hint=""
+          apMsg="Ahoy! Choose a recipe, gather each ingredient, then sail home first to"  btns=["Arrgh!"]
+    GUEST bench=none  bowls=0    whose=n/a  hint=""
+          apMsg="Ahoy! Choose a recipe, gather each ingredient, then sail home first to"  btns=["Arrgh!"]
+
+=== waiting for the first bake ===
+      host tick 1: RECIPE
+      guest tick 1: RECIPE
+      host tick 2: RECIPE
+      guest tick 2: RECIPE
+      host tick 10: Start
+      guest tick 10: Start
+first bake surface: host=false guest=true after 38 ticks
+
+--- 01-first-bake (the first bench of the voyage)
+    HOST  bench=none  bowls=0    whose=n/a  hint=""
+          apMsg=""  btns=[]
+    GUEST bench=none  bowls=0    whose=seat 1 (?)  hint=""
+          apMsg="The ovens be roarin'! Yer ingredients be waitin'. Ye must bake yer rec"  btns=["Get bakin'!"]
+
+=== drop: closing the guest's tab mid-bake ===
+
+--- d0-before-drop (the guest's bench, answerable — and no countdown on either screen)
+    HOST  bench=VISIBLE 364x281  bowls=5  WATCHING  whose=seat 1 (?)  hint="test2 is at the ovens — watch the crates."
+          apMsg=""  btns=[]
+    GUEST bench=VISIBLE 364x323  bowls=5  BAKING  whose=seat 1 (?)  hint="Tap the crates in recipe order. Tap again to undo."
+          apMsg=""  btns=["Watch again 1","Bake it!"]
+  closing the guest tab (dlog=2, events=14)
+  +2.5s dlog=3 events=15 bko=true last=bake
+  +5.0s dlog=3 events=15 bko=true last=bake
+  +7.5s dlog=3 events=15 bko=false last=bake
+  +10.0s dlog=3 events=15 bko=false last=bake
+  +12.5s dlog=3 events=15 bko=false last=bake
+  +15.0s dlog=3 events=15 bko=false last=bake
+  +17.5s dlog=3 events=15 bko=false last=bake
+  +20.0s dlog=3 events=15 bko=false last=bake
+  +22.5s dlog=3 events=15 bko=false last=bake
+  +25.0s dlog=3 events=15 bko=false last=bake
+  +27.5s dlog=3 events=15 bko=false last=bake
+  +30.0s dlog=3 events=15 bko=false last=bake
+  +32.5s dlog=3 events=15 bko=false last=bake
+  +35.0s dlog=3 events=15 bko=false last=bake
+  +37.5s dlog=3 events=15 bko=false last=bake
+  +40.0s dlog=3 events=15 bko=false last=bake
+  +42.5s dlog=3 events=15 bko=false last=bake
+  +45.0s dlog=3 events=15 bko=false last=bake
+  +47.5s dlog=3 events=15 bko=false last=bake
+  +50.0s dlog=3 events=15 bko=false last=bake
+  +52.5s dlog=3 events=15 bko=false last=bake
+  +55.0s dlog=3 events=15 bko=false last=bake
+  +57.5s dlog=3 events=15 bko=false last=bake
+  +60.0s dlog=3 events=15 bko=false last=bake
+
+--- d1-after-drop (the host's table, after the guest vanished)
+    HOST  bench=none  bowls=0    whose=seat 0 (?)  hint=""
+          apMsg="The ovens be roarin'! Yer ingredients be waitin'. Ye must bake yer rec"  btns=["Get bakin'!"]
+    GUEST (tab closed)
+DROP VERDICT: {"tableCarriedOn":true,"secondsToCarryOn":2.5,"dlogEntriesAdded":1,"lastDlogEntry":{"g":[0,3,1,2,4],"w":0}}
+
+result.json written to /Users/wyattroy/Documents/Projects/pastrypirates/.planning/phases/04-the-networked-bakeoff/shots/t4

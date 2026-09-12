@@ -1,0 +1,48 @@
+{
+  "tag": "flips-before",
+  "W": 1400,
+  "H": 900,
+  "mobile": false,
+  "scenes": {
+    "flips": {
+      "dock": [
+        334.6,
+        333.9,
+        337.4
+      ],
+      "battle": [
+        647.5,
+        648.7
+      ],
+      "dockShot": "/tmp/f-flips-before2/flips-before-flip-dock-spinning.png",
+      "dockTap": [
+        348.3,
+        350.1,
+        352.1
+      ],
+      "battleRedProof": {
+        "canAttackBefore": false,
+        "canAttackAfter": true
+      },
+      "battleShot": "/tmp/f-flips-before2/flips-before-flip-battle.png",
+      "battleTap": [
+        661.8,
+        3560.6
+      ],
+      "frames": 1343
+    }
+  },
+  "consoleErrors": [],
+  "notes": [
+    "\n=== flips-before  — booting solo ===",
+    "booted.",
+    "dock flip 1: 334.6 ms paint->result, 348.3 ms TAP->result",
+    "dock flip 2: 333.9 ms paint->result, 350.1 ms TAP->result",
+    "dock flip 3: 337.4 ms paint->result, 352.1 ms TAP->result",
+    "battle pose RED-PROOF: canAttack before=false after=true",
+    "battle flips: [647.5, 648.7] ms paint->result",
+    "frames driven across the flip window: 1343 — a flat count would mean nothing was painting and every number above would be worthless",
+    "ALL FLIPS: min=333.9 max=648.7 spread=314.8ms",
+    "\nwrote /tmp/f-flips-before2/result-flips-before.json"
+  ]
+}

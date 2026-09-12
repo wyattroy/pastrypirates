@@ -67,8 +67,16 @@ node scripts/bot_ladder.js 400      # THE GATE. new brain vs incumbent, same see
 node scripts/bot_matrix.js 7919     # every candidate turn for one decision, with its arithmetic
 npm test                            # 21 gates
 node scripts/bakeoff_baseline.js    # 200-game determinism fingerprint
-node v2bakeoff/scripts/no_undef_check.js
+node scripts/no_undef_check.js
 ```
+
+> **`v2bakeoff/` NO LONGER EXISTS.** The v2.0 cutover (2026-08-26) deleted `v2/`, `v2bakeoff/` and
+> `3/` — 96 files, recoverable from git history — and promoted `4/` to the repo root. So this
+> brief's file table points at a tree that is gone: read `v2bakeoff/src/ui/flow.js` as
+> **`src/ui/flow.js`** and `v2bakeoff/scripts/…` as **`scripts/…`**. The two are NOT byte-identical
+> — the bake-off game moved on after this brief was written — so treat the paths as a starting
+> point and verify the function is still shaped the way the table claims before relying on it.
+> The gate count in the block above is also stale: `npm test` is **19 gates** as of the cutover.
 
 ---
 

@@ -1,0 +1,223 @@
+{
+  "phone-390x664": {
+    "ok": true,
+    "viewport": {
+      "w": 390,
+      "h": 664,
+      "dpr": 2
+    },
+    "wrap": {
+      "top": 44,
+      "bottom": 652,
+      "left": 26,
+      "right": 365,
+      "h": 608,
+      "w": 339
+    },
+    "scroller": {
+      "top": 93,
+      "bottom": 563,
+      "left": 41,
+      "right": 350,
+      "h": 470,
+      "w": 309
+    },
+    "button": {
+      "text": "🔁 Play again!",
+      "rect": {
+        "top": 575,
+        "bottom": 637,
+        "left": 41,
+        "right": 350,
+        "h": 62,
+        "w": 309
+      }
+    },
+    "gapPx": 12,
+    "scrollTop": 0,
+    "scrollHeight": 934,
+    "clientHeight": 470,
+    "awards": [
+      {
+        "text": "Good Mate Pirated for the love of the game. Davy Probe Numbe",
+        "rect": {
+          "top": 398,
+          "bottom": 605,
+          "left": 41,
+          "right": 191,
+          "h": 207,
+          "w": 150
+        },
+        "cutByScrollerPx": 42,
+        "overlapWithButtonPx": 0,
+        "layoutOverlapWithButtonPx": 30
+      },
+      {
+        "text": "Good Mate Pirated for the love of the game. Crustbeard Numbe",
+        "rect": {
+          "top": 398,
+          "bottom": 605,
+          "left": 200,
+          "right": 350,
+          "h": 207,
+          "w": 150
+        },
+        "cutByScrollerPx": 42,
+        "overlapWithButtonPx": 0,
+        "layoutOverlapWithButtonPx": 30
+      },
+      {
+        "text": "Good Mate Pirated for the love of the game. Dough Hook Numbe",
+        "rect": {
+          "top": 614,
+          "bottom": 821,
+          "left": 41,
+          "right": 191,
+          "h": 207,
+          "w": 150
+        },
+        "cutByScrollerPx": 258,
+        "overlapWithButtonPx": 0,
+        "layoutOverlapWithButtonPx": 23
+      },
+      {
+        "text": "Good Mate Pirated for the love of the game. Flaky Jack Numbe",
+        "rect": {
+          "top": 614,
+          "bottom": 821,
+          "left": 200,
+          "right": 350,
+          "h": 207,
+          "w": 150
+        },
+        "cutByScrollerPx": 258,
+        "overlapWithButtonPx": 0,
+        "layoutOverlapWithButtonPx": 23
+      }
+    ],
+    "slicedByScrollerEdge": [
+      {
+        "tag": "div",
+        "text": "Number of ingredients plundered — 5",
+        "top": 560,
+        "bottom": 594,
+        "h": 34,
+        "visiblePx": 3
+      },
+      {
+        "tag": "div",
+        "text": "Number of ingredients plundered — 5",
+        "top": 560,
+        "bottom": 594,
+        "h": 34,
+        "visiblePx": 3
+      }
+    ],
+    "statsTableVisible": true,
+    "statsTableCutPx": 454,
+    "settled": true,
+    "shot": "C:\\Users\\wyatt\\Projects\\pastrypirates\\.planning\\posed\\t143-eov-phone-390x664.png"
+  },
+  "tablet-820x1180": {
+    "ok": true,
+    "viewport": {
+      "w": 820,
+      "h": 1180,
+      "dpr": 2
+    },
+    "wrap": {
+      "top": 44,
+      "bottom": 1168,
+      "left": 14,
+      "right": 806,
+      "h": 1124,
+      "w": 792
+    },
+    "scroller": {
+      "top": 93,
+      "bottom": 1079,
+      "left": 29,
+      "right": 791,
+      "h": 986,
+      "w": 762
+    },
+    "button": {
+      "text": "🔁 Play again!",
+      "rect": {
+        "top": 1091,
+        "bottom": 1153,
+        "left": 29,
+        "right": 791,
+        "h": 62,
+        "w": 762
+      }
+    },
+    "gapPx": 12,
+    "scrollTop": 0,
+    "scrollHeight": 986,
+    "clientHeight": 986,
+    "awards": [
+      {
+        "text": "Good Mate Pirated for the love of the game. Davy Probe Numbe",
+        "rect": {
+          "top": 355,
+          "bottom": 548,
+          "left": 29,
+          "right": 213,
+          "h": 194,
+          "w": 184
+        },
+        "cutByScrollerPx": 0,
+        "overlapWithButtonPx": 0,
+        "layoutOverlapWithButtonPx": 0
+      },
+      {
+        "text": "Good Mate Pirated for the love of the game. Crustbeard Numbe",
+        "rect": {
+          "top": 355,
+          "bottom": 548,
+          "left": 222,
+          "right": 406,
+          "h": 194,
+          "w": 184
+        },
+        "cutByScrollerPx": 0,
+        "overlapWithButtonPx": 0,
+        "layoutOverlapWithButtonPx": 0
+      },
+      {
+        "text": "Good Mate Pirated for the love of the game. Dough Hook Numbe",
+        "rect": {
+          "top": 355,
+          "bottom": 548,
+          "left": 415,
+          "right": 598,
+          "h": 194,
+          "w": 184
+        },
+        "cutByScrollerPx": 0,
+        "overlapWithButtonPx": 0,
+        "layoutOverlapWithButtonPx": 0
+      },
+      {
+        "text": "Good Mate Pirated for the love of the game. Flaky Jack Numbe",
+        "rect": {
+          "top": 355,
+          "bottom": 548,
+          "left": 607,
+          "right": 791,
+          "h": 194,
+          "w": 184
+        },
+        "cutByScrollerPx": 0,
+        "overlapWithButtonPx": 0,
+        "layoutOverlapWithButtonPx": 0
+      }
+    ],
+    "slicedByScrollerEdge": [],
+    "statsTableVisible": true,
+    "statsTableCutPx": 0,
+    "settled": true,
+    "shot": "C:\\Users\\wyatt\\Projects\\pastrypirates\\.planning\\posed\\t143-eov-tablet-820x1180.png"
+  }
+}

@@ -162,6 +162,8 @@ The trigger both times was a command beginning `cd /tmp && …` (to write a prob
 every later relative path silently resolved against the wrong tree.
 
 ```bash
+# LINUX cloud container (paths and `python3` are that machine's) — the lesson is the ABSOLUTE
+# path, not the interpreter; on Windows the interpreter is `python`.
 # not this
 python3 - <<'PY'
 p='src/ui/util.js'          # resolves in BOTH trees
@@ -223,6 +225,7 @@ A server started after a cwd reset served from the wrong root. `/v2/index.html` 
 which the probe rendered as *"the welcome screen is missing"* — a convincing phantom boot failure.
 
 ```bash
+# LINUX cloud container — on Windows the interpreter is `python`, not `python3`.
 python3 -m http.server 8493 --directory /home/user/pastrypirates
 ```
 
@@ -274,7 +277,7 @@ the decision log. All of that is downstream of a prompt **that never rendered**.
 reported *at a tap*, the first thing to prove is that the next prompt appears at all. Everything
 about what it decides is unreachable until that is true.
 
-`4/scripts/seat_arg_check.js` is the gate: the four name renderers (`pn`/`poss`/`pname`/`rawName`)
+`scripts/seat_arg_check.js` is the gate: the four name renderers (`pn`/`poss`/`pname`/`rawName`)
 take a seat index, and it rejects any call site handed a rendered name or a string literal.
 `no_undef_check.js` cannot see this class at all — `poss` is defined and imported, and it is the
 ARGUMENT that is wrong.
@@ -307,6 +310,77 @@ Two things the gate itself taught, both worth copying into the next one:
 
 This is the single biggest theme of the session. Every one of these was a confident, plausible,
 **wrong** conclusion that a two-minute measurement overturned.
+
+### THE USER'S DEVICE CAN BE THE ONLY INSTRUMENT — and three innocent engines look like proof
+
+**The pulse bug, 2026-08-24/25, and it cost eight days.** Action-prompt buttons that should swell
+were sometimes completely static on Wyatt's iPhone. Every theory assumed a FROZEN animation, and
+every probe was built to catch one.
+
+Three engines were driven at it and all three were innocent, honestly and repeatably:
+
+| Instrument | Result |
+|---|---|
+| WebKitGTK 2.52 (`wk_probe.mjs`) | correct |
+| WebKit 26.5, 12 isolated birth conditions (`wk_birth_matrix.mjs`) | all 12 swing at 1.15 |
+| WebKit 26.5 playing real voyages (`pulse_menu_probe.mjs`) | 12 turn menus, 69 buttons, zero flat |
+
+**Every one of those green results was true and none of them was evidence**, because the engine in
+the fault was iOS 18.7 / AppleWebKit 605.1.15 — a generation older than anything drivable, and
+reachable only on his phone. A negative from an instrument that cannot reach the fault is not a
+negative about the fault. Say which engine you measured, in the sentence where you report the
+result, or the reader will hear "not reproducible" and stop.
+
+**What actually found it: making the game testify on HIS device.** The `?debug=pulse` beacon
+(`src/ui/pulsebeacon.js`) printed one line that ended it:
+
+    Trade:none(pp4Grow/running)   Pass +1:none(pp4Grow/running)
+
+Three fields that cannot all be true: the stylesheet grants `pp4Grow`, the computed play-state is
+`running`, and `getAnimations()` returns NOTHING. **The animation was never created.** There was no
+frozen animation because there was no animation. Eight days of theories were all answering the
+wrong question, and no amount of further instrumentation on the wrong engine would have found it.
+
+**And the thing that made the log worth reading was HIS controlled comparison, not our tooling.**
+Wyatt: *"if i stay put instead of sail, the pass/trade buttons DO swell."* One action toggled,
+everything else held still — that turned an intermittent ghost into a switch and pointed straight
+at the only code branch on that axis (`stageSettled()`, the camera tween). **When something is
+intermittent, ask him for the toggle before you build another probe.** It is thirty seconds of his
+time and it outranks a day of ours.
+
+**The generalisable shape, worth recognising early:** a UI gate that HIDES an element while
+something else finishes will also hide it from the engine's animation machinery. Anything granted
+to a not-yet-drawn element can be silently declined. Grant it at reveal, not at build — and better,
+per Wyatt's own ruling, **do not build the thing at all until the board has stopped moving.**
+
+### WIDEN THE SCOPE TO WHAT HAPPENED JUST BEFORE — the trigger is rarely inside the broken thing
+
+**Wyatt's takeaway from the pulse bug, 2026-08-25, in his words:** *"when you debug, expand your
+search scope to look at the events that happened just before the bug (in this case, sailing) in
+order to create your hypotheses."*
+
+**This is the lesson that would have saved eight days, and the evidence was already on the screen.**
+Every hypothesis for a week was about the broken thing itself — the button, its CSS, its classes,
+its birth conditions, the engine's animation machinery. All of it looked INSIDE the dead prompt.
+The cause was an action the player took two seconds earlier: **sailing**. Sail, and the boat's glide
+makes the reveal gate hold the buttons hidden for up to 1.4s, and the animation is never created.
+Stay put, and the gate is instant and the button breathes.
+
+**The evidence had been sitting in our own artefacts, unread as such.** Frame strips of the seconds
+before each dead prompt had already been built and looked at — and read for *"what does this prompt
+look like"* rather than *"what did he just DO"*. The sail is plainly visible in four of them. One
+sentence from Wyatt named it; no further instrumentation was needed after that.
+
+**Do this by default when a bug is intermittent:**
+- For every occurrence, write down the last 2-5 seconds of PLAYER ACTIONS and GAME EVENTS before it
+  — not the state at the moment it appeared. A prompt's own DOM tells you what it IS, never what
+  happened TO it.
+- Then look for what the bad occurrences share and the good ones do not. Here it was one word.
+- **Ask him for the toggle.** "Is there something you can do differently that makes it stop?" He
+  produced *"if i stay put instead of sail, the pass/trade buttons DO swell"* in thirty seconds,
+  which is a controlled experiment no probe had thought to run.
+- Prefer this BEFORE building instruments. A day of measuring the wrong thing is indistinguishable
+  from a day of measuring nothing (see the three innocent engines above).
 
 ### Never present an inference from a screenshot as proof
 
@@ -580,7 +654,7 @@ It passes either way, which is what makes it dangerous: a gate scanning the wron
 it is *reassuring*.
 
 ```bash
-node v2bakeoff/scripts/no_undef_check.js   # the one that reads v2bakeoff/src/
+node scripts/no_undef_check.js   # the one that reads v2bakeoff/src/
 ```
 
 `module_graph_check.js` and `ui_contract_check.js` exist only at the root and have **no v2
@@ -630,6 +704,9 @@ Immune to params, bodies, template literals and nesting alike.
   reported as verified by a command that had already been killed.
 
   ```bash
+  # Mac / Linux ONLY — neither `pkill` nor `pgrep` exists in Git Bash on Windows, which is the
+  # machine that runs the relay. Ask `node scripts/qa/stray_probe_check.mjs` instead: it works
+  # everywhere and prints the right kill command for the machine you are on.
   pkill -9 -f "[r]emote-debugging-port"   # the bracket cannot match its own command line
   ```
 
@@ -650,7 +727,7 @@ Immune to params, bodies, template literals and nesting alike.
 Wyatt's 7am solo playtest found the radial fan, the ask pill, the apSub tooltip and every narration
 bubble+pointer pushed off toward a corner on desktop, with Dock/Trade/Attack stacked invisibly
 under Pass — game-stopping, could not dock. The build that shipped it had passed every existing
-`4/scripts/*_check.js` gate and the overnight QA that preceded it, because **every one of those
+`scripts/*_check.js` gate and the overnight QA that preceded it, because **every one of those
 checks asks whether a renderer FUNCTION ran, never where on screen the thing it drew actually
 landed.** A driven-game QA pass would have missed it too, for a related but distinct reason:
 
@@ -704,7 +781,7 @@ where the answer is written down before you ask how it looks.
 
 Three things this cost that are worth copying:
 
-- **The gate counts, it does not pattern-match.** `4/scripts/dlog_quantity_check.js`'s first version
+- **The gate counts, it does not pattern-match.** `scripts/dlog_quantity_check.js`'s first version
   looked for `=== "ok") return <expr>;` and read the expression — then I reformatted that branch into
   a block and the gate went green while silently covering half of what it claimed. Counting confirm
   branches against `logQuantity()` calls is immune to how the branch is written.
@@ -896,6 +973,49 @@ disk unused so multiplayer is two `<script>` tags away. It ships from `main` and
 
 ---
 
+### A DETACHED PROCESS'S PARENT IS PID 1, AND "IS THE PARENT ALIVE?" THEREFORE ALWAYS SAID YES
+
+**2026-09-10. Twenty-two abandoned headless Chromes, several at 70–85% CPU, on the laptop Wyatt
+was working on. He had told me this once already:** *"COME ON MAN!!!! you were supposed to learn
+this the last time!"*
+
+**Every guard was in place and every one of them passed.** There was a `Stop` hook killing stray
+probes on every turn, a `SubagentStop` hook doing the same, and `stray_probe_check` running FIRST
+in the gate chain. The check printed, while the machine was choking:
+
+> `PASS  22 debug-port browser(s) are up and EVERY ONE has a live launcher — a probe in use, not a leak`
+
+**The whole failure was one missing case in one boolean.** An orphan was defined as *"its parent is
+not in the process table"*. But every probe here spawns Chrome so that it outlives the shell, and
+when the launcher exits the kernel **re-parents the child to init — PID 1**, which is alive by
+definition and always in the table. So the test returned "supervised" for precisely the browsers
+that had been abandoned, and **the more completely a probe leaked, the more confident the tooling
+was that it had not.** The killer shared the definition, so it spared them too.
+
+**"Its parent is init" IS the operating system telling you the launcher is gone.** That is what an
+orphan *is* on Unix, and it was the one case the test could not see.
+
+**Three things came out of it, and the order matters:**
+1. **The definition is now a pure, exported `isOrphan(ppid, alive)`** with its own red-proof
+   (`scripts/qa/stray_orphan_redproof.mjs`, gate 2). It had lived inside a function that shells out,
+   which is exactly why nothing could test it and why it survived. `--fixture=` could never have
+   caught this: it supplies lines that are ALREADY classified.
+2. **Cleanup cannot depend on the leaking process.** `finally { killAll() }` is the code path that
+   does NOT run when a probe is SIGKILLed by a tool timeout — which is how they accumulated. So
+   `mp_rig.launch()` now REAPS orphans before it spawns, which turns "twenty-two by evening" into
+   "at most one between runs", and the rig also wires `SIGINT`/`SIGTERM`/`uncaughtException`/
+   `unhandledRejection`, each of which is a separate door out of a node process that used to leak.
+3. **A sweep that kills something now SHOUTS, even under `--quiet`.** A cleanup nobody hears about
+   is a lesson nobody learns; the hook stayed silent for weeks while sweeping nothing.
+
+**And the reporting lied in the small way too:** it said *"killed 0"* and *"1 would not die"* about
+a browser that was gone two seconds later, because `process.kill(pid, 0)` still found it mid-death.
+The headline is counted from the OS after a beat now, never from what the killer believed.
+
+**The general lesson, which is not about browsers:** when a guard has never fired, that is not
+evidence the thing it guards against is not happening. Go and create the failure it claims to catch
+and watch it fire. This one had never fired.
+
 ## 8. Rules that lived only in the laptop's memory — ported here so a CLOUD session has them
 
 Wyatt, 2026-08-21: *"I want to be able to run all future sessions in the cloud."* A cloud session
@@ -914,7 +1034,7 @@ the note's name in brackets. CLAUDE.md already carries the big ones (ask with th
   other agent's probe on the machine. `pkill -f "remote-debugging-port=${DBG}"`, `"http.server
   ${PORT}"`. *(same)*
 - **Real-mouse QA is the instrument he trusts, and a DOM clicker is not** — he asked for it by name
-  after an off-screen Dock button sailed through headless QA. `4/scripts/mouse_qa.mjs`: trusted
+  after an off-screen Dock button sailed through headless QA. `scripts/mouse_qa.mjs`: trusted
   `Input.dispatchMouseEvent` at screen coordinates, gated on inside-viewport + inside-the-column +
   `elementFromPoint` hits it, a screenshot per action that you then READ. **And KEEP the
   screenshots** — the build-u desktop pass was declared clean with none kept, and the layout was
@@ -946,7 +1066,7 @@ the note's name in brackets. CLAUDE.md already carries the big ones (ask with th
 - **On the laptop only: `find` is `bfs`**, which rejects relative `-newermt` timestamps; with
   `2>/dev/null` the error looks like "found nothing". The cloud image has GNU find. Either way,
   never `2>/dev/null` an exploratory `find`. *(project_find_is_bfs)*
-- **`4/scripts/mp_rig.mjs` is the two-window crew rig**, with three corrections baked in that each
+- **`scripts/mp_rig.mjs` is the two-window crew rig**, with three corrections baked in that each
   cost real time: visibility is the painted rectangle, never `offsetParent` (always null for
   `position:fixed`); the driver carries the liveness filter / prefer-the-committing-circle / rotate-
   after-5-failures fixes; a remote seat gets `coinStepper()`'s ± fallback, not the slider, so a
@@ -982,7 +1102,7 @@ paused itself (its tab-hide gate), and `waitWhilePaused()` — a promise that re
 
 1. **The first probe measured a property that does not exist.** It read `g.turn` and reported
    `undefined`, which read as "the turn pointer is corrupt". There is no `this.turn` in
-   `4/src/engine/index.js` and never has been. A probe that names a field the code does not have
+   `src/engine/index.js` and never has been. A probe that names a field the code does not have
    returns `undefined` for a healthy game and a dead one alike — it cannot fail, so it cannot be
    evidence. **Grep the property before you believe a reading of it.**
 2. **The honest instrument was the one with a control**: sample `game.events.length` twice, 25s
@@ -998,3 +1118,860 @@ and clean (0 piled controls, 0 off-screen controls, 0 dead sliders, 0 ribbon occ
 classes that had been failing). Had the phantom stall been reported alongside them, it would have
 put every one of those true results in doubt. **An unmeasured claim shipped beside measured ones
 does not merely add noise; it discredits the measurements it travels with** (CLAUDE.md rule 6).
+
+---
+
+## 9. 2026-08-22 — the day the instruments cost more than the bugs
+
+Every entry here is from one overnight run plus the morning after it. **Not one of them is a fault in
+the game.** They are all faults in the things built to find faults in the game, which is why they
+belong together: a QA layer is unreviewed code that nobody plays, so it rots in the dark.
+
+### A QA TOOL THAT CAN OUTLIVE ITS OWN RUN WILL BE FOUND HEATING HIS LAPTOP
+
+`playtest_gate.mjs` was launched against build `2026-08-22a`. It played for 37 minutes, then sat at
+**0% CPU for three hours with ten headless Chromes alive at 47% of Wyatt's CPU**, until he asked why
+it was still running. Three faults stacked:
+
+1. **The judge could not tell a dead instrument from a bad answer** (below).
+2. **It kept calling anyway** — 67 times, once per screenshot.
+3. **The contact sheet hung the run.** A step that only PRESENTS results outlived the run that
+   produced them and held its own browsers open indefinitely.
+
+CLAUDE.md's rule 17 says kill every headless Chrome before you reply. **That rule assumes the probe
+ENDS.** This one did not, and the session reported "still running" for hours without once checking
+whether it was *progressing*. **A long-running probe needs a watchdog that can kill it, and a
+liveness check that reads the log's timestamp rather than the process's existence** — `ps` said it
+was alive, and it was alive the way a corpse is warm.
+
+### ANYTHING THAT FAILS ON EVERY SCREEN IS AN INSTRUMENT FAILURE, NOT A GAME WITH THAT MANY BUGS
+
+The machine's `claude` login had expired. Every judge call returned a perfectly well-formed JSON
+envelope whose `result` was *"Failed to authenticate: OAuth session expired and could not be
+refreshed"* — so the parser found no verdict and resolved **"unparseable judge reply"**, 67 times.
+The one fact that mattered appeared nowhere; it was buried under 67 findings-shaped non-findings.
+
+**A uniform failure rate is diagnostic.** 67 of 67 is never a property of the thing being measured.
+Detect the environment failure explicitly, make it FATAL, and stop — and when you stop, leave the
+screens **unjudged rather than passed**, because those two must never be confused.
+
+### WHEN A PRODUCER LEARNS TO RETURN HOLES, GREP EVERY CONSUMER — THE CHANGE THAT ADDS THE HOLE IS NEVER THE ONE THAT CRASHES
+
+Fixing the above, `judgeAll` was taught to stop on the first FATAL, leaving unreached slots
+`undefined` — deliberately, so an unjudged screen could not read as a pass. **Two consumers assumed a
+dense array.** Wyatt's own run died on it twice in one leg:
+
+```
+contact sheet failed: Cannot read properties of undefined (reading 'verdict')
+TypeError ... at legVerdict (playtest_gate.mjs:181)
+```
+
+It took the gate down **after solo-desktop had already played a complete voyage to day 15**, so the
+crash discarded a finished leg. He was running the exact build that had the first half of the change
+and not the second.
+
+### A GATE THAT FIRES ON EVERY SCREEN TRAINS ITS READER TO IGNORE IT — WHICH IS WORSE THAN NO GATE
+
+The gate had **no notion of a settled screen**: it screenshots the instant a screen's signature
+changes, i.e. the instant the animation STARTS. Reliably the worst moment, not a random one. That is
+why the recipe picker reported overlapping, off-screen cards three times a phone leg for a fault
+that does not exist once the cards land (measured at rest: 7px apart, 12px of clearance).
+
+**The first fix was worse than the bug.** It compared exact rects and treated hitting the cap as a
+FAILURE. But **half this board never stops moving** — `.sailCell` carries a permanent bounce, ships
+glide, the ripple pulses — so nothing ever settled: **22 samples over 2.68s on essentially every
+screen of a real leg.** A rare phantom had become a constant one.
+
+Two things came out of it. **Quantise, do not enumerate:** a slide-in travels tens to hundreds of
+pixels and a bounce travels two to four, so rounding rects to 8px separates *arriving* from
+*breathing* without maintaining a list of exceptions. And **hitting a cap is a fact to record, never
+a failure to raise** — the checks still run on the best moment available.
+
+### RECONCILE A THEORY WITH THE EVIDENCE YOU ALREADY HAVE BEFORE OFFERING IT
+
+The auth failure was diagnosed as a shared-credential race: the app session and the CLI read one
+Keychain token, the app refreshes it, refreshing rotates it, the CLI's copy dies. Every fact fitted —
+the credential existed, it had been rewritten twenty minutes earlier, stripping every inherited
+`ANTHROPIC_*` and `CLAUDE_CODE_*` variable changed nothing.
+
+**The theory predicted that running from a plain Terminal would work. Wyatt ran it from a plain
+Terminal and it failed identically — and that output was already in the transcript when the theory
+was restated.** `/login` fixed it. A hypothesis that survives only because you did not check it
+against the evidence in front of you is not a hypothesis, it is a preference.
+
+**And the same session then contradicted itself in the other direction:** having just built the
+queue handoff *specifically to remove the CLI dependency*, it told him the vision pass "stays manual
+until you re-authenticate." He caught it. **When you remove a dependency, update your model of what
+is blocked — the old blocker survives in your own sentences long after it stops being true.**
+
+### CHASING A FALSE ALARM IS HOW THE TRUE ONE WAS FOUND — SO CHASE IT, BUT SAY WHICH IS WHICH
+
+The recipe-picker structural failure was a mid-animation artifact on phone. Investigating it turned
+up a **real** fault one layer over: on DESKTOP the picker's subtitle is sliced by the cards in a
+settled state. The phantom was worth chasing. It was not worth *reporting* — and the two were only
+distinguishable because the settled state was measured rather than assumed.
+
+Related, and the reason the phantom was reachable at all: **the phone legs had been emulating a
+390×844 screen with no browser bar** — 180px no real Safari ever gives a page. Correcting it to 664
+made nine "empty dead space" findings evaporate and exposed the recipe cards being cut off at the
+bottom **on the first screen of the game**. An instrument that models a device nobody owns reports
+faults nobody has and hides faults everybody has.
+
+### DO NOT RUN A GATE ON A MACHINE ANOTHER AGENT IS ALREADY DRIVING
+
+A verification re-run boot-failed with *"solo card not clickable"* at 7 seconds. Not the change under
+test: another agent was driving browsers on the same laptop and the page never finished loading in
+the boot window. **Check for other agents' Chromes before launching, and scope the conclusion when
+you do not** — that failure was nearly filed against the settle detector.
+
+### A JUDGE READING A STILL FRAME CANNOT TELL "FADED" FROM "UNDERNEATH", OR A PULSE FROM A GAP
+
+2026-08-22, and this one is about the vision judge itself — which since D-53 is a Claude session
+reading screenshots, so it is about *us*. Judging 46 gate screenshots produced 8 failures. **Two of
+the six distinct faults did not exist**, and both were the same mistake: **a positional claim
+inferred from a still frame and reported as a finding.**
+
+- *"The narration bubble is drawn UNDERNEATH the sail-square highlights — only the fragments 'Ahoy'
+  and 'turn!' are visible between the squares."* Measured: the bubble is in `#pp4Fx` at z-index 21,
+  the squares in `#boardwrap` at 5, siblings in one stacking context, and it stood on **0 of 19**
+  squares while fully opaque. Sampling the screenshot's own pixels put it at ~18% transparency,
+  agreeing across all three colour channels. It was **on top and faded** — hold-the-sea, Wyatt's own
+  gesture, caught mid-tap. The fragments were the board showing THROUGH it, not over it.
+- *"Two battle circles sit about 10px apart, tighter than the derived gap."* Measured: 82.98px
+  centre-to-centre against an ordinary fan's 83.07 — identical. The "10px" was the **tap-me pulse**:
+  two 66px circles rendered at 109% leave exactly 11.1px of white between them in a still.
+
+**A still frame cannot distinguish transparency from occlusion, or a mid-animation scale from a
+layout gap.** Both are questions about state over time, and a screenshot has none.
+
+**So the rule for the judge — the one this file now has to carry, because the judge is a session:
+REPORT WHAT YOU SEE, NAME WHAT IT MIGHT BE, AND NEVER STATE THE MECHANISM.** *"The bubble's text is
+broken up by the sail squares"* is a true observation worth acting on. *"The bubble is underneath the
+sail squares"* is a diagnosis, it was wrong, and it sent a fix at the wrong layer. CLAUDE.md rule 6
+already says never report a defect as confirmed before measuring it; this is that rule arriving at
+the one place in the pipeline whose whole job is to look rather than measure.
+
+**Both were still worth chasing.** Investigating the false one is what found the real desktop
+subtitle clipping, and what found the drag-off-the-board deafness below. **Chase the phantom; just
+never hand it over wearing a mechanism.**
+
+---
+
+## 10. 2026-08-26 — every instrument lied, and each one lied in a way that read as truth
+
+**§9 was the day the instruments cost more than the bugs. This is the day they started reporting
+bugs that did not exist and certifying tests that never ran.** Five separate measuring devices were
+wrong in one session. None of them looked broken. Every one produced a confident, specific,
+plausible answer.
+
+**Read this section at the moment you are about to trust a number, not once at session start.**
+
+**The PROCESS these lessons produced lives in [`QA-PROCESS.md` → THE WHOLE LOOP, END TO END](QA-PROCESS.md).** This section is the evidence; that one is what to do about it.
+
+### 10a. The five instruments, and what each one's lie looked like
+
+| instrument | what it reported | what was true |
+|---|---|---|
+| the seeded-defect drill | "3 of 3 bugs CAUGHT" | it grades by grepping output for `FAIL`/`✗`, and an UNSEEDED leg prints both — **an unbroken game scores 3 of 3 too** |
+| the settle probe | `settled: true` at 631ms | **14 of 75 characters were painted.** It compares rectangles; a typewriter changes neither geometry nor textContent |
+| the sea-trial report | "voyages that did NOT run: **none**" | **both Safari legs died instantly** and captured zero screens. It matched one phrasing (`NOT RUN —`) and the gate had emitted another (`ERROR:`) |
+| the remote-control detector | "remote control is DOWN" | Wyatt was reading the session on his phone at that moment |
+| the vision judge | 16 findings | **roughly half survive contact with the source** |
+
+### 10b. THE PATTERN, and it is the only thing here worth memorising
+
+**Every one of the five failed by measuring an adjacent thing and reporting it as the thing.**
+
+- The drill measured *"did the leg fail?"* and reported *"did we catch the bug?"*
+- Settle measured *geometry* and reported *"has this screen stopped changing?"*
+- The report measured *one sentence in a log* and reported *"did Safari run?"*
+- The detector measured `WarmLifecycle` — the **warm-process** subsystem — and reported *"can he see this on his phone?"*
+
+**So the question to ask of any instrument is never "is it green?" It is: WHAT DOES THIS ACTUALLY
+MEASURE, AND IS THAT THE SAME THING AS WHAT I AM ABOUT TO CLAIM?** Four times out of five here, it
+was not, and the gap was invisible from the reading alone.
+
+### 10c. A measurement that cannot fail is not a measurement — three in one day, all mine
+
+1. A settle trace that began sampling **after** the reveal had already finished, so both the old and
+   new probe "settled on complete text" and the check could not have failed.
+2. A test of the icon-punctuation fix that used a **wheat emoji, which has no custom artwork** — so
+   it never became an image and never exercised the path it claimed to test.
+3. A "does the button cover the card" probe whose card-finder walked up to the **full-screen
+   container**, making `OVERLAPS: true` true of everything.
+
+**Before believing a pass, prove the instrument reached its subject.** Feed it the broken case and
+watch it go red. If you cannot make it fail, you have not written a test.
+
+### 10d. The typewriter is invisible to BOTH obvious signals, by design
+
+`typewriterReveal()` (`src/ui/panel.js`) splits each text node into **two spans holding the same
+characters** — a revealed prefix and a `visibility:hidden` remainder that still occupies its exact
+layout box. That is a good design: line breaking matches the finished message from the first frame,
+so no word ever hops a line mid-reveal. It also means:
+
+- **geometry never changes during a reveal** — that is the entire point;
+- **`textContent` returns the full string throughout** — both spans are in it.
+
+Only the **painted** pixels differ. A first fix using `textContent` did nothing, and a 40-sample
+trace is what caught it. **If you need to know whether text has finished arriving, walk the nodes
+and skip anything under `visibility:hidden`** — see `SETTLE_PROBE` in `scripts/lib/checks.mjs`.
+
+### 10e. The vision judge has TWO named biases — calibrate before acting
+
+Of 16 findings this trial, the confirmed real ones were the "Play again!" overlap and an orphaned
+full stop. The rest fell into two shapes:
+
+1. **Deliberate whitespace reads as a defect.** Three findings — a desktop right-column gap, day-1
+   captain rows sized to hold a full 8-crate hold, and (previously) "dead space below the CAPTAINS
+   panel" that turned out to be the harness emulating a phone height no phone gives the page. **All
+   three had already been argued and settled in the source.**
+2. **Small glyphs are misread.** It reported a literal `$` in `WIND NOW: $↓`. `DIRS={N,S,E,W}` — a
+   `$` is unreachable, and the `↓` beside it confirms the letter is `S`.
+
+**So: never act on a judge finding without opening the screenshot AND checking the graveyard
+(rule 10).** It is still worth having — it found both real bugs — but it is a witness, not a verdict.
+
+### 10f. The fix you verify must be the fix that was reported
+
+The "Play again!" button was reported as covering the award cards. I fixed **reachability** (52px of
+stats were permanently unscrollable behind it → 0), measured exactly that, and called it fixed. The
+next trial reported it again, because the complaint was about **mid-scroll overlap** and I had
+measured only the **fully-scrolled** state.
+
+**Write down the reported symptom verbatim, and make the after-measurement address that sentence.**
+
+### 10g. Reading the graveyard stopped a regression that a green trial would have blessed
+
+Round two on that button, the plan was "take it out of the scrolling region." The comment directly
+above it records that **sticky IS the fix** for a worse defect (D-46 fault 2: the button below the
+fold, unreachable), and that awards passing behind it is the accepted consequence — *"a control you
+cannot hit is the one unacceptable outcome."*
+
+**Shipping the "obvious fix" would have re-broken a fixed bug, and every gate would have stayed
+green**, because no check tests "is the button above the fold on a short window". The only thing
+that caught it was writing the plan down before executing it. See
+[the predict-before-measure rule](../.claude/CLAUDE.md) in rule 6.
+
+### 10h. Following the mandated workflow disarmed the gate that enforces it
+
+`scripts/qa/gear.mjs` compares against `origin/main`. **Rule 24 requires you to commit AND push so
+Wyatt can play it — and pushing empties that diff, so the picker then reports `GEAR: NONE`.** Doing
+exactly what the rules say produces "nothing to prove". Use `--since=HEAD~N` after a push, and treat
+a `NONE` verdict on a day you changed game code as the tell.
+
+**This is the third time this shape has appeared** (the working-tree version, the origin/main
+version, and now the post-push version). A gate whose subject can vanish will eventually report on
+an empty set and call it a pass.
+
+---
+
+## 11. 2026-08-28 — the tool that got judged, and three ways a number lied about its own coverage
+
+**§10 was the day every instrument lied. This is the day an instrument was *silenced by this repo's
+own safety rules* and still filed a report.** Environment-and-coordination lessons, from the first
+day two machines and three sessions worked one branch at once.
+
+**The decision guide these produced is [`CLOUD-VS-LOCAL.md`](CLOUD-VS-LOCAL.md)** — where to run a
+long job and what it costs. This section is why.
+
+### 11a. A CHILD `claude -p` INHERITS THIS REPO'S HOOKS — and fails silently, and intermittently
+
+The vision judge shells out to a second `claude` per screenshot. Run from the repo, that child
+loads `.claude/settings.json` and runs **this project's hooks**. A FULL local trial therefore
+returned `judge ERROR: vision call timed out` on **every screen — 75 calls, zero verdicts** — while
+the legs sailed on looking perfectly healthy.
+
+The mechanism: each call is a **new session id**, so `playtest-checklist-last.cjs`'s
+once-per-session guard never applied. It fired on all of them, blocked the Stop, and sent each
+judge off to write a staging checklist instead of returning JSON. Fingerprint: **73
+`checklist-asked` marker dirs**, all inside the failed window, none after the fix.
+
+Red-proofed both directions — same call, same image, **cwd the only difference**: from the repo,
+still running at 40 s; from a temp dir, answered in 37 s.
+
+**The reusable rule: ANY tool that shells out to a second `claude` must run from OUTSIDE the tree.**
+Our own guard rails are indiscriminate — they cannot tell a subprocess doing one narrow job from a
+session that should be held to the full process.
+
+**And it is worse than a consistent break.** The hook decides by comparing **file mtimes**, which a
+`git checkout` resets in whatever order it writes files. The cloud got 14 judge findings on this
+same code hours earlier. **So the eyes can be open on one run and shut on the next, with nothing
+announcing the difference.** An intermittent silent instrument is harder than a broken one.
+
+### 11b. A PER-ITEM RESULT WITH NO DENOMINATOR HIDES ITS OWN COVERAGE
+
+The trial prints `vision judge FAILED 4 screen(s)` per leg. It never prints **out of how many**.
+
+The judge only ever looks at the **first 30 distinct screens of a leg** (`JUDGE_CAP`,
+`scripts/playtest_gate.mjs:58`, applied `:481`). One run captured **349** and submitted **267** —
+**82 screens never shown to the judge at all.** The write-up then said *"two screens were never
+judged"*, counting only the timeouts: **wrong by a factor of forty, in the section headed *what
+this run does NOT establish*.**
+
+The sharpest case: `crew-desktop`, **the one leg that did not finish its voyage**, captured 60
+screens, had 30 judged, and all 30 came back PASS. **It reads as visually clean. Half of it was
+never opened.**
+
+**CEO Review 14 called this a recurrence of Review 13's *"the instrument announces more than it
+actually checked"* — third review running, third surface.** The fix is arithmetic: print
+`judged 30 of 60`. **Whenever a check samples, the sample size belongs in the output, beside the
+result, every time.**
+
+### 11c. A HARDCODED OUTPUT PATH IS A SILENT OVERWRITE THE MOMENT THERE ARE TWO OF YOU
+
+`sea_trial.mjs` wrote `.planning/SEA-TRIAL.md` at a fixed path. With two machines sailing, whoever
+finished last **silently replaced** the other's verdict — leaving one authoritative-looking report,
+real build stamp and all, describing a run from the **other machine**. Rule 24 stands on opening
+that file and believing it.
+
+**A merge conflict is loud; this was silent.** Fixed by `--report=<path>` plus a machine name
+derived from `os.hostname()` in every report, gated by
+`scripts/qa/trial_report_ownership_check.mjs`. It was **not theoretical** — one run stamped
+`19:35:09Z` over another's `18:44:08Z` before it was caught.
+
+**The half still open, and the general form:** that fix separated the **reports**, not the
+**evidence**. `sea-trial-shots/` — including the `report.json` that decides *which legs sailed* — is
+still one shared path, and two Claude sessions can share one checkout on one machine. **When you
+fix a shared-path collision, fix it for every artifact the process writes, not the one that
+collided.**
+
+### 11d. A BUILD STAMP THAT DOES NOT MOVE MAKES TWO GAMES ONE LABEL
+
+`a4069ed2` changed `index.html` while `PP4_STAMP` read `2026.08.28.4` on both sides of it. So that
+string names at least two different games.
+
+**This breaks rule 24's check by making it pass.** "Compare the report's stamp with the one in the
+game's ☰ menu" silently stops working when one stamp covers two builds: the two will match while
+describing different code. `GIT-AND-DEPLOY.md` §5 already made this argument for staging — *"the
+sha stayed because it is what makes it a build identity"*. **Bump the stamp in the same commit as
+the game change, and pin any claim to a sha.**
+
+### 11e. THREE SMALL INSTRUMENT FAULTS, ALL THE SAME SHAPE
+
+Each cost a wrong answer on the day, and each is the §2 lesson in miniature — *the check measured
+something other than what it named.*
+
+| the check | what it actually measured |
+|---|---|
+| `ps ax \| grep -c "remote-debugging-port"` | **its own command text.** The grep's arguments contain the pattern, so a clean machine reports live probes. Use `pgrep -x`, and confirm a hit is real before acting |
+| `find … -newermt '-60 minutes'` | **nothing** — macOS `find` rejects a relative `-newermt` and errors out. With `2>/dev/null` that is indistinguishable from "no matches". It reported 0 marker dirs when 73 existed |
+| `ls .planning/hooks/.read-state \| wc -l` | **directories, not markers.** Typed into a report as "75"; counting the ones that actually held the marker file gave **73** |
+
+**All three were caught, but only because something else disagreed with them.** The last is the
+worst: it broke *"never hand-type a number that can be counted"* **inside the very finding written
+to warn about unverified claims.**
+
+## POSE THE BOARD — when the question is a picture, don't go looking for a rate
+
+**Wyatt, 2026-08-30, and these are his words:** *"don't touch bubble placement again without a
+posed comparison — the same seeded sail prompt, before and after, two screenshots. Three probe runs
+and three 85-minute trials couldn't settle a question that two pictures would have. That's the
+lesson of the night, and it cost the night to learn it."*
+
+**What it cost, so nobody has to pay it twice.** One night, on one item (W1-4, sail squares a guest
+cannot tap):
+
+| instrument | what it gave |
+|---|---|
+| three 8-minute probe runs | **7, 12 and 5** judged captures, completely different cause mixes |
+| three 85-minute full trials | **22 → 26 → 31** structural failures, same ten legs |
+| **one posed prompt, ~1 minute** | every square sits where its grid coordinate predicts, **to 0.0px** |
+
+**Three changes were shipped on those rates and all three were reverted.** Net game-code change for
+the night: zero. The posed check answered a question the rates could not, in about a minute
+(`scripts/qa/w14_swept_geometry.mjs`).
+
+- **A driven voyage is a terrible instrument for a layout question.** It yields a handful of
+  samples an hour and they swing wildly. `docs/DRIVING-THE-GAME.md` §5e poses the state instead of
+  playing your way to it.
+- **When a small sample and a large one disagree, the large one is not the one to explain away.**
+  An 8-minute probe said coverings had gone to zero; a 10-voyage trial said they had gone up. The
+  probe was believed and it was wrong.
+- **Ask a geometric question, not a statistical one.** "Is this drawn where it says it is" needs
+  one prompt containing both cases. "How often is this wrong" needs a hundred and still won't say.
+- **This is rule 6's other face.** Rule 6 says don't report what you haven't measured. This says
+  *measuring the wrong quantity is not measuring* — and a rate over a stochastic voyage is the
+  wrong quantity for anything you could photograph.
+
+**Enforced at the trigger**, not left to memory: `.claude/hooks/qa-gear-first.cjs` prints it as
+STEP 0b at the moment you are about to change game code, and `src/ui/stage.js` carries it at both
+the framing and the placement sites.
+
+---
+
+## 12. 2026-08-30/31 — the night every wrong answer came from reading a summary instead of its source
+
+**Read this one before you write a status report, and before you believe any tool's headline.** The
+work that night was mostly sound. **Every wrong thing said to Wyatt came from the same move:
+repeating a summary without opening what it summarised.** Four times, in four different disguises.
+
+### 12a. ⚠ THIS ENTRY WAS FALSE WHEN FIRST WRITTEN. THE REPORT WAS RIGHT.
+
+**What stood here:** that the sea trial reported 2 structural failures while its own log held 36,
+and that a crew leg's guest failures were never counted. A CEO review found it, I verified it
+against the log, withdrew two claims to Wyatt, and wrote it up as a lesson — all within an hour.
+
+**It collapsed on one check.** `sea-trial-shots/log.txt` **DOES NOT DESCRIBE ONE RUN. It accumulates
+across every run** — its elapsed-second prefix resets to `[10s]` **sixteen times**, and the same
+screenshot carries a judge error twice, an hour apart. The 36 failures are spread over ~16 separate
+trials. The last run's own `report.json` holds **10 legs and exactly 2 screens with structural
+failures.**
+
+**And the mechanism blamed does not exist.** `playtest_gate.mjs:390`:
+`const recA = { screens: rec.screens }, recB = { screens: rec.screens }` — **both seats point at the
+same array as the parent.** A guest's failures were never missing from the count.
+
+**THE LESSON THAT REPLACES IT, and it is worth more:**
+
+- **AN ACCUMULATED LOG READS EXACTLY LIKE A SINGLE RUN'S LOG.** Three readers in a row took this one
+  as a single trial. Nothing announces otherwise until you notice the clock running backwards.
+  **Before counting anything in an artifact, establish whether it is per-run or append-only.**
+  `report.json` is the per-run record here; `log.txt` is not.
+- **AND THE PICTURES ARE GONE.** Later runs reuse the same screenshot filenames, so most
+  `STRUCT FAIL` lines in that log **no longer have the image of the moment they describe.** Two
+  failure families were chased on that basis; every surviving picture of them is clean, and nobody
+  can now say whether they were real.
+- **BEING WRONG IN BOTH DIRECTIONS ON ONE QUESTION IN ONE NIGHT IS THE TELL.** The first answer came
+  from trusting a report, the second from trusting a log. Neither was checked against the artifact
+  that actually described the run.
+
+### 12b. AN INSTRUMENT THAT DISCARDS THE EVIDENCE OF ITS OWN FAILURE CANNOT BE DEBUGGED
+
+The vision judge failed **1494 times in one run** saying only *"unparseable judge reply"*. It had
+the real reason in hand the whole time — `judgeBatch` resolves `raw` — and nothing logged it. The
+actual sentence was **"I don't have permission to read those image files."** One line that would
+have ended a two-hour investigation before it began.
+
+**Put the failure's own words in the message, not in a field nobody prints.**
+
+### 12c. A FIX BECOMES THE NEXT FAILURE — check what your protection now forbids
+
+The judge runs from a temp dir **on purpose**: on 2026-08-28 a child `claude -p` inherited the repo
+cwd, loaded `.claude/settings.json`, ran this project's hooks and went off to write a checklist
+instead of a verdict — 75 calls lost. **That protection is exactly why it could no longer open the
+repo's own screenshots.** A child in `/tmp` is refused absolute paths into the repo.
+
+**The fix was to move the images to the judge, not the judge to the images** (`stageImages`). When
+you fence something off, ask what it can no longer reach.
+
+### 12d. ERROR MESSAGES POINT AWAY FROM THE CAUSE MORE OFTEN THAN THEY POINT AT IT
+
+The same wall produced three different wordings, none of them naming it: *"unparseable judge reply"*
+(a parsing complaint about a permissions problem), *"unable to access image file"*, and
+*"Self-signed certificate detected"* at five images. **Diagnosis came from bisection — 0, 1, 2, 3, 5
+images, then 3 staged locally — not from reading any message.**
+
+### 12e. QUOTING A CLAIM APPROVINGLY IS ASSERTING IT
+
+PR #15 was merged with its own summary quoted into the ledger as *"worth keeping"*. One of its five
+claims — *"contact sheets are out"* — was false; they ran **91 times, timing out at two minutes
+each**, on a trial budgeted at 85 minutes that took 104. The safety claim ("no game code") had been
+verified properly; **none of the value claims had been checked at all.**
+
+**Verify what a change CLAIMS TO BUY, not only that it is safe.** (Checked afterwards: the other
+four claims held.)
+
+### 12f. THREE GATES I WROTE WERE WRONG BEFORE THE CODE THEY GUARDED WAS
+
+`judge_can_see_check.mjs`, on its first day: passed items as `{shot}` when the function reads
+`it.path`; then expected an array when the function resolves `{results: Map}` — **and a Map
+stringifies to `{}`, so the good case printed as an empty object and read exactly like a failure**;
+then selected the first three PNGs alphabetically, which were leftover contact sheets, and printed
+**"THE JUDGE CANNOT SEE"** over a reply beginning *"I can see the three images"* — the exact fault
+it was built to catch.
+
+**Each was a guess where a read would have done.** Before writing a check against a function, open
+the function.
+
+### 12g. AND THE ONE THAT IS ABOUT REPORTING, NOT ENGINEERING
+
+Every correction above was surfaced to Wyatt as it happened, which was right. **The cumulative
+effect was a status stream that read as nothing but failure while the branch was actually shipping
+— and he said so: "I'm losing faith in you."**
+
+**A correction is not a status report.** Say what now works that did not before, then what was
+corrected on the way. A session that reports only its own errors gives a false picture just as
+surely as one that hides them.
+
+---
+
+### §12f — A GATE THAT NAMES A MACHINE TAKES THE REST OF THE SUITE DOWN WITH IT
+
+**2026-08-31.** A new gate rooted itself at `process.argv[2] || '/home/user/pastrypirates'`. `npm
+test` passes no argument. On this container it was green; on Wyatt's Mac that directory does not
+exist, so the gate would have crashed with exit 1 at **gate 32 of 55 — and the remaining 23 would
+never have run**. CEO Review 37 caught it one commit before it shipped.
+
+**Three things worth keeping from it:**
+
+1. **A crashing gate is worse than a failing one.** A FAIL reports on one thing. A crash ends the
+   chain, and everything after it reports nothing at all — which reads, to anybody scrolling, like
+   the run simply stopped rather than like 23 unanswered questions.
+2. **The lesson was already in the repo and was made again in the direction nothing checked.**
+   `doc_command_check` fails a home-rooted path in a DOC, and printed *"it runs the same in a cloud
+   container as on the laptop"* in the very run this gate would have died in. **Guarding the prose
+   about the scripts is not guarding the scripts.** When you write a check, ask which
+   half of the artifact it can see.
+3. **"Absolute" was the wrong thing to ban, and the first draft of the guard proved it in one run:**
+   17 honest lines, all browser-side `import("/src/ui/index.js")` — a URL the local server answers,
+   not a filesystem path. And `vision.mjs` names `/root/.ccr/ca-bundle.crt` guarded by `existsSync`,
+   which degrades instead of dying. **The fault is not an absolute path; it is a path that locates
+   THIS REPO'S OWN CODE on one machine.** A guard aimed at the wrong quantity would have taught the
+   next session to break three working files.
+
+**Now enforced:** `tree_health_check` case 4, red-proofed in both directions, on every script in
+`scripts/`. Its planted example strings are **assembled at runtime** rather than typed, so the gate
+still polices its own file — an allowlist would have been a file nobody checks any more.
+
+### §12g — "SOMEBODY WILL REMEMBER" IS NOT A MECHANISM
+
+**2026-08-31.** A checker ruled that a change inside `board.js`'s BYTE-IDENTICAL Safari region
+needed a SCOPED EXCEPTION block in the header, and that **whether Wyatt must approve it was his
+call, not the builder's**. So the block was written saying `AWAITING WYATT'S RULING` — honest, in
+the right place, and completely inert. CEO Review 38 grepped `scripts/` and `.claude/hooks/` for
+that marker and got **zero hits**: *"Nothing mechanical stops that file merging to main unruled —
+only somebody remembering."*
+
+**The shape to recognise: a question correctly raised, correctly recorded, and load-bearing on
+nobody.** It reads as diligence. It behaves as a comment.
+
+Two things worth copying from the fix (`scripts/qa/unruled_exception_check.mjs`, gate 55 of 56):
+
+1. **BRANCH-AWARE, NOT ABSOLUTE.** An unruled exception is *correct* on a working branch — that is
+   where a ruling gets asked for. Failing there would turn every unrelated piece of work red until
+   Wyatt happened to be at a keyboard, and a gate that cries wolf gets `--no-verify`'d. So: on a
+   branch it PASSES and prints the file and line **every single run**, so the question cannot
+   become furniture; on `main` it FAILS, because that is the moment the change reaches real
+   players. **Put the failure where the cost is, and the reminder everywhere else.**
+2. **THE RED-PROOF NEEDED THE BRANCH TO BE AN ARGUMENT.** A run on a feature branch can never
+   demonstrate the main-branch verdict. The first attempt tried to prove it with a throwaway
+   worktree; that exited 1 with *module not found*, which looks exactly like the gate failing —
+   **an instrument measuring something other than what it names, inside the red-proof of a gate
+   about honesty.** The fix was one `verdict(found, branch)` function called by both the live path
+   and the proof. Nothing passes an override in; the live call reads git.
+
+**State the limit, or the fence becomes a wall in the telling:** this fires when `npm test` runs on
+main. It cannot see a merge pushed without running the suite. It is a fence — but a fence is what
+did not exist, and the release process walks straight into it.
+
+### §12h — READING THE CODE TELLS YOU WHAT ONE PATH DOES. ONLY THE OUTPUT TELLS YOU WHAT THE SYSTEM DOES.
+
+**2026-08-31, and it is rule 6's missing corollary.** Three overclaims in one item, all the same
+shape, all made by someone being careful:
+
+1. *"The End of Voyage screen is checked by nothing."* The branch really did hardcode `fails: []`.
+   But the vision judge reads it, and — found only by a fresh reader opening the previous trial's
+   `report.json` — **the ordinary capture loop was already photographing and structurally checking
+   that same screen one tick earlier, in all ten legs.** The real fault was a *duplicate* entering
+   the report marked clean. Worth fixing; a fraction of the billed size.
+2. *"The judge was handed a frame guaranteed to be mid-flight,"* citing a measured 688px glide. The
+   matched pair showed the card already at rest. That number was measured about the card being
+   **dragged**, not arriving — the right object, the wrong moment, and it read as rigour *because*
+   it had a citation attached.
+3. *"That failure runs at counts of 8 to 18."* Counted: **1 to 22, and 20 of the 90 at 4 or below.**
+
+**Every one is a true statement about the CODE promoted to a statement about the WORLD.** Reading a
+branch and seeing no checks is true of the branch. Concluding no checks ran on that screen requires
+knowing what every *other* path did — and the file that answered it was on disk, unopened.
+
+**SO, BEFORE YOU SAY HOW BIG A HOLE IS: OPEN WHAT THE SYSTEM ACTUALLY PRODUCED.** The last trial's
+`report.json`, the last run's log, the screenshots. It costs one command. All three of these died
+on contact with output that already existed.
+
+**The size of a claim is itself a claim, and it needs its own evidence.** "This is broken" and "this
+has been broken on every leg of every trial" are different assertions; the second is the one that
+gets quoted back, and it is the one nobody measured.
+
+**What caught them, in order:** the prediction note with named falsifiers caught #1's headline
+before the fix shipped. The matched-pair screenshots caught #2. A fresh-context CEO opening a file
+the author never opened caught #3 — *after* two honest self-corrections had already been made in
+the same document, which is precisely why rule 25 cannot be replaced by being careful.
+
+### §12i — A GATE BUILT INSTEAD OF THE WORK MUST BE THE HARDEST GATE YOU WRITE, NOT THE EASIEST
+
+**2026-08-31.** Asked to build the Decider interface, I measured first, found most of its machinery
+already present, decided the rename carried risk with no player gain, and **wrote a gate to lock
+the existing structure instead.** That decision is defensible. What happened next is not, and it is
+the reusable part:
+
+**The gate could not fail for the change it named.** It typed the rule and its seven expected rows
+in as literals and asserted against its own private copy. A fresh reviewer broke it in one line —
+appending `|| appState.isHost` to the real `decisionIsLocal` left every case green while the single
+row the gate existed to protect was broken. I planted it myself to check: green.
+
+**THE PATTERN, AND IT IS SPECIFIC ENOUGH TO WATCH FOR.** When you substitute a gate for work you
+were asked to do, the gate is carrying the *entire* argument for the substitution. That is the
+moment to make it the strictest thing in the suite — and it is exactly the moment the temptation
+runs the other way, because a gate over code you are not changing is easy to write green and there
+is no failing behaviour pushing back on it. **A gate written to justify not doing something has no
+natural adversary. You have to be its adversary.**
+
+**The fix was not a better regex — it was making the rule RUNNABLE.** The predicate lived in a file
+that reaches `appState` and the DOM, so no headless gate could import it; typing out a copy was the
+path of least resistance and the root cause. Extracting it into the pure tier let the gate import
+and run *the same function the game runs*. **If a gate cannot execute its subject, it is asserting
+about a copy — and a copy is the thing that drifts.**
+
+**Three smaller things fell out of it, each worth its own line:**
+
+- **The purity gate then caught the extraction carrying a MODE'S NAME into the pure tier**
+  (`passAndPlay` as a parameter). It is `sharedDevice` now — a capability, not a mode. Mode leaking
+  one tier down, on the day a plan about removing that leak was being built, caught by a counter
+  that did not know why it was right.
+- **"Delegates to the pure rule" was not a strong enough assertion.** `return isDecisionLocal({…})
+  || appState.isHost;` delegates *and* changes the answer. The assertion has to be that the wrapper
+  returns the pure call **and nothing else** — read by paren balance, because the brace-naive regex
+  that replaced it failed a perfectly good wrapper.
+- **A fixture without its recorder is data nobody can re-make.** The events were committed; the
+  script that produced them was not. It can be re-compared forever and never refreshed, so the day
+  the engine legitimately changes the only options are hand-editing recorded data or deleting the
+  gate. **Commit the recorder with the recording.**
+
+**And the honest report is the other half.** *"Step 5 is done"* and *"step 5 should not be built as
+written, here is the weaker thing I put in its place"* are different sentences, and only the second
+one was true. The first is what I wrote until a reviewer with fresh eyes read the tree.
+
+### §12j — A CHECK PINNED TO A VARIABLE'S NAME BLOCKS THE READABILITY WORK IT SHOULD IGNORE
+
+**2026-08-31.** Wyatt, on finding that a gate could not tell a player from a prompt because both
+were called `p`: *"it's unnecessarily lazy code for an AI agent to write. you write the string
+'player' exactly as quickly as the string 'p'."* Renaming them broke **three gates**, none of which
+was testing anything that changed:
+
+```
+w29_coin_question_check    /const n=await coinSlider\(p\.idx,/
+a2_bot_bake_watch_check    /benchReveal\(p,out\.res\)/
+a1_bake_now_check          /lightOvens\(p\)/ … /bakeTurnLive\(p\)/
+```
+
+**Every one asserts about SPELLING, not behaviour.** The coin question still knows what is on the
+table; the bench verdict is still drawn for bots; the ovens still lead to a bake. All three now
+read `\w+`.
+
+**The rule: a source-reading gate may name a FUNCTION, a CONSTANT, an exported symbol or a string
+the product itself contains — never a local variable.** A local name is the one thing a refactor is
+entitled to change without asking, and a gate that forbids it is a gate that forbids cleaning up.
+
+**AND THE RENAME ITSELF BROKE THE CODE ONCE, silently, which is the sharper half.** The first pass
+matched the parentheses around an arrow's PARAMETER and depth-walked from there — so for
+`(p)=>{...}` the match closed immediately after `p`, and only the parameter was renamed:
+
+```js
+setPicks:(player)=>{picks=p||[];if(pickCb)pickCb(picks);}   // p is now undefined
+```
+
+**`npm test` passed. All 62 gates.** It was caught by reading the output of a listing command, not
+by any check. Reverted with `git checkout` and redone with the span running from the parameter to
+the end of the arrow's body.
+
+**Three defences that made the redo safe, and they are cheap enough to always use:**
+1. **A pure swap is verifiable** — `git diff --numstat` must show insertions equal to deletions on
+   every file. A rename that adds or removes a line is not a rename.
+2. **Search for the orphan shape directly** — every scope whose parameter is now `player` while its
+   body still says `p`. That check found zero on the second pass and would have found the bug on
+   the first.
+3. **Some `p` are not variables at all.** `{t:"sidebet",p:bet.idx}` is the event wire format — the
+   seat field every client reads — and `<p style=…>` is a paragraph tag inside a string. Renaming
+   either would have been a genuine break dressed as tidying. The matcher excludes `p:` explicitly.
+
+### §12k — A SECOND PLACE TO DECIDE IS A PLACE HIS ANSWERS GO TO DIE
+
+**2026-08-31.** Wyatt ruled on five questions on the Helm — a second page built beside the Glass
+so he could tap decisions from his phone — between 17:02 and 17:10Z. **No session read them for
+over an hour.** The Glass went on printing *"Blocked on Wyatt (6)"* while five of the six were
+already answered, the engine sat idle on work he had unblocked, and he had to tell us twice:
+*"i answered all of those questions already, multiple times."*
+
+**Nothing was broken.** The Helm saved his taps correctly, into its own state block, exactly as
+designed. The Glass rendered the Chart correctly. Both pages were right, and the answer still
+never arrived — because **no step in any loop read the Helm.**
+
+**THE SHAPE, AND IT IS RULE 23 WEARING NEW CLOTHES:** two surfaces that must agree, kept in step
+by nothing. The project already knows what that costs on the game's screens; this is the same
+fault one level up, in the interface itself. The rule generalises past pages:
+
+- **A CHANNEL NOBODY HARVESTS IS NOT A CHANNEL.** It is a place his words are stored and lost.
+  Before building any new surface he can write to, name the loop step that READS it — a Door
+  step, a hook, a gate. If you cannot name one, you are building a drawer, not a channel.
+- **ONE PLACE TO SEE AND DECIDE.** His words, 2026-08-31. The fold-in put the decision cards
+  inside the Glass, derived from the Chart's own blocked table, and the same harvest hook that
+  guards his ideas now guards his rulings.
+- **THE FIRST QUESTION FOR ANY INTERFACE: what makes this and the record agree?** "The session
+  will check both" is the answer that failed here.
+
+**AND THE MECHANICAL HALF, EARNED ON THE HELM ITSELF BEFORE THE GLASS EXISTED:** a self-
+publishing artifact must **select its own assets BY ID, never by tag or position**. The artifact
+host injects its own reset stylesheet ahead of the page's content, so `querySelector("style")`
+resolves to the HOST's asset — the Helm rebuilt itself around the reset once and **the entire
+stylesheet vanished on the first Record tap**, which Wyatt found. Every element a self-saving
+page rebuilds from carries an id: `#helm-style`, `#helm-state`, `#glass-style`, `#glassState`,
+`#asks`. The comment at `helm-main`'s `fullDoc()` records it at the scene.
+
+## 13. 2026-09-03 — ONE INSTRUCTION SPLIT ONE LIST IN TWO, AND SEVEN INSTRUMENTS WENT QUIETLY WRONG
+
+**Wyatt, 2026-09-02:** *"take every Glass-focused task on the Chart, and compile it into a new list…
+YOU will work on the chart -- the Watch will work on the game."* A reasonable instruction, correctly
+carried out: 44 rows moved from `CHART.md` to `GLASS-CHART.md`.
+
+**Every tool with the old path written into it then broke — in a DIFFERENT way each time, and not
+one of them errored.** They all reported confidently about a file they could no longer fully see.
+
+| tool | what it did instead of failing |
+|---|---|
+| `close_item.mjs` | refused to close **any** of the moved rows — "no open Chart row contains…" |
+| `chartkeeper.mjs --rank` | printed a clean report reading **"0 open rows"** on a 27-row file |
+| `tick_rows.mjs` | same blindness, silently |
+| the Door's step 2 | sent every watch to the top of an empty list |
+| `chart_sweep_conserves_check` | called all 27 rows **lost** |
+| `no_ambiguous_handle_check` | accused whichever row sat above his questions table |
+| `glass_his_five_asks_check` | (later) failed on markup a new feature put on his page |
+
+**THE TELL, AND IT IS THE MOST USEFUL SENTENCE HERE: the sweep gate's error count GREW AS WORK WENT
+WELL** — 38 → 112 → 106 across one night — because every row that got CLOSED moved its handle into
+the half the gate could not see. **An instrument that gets louder the more you fix is measuring
+itself.** If a number moves the wrong way when you succeed, stop and audit the instrument.
+
+### THE OTHER HALF: an instrument that asks for an IDENTITY and accepts one spelling of it
+
+Three separate tools demanded a row's handle and then could not match it:
+
+- `close_item.mjs` matched only a row's **first line** — and every handle is written on line two. **The
+  one identifier the gate asked for was the one it could never match.**
+- `chart_sweep_conserves_check` required the handle to be the **entire** bracket contents, so every
+  row carrying `· size: M` or his `· now: yes` pin was invisible **as an owner** and reported LOST. A
+  gate whose whole job is *"the sweep may never lose a row"* was manufacturing losses out of its own
+  strictness.
+- `no_ambiguous_handle_check` read a row's block to the next row, so the last row before a heading
+  swallowed his BLOCKED-ON-WYATT table — which carries a handle per question. **The accused row
+  CHANGED as rows moved**, which is the tell that a finding is about POSITION, not ownership.
+
+**Match the identity; allow what follows it.** And note the third one's shape: *a handle a row
+MENTIONS is a reference; only a row's own handle line is a claim.* Cross-references make text
+matching worse exactly as a record gets better cross-referenced.
+
+### AND THE SAME DAY'S THIRD FACE: a measured refusal is evidence about a moment
+
+Three rows were built on *"a watch cannot do this"*, each measured honestly and each **stale when
+read**:
+
+- `can_push.mjs` prescribed a `git push --dry-run` form the permission list can never match (it is a
+  PREFIX match), then said *"if it is REFUSED, end the turn"* — **a permanent false STOP at the Door,
+  on a healthy tree.**
+- A row said reading `claude-kit` was forbidden. **He had removed that fence 31 minutes earlier**, and
+  nobody had harvested the ruling.
+- `T-027` said the staging deploy is *"the one step a watch cannot take"* and that granting it was
+  his call. **He had already granted it.**
+
+**Re-measure before believing any row that says a thing cannot be done.** A refusal is a fact about
+one moment, not a standing property of the world.
+
+### THE CHEAPEST MISTAKE OF THE NIGHT, AND IT COST 68 GHOSTS
+
+Restoring a swept row, a session minted the handle `T-203` because it looked free. The sweep gate
+takes its ceiling from the highest **owned** handle, so jumping 134 → 203 invented **68 vanished
+rows** in one keystroke, and two sessions then reasoned about them. **Take the next handle at the
+FRONTIER; never a round number that looks unused.**
+
+### THE SAME NIGHT, THE OTHER DIRECTION: I TRUSTED AN INSTRUMENT BECAUSE ITS ANSWER WAS THE ONE I WANTED
+
+Everything above is about instruments that could not see. **This is about believing one that could
+see and could not explain**, and it happened after a whole night of writing the entries above.
+
+The sea trial's vision judge FAILED ten screens. A session read its `issues` strings and filed five
+bugs, marking two as unverified. **A CEO opened the pictures.** Of the ten: *"the Arrgh! bubble has
+no tail"* is **a button** (`panel.js:1156`); *"the FORECAST ribbon is clipped by the sidebar"* is
+refuted by its own screenshot, ~280px of empty board between the text and the sidebar; and
+*"the Play again! button overlaps the award cards"* has a real symptom with **the wrong cause** —
+the cut is ~15px **above** the button, a scroller edge, not an overlap. The judge had also invented
+the award winners' names on that screen, which `INTENDED-BEHAVIOUR.md:123` already records it doing
+with wind direction.
+
+**THE RULE, AND IT IS NARROW ENOUGH TO USE: A JUDGED `FAIL` IS A POINTER TO A SCREEN WORTH OPENING.
+IT IS NEVER A DESCRIPTION OF WHAT IS WRONG WITH IT.** The judge is good at *"look here"* and
+unreliable at *"because of this"*. Quote its verdict, never its reasoning.
+
+**And the tell was in the report before the CEO was:** the two claims that turned out false were
+exactly the two the session had NOT opened. **The ones it looked at survived.**
+
+⚠ **WORSE, AND THE PART WORTH REMEMBERING: the failed claim carried the words "VERIFIED BY EYE".**
+The session did open that screenshot. What it wrote down was not what it saw — it was its
+*explanation* of what it saw, in the same sentence and the same voice. **Looking at a thing licenses
+you to report the thing. It does not license you to report the mechanism.**
+
+### AND A RANGE REPLACEMENT IS A DELETION OF EVERYTHING YOU DID NOT LOOK AT
+
+Correcting that row, the same session rewrote `CHART.md` between two anchors — `s[:start] + new +
+s[end:]` — and **four unrelated rows were living between them**, one of them another session's
+in-flight work. They were gone, silently, in a commit about something else.
+
+**`chart_sweep_conserves_check` caught it** — *"4 allocated handle(s) are owned by NOTHING"* — the
+gate whose ownership regex that same session had fixed six hours earlier. All four were restored
+verbatim from `HEAD`.
+
+**Anchor an edit to the thing you are changing, not to the thing after it.** If you must replace a
+range, print what is inside it first.
+
+---
+
+## 14. 2026-09-03 — FIVE HARNESSES LIED IN ONE NIGHT, AND EVERY ONE WAS BUILT TO CHECK SOMETHING ELSE
+
+**§10 is *"every instrument lied, and each one lied in a way that read as truth."* Those were the
+project's own gates. This is the layer under them: the throwaway scripts a session writes to check
+a gate.** Five of them were wrong in one session. Not one had itself been checked.
+
+**They are all the same fault in different costumes: the harness could not tell SUCCESS from
+NEVER-RAN, and it defaulted to success.**
+
+| the harness | what it reported | what was true |
+|---|---|---|
+| `harvest_glass.mjs`'s own counter | *"3 of 3 new (verified in the file)"* | the write had deleted **61 of 64** existing entries |
+| `red_proof_at_ref.mjs` | *"RED PROOF HELD — the check can see its subject"* | the gate had crashed and judged nothing |
+| a mutant runner | *"all 8 mutants SURVIVED"* | all 8 had died; it read **no output** as **passed** |
+| its own replacement guard | *"all 8 COULD NOT RUN"* | they ran; the guard matched an **em dash** the Windows pipe re-encoded |
+| an `awk` position check | *"the fix did not work"* | it matched the handle in the file's **header prose**, not the row |
+
+**A sixth was found by a REVIEWER rather than the author** — a CEO measured 15 rows moving, traced
+it to running the tool from a copy *outside* the repo where `import.meta.url` could not reach the
+ledger, and reported that instead of quietly re-running.
+
+### THE RULE, AND IT IS ONE SENTENCE
+
+**Before believing a measurement, ask what the instrument would print if the thing WORKED — and
+check that it prints something different.**
+
+Every failure above collapses two outcomes into one symbol. *"No output"* and *"passed"* both look
+like silence. *"Non-zero exit"* covers both *"the check failed"* and *"the check could not start"*.
+*"The id is in the file"* is true whether the file is complete or empty. **A symbol that two
+different worlds produce is not a measurement.**
+
+### THREE THINGS THAT DO NOT WORK, ALL TRIED THE SAME NIGHT
+
+1. **Writing the trap down first.** The prediction for the harvest tool said, in advance, *"the
+   tool must read back what it wrote and count it from the FILE, never from the array it
+   iterated."* That was built — and the gate could not tell whether it was there. **Naming a trap
+   does not test for it.**
+2. **Adding a guard.** The fix for *"no output means passed"* was a guard requiring a verdict line.
+   The guard matched on a character the pipe re-encoded, and reported eight successful runs as
+   *"COULD NOT RUN"* **while printing their real failures directly underneath.** A guard is an
+   instrument too.
+3. **Knowing the lesson.** The same session wrote the reply to a verdict about fixture shape, and
+   then wrote a fixture with the same fault in a different file, an hour later. **A lesson recorded
+   in the morning does not transfer to the afternoon by itself; it has to be a case in a gate.**
+
+### THE POSITIVE FORM — what a trustworthy harness does
+
+- **Require positive evidence that the subject RAN.** `red_proof_at_ref.mjs` now demands the gate's
+  own verdict text, and separately detects a loader error inside the failure lines — because a gate
+  whose *dependency* is missing is fluent, confident, and failing about the wrong thing, which is
+  far better hidden than a crash.
+- **Assert on the WHOLE output, not the one number you set out to fix.** A verdict found a bug
+  sitting in a field the gate already parsed and then discarded, because every case asserted on
+  `score`. One line on data already in hand would have caught it.
+- **Shape the fixture like the real subject.** A gate whose destination was an EMPTY inbox could
+  not see a write that emptied a real one. Count the real file's sections, heading levels and
+  formats before writing a single assertion.
+- **Prefer ASCII in a detector.** Two of the five failures were an em dash and a re-encoded pipe.
+  A detector that depends on typography is a detector with a locale bug waiting in it.
+- **When a check condemns something you have reason to believe works, suspect the check** — §10's
+  rule, and it held five times out of five here.

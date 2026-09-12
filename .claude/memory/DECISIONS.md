@@ -1,0 +1,2704 @@
+# Wyatt's standing decisions
+
+## PUBLISH TO STAGING FROM A THROWAWAY CLONE, NEVER FROM THE SHARED CHECKOUT
+
+**Earned 2026-09-06, the day three sessions worked in one folder and HEAD was moved under a working
+session three times.**
+
+**THE FACT THAT MAKES THIS NECESSARY, in plain terms: publishing to staging COPIES A FOLDER onto
+the website exactly as it sits.** It does not read git, does not care which branch you are on, and
+does not care what is committed. `deploy-staging.sh:180` says so in its own output — *"note: working
+tree has uncommitted changes; deploying them as-is."* **So whatever is sitting in the folder goes
+live**, including another session's half-finished work.
+
+**THE RECIPE, and it costs about thirty seconds:**
+
+```bash
+git clone --no-hardlinks "$(git rev-parse --show-toplevel)" /path/to/scratch/deploy
+cd /path/to/scratch/deploy && git remote set-url origin https://github.com/wyattroy/pastrypirates
+git fetch origin && git checkout -B pub origin/<the branch you mean>
+bash scripts/deploy-staging.sh "what changed"        # NOT piped — see below
+```
+
+**WHY IT WORKS:** `deploy-staging.sh:38` derives `SRC` from **the script's own location**
+(`dirname "${BASH_SOURCE[0]}"/..`), so running the copy's script publishes the copy. Nothing else
+needs changing.
+
+**WHAT IT BUYS, all four measured on 2026-09-06:**
+
+1. **HEAD in the shared checkout never moves** — so no live session is knocked onto a branch it does
+   not know it is on. That happened three times in one day before this.
+2. **Another session's uncommitted files are not swept onto the live page.** Three were dirty at the
+   moment of that publish and none reached staging.
+3. **`.git` is a real DIRECTORY in a clone**, so the trailing-slash `--exclude=.git/` fault
+   (`deploy-staging.sh:156`) cannot fire. That fault only bites from a worktree, where `.git` is a
+   file — a real clone sidesteps it entirely.
+4. **The tree is CLEAN by construction**, so what ships is exactly the commit you named.
+
+**AND READ THE EXIT CODE OUTSIDE A PIPE, THEN IGNORE IT AND CHECK THE WIRE.**
+`bash scripts/deploy-staging.sh … > log 2>&1; RC=$?` — **never `… | tail`**. Without `pipefail` a
+pipeline's status is the LAST command's, so `false | tail -4` returns **0**. That is exactly how a
+session read a failed deploy as a success this afternoon. Then prove it anyway, because a script's
+own word is not evidence:
+
+```bash
+curl -s "https://staging.playpastrypirates.com/src/ui/stage.js?cb=$(date +%s)" | grep -o 'PP4_STAMP = "[^"]*"'
+```
+
+**Related:** the shared-checkout entry above (a branch switch moves every session on the machine),
+and `docs/GIT-AND-DEPLOY.md` §5 — *"Staging is an address, not a branch."*
+
+
+## ⟨HOSTING⟩ CLOUDFLARE PAGES, ONE REPO, DNS MOVED — and he is on Firebase BLAZE, 2026-09-06
+
+**His ask:** *"scope out using netlify to push staging and production from one repo (pastrypirates)
+so that we can move away from publishing through githubpages and make the repo private"* — then,
+mid-turn: ***"my traffic is about to increase 10000 fold -- i'm pre-launch right now."***
+
+### THE FOUR RULINGS
+
+| he chose | over | why it matters |
+|---|---|---|
+| **Cloudflare Pages, and move the nameservers off Squarespace** | Netlify (which would keep Squarespace DNS); Cloudflare-for-staging-only | At 5,000,000 visits/month Cloudflare is **$0** and Netlify is **~$1,950/month**; GitHub Pages is ~150× over its 100 GB soft limit and **not viable at any price**. *(Sources, both read 2026-09-06: `developers.cloudflare.com/pages/platform/limits` and the Pages pricing page — static assets are unmetered for bandwidth and requests on the free plan; `docs.netlify.com` → Credit-based pricing plans — 20 credits/GB, Free is 300 credits = 15 GB, $0.13/GB at the published Pro rate. Neither figure is from his account, which nobody has opened.)* The apex needs Cloudflare DNS; the risk was measured first — **no MX on the domain**, two TXT records, so the migration risks almost nothing |
+| **Game only — 221 game files, 7.3 MB** | everything as today; game plus `art-review/` kept public | `art-review/` (519 MB), `scripts/` (9.9 MB) and three root design documents stop being public. **`RULES-V2.md` was returning HTTP 200 / 16,685 bytes on the live game** until this |
+| **Build it, staging first** | rewrite the scope first; do production this week too | Staging is the whole proof and it costs nothing — if it is wrong, production is untouched |
+| **Firebase: he is on BLAZE** | — | ⛔ **HE CORRECTED ME AND HE WAS RIGHT** — see below |
+
+### THE FIREBASE CORRECTION, RECORDED BECAUSE THE FAULT MATTERS MORE THAN THE FACT
+
+A session asserted *"your multiplayer runs on Firebase's free tier"* — inferred from the free-tier
+numbers, never checked against his project. He pushed back: *"i am pretty sure i'm in a firebase
+plan that scales with usage -- can you recheck this?"* and then confirmed: ***"yes -- i'm on
+Blaze"***.
+
+**WHAT BLAZE CHANGES: it inverts one risk rather than removing it.**
+
+Multiplayer does **not** break at launch. Simultaneous connections go from 100 to **200,000 per
+database**, so the ceiling that would have taken crew games down in the first hour is not there.
+Download is **$1/GB after the first 10 GB/month** — a bill, not an outage.
+
+⚠ **BUT THE OPEN DATABASE IS NOW A BILLING EXPOSURE, NOT A PRIVACY ONE, AND THAT IS WORSE.**
+Measured unauthenticated, with no credentials: `/` 401, `/games` 401, `/usage` 401 — but
+**`/visits`, `/starts`, `/fins` and `/rooms` all return 200.** `src/net/writers.js` puts every piece
+of live multiplayer state under `rooms/<code>/`, and there is **no sign-in step anywhere in
+`src/net/`** — so whatever the game can write unauthenticated, so can anyone.
+
+**On Spark, abuse hits a ceiling and stops. On Blaze, it bills him.** The ten-minute pre-launch
+action is a Google Cloud **budget alert**; the real fix is scoped security rules. Neither is done,
+and nobody has claimed it.
+
+### THE STANDING LESSON, EARNED TWICE IN ONE SESSION
+
+**Do not state a third party's plan, price or default as fact without opening the page.** Two of
+this session's wrong claims were exactly that shape: his Firebase plan (wrong), and Netlify's
+pricing (right, but uncited — so a fresh CEO could not tell it from memory, and reasonably called
+it out). CEO 227 named it as CEO 223's overclaim fault recurring. **Cite the source and the date,
+or write UNVERIFIED.**
+## THE GLASS'S FIREBASE KEY: A SERVICE KEY, OUTSIDE THE REPO, ONE PER MACHINE
+
+**His ruling, 2026-09-06, through the question UI**, closing the build-stopper CEO 233 found:
+**"A Firebase service key, kept outside the repo on each machine."**
+
+**THE PROBLEM IT SOLVES, in CEO 233's words:** *"The plan says the page must refuse to answer
+strangers, and it also says the Blade must be able to read it while you are asleep. Both cannot be
+true unless the Blade carries a key — and the plan never says where that key lives."* This repo is
+**public** (`CURTAIN-DELIVERED.md:3`), so the key can never be committed.
+
+**WHAT HIS RULING MAKES NON-NEGOTIABLE:**
+
+1. **The key path is in `.gitignore` BEFORE the first key is written.** A gate asserts it. Not after.
+2. **A watch with no key FAILS LOUDLY.** It must never quietly skip the harvest and publish anyway
+   — that is a republish without a harvest, the single act that deletes his words.
+3. **Per-machine, hand-installed.** Blade and Mac separately; a fresh machine is a two-step setup,
+   written where the Door finds it rather than in a session's memory.
+
+**⚑ AND CEO 233 FOUND THAT HE ALREADY HAS RULES, which nobody had read.** Measured: `visits`,
+`starts`, `rooms`, `fins`, `presence` answer **200** unauthenticated; `usage`, `games` and the root
+answer **401**. A factory-default database answers the root read — **his does not, so non-default
+per-path rules exist in his console today.** The job is *editing rules whose text is unknown*, not
+writing them from nothing. **Read them first; do not estimate this work before someone has.**
+*(Reads only were measured. No write was attempted and nothing here claims anything about writes.)*
+
+**✅ MIGRATION — HIS RULING, same day: "Start the new store empty — the Chart already has it all."**
+And the reasoning is his and it is correct: an idea or ruling reaches the Chart within minutes of
+him typing it, so `glassState` is a **staging area, not the record.** There is nothing to migrate,
+so CEO 233's finding 4 is answered by a DECISION rather than by code — the cheapest kind of answer.
+⚠ **The one gap he accepted is closed by building, not banked:** anything typed between the last
+harvest and the switch would live only in the artifact. **So the final act before cutover is a
+harvest, gated — refuse to switch while it returns anything at all.** A clean read proves the gap
+is empty. Minutes, and it removes the only way his choice can cost him a word.
+
+**✅ CUTOVER — HIS RULING, same day: "Clean cut — one moment, old page retired immediately."**
+CEO 233's finding 5 is answered by REMOVING the two-store day rather than managing it, so rule 23
+has nothing to bite on. **The order is the safety, and it is one sitting:** harvest the artifact
+and gate on EMPTY → switch → retire the artifact in the same minute, marked dead on its own face →
+**hand him the new link in the reply he reads.** ⚠ **His link CHANGES here; a cutover that does not
+put the new URL in front of him has not finished** (rule 27). Retiring before harvesting loses the
+gap; handing him the link before switching sends him to a page that is not live. Neither is
+recoverable by apology.
+
+**NOTHING IS OPEN. The plan is ready to build** — and **two of CEO 233's three required answers
+were decisions, not code**, which is why the estimate came DOWN (3–4 days → 2–3) rather than up.
+
+**THE ONE REMAINING BLOCKER IS HIS HANDS, not a session's:** the Firebase rule, in his console —
+and per CEO 233 it must be READ before it is edited, because per-path rules already exist there and
+nobody has seen them.
+
+**Related:** `SCOPE-GLASS-OFF-ARTIFACT.md` *(retired 2026-09-06; recover with `git show 6733f743~1:.planning/wyclau/SCOPE-GLASS-OFF-ARTIFACT.md`)*,
+re-sized 3–4 days, and CEO Review 233 in `CEO-REVIEWS.md` *(retired 2026-09-06; recover with `git show 6733f743~1:.planning/CEO-REVIEWS.md`)*.
+
+> ### ⚑ AND `T-265` NOW HAS A MEASURED CAUSE — it was recorded as UNKNOWN on purpose, and CEO 233 settled it.
+>
+> The game's real paths are `rooms/<code>/…` (`src/net/watchers.js:33-165`,
+> `src/net/writers.js:50-138`) and `visits`/`starts`/`fins` (`src/ui/usage.js:36,56`). **Every one
+> answers 200.** The probe that declared multiplayer down read `games`, `usage` and the root —
+> **the three that hold nothing.** So the cause is not a rules change, an expiry, or anything about
+> his console: **I read the wrong doors.** Written here so the UNKNOWN can be retired honestly
+> rather than left as a permanent open question.
+
+
+## ⚠ "WORK ON A NEW BRANCH" CANNOT ISOLATE YOU — ONE MACHINE HAS ONE CHECKOUT
+
+**Wyatt, 2026-09-06, after a session filed a false production outage:** *"do your work on a new
+branch so you stop breaking things."* **The instruction is right and it does not do what it sounds
+like, and the next session must know that before it obeys.**
+
+**`git checkout -b` moved the SHARED WORKING TREE.** Worktrees are retired here (`CLAUDE.md` §3),
+so this Mac has exactly one checkout and one `HEAD`. Creating `sep06-glass` did not give this
+session a private branch — **it moved every session on this machine onto it**, including the live
+SFX session holding `T-073`, which had uncommitted edits to `src/ui/stage.js` at that moment and was
+never told. Its edits came along for the ride.
+
+**Nothing was lost this time** — `sep06-glass` contains everything `sep06-sfx` had, plus two
+commits — **and the failure mode is real and quiet:** the neighbour still believes it is on
+`sep06-sfx`, and a later `git push origin sep06-sfx` from it would push a branch that does not
+carry its work.
+
+**WHAT TO DO INSTEAD, when he asks you to get out of another session's way:**
+
+1. **Read `IN-HAND` and the `🔒 CLAIMED` blocks in `CHART.md` FIRST.** If another session holds an
+   item on this machine, a branch switch is not yours to make alone.
+2. **Separate by FILES, not by branch** — the mechanism this project already uses. Commit by
+   explicit pathspec, never `git add -A`. The Glass tick did exactly that the same hour and left
+   the neighbour's `src/ui/stage.js` untouched, which is the worked example.
+3. **If a switch really is needed, say so in the reply he reads and name who else is on the
+   machine**, so the collision is visible rather than discovered later by a push that goes nowhere.
+
+**AND IT BREAKS A HOOK, WHICH IS HOW IT WAS FOUND.** `playtest-checklist-last.cjs` attributed the
+neighbour's uncommitted `src/ui/stage.js` edit to this session and demanded a playtest sheet for it.
+Full account and the repair: `CLAUDE-DIR-REPAIRS-PENDING.md` *(retired 2026-09-06; recover with `git show 6733f743~1:.planning/wyclau/CLAUDE-DIR-REPAIRS-PENDING.md`)*.
+**A sheet was NOT written** — it would have described somebody else's unfinished audio work, which
+this session cannot see or verify, and handing him fabricated QA is the thing today already went
+wrong twice by doing.
+
+
+## ⛔ I TOLD HIM HIS LIVE GAME WAS BROKEN. IT WAS NOT. HE DISPROVED IT IN A MINUTE.
+
+**2026-09-06, ~18:2xZ.** A session filed `T-265` — *"MULTIPLAYER IS DOWN ON THE LIVE SITE, AND IT
+FAILS SILENTLY"* — pushed it to the shared branch, and published it to his Glass **as the page's
+headline**, with a paragraph telling him to go change a rule in his Firebase console.
+
+**Wyatt, within the hour:** *"you are wrong, it is not down -- i just started a nultiplayer game"*,
+with a screenshot of two windows on `playpastrypirates.com`, one of them Private, both on DAY 1 of
+an identical board, CAPTAINS showing **wyhost, wyguest, Dough Hook, Flaky Jack** in each. Two real
+people in one synced room. **The game had been working the entire time.**
+
+### WHAT THE PROBE ACTUALLY MEASURED, AND WHY IT PROVED NOTHING
+
+It read `games/<code>`, `games`, `usage` and the database root, and wrote to an invented
+`_glassgate_probe` path. Every one refused. **Not one of those is a path the game uses.** The four
+"confirmations" were four readings of the same wrong subject, and stacking them felt like rigour.
+
+### THE RULE THAT WAS BROKEN IS THE OLDEST ONE IN `CLAUDE.md`, AND IT WAS QUOTED ON THE WAY PAST
+
+> *"When a check condemns something known to work, suspect the check first."* (§1)
+
+**A probe said the live game was broken. The live game was not broken. The probe was believed.**
+Worse: minutes earlier the same session had written *"a gate that goes green on its first run is
+exactly what rule 6 says to distrust"* — and then trusted that identical instrument completely the
+moment it turned red. **Scepticism was applied to the green and abandoned at the red**, which is
+not scepticism; it is looking for a finding.
+
+### THE PART THAT MAKES IT WORSE THAN A WRONG ANSWER: THE BLAST RADIUS
+
+An ordinary wrong conclusion costs a correction. This one was **pushed to a shared branch and
+published to the one page he trusts for status**, headline position, with an action item pointing
+at his own console. **He had to go and disprove his own status page with two browsers.**
+
+**SO: A CLAIM THAT PRODUCTION IS BROKEN IS NOT AN ORDINARY FINDING AND MUST NOT TRAVEL LIKE ONE.**
+Before it reaches his Glass, the shared branch, or a sentence addressed to him:
+
+1. **PLAY THE THING (rule 19).** Two tabs, host and guest, as a person. That is thirty seconds and
+   it is decisive. *This session drove the browser and still never completed a join* — it read the
+   database instead of finishing the game it had already started.
+2. **Name the path/flow the real product uses, and check THAT.** A probe on a path invented for the
+   probe measures the probe.
+3. **Say UNKNOWN rather than DOWN.** The record already carries three wrong causes in one day
+   (see the frozen-Glass entries above). A fourth confident one is a pattern, not an accident.
+
+### AND THE FIX FOR THE *NEXT* WRONG THEORY IS NOT ANOTHER THEORY
+
+Why the probe was refused is **still unknown, deliberately**. A plausible mechanism exists (RTDB
+rules do not cascade upward, so a parent read can be denied while the children the game uses are
+fine) — **unverified, recorded as a guess, and not to be repeated as a cause.**
+
+**His instruction the same minute, and it stands:** *"do your work on a new branch so you stop
+breaking things."* Work moved to `sep06-glass`. The retraction went to `sep06-sfx` first
+(`2eca2438`), because leaving a fabricated outage on a branch other sessions read is itself the
+breakage he is talking about.
+
+**Related:** `scripts/qa/glass_store_write_locked_check.mjs` was DELETED, not fixed — it measured an
+invented path and concluded *"PASS — only he can write"*, equally unearned. **A gate that cannot see
+its subject is worse than no gate, because it is reassuring** (`docs/HARD-WON-LESSONS.md` §3).
+
+
+## THE GLASS MOVES OFF THE ARTIFACT — AND THE THREAT IS **WRITE**, NOT READ
+
+**His ruling, 2026-09-06, two questions through the UI.** First: move his writing off the artifact
+into Firebase, so the page becomes an ordinary page any session can publish — chosen over a
+read-only staging mirror, a Mac hand-off, and doing nothing. Then, asked how private it needed to
+be, he picked real authentication and said why:
+
+> *"2 -- If other people are able to add or change parts of my Glass watch, they could completely
+> break the game."*
+
+**HE WAS OFFERED A MENU ABOUT CONFIDENTIALITY AND ANSWERED ABOUT INTEGRITY.** All four options put
+to him traded off **who can READ his notes** — curtain, `noindex`, `robots.txt`, a rule to stop the
+database handing his words out. **None of them was the danger, and the axis he named was not on the
+table.**
+
+**WHY HE IS RIGHT, AND IT GENERALISES BEYOND THIS BUILD: the Glass is not a page a watch DISPLAYS,
+it is a page a watch OBEYS.** An idea he types becomes a Chart row a watch takes as its one item. A
+**DO NOW** press becomes `chartkeeper --do-now` at rank 9,000,000, displacing whatever was pinned. A
+ruling becomes an entry in this file that every later session treats as settled law. **So an open
+write path is not a leak — it is a stranger holding commit-adjacent authority over an autonomous
+build system.** The harvest is the trust boundary, and it trusts the store totally, because until
+now the store was an artifact only he could write.
+
+**THE STANDING LESSON FOR ANY FUTURE "HOW LOCKED DOWN SHOULD THIS BE?" QUESTION: ask about WRITES
+FIRST.** This project's surfaces feed instructions to unattended sessions. Confidentiality is the
+second axis here, not the first, and a question that only offers the second one invites a wrong
+answer that sounds reasonable.
+
+**CONSEQUENCES, so nobody re-litigates them:**
+- **Auth on writes is load-bearing, not hardening.** Shipping reads-locked and writes-open solves
+  the lesser half and leaves the whole danger standing.
+- **A signed-out page must REFUSE to write, visibly** — never silently drop what he typed.
+- **The Firebase rule is HIS HANDS**, in his console; no session can reach it, like the `T-220`
+  hook edits. It is a blocker to name now, not on the day the work is ready.
+- Confidentiality still applies: the database answers unauthenticated reads
+  (`INBOX-20260906T2010Z`), no rules exist in this repo, and staging is a public URL. Real auth
+  covers both axes, which is what the extra day buys.
+
+**Scope:** `SCOPE-GLASS-OFF-ARTIFACT.md` *(retired 2026-09-06; recover with `git show 6733f743~1:.planning/wyclau/SCOPE-GLASS-OFF-ARTIFACT.md`)*.
+Sized 2–3 days, tooling not game code. **Related:** the defect it closes is his own —
+*"once the blade woke up, the page did not update"* — recorded above.
+
+
+## ⟨T-142⟩ The captains bar (bottom of the tablet screen) still reads through the very FIRST prompt of a voyage — — 2026-09-06T17:54:55.080Z
+
+Asked on the Glass: *"⟨T-142⟩ The captains bar (bottom of the tablet screen) still reads through the very FIRST prompt of a voyage — "choose yer recipe" — because that card is not a modal and the fix already shipped only watches modals. Measured fresh, not reasoned: posed a real tablet (820×1180) solo voyage to the recipe-choice prompt, screenshot at .planning/posed/t142-captains-under-recipe-choice-tablet-820x1180.png. The card sits at CSS z-index 30 with no dimming behind it at all (confirmed: #pp4Prompt carries class pp4Recipes, which paints no backdrop), while the shipped fix only hides the bar when a .modalOverlay is open. In this run the top captain row (Davy Scones, pink) is entirely covered by the card — not a sliver cut mid-word this time, but the same mechanism the row already named. Two fixes were considered and NOT built, because they trade off differently and it's a taste call:"* — **Wyatt ruled "Leave it — a player only sees this for a few seconds at the very start of a voyage, before any dubloon counts exist to hide"**, 2026-09-06T17:54:55.080Z.
+
+**The alternatives he did not pick**, as his card showed them:
+- Extend the existing
+- Instead, shrink/reposition ONLY the recipe-choice card so it never physically overlaps #pp4Cap on tablet — narrower fix, but now two different rules decide when the bar is covered instead of one
+- Leave it — a player only sees this for a few seconds at the very start of a voyage, before any dubloon counts exist to hide  ← **his pick**
+
+<!-- harvest-id: RULING-20260906T175455Z-t142-recipe-choice-captains-bar -->
+
+## ⟨T-101⟩ Should the new credits page (credits.html) carry Google Analytics like About and Rules do? Your T-206  — 2026-09-06T17:55:06.580Z
+
+Asked on the Glass: *"⟨T-101⟩ Should the new credits page (credits.html) carry Google Analytics like About and Rules do? Your T-206 ruling named three pages for analytics — "the game, About and Rules" — and Credits wasn't one of them, because it didn't exist yet when you ruled. CEO 222 flagged this rather than guess: read as a list, Credits is excluded; read as your underlying principle ("the public pages only"), Credits is a new public page and belongs. If people open the link you send them, you'd probably want to know."* — **Wyatt ruled "Add it — one line, <script type="**, 2026-09-06T17:55:06.580Z.
+
+**The alternatives he did not pick**, as his card showed them:
+- Add it — one line, <script type=  ← **his pick**
+- Leave it out — Credits stays exactly as ruled, a fourth page needs its own ask
+- Something narrower — count views but not who they are, if that's even a meaningful distinction here
+
+<!-- harvest-id: RULING-20260906T175506Z-t101-credits-analytics -->
+
+
+## THE BLADE GOING QUIET IS NOT A FAULT — HE SHUTS IT DOWN WHEN HE CAPS OUT
+
+**Wyatt, 2026-09-06, unprompted, correcting two sessions in a row:** *"THe blade went quiet because
+i ran out of usage for the week and shut it down intentionally -- not a fault"*
+
+**So a gap in `.planning/wyclau/status/Wy-Blade.md`'s Bell log is a DELIBERATE SHUTDOWN until he
+says otherwise. Do not open an investigation into one, and do not report it to him as a symptom.**
+
+**What it cost to learn, and why this entry exists rather than a line in a commit.** On 2026-09-06
+his Glass had not rebuilt in 53 hours. Two causes were put to him in turn and **both were wrong**:
+
+1. *"the interactive publisher session died"* — asserted from `ListAgents` **run on the Mac**, which
+   cannot see a Blade session whether it is alive or dead. Rule 6: an instrument answering honestly
+   about the wrong subject.
+2. *"the Blade stopped — so guard against that machine taking the status page with it"* — CEO 229's
+   correction of (1), and its timing was exact (last Bell ring 11:58:01Z, five minutes after the
+   page last rebuilt, same machine). **The arithmetic was right and the reading was still wrong.**
+   It turned his own deliberate act into a hardware risk to engineer against.
+
+**THE REUSABLE LESSON, and it is sharper than either finding: a machine going quiet is an
+OBSERVATION, never a diagnosis — and this project has a person who can simply be asked.** Both
+sessions reasoned from logs toward a cause when the cause was a decision he had made and would have
+stated in one line. **Ask him before building a theory about his own machines.**
+
+> ### ⛔ THE PARAGRAPH THAT WAS HERE NAMED THE WRONG DEFECT, AND HE CORRECTED IT WITHIN THE HOUR
+>
+> It said: *"It is not the freezing that is the defect — it is that nothing told him."* **Wyatt,
+> 2026-09-06, immediately:** *"No -- the actual gap is that once the blade woke up, the page did
+> not update."*
+>
+> **He is right and the evidence was already on the page nobody re-read.** `status/Wy-Blade.md`
+> shows the Bell ringing again at **13:01:30Z** and then **at least ten more times** — 13:18,
+> 13:48, 13:58, 14:08, 14:48, 15:08, 15:48, 16:08, 16:38, 16:58 — while the Glass sat at its
+> 09-04 11:53Z generation the whole time. **The relay was alive for very nearly four hours
+> (13:01:30Z to 16:58:02Z = 3h57m) and his status page moved not at all.**
+>
+> ⚠ **"AT LEAST", AND THE COMMIT THAT LANDED THIS ENTRY (`56b309ce`) SAID "ELEVEN MORE" AND THEN
+> LISTED TEN.** Counted off the file: eleven timestamps total, so ten AFTER the wake. And the file
+> was published at 17:10Z, so any ring later than 16:58:02Z is simply not in it — the true figure
+> is a floor, not a total. **Corrected here rather than left standing, because this entry exists
+> to stop the next session re-deriving the wrong defect, and a record that miscounts its own
+> evidence is exactly the overclaiming CEO 227 and 229 both named.**
+
+**SO THE DEFECT IS NOT THE FREEZE AND NOT THE SILENCE — IT IS THAT A RUNNING RELAY CANNOT MOVE HIS
+PAGE.** The page being still while the Blade is off is correct and expected. **The four hours after
+it woke are the fault**, and they are a fault every single time, not just after a shutdown.
+
+**AND THE DESIGNED CHANNEL FOR THIS IS BROKEN END TO END, WHICH IS WHY NOBODY NOTICED.**
+`GLASS-NOTE.md`'s own header promises *"The next watch (the relay session the Bell rings) reads
+this on its pulse, folds it into the page."* **No watch the Bell rings can publish** — every one
+is `claude -p`. So the note file is a relay pointed at a publisher that does not exist on that
+machine, and each half looks healthy on its own: watches run, notes get written, and the page
+never moves. **A handoff whose receiving end was never built does not report as broken.**
+
+**Related:** `GLASS-UPDATE-SESSION.md` *(retired 2026-09-06; recover with `git show 6733f743~1:.planning/wyclau/GLASS-UPDATE-SESSION.md`)*
+(only an interactive session can publish; every Bell-rung watch is `claude -p` and never can), and
+CEO Review 229 in `CEO-REVIEWS.md` *(retired 2026-09-06; recover with `git show 6733f743~1:.planning/CEO-REVIEWS.md`)*.
+
+
+## ⟨T-206⟩ The analytics tag is built, gated, and green — but nobody can confirm the ten-second thing it all rest — 2026-09-06T17:23:03.302Z
+
+Asked on the Glass: *"⟨T-206⟩ The analytics tag is built, gated, and green — but nobody can confirm the ten-second thing it all rests on: is G-2KK6EZDZSP actually a live property in your Google account? The id was copied wholesale from an older Firebase config, so "the account exists" has only ever been "likely, not certain" — no session has web access to check it, and if it turns out to be dead, the tag ships to nothing and nobody would ever know."* — **Wyatt ruled "Open analytics.google.com and confirm G-2KK6EZDZSP is there"**, 2026-09-06T17:23:03.302Z.
+
+**His note, verbatim:** *"Confirmed -- it's there."*
+
+**The alternatives he did not pick**, as his card showed them:
+- Open analytics.google.com and confirm G-2KK6EZDZSP is there  ← **his pick**
+- Ship it as-is and find out from real traffic
+- Create a fresh property instead
+
+<!-- harvest-id: RULING-20260906T172303Z-t206-confirm-ga-property -->
+
+## ⟨T-220⟩ A real two-line fix keeps getting found and can't be applied: THREE watches now (CEO 180, and again 20 — 2026-09-06T17:23:26.136Z
+
+Asked on the Glass: *"⟨T-220⟩ A real two-line fix keeps getting found and can't be applied: THREE watches now (CEO 180, and again 2026-09-04, CEO 204) have written the exact fix for the sea-trial-depth hook not mentioning --gear=/--reason=/--explain, and a NEW bug along the way (a Windows path-separator bug that makes scripts/, .claude/, docs/ all misread as "game code" on this machine) — and every attempt to Edit .claude/hooks/qa-gear-first.cjs or .claude/hooks/lib/game-code.cjs is refused: "which is a sensitive file." Both fixes are fully written out, red-proofed, and sitting ready in .planning/CHART.md's T-220 row and scripts/qa/hook_gear_override_reachable_check.mjs."* — **Wyatt ruled "You (or an Advisor session with you present) apply the two small edits yourself, five minutes, exact text is in the T-220 row"**, 2026-09-06T17:23:26.136Z.
+
+**The alternatives he did not pick**, as his card showed them:
+- You (or an Advisor session with you present) apply the two small edits yourself, five minutes, exact text is in the T-220 row  ← **his pick**
+- Find whatever setting fences .claude/hooks/ from an unattended watch and loosen it, if you want future watches to close items like this one
+- Leave it — it's cosmetic-severity (a missing hint in a denial message, plus a hook that's stricter than it needs to be on this OS) and not worth your time
+
+<!-- harvest-id: RULING-20260906T172326Z-t220-hooks-write-access -->
+
+## ⟨T-143⟩ On the last screen of a voyage (the End of Voyage card), a phone player must scroll to see who won eac — 2026-09-06T17:23:31.304Z
+
+Asked on the Glass: *"⟨T-143⟩ On the last screen of a voyage (the End of Voyage card), a phone player must scroll to see who won each award — a tablet player sees all four awards plus the full stats table at once, no scrolling. T-023's original complaint (the "Play again!" button visually covers a winner's name) is now DISPROVEN and closed — measured twice on two builds a day apart, 0px overlap; the true cause is that a phone's screen is short enough that the scrollable list of 4 award cards + a stats table (946px of content) doesn't fit in the ~470px available above the button, so 2 of 4 cards (including a winner's name, sliced through the letters) sit below the fold until you scroll. Freshly re-verified on TODAY's build (2026.09.04.2) with a working, non-crashing instrument — a session with the Artifact tool still needs to attach the two pictures (.planning/posed/t143-eov-phone-390x664-awards.png, t143-eov-tablet-820x1180-awards.png) to the Glass for you to see directly."* — **Wyatt ruled "Leave it as-is — scrolling on a phone to see all your awards is a normal, acceptable pattern"**, 2026-09-06T17:23:31.304Z.
+
+**The alternatives he did not pick**, as his card showed them:
+- Leave it as-is — scrolling on a phone to see all your awards is a normal, acceptable pattern  ← **his pick**
+- Shrink the award cards/stats table on phone so all 4 fit without scrolling, at the cost of smaller text/art
+- Show only the ONE card for the player's own seat by default on phone, with a tap/swipe to see the others
+
+<!-- harvest-id: RULING-20260906T172331Z-t143-eov-phone-scroll -->
+
+
+## ⟨T-261⟩ HE FINISHED THE PRD — 12 rulings in the comment boxes, 2026-09-06 16:27–16:36Z
+
+**He said so himself: *"I finished my rulings."*** All twelve carried verbatim into `INBOX.md`
+(`INBOX-20260906T1627…`–`163615Z`) by `harvest_glass.mjs`. This is the digest; the INBOX has his
+exact words.
+
+### THE MAPPINGS, AS HE RULED THEM
+
+| moment | file | note |
+|---|---|---|
+| **Battle CALLED** (the shout, not the outcome) | the sword clash, latest clip | *"I want the clashing sound to happen when battles are first called; the sound is exciting."* ⛔ **~~This MOVES it — it currently plays on the resolve.~~ THAT WAS FALSE. HIS RULING IS ALREADY SATISFIED IN CODE — change nothing.** `src/orchestrator.js:631` calls `playBattleEngage()` one line BEFORE the opening ⚔️ line, and `EVENT_SOUND` has `battle: null` (`src/ui/audio.js:120`) because the `battle` event only fires once the fight has resolved — *"the clash moved to engage time"*. The claim came from the PRD's own "fight-resolves / clash slot" framing, repeated without opening the file. **Rule 6, and it nearly sent a watch to "fix" correct code.** What is left: confirm by ear, and use Luis's latest clip. |
+| **A shot LANDS** | `PP_SFX_Cannons` | strictly after the 2nd coin flip of a battle, ~100ms, **no overlap**. Derive from when the flip audio ends (rule 9); the 100ms is his example, not a constant. |
+| **Your turn** | `PP_SFX_Bells` | ⚠ **supersedes his own morning ruling** — see below |
+| **New day** | **NOTHING** | *"New Day should NOT use this sound. New Day should use nothing right now."* Later: a wind whoosh or weather-vane creak, because the wind changes direction daily. Brief written: [`LUIS-SFX-ROUND-3-BRIEF.md`](../../.planning/his-words/LUIS-SFX-ROUND-3-BRIEF.md) |
+| **Turn timer runs out** | `PP_SFX_Alarm` | ⚠ **the feature does not exist** — see below |
+| **Coin flip** | unchanged, existing file | **CLOSED. Do not touch.** `CoinFlip_Start`/`_End` are out of scope. |
+| **Drumroll** | `PP_SFX_Drumroll` | *"do the drumroll audio timing check, and match the narration box timing to the sfx file"* — **the box moves to fit the audio, not the reverse.** The 2.55s window is no longer fixed. |
+| **Ambience** | ocean bed + 5 gulls + 6 creaks | per Luis's spec: a randomiser over the clips **with randomised stereo placement**. Convert any WAV to MP3. |
+| **Music** | the smallest track, looping | see the 3-phase switch below |
+
+**Also ruled:** ONE PASS for the whole thing (`q3`); music tracks stay out of the game bundle except
+the smallest (`q6`); **level everything together, once, after all files are in** (`q7`, he took the
+recommendation).
+
+### ⚠ FOUR THINGS THAT COLLIDE, AND NONE OF THEM SHOULD BE SMOOTHED OVER
+
+1. **HE OVERRODE HIS OWN RULING FROM THIS MORNING.** The 9:5x AM block below says *"'Your turn':
+   WAIT FOR A DEDICATED FILE FROM LUIS"*, chosen over using an existing file. **That is superseded:
+   `q4`, *"use Bell."*** The morning ruling stands only as history. **Do not resolve this by
+   averaging the two — the later one wins outright.**
+2. ⛔ **"YOUR TURN" STILL COLLIDES WITH `audio.js` D-07 AND HE HAS NOT RULED ON THAT.** The standing
+   rule is that **everyone hears the whole table**; a your-turn cue is by definition per-player. He
+   assigned it a FILE; he did not lift the RULE. He was asked once and it stayed open. **Ask again
+   before wiring it — this is a genuine design contradiction, not an oversight to route around.**
+3. ⛔ **THE ALARM HAS NO TRIGGER TO ATTACH TO. His own words: *"This is not built into the current
+   game though."*** There is no turn-timeout event. **Wiring this sound means BUILDING the
+   turn-timer-expiry feature first** — a game-behaviour change, not a file drop, and much bigger
+   than the rest of the pass. **Price it separately and put it to him.**
+4. ⚠ **HIS SWORD RULING CONTRADICTS A MEASUREMENT ON THIS PROJECT'S OWN RECORD, and he has chosen.**
+   `src/ui/audio.js:52-53` states the shipped `battle-swords.mp3` is clipped inside the file at
+   **+0.2 dBFS** — ⚠ **but `docs/AUDIO.md:31` says DEFECT-3 is "UNVERIFIED either way", so the
+   repo contradicts ITSELF here and an earlier draft of this entry said "genuinely clipping",
+   which is firmer than the record supports.** He rules: *"the swords are not clipped according to Luis; accept his ruling
+   and use the latest clip available."* **These are reconcilable and that is the likely answer: the
+   measurement was of the file SHIPPED, which may not be Luis's LATEST clip.** So — fetch the latest
+   clip, **re-measure THAT one**, and report the number. **Do not quietly drop the measurement, and
+   do not re-litigate his ruling.**
+
+### AND ONE NEW FEATURE HE SLIPPED IN — it is not a sound swap
+
+**`s6`, verbatim:** *"Design a 3-phase switch for the sound as the player clicks the sound button:
+Music+SFX; then SFX only; then mute; and return to Music + sfx after. When the song plays through
+once, do not restart it playing immediately -- wait 2 minutes."*
+
+### THE TWO BLOCKERS, PUT TO HIM AND SETTLED — 2026-09-06 ~16:4xZ, question UI
+
+1. ⭐ **"YOUR TURN" IS HEARD BY THAT PLAYER ONLY. The first sanctioned exception to D-07, ever.**
+   He was shown `src/ui/audio.js:300` verbatim (*"no `appState.mySeat`/`isLocalTo` gate anywhere on
+   this path, ever — the whole table is audible"*), was offered the rule-preserving alternative
+   (everyone hears the bell on every turn change), and **rejected it** — a bell ringing four times a
+   round is not a signal to you. **He took the cost knowingly.**
+   - **The exception is THIS SOUND ONLY.** Everything else on that path stays ungated.
+   - **The next sound that wants a seat gate is a fresh decision and comes back to him.**
+   - **Whoever wires it MUST update the `audio.js:300` comment in the same commit** — it says
+     "ever", and leaving that beside code that breaks it is how the next reader reports a bug.
+   - Recorded in [`docs/INTENDED-BEHAVIOUR.md`](../../docs/INTENDED-BEHAVIOUR.md) at the top,
+     because a per-player sound is exactly what a two-tab session reports as a host/guest defect.
+2. **THE ALARM IS PARKED.** *(Recommended, and he took it.)* No turn-timer-expiry event exists —
+   searched, nothing fires when a turn's time runs out — so the buzzer has nothing to attach to.
+   **Wire everything else; the Alarm waits for the feature.** Building turn-timer expiry is a real
+   game-behaviour decision (does the turn auto-pass? what does the table see?) and is not part of
+   wiring Luis's files.
+
+### ⚠ TWO THINGS HE WAS NOT SHOWN, FOUND BY CEO 226 — one means he ruled on a false premise
+
+1. **`q2` IS THE ONE BOX HE LEFT BLANK, and he said "I finished my rulings."** It asked him to
+   confirm the probable mappings — **Cannons, ClockTick, Ocean_Loop, the Seagulls, the BoatCreaks.**
+   Four of those he settled elsewhere in his notes (cannon on landing, ambience per Luis's spec).
+   **`ClockTick` he never confirmed anywhere.** It is the warning tick by elimination once the Alarm
+   took timer-expiry — **that is an inference, not his ruling. Do not wire it as confirmed.**
+2. ⛔ **`q7` ASKED HIM A QUESTION WITH A FALSE PREMISE AND HE ANSWERED IT.** The PRD told him
+   *"`SFX_VOLUME` … every value is still `1`"*. **It is not.** `src/ui/audio.js:54-61` already
+   carries six real values — `battle-swords: 0.46, coin-flip: 1.45, fishing: 0.81, ship-move: 1.72,
+   store-ingredient: 2.79, storm: 0.86`. **Levelling has partly happened.** His answer ("level
+   everything together, once, at the end") most likely survives the correction — levelling the whole
+   set once still covers the six — **but he was not shown the true state, so treat it as his answer
+   to the question as asked, and re-put it to him if the plan starts depending on it.**
+
+### AND ONE NEW FEATURE, restated — it is not a sound swap
+
+**This changes an existing control's behaviour** — today the button is a two-state mute. Three
+states, cycling, plus a 2-minute silence between loops of the track. **Real game code, its own
+consistency sweep (rule 8: every surface that shows the sound button), and its own place in the
+plan.** It is not part of "wire Luis's files".
+
+## ⟨T-261⟩ TWO RULINGS HE WROTE HIMSELF, IN THE PRD'S COMMENT BOXES — 2026-09-06 16:25Z
+
+**He asked for the first one to be recorded, in those words: *"record this ruling somewhere."*** This
+is that somewhere. Both came through the comment boxes on
+https://claude.ai/code/artifact/ed82256e-9196-4ada-bbef-60c4adc7df8d, harvested verbatim into
+`INBOX-20260906T162549Z`.
+
+### 1. ⛔ THE COIN FLIP IS SETTLED AND CLOSED. DO NOT TOUCH IT.
+
+**His words:** *"The coin flips can be ignored -- i ensured through code that all coin flips are the
+same consistent length, and that they match the original SFX file; so you don't need to do anything
+with teh coin flip sfx."*
+
+**THIS KILLS THREE THINGS THE PRD PROPOSES, and the PRD has not been corrected yet:**
+- §3's second "defect" — *"the coin-flip's embedded landing, which today can't be separated because
+  different browsers render the flip animation for different durations."* **The premise is false.**
+  He fixed the duration in code; the flip is a consistent length and matches the file.
+- §2's `PP_SFX_CoinFlip_Start.mp3` and `PP_SFX_CoinFlip_End.mp3` rows, both marked **certain**. They
+  are not needed. **Two of Luis's 27 files are out of scope.**
+- Any levelling or re-wiring of `coin-flip.mp3`.
+
+⚠ **A "certain" tag in that PRD was an inference by a session that could not hear the audio and did
+not know what he had already fixed in code. Two of the five "certain" rows were wrong. Treat the
+whole confidence column as unconfirmed until he says otherwise.**
+
+### 2. THE CANNON FIRES ON THE LANDING, NOT THE SHOT — AND IT MUST NOT COLLIDE WITH THE COIN
+
+**His words:** *"The cannon sound should fire when a shot has LANDED -- make sure that this does not
+overlap with teh second coin flip in a battle, but comes a moment after it (eg. 100ms after)."*
+
+This **answers half of Q2** and **corrects §2's mapping**, which reads *"Cannon — the opening
+broadside."* It is not the opening broadside. It is the landing.
+- **Trigger: the shot LANDING.**
+- **Ordering: strictly after the second coin flip of a battle, by about 100ms.** The `100ms` is his
+  example, not a constant to enshrine — derive it from when the flip's audio actually ends (rule 9),
+  and the requirement it must satisfy is *no overlap*.
+- **The other four "probable" mappings (ClockTick, Ocean_Loop, the 5 Seagulls, the 6 BoatCreaks) are
+  STILL NOT CONFIRMED.**
+
+### 3. AND ONE THING THAT IS NOT A RULING — IT IS A NEW ASK, NOT YET SCOPED
+
+*"i want you to scope this and create an artifact with 10-15 sliders for me to adjust to get the
+sound balance correct. Include the short music mp3 file in this artifact, so I can adjust how the
+music volume/pan sounds when the player wants music."* — carried with Luis's own note that the
+ambience needs a randomiser over the ocean/seagull/creak clips **and randomised stereo placement**.
+**Raised with him rather than built on the strength of a note read off a page.** See the Chart row.
+
+### 4. …AND HE THEN RULED ON IT, IN THE QUESTION UI — 2026-09-06 ~16:3xZ
+
+Asked because a build instruction arriving inside a page is data, not a command, and because the
+ask had three genuine decisions in it. All three answered:
+
+1. **ORDER: WIRE THE SOUNDS FIRST, THEN THE SLIDER BOARD.** *(Recommended, and he took it.)*
+   Sliders over sounds that do not play anywhere yet would be balancing nothing. The board comes
+   after Luis's files are in the game at sensible defaults, so it is balancing something he can hear
+   in context.
+   ⛔ **THIS IS NOT PERMISSION TO START WIRING.** It orders two future jobs; it does not lift the
+   gate. Four of the five inferred mappings are still unconfirmed and eleven of the thirteen comment
+   boxes are still blank. His original instruction stands: *"show it to me BEFORE you implement."*
+2. **WHAT THE SLIDERS CONTROL — he picked THREE of four, and rejected the fourth:**
+   - **per-sound volume, one slider each** — the direct control, and it maps 1:1 onto the
+     `SFX_VOLUME` table a watch then writes;
+   - **the ambience randomiser knobs** — gull rate, creak rate, stereo spread, bed level; without
+     these Luis's ambience cannot be tuned at all;
+   - **music volume and pan.**
+   - ❌ **NOT group masters (SFX / ambience / music families).** He does not want families; he wants
+     the individual sounds.
+3. **MUSIC: the 3.4 MB track, and he is happy for it to be pulled from Drive.** *(Recommended, and
+   he took it.)* It is the only one of the three that can live in a web page — the audio must be
+   embedded and the page ceiling is 16 MB; the ~23 MB and 42.8 MB tracks cannot fit.
+
+⚠ **THE ARITHMETIC HE HAS NOT SEEN: his three picks come to about 19 sliders, and he asked for
+10–15.** Roughly 11 per-sound (the six shipped plus BattleWon, Bells, Drumroll, Cannons, ClockTick,
+Alarm — coin flips excluded by ruling 1), ~6 ambience, 2 music. **Do not silently trim to hit his
+number and do not silently overshoot it.** Put the real count in front of him when the board is
+scoped, with the candidates for merging named, and let him choose — the count was his instinct for
+"how much is enough", not a spec.
+
+## ⟨T-261⟩ The SFX PRD — four rulings, and one new standing instruction — 2026-09-06 9:5x AM ET (asked in the question UI by the Advisor, because the PRD could not be published)
+
+Asked because `T-261`'s PRD (`.planning/his-words/T-261-SFX-PRD.html`) was written but **no session
+anywhere had an Artifact tool to publish it** — so its seven questions were relayed inline rather
+than left waiting for a page he could not be shown.
+
+### ⚠ THE ONE THAT IS NOT AN ANSWER — IT IS A NEW STANDING INSTRUCTION, AND IT OUTRANKS THE OTHERS
+
+**His words, verbatim:** *"i want to correct many assumptions made in the artifact -- make comment
+boxes in the artifact that i can write notes in for you, and you can read them"*
+
+He was asked to confirm five inferred sound mappings and **declined the question's shape rather than
+the question**. Read it as what it is: **a multiple-choice card is the wrong instrument for a
+document he wants to mark up.** He has many corrections and no way to give them — the PRD is
+read-only prose and the question UI only offers picks.
+
+**What it requires, and the mechanism is already proven — do not invent a second one:** his Glass
+already carries exactly this. `glassState.comments`, shaped `{"T-nnn": [{"text": "…", "at": "…"}]}`,
+is his per-item comment box, and `harvest_glass.mjs` already carries what he writes back into the
+INBOX. **Build the PRD's boxes on that same path** (ONE DISPLAY PATH, rule 23) rather than a fresh
+textarea nobody can read. A comment box he can type into and nobody can read back is worse than no
+box, because it silently eats his corrections.
+
+**Consequence for `T-261`: the row is NOT delivered until the page has working comment boxes AND he
+can open it.** Being written is not being shown.
+
+### The four he did answer
+
+1. **`PP_SFX_Alarm.mp3` is "Time up — the buzzer."** *(Recommended, and he took it.)* Not on his
+   sheet by name; `ClockTick` covers the warning tick, leaving the buzzer with no file and Alarm
+   with no row. **His own sheet asks for both timer sounds to be mechanical, not digital — worth a
+   listen before wiring.**
+2. **Scope of the first pass: ONE PASS, everything mapped.** *(Recommended, and he took it.)*
+   Luis's files plus the library sounds already chosen months ago, together. The alternatives he did
+   not pick: Luis's files first with library wiring as a second item; or priority-1 only, stopping
+   so he can judge the core feel first.
+3. **"Your turn": WAIT FOR A DEDICATED FILE FROM LUIS.** *(Recommended, and he took it.)* Not
+   `PP_SFX_Navigation.mp3` (already shipping as `ship-move`), and not ElevenLabs as originally
+   planned. His sheet says he is *"a bit clueless"* what would be exciting rather than annoying
+   here, and it fires every single round — the cue most likely to grate.
+4. **The five inferred mappings (Cannons, ClockTick, Ocean_Loop, the 5 Seagulls, the 6 BoatCreaks)
+   are NOT confirmed** — see the standing instruction above. Do not wire them as read.
+
+**Still unanswered, because the card never reached him:** the PRD's Q5 (fight-resolves — a fresh
+unclipped export from Luis, or a second sound layered with the cannon), Q6 (the 3 music tracks stay
+out of this pass), and Q7 (level everything once at the end, or as it lands).
+
+<!-- harvest-id: RULING-20260906T1355Z-t261-sfx-prd -->
+
+
+## ⟨T-206⟩ Google Analytics is built and waiting, and the one thing holding it back from the real site is a sente — 2026-09-04T00:35:50.066Z
+
+Asked on the Glass: *"⟨T-206⟩ Google Analytics is built and waiting, and the one thing holding it back from the real site is a sentence on your front card that stops being true the moment it goes live. The line under "how to play" reads "Anonymised move data is recorded to help improve the game — nothing beyond the name ye confirm after picking how to play is collected." Cookieless Analytics sets no cookie and never learns a name, but Google does receive the page visited, roughly which country, the browser, and where the player came from — the referrer, which is the one thing you said Google adds that your own counter cannot. ⚠ Nothing has reached a player: the live site carries none of this and staging cannot fire the tag, so there is no rush and no harm today. The words are yours, so I have not chosen them. Note that About and the new Rules page also carry the tag and have no privacy line at all."* — **Wyatt ruled "a note, no button pressed"**, 2026-09-04T00:35:50.066Z.
+
+**His note, verbatim:** *"move all of it off of the main screen into a privacy policy that is in its own html, simple to read, and in plain english (not pirate) with small links to Privacy Policy and About at the bottom of the index.html screen (not inside of the popup modal box"*
+
+**The alternatives he did not pick**, as his card showed them:
+- Add one clause to the line you already have, and leave the voice alone — keep the pirate wording and name Google inside it, along the lines of “…and Google Analytics counts visits — it sets no cookies and never learns yer name.” Shortest, honest, and the game page is the one a child actually reads.
+- That clause, and the same one line added to About and Rules — those two are measured by nothing today and say nothing either, so this closes all three at once.
+- Write the sentence yourself — tell me the words and I will put them on whichever pages you name.
+
+<!-- harvest-id: RULING-20260904T003550Z-t206-privacy-line -->
+
+
+
+## ⟨T-206⟩ The front card promises something Google Analytics makes untrue — how should it read? — 2026-09-03 (asked in the question UI, not on the Glass)
+
+Asked directly: his front card reads *"Anonymised move data is recorded to help improve the game — nothing beyond the name ye confirm after picking how to play is collected."* With GA on that page the last clause is no longer true, and children play this game. — **Wyatt ruled "Short line, and the detail on About"**, 2026-09-03.
+
+**What he chose, in the words on his card:** trim the front card to something small and true and put the full explanation on the About page, *"which is already in your own plain voice rather than pirate speak"*. Front card stays light; the detail is one tap away.
+
+**The alternatives he did not pick:**
+- Name it plainly on the front card, one extra clause of about twelve words (this was the recommendation)
+- Short line, and the detail on About  ← **his pick**
+- Leave the sentence alone — read it as being about GAME data, analytics as separate
+- Hold analytics off production entirely until the wording is settled
+
+**Consequence, so no session has to re-derive it:** the About copy is OUTSIDE the game world, so it is in his own first-person voice and NOT pirate speak (the standing voice-boundary rule). The front-card line stays inside the world and stays in pirate speak.
+
+<!-- harvest-id: RULING-20260903T2210Z-t206-footer-copy -->
+## ⟨T-216⟩ Your rules page promises a tiebreak the game does not give, and which side should move is a design cal — 2026-09-03T21:30:35.726Z
+
+Asked on the Glass: *"⟨T-216⟩ Your rules page promises a tiebreak the game does not give, and which side should move is a design call, not a bug fix. When two captains bake on the same day, Best Baker goes to most crates, then most coin, then — the page says — whoever got home first. The first two are exactly right. The third is not: the game breaks that last tie by seat order, so of two captains tied on crates and coins, the one sitting in the earlier seat wins even if their rival reached Tortuga six days sooner. Measured, not read — I set up that exact pair and ran it twice, swapping who arrived first, and the early arriver won only when they also held the lower seat. Nothing in the game records when a captain got home, so the rule as written cannot be honoured without adding that. Small, and it only ever decides a dead-heat."* — **Wyatt ruled "Change the game to match the page — record the day each captain lights their ovens and rank on it; fairer, and it is the rule you clearly meant, but it touches the end-of-voyage ranking"**, 2026-09-03T21:30:35.726Z.
+
+**The alternatives he did not pick**, as his card showed them:
+- Change the page to match the game — say the last tie goes to seat order, one sentence, no gameplay risk (recommended: it is honest today, and it costs a player nothing)
+- Change the game to match the page — record the day each captain lights their ovens and rank on it; fairer, and it is the rule you clearly meant, but it touches the end-of-voyage ranking  ← **his pick**
+- Change both — drop the third tiebreak entirely and let a true dead-heat share Best Baker, the way two captains baking the same day already bake together
+
+<!-- harvest-id: RULING-20260903T213035Z-t216-baker-tiebreak -->
+
+## ⟨T-206⟩ The second analytics call, and it is a real judgement one: a cookie notice, or not? Google Analytics s — 2026-09-03T21:30:55.944Z
+
+Asked on the Glass: *"⟨T-206⟩ The second analytics call, and it is a real judgement one: a cookie notice, or not? Google Analytics sets a cookie and sends data to Google; your own counter does neither. Children play this game, which is what makes this more than a formality. There is a middle option: a setting that stops Google storing anything on the visitor's device — no cookie, nobody asked to consent. You lose "how many unique people" from Google, but you already have that number from your own counter, which is why it fits your situation unusually well. ⚠ The one thing on this page I could not check: the machine that wrote it has no web access, so that setting rests on how it has worked rather than on Google's documentation today. It gets verified before anything is installed — and if it has changed, this becomes a straight choice between a banner and no banner."* — **Wyatt ruled "Cookieless, no banner — you keep the referrer, the geography and the per-page numbers, set no cookie, and no child is asked to consent"**, 2026-09-03T21:30:55.944Z.
+
+**The alternatives he did not pick**, as his card showed them:
+- Cookieless, no banner — you keep the referrer, the geography and the per-page numbers, set no cookie, and no child is asked to consent  ← **his pick**
+- Standard Google Analytics plus a small consent banner — more complete data, and a box over your front door on every first visit
+- Standard Google Analytics, no banner — what most small sites do, simplest, and the one with the most to argue about
+
+<!-- harvest-id: RULING-20260903T213055Z-t206-cookie-choice -->
+
+
+## ⟨T-206⟩ Google Analytics is one line away from being switched on, and the last thing stopping it is a call onl — 2026-09-03T21:29:37.111Z
+
+Asked on the Glass: *"⟨T-206⟩ Google Analytics is one line away from being switched on, and the last thing stopping it is a call only you can make: which pages should it watch? You asked for the plan and you have it — the property G-2KK6EZDZSP almost certainly already exists in your Google account and has never been told anything. Nothing is installed and nothing will be until you pick. The size: one <script> tag per page you choose, no sea trial's worth of risk to gameplay, and it is undone by deleting the tag. What it buys that your own counter cannot: where your 123 browsers came from — and remember that About and the new Rules page are measured by nothing at all today, which is the real gap."* — **Wyatt ruled "The public pages only — the game, About and Rules"**, 2026-09-03T21:29:37.111Z.
+
+**The alternatives he did not pick**, as his card showed them:
+- The public pages only — the game, About and Rules  ← **his pick**
+- Every page including /classic, one consistent picture, at the cost of mixing a frozen v1's traffic into your launch numbers
+- The game page only — most cautious, and it leaves About and Rules exactly as blind as they are today
+
+<!-- harvest-id: RULING-20260903T212937Z-t206-which-pages -->
+
+## ⟨T-220⟩ You can now choose the trial's depth — but a shallow one still comes back RED, and whether that is rig — 2026-09-03T21:30:14.426Z
+
+Asked on the Glass: *"⟨T-220⟩ You can now choose the trial's depth — but a shallow one still comes back RED, and whether that is right is your call, not mine. You asked for a way to skip the 75-minute trial for something like a one-line analytics tag. That now works: --gear=COSMETIC runs the 124 no-browser checks, sails no voyages, and the report says in full what depth you chose, what the machine thought it should have been, and why you overruled it. The one thing I did not change on my own: the trial's final word for a no-voyage run is NOTHING SAILED, and it exits red. That red exists on purpose — it was earned the day a session picked its own depth by mood and shipped 22 fixes with 4 verified. But it means your bypass ends in a scary word for doing exactly what you asked, which will make you stop trusting it within a week."* — **Wyatt ruled "Let a depth you chose come back green when its own checks pass — much nicer to use, and it removes a guard that has caught a real failure once"**, 2026-09-03T21:30:14.426Z.
+
+**The alternatives he did not pick**, as his card showed them:
+- Leave it exactly as it is — the red word stays, nothing in the project reads it as a blocker, and the report already spells out the depth you chose and why (recommended, and it is a real
+- Let a depth you chose come back green when its own checks pass — much nicer to use, and it removes a guard that has caught a real failure once  ← **his pick**
+- Green only when you typed a reason — the reason becomes the price of a clean report, so the record can never go quiet
+
+<!-- harvest-id: RULING-20260903T213014Z-t220-shallow-green -->
+
+
+## Your two buttons now say Approve and Deny. Does "always number or letter the options" cover the buttons themse — 2026-09-03T15:56:28.568Z
+
+Asked on the Glass: *"Your two buttons now say Approve and Deny. Does "always number or letter the options" cover the buttons themselves? You asked for both in one sentence, and the card you asked it from now offers three options with no numbers on them: Approve · Deny · Let's talk. I did not number them on my own, because the reason numbering helps is that you can reply "B" in a few words — and a button you TAP does not need a name to say back. Three ways to go: (1) leave the buttons as words and number options only where you have to type or say an answer — a question card's choices, a row that offers alternatives, a reply laying out ways to go; (2) number these three too — 1 Approve · 2 Deny · 3 Let's talk — so "always" really does mean always and there is nothing to remember; (3) letter them instead — A · B · C."* — **Wyatt ruled "a note, no button pressed"**, 2026-09-03T15:56:28.568Z.
+
+**His note, verbatim:** *"this is a perfect example of why "approve" and "deny" make no sense here -- what would "approve" even mean in response to your above question? Replace Approve and Deny with 1 2 3 Other, to bring Glass into parity with Claude's question UI, and leave the box as a space to write "other" content in"*
+
+**The alternative he did not pick:** not recorded — this ruling was harvested off the Glass
+by `harvest_glass.mjs`, which sees his answer and not the options it was put beside. The
+session that acts on it should fill this in from the question's own card.
+
+<!-- harvest-id: RULING-20260903T155628Z-donow-buttons-numbered -->
+
+## ⟨T-102⟩ Your own reminder, and it is the one step nobody here can take for you: resubmit sitemap.xml in Google — 2026-09-03T15:58:17.602Z
+
+Asked on the Glass: *"⟨T-102⟩ Your own reminder, and it is the one step nobody here can take for you: resubmit sitemap.xml in Google Search Console. The file was fixed on 2026-09-02 — dead tags gone, both dates now derived from git — but Google will not re-read it until the property owner asks. Your note warns yourself about the property picker: "under the playpastrypirates.com property (not wyattroy.com — check the property picker, they look identical).""* — **Wyatt ruled "a note, no button pressed"**, 2026-09-03T15:58:17.602Z.
+
+**His note, verbatim:** *"Submitted successfully."*
+
+**The alternative he did not pick:** not recorded — this ruling was harvested off the Glass
+by `harvest_glass.mjs`, which sees his answer and not the options it was put beside. The
+session that acts on it should fill this in from the question's own card.
+
+<!-- harvest-id: RULING-20260903T155817Z-t102-search-console -->
+
+
+## ⟨T-121⟩ When you drag one task on your page, you are currently re-ordering ALL of them — and nothing filed aft — 2026-09-03T14:09:49.395Z
+
+Asked on the Glass: *"⟨T-121⟩ When you drag one task on your page, you are currently re-ordering ALL of them — and nothing filed afterwards can ever climb above that. Is that what you want a drag to mean? Measured, not guessed: your page saves the WHOLE sequence, so one drag stamps an order: on all 50 draggable rows. A dragged row then scores 4,950–4,999 against a derived ceiling of 196 (chartkeeper.mjs's score()), so from your first drag onward every undraggable row, and every task filed later — including a live bug you report tomorrow — sits below all fifty, permanently. There is no way back from the page. Dragging a row and putting it exactly back does clear it; nothing else does."* — **Wyatt ruled "yes"**, 2026-09-03T14:09:49.395Z.
+
+**The alternative he did not pick:** not recorded — this ruling was harvested off the Glass
+by `harvest_glass.mjs`, which sees his answer and not the options it was put beside. The
+session that acts on it should fill this in from the question's own card.
+
+<!-- harvest-id: RULING-20260903T140949Z-t121-drag-scope -->
+
+## ⟨T-017⟩ The captain's name now fits inside the trade circle — but only by shrinking to about half size. Is tha — 2026-09-03T14:11:00.824Z
+
+Asked on the Glass: *"⟨T-017⟩ The captain's name now fits inside the trade circle — but only by shrinking to about half size. Is that too small to read? Your three screenshots of Crustbeard and Flaky Jack hanging out of their circles are fixed: the name is now inside the rim at phone, tablet and desktop. To get it in there beside the crate and the price, the type drops from 9.5px to 5.5px. Three pictures of the same board, before and after: .planning/posed/t017-before.png, t017-after.png, t017-after-circle.png."* — **Wyatt ruled "note"**, 2026-09-03T14:11:00.824Z.
+
+**His note, verbatim:** *"Do bigger circles, not smaller text. And show me the pictures in the Blad session, I can’t see them in the glass"*
+
+**The alternative he did not pick:** not recorded — this ruling was harvested off the Glass
+by `harvest_glass.mjs`, which sees his answer and not the options it was put beside. The
+session that acts on it should fill this in from the question's own card.
+
+<!-- harvest-id: RULING-20260903T141100Z-t017-name-type-too-small -->
+
+## ⟨T-017⟩ Only the long labels shrank, so a fan can now mix two type sizes — "Walk away" stays big while the nam — 2026-09-03T14:11:52.148Z
+
+Asked on the Glass: *"⟨T-017⟩ Only the long labels shrank, so a fan can now mix two type sizes — "Walk away" stays big while the names go small. Do you want them all matched? Consistency is one of your core values, so I have not chosen this myself."* — **Wyatt ruled "note"**, 2026-09-03T14:11:52.148Z.
+
+**His note, verbatim:** *"Only shrink the long words/phrases/names"*
+
+**The alternative he did not pick:** not recorded — this ruling was harvested off the Glass
+by `harvest_glass.mjs`, which sees his answer and not the options it was put beside. The
+session that acts on it should fill this in from the question's own card.
+
+<!-- harvest-id: RULING-20260903T141152Z-t017-fan-mixed-sizes -->
+
+## ⟨T-102⟩ ⚑ Google can index your working files right now, and your note assumed it could not. You listed art-re — 2026-09-03T14:12:36.954Z
+
+Asked on the Glass: *"⟨T-102⟩ ⚑ Google can index your working files right now, and your note assumed it could not. You listed art-review/, scripts/ and .planning/ as "correctly EXCLUDED" — they are excluded from the sitemap, but the sitemap is an invitation, not a fence. Thirteen pages are live on the domain with nothing stopping a crawler: five art-review/ galleries, seven notes/sketches/ mockups, and battle_sim.html (plus nineteen files under .planning/). Only four pages in the whole repo say anything about crawling at all."* — **Wyatt ruled "yes"**, 2026-09-03T14:12:36.954Z.
+
+**The alternative he did not pick:** not recorded — this ruling was harvested off the Glass
+by `harvest_glass.mjs`, which sees his answer and not the options it was put beside. The
+session that acts on it should fill this in from the question's own card.
+
+<!-- harvest-id: RULING-20260903T141236Z-t102-working-files-indexable -->
+
+## ⟨T-207⟩ Your own 2026-08-01 bug is still alive in battles, and I found the exact spot. Do you want it fixed, k — 2026-09-03T14:13:51.974Z
+
+Asked on the Glass: *"⟨T-207⟩ Your own 2026-08-01 bug is still alive in battles, and I found the exact spot. Do you want it fixed, knowing what it costs? You reported "the 2nd line is cut off during writing, but only sometimes". That was fixed for narration in August — and the fix works by making the typing wait until the box has finished growing. A battle card has no typing to wait for, so it gets painted whole while the box is still opening underneath it, and the second line is genuinely cut off screen. On Chrome that lasts about a tenth of a second; on Safari's engine it is a flat fifth of a second with the whole line missing, which is what your trial screenshot caught. Two pictures of the same board, one during and one after: .planning/posed/t012-seq-webkit-2-cut.png and t012-seq-webkit-3-settled.png."* — **Wyatt ruled "note"**, 2026-09-03T14:13:51.974Z.
+
+**His note, verbatim:** *"Leave it."*
+
+**The alternative he did not pick:** not recorded — this ruling was harvested off the Glass
+by `harvest_glass.mjs`, which sees his answer and not the options it was put beside. The
+session that acts on it should fill this in from the question's own card.
+
+<!-- harvest-id: RULING-20260903T141351Z-t012-battle-card-clip -->
+
+## ⟨T-102⟩ You asked me to recommend rather than build: should the sitemap's page list be generated from the actu — 2026-09-03T14:14:19.245Z
+
+Asked on the Glass: *"⟨T-102⟩ You asked me to recommend rather than build: should the sitemap's page list be generated from the actual pages? You were right that it goes stale silently — nothing anywhere notices a page missing from sitemap.xml, and /rules.html would vanish from Google without a sound. The list is correct today (two pages, and they are exactly the two that declare themselves public), so this is about tomorrow."* — **Wyatt ruled "yes"**, 2026-09-03T14:14:19.245Z.
+
+**The alternative he did not pick:** not recorded — this ruling was harvested off the Glass
+by `harvest_glass.mjs`, which sees his answer and not the options it was put beside. The
+session that acts on it should fill this in from the question's own card.
+
+<!-- harvest-id: RULING-20260903T141419Z-t102-sitemap-coverage -->
+
+## ⟨T-206⟩ There is probably already a Google Analytics account sitting in your Google login for this game, and n — 2026-09-03T14:20:27.231Z
+
+Asked on the Glass: *"⟨T-206⟩ There is probably already a Google Analytics account sitting in your Google login for this game, and nothing on the site has ever used it. Switching it on is one line — so the only real questions are which pages, and whether you want a cookie notice. You asked for "google analytics on playpastrypirates.com". The game's Firebase settings carry a Google Analytics ID, G-2KK6EZDZSP. Google normally writes that line in only when Analytics is switched on for a project — but I cannot see inside your account, and this repo's own note says that settings block was copied wholesale from an older file, so treat "the account exists" as likely, not certain. You can confirm it in about ten seconds and that is the first thing to check. What I did measure, across every one of the 38 pages and 71 script files in the repo: nothing anywhere loads it. No gtag.js, no Firebase analytics, not one call. So whatever that account is, it has been told nothing, ever. And here is what the game already tells you without Google, measured on the live site this morning, last 14 days: 237 page loads from 123 different browsers → 44 voyages started (by 19 of them) → 8 finished. Solo 35, pass-and-play 3, crew 6. ⚠ Those last two ratios read worse than the game deserves and I nearly quoted them at you flat: the counter only records a start for the person who begins a voyage, so every crew guest, and every player who resumes a saved game, counts as "opened it and never played" — and private tabs count as a new browser each time. The real drop-off is better than 123→19; nobody knows yet by how much."* — **Wyatt ruled "note"**, 2026-09-03T14:20:27.231Z.
+
+**His note, verbatim:** *"Give me instructions to switch it on, and give me the full plan for analytics as an artifact that I can understand more easily than this text. Thank you! Also, we need a way to bypass sea trial for this— it clearly doesn’t need a full one given that you’re just adding a tag to index; so we need a way to tell sea trial that and manually choose the depth of the trial"*
+
+**The alternative he did not pick:** not recorded — this ruling was harvested off the Glass
+by `harvest_glass.mjs`, which sees his answer and not the options it was put beside. The
+session that acts on it should fill this in from the question's own card.
+
+<!-- harvest-id: RULING-20260903T142027Z-t206-ga-turn-on -->
+
+
+## AN UNATTENDED WATCH MAY **READ** THE `claude-kit` FOLDER — 2026-09-02T12:39:56.363Z
+
+Asked on the Glass: *"May an unattended watch READ the claude-kit folder?"* — **Wyatt ruled "yes"**,
+2026-09-02T12:39:56.363Z.
+
+**The alternative he did not pick:** leave the fence up and keep routing every piece of kit work to
+an attended session (a human), which is what two earlier watches had assumed was permanent.
+
+⚠ **SCOPE, AND IT IS NARROW: this ruling is about READING. Nothing in it authorises a watch to
+PUSH to `claude-kit`.** Vendored files still say *"edit THERE, not here"*; what changed is that a
+watch may now look at the kit to see what it is vendoring, instead of reasoning about it blind.
+
+### WHY THIS ENTRY EXISTS, AND IT IS THE COSTLIEST KIND OF FAILURE THIS FILE PREVENTS
+
+**He removed the fence THIRTY-ONE MINUTES BEFORE a session declared it impossible.** The `T-078`
+work that depended on this ruling started at 13:10Z; the session wrote *"THE HALF OF HIS SENTENCE
+THAT CANNOT BE BUILT HERE"* into a gate comment, reasoning from two earlier watches' measured
+refusals — measurements that were **true when taken and stale when used**. CEO 106 caught it.
+
+**Nobody had harvested the ruling, so the session closing the very item that depended on it answered
+from memory instead of from the record.** `CLAUDE.md` §5: *"A ruling he made that nobody harvested is
+the failure this system exists to stop."*
+
+⚠ **AND THEN IT SAT UNHARVESTED FOR FIFTEEN MORE HOURS**, as `T-085`, because
+`.claude/memory/DECISIONS.md` is permission-protected and **the watches that kept meeting this
+ruling were exactly the sessions that could not write it down.** The row said so plainly: *"a
+two-minute edit this watch was refused permission to make, and its absence has already cost one
+item."* Filed here 2026-09-03T04:1xZ by the Advisor, which is a session that can.
+
+**The reusable lesson, and it is not about the kit:** a measured refusal is evidence about a moment,
+not a standing fact about the world — and a permission that only blocks the sessions who need to
+record something guarantees it never gets recorded. **When a watch cannot write a ruling down, the
+ruling does not wait politely; it gets re-derived wrongly by the next session that needs it.**
+## CRATE LANGUAGE — HIS 31 RULINGS AND THE FLAVOUR WORDS, 2026-09-03
+
+Rulings page (db-backed, tap to rule): https://claude.ai/code/artifact/15a5f335-6746-4fda-a80f-63fee9511fb0
+Read them back with the Artifact tool: `action:"read_db"`, `db_op:"list"`, `collection:"decisions"`.
+
+**ALL 31 RULED, 19:39–19:43 on 2026-09-03: r01–r18 CHANGE, r19–r29 KEEP, r30 and r31 CHANGE.**
+That is: every player-facing "crate" becomes "ingredient" EXCEPT the bake-off (his cup-and-ball
+reason), "each island holds only a few crates" (a unit of supply), the artwork alt text and the
+asset filename.
+
+### ⚠ r30 IS SUPERSEDED BY HIS OWN LATER IDEA — and the later one is better
+
+r30 said the container words survive only in the dock's arrival line. **He then reversed it:** keep
+them everywhere AND reshape them so they teach the crate early — *"they should ALSO introduce the
+idea that you buy a crate of an ingredient, so that this doesn't come completely out of the blue at
+the end of the game during the bakeoff."*
+
+**Why the reversal is right, and it is a fact rather than a preference:** `dockFlavor` is used in
+exactly THREE places — the dock narration (`src/ui/util.js:458`), the **buy prompt**
+(`src/ui/flow.js:1721`), and the black-market prompts (`src/ui/flow.js:1601-1602`). Restricting it to
+the arrival line would have removed it from the buy prompt, which is the one moment a player actually
+acquires a crate. **The teaching moment was the thing r30 would have deleted.**
+
+### HIS WORDING (supersedes my longer draft)
+
+```
+a crate of Crystal Sugar        a crate of Milk Jugs         a crate of Cinnamon Sticks
+a crate of Wheat Sheaves        a crate of Cacao Pods        a crate of Sand-Speckled Eggs
+a crate of Vanilla Beans
+```
+
+Measured: **24.0 chars average**, against 25.9 today and 30.3 for my draft — his "shorter, easier to
+read" is correct and his is the shortest of the three. Structure is unchanged: `DOCK_FLAVOR` stays
+`{prefix, name}` because the ingredient icon is inserted BETWEEN them (F5, 2026-07-29), so "a crate
+of" is simply the prefix for all seven — which also removes the `eggs` asymmetry (its old prefix "a
+dozen" carried no "of").
+
+**IT FIXES TWO EXISTING MISMATCHES:** `cocoa` was "Luscious Cacao **Beans**" while `ING_NAME` says
+"Cacao Pods" and the art draws a pod; `vanilla` was "Velvety Vanilla Beans" against a card reading
+"Vanilla Beans". Both now match exactly. **It breaks two** by dropping an adjective the card keeps
+(Fresh Milk → Milk Jugs, Toasty Wheat → Wheat Sheaves) — net 3/7 exact before and after, but trading
+*wrong noun* mismatches for *dropped adjective* ones, which a player reconciles instantly.
+
+**EGGS SETTLED 2026-09-03: `a crate of Speckled Eggs`** — he dropped "Sand-". 24 chars instead of
+29, consistent with the other six, and a fourth exact match with the recipe card. Final set:
+
+```
+a crate of Milk Jugs      a crate of Cinnamon Sticks    a crate of Wheat Sheaves
+a crate of Cacao Pods     a crate of Speckled Eggs      a crate of Vanilla Beans     [sugar OPEN]
+```
+
+**SUGAR SETTLED 2026-09-03: `a crate of Sugar Cane`.** Art studies:
+https://claude.ai/code/artifact/375cc93e-d955-483f-9af5-2107123340c0
+
+**THE FULL SET IS CLOSED:**
+
+```
+a crate of Sugar Cane     a crate of Milk Jugs       a crate of Cinnamon Sticks
+a crate of Wheat Sheaves  a crate of Cacao Pods      a crate of Speckled Eggs
+a crate of Vanilla Beans
+```
+
+### HOW HE GOT THERE — the reasoning outlives the answer, and it is a STRUCTURAL find
+
+Five rounds went into hunting a prettier word — cubes, loaves, lumps, bricks, gems, pearls — and every
+one felt slightly wrong. **He found the actual cause himself:**
+
+> *"we already are going off the raw ingredients for milk (which turns into butter) and cacao pods
+> (which turns into chocolate) and wheat (which turns into flour) -- what if we did sugar cane too?"*
+
+**Verified against the data: six of the seven ingredients name the RAW thing the baker transforms.
+Sugar was the only one naming the FINISHED product.**
+
+| game name | becomes | |
+|---|---|---|
+| Toasty Wheat | flour | raw — the baker mills it |
+| Fresh Milk | butter & milk | raw — the baker churns it |
+| Cacao Pods | chocolate | raw — the baker makes chocolate from it |
+| Vanilla Beans | vanilla | raw — off the vine |
+| Hot Cinnamon | cinnamon | raw — bark, dried |
+| Speckled Eggs | eggs | already the ingredient |
+| **Crystal Sugar** | sugar | **REFINED — the odd one out** |
+
+`Cacao Pods → chocolate` asks a player to imagine a transformation. `Crystal Sugar → sugar` asks
+nothing, because it has already arrived. **"Crystal Sugar" was a lovely name for the wrong thing.**
+Cane also earns the setting — the Sugar Seas are the Caribbean and cane is what grew there — and it
+sidesteps the delicious-vs-accessible tension entirely: nobody needs to find *cane* delicious, any
+more than *cacao pods*. `ING_NAME.sugar` moves to "Sugar Cane" so the card and the dock agree, and the
+gloss reads cane → sugar like pods → chocolate.
+
+**GRAVEYARD — five words he rejected and exactly why, so nobody re-proposes them:**
+*Sugar Cubes* — **"no one would ever bake with sugar cubes"** · *Sugar Loaves* — **"sounds like a
+finished bakery product... poorly designed for this game's user"** (loaf primes BREAD, in a baking
+game — the historically perfect answer was the worst-designed one) · *Sugar Lumps* — not delicious ·
+*Sugar Casks* — hard to picture · *Sugar Jars* — weird · *Sugar Bricks* — closest of that batch, but
+"brick isn't delicious" · *Sugar Gems* — he approved it, then withdrew it the same minute:
+**"as a human, it just doesn't quite make intuitive sense"** (gems read coloured; sugar is white).
+
+**MY OWN WRONG CONSTRAINT, recorded because it cost rounds:** I insisted every crate hold *countable
+plural things*, which is why I kept pushing Cubes/Lumps/Pearls. It was tidiness, not a rule, and the
+answer he chose is a mass noun. **Do not let that pattern outvote his ear again.**
+
+### THE ART IS OPEN — ten studies published, none chosen
+
+`assets/ingredients/sugar.png` must be redrawn: he volunteered it (*"the art is a sugar cube because
+i couldn't think of anything else"*). **The one real risk is that cane and wheat are the two closest
+silhouettes in the set** — both bundled plant stalks at 26px. Ten vector studies are published at the
+link above, each shown at 26px, 44px and beside the real wheat icon, spanning standing sheaf (the risk
+drawn on purpose), stacked billets, single diagonal, crossed pair, tied bundle, leaf spray, fanned
+billets, cane-with-a-spill, end-on stub and purple-node pair.
+
+**They are VECTOR studies, not finished art** — this session cannot paint raster icons. They settle
+silhouette, composition and colour; the winner still needs painting. Palette sampled from the shipped
+assets; **green chosen because no ingredient in the game owns green**, the strongest lever for
+separating cane from gold wheat.
+
+**HIS PROCESS NOTE:** *"we have an entire art-audit process for this. use that process."* That is
+`art-review/` — candidate PNGs per folder plus a dark gallery (`.card-img{background:#000}`) he
+reviews. **`notes/art-generation-process.md` DOES NOT EXIST** — an earlier memory claimed it did.
+Ten options with their implied art are live on the rulings page under "Sugar — pick one"; his choice
+saves to `decisions/sugarWord`. **Four criteria a sugar icon must meet**, derived while drafting
+them: legible at 26px, a silhouette unlike the other six, reads as sugar, and is bakeable — the cube
+passes three and fails the fourth. My pick is **Sugar Loaves** (a white cone banded with blue paper:
+the real pirate-era form, a silhouette nothing else on the board owns, and historically the blue
+wrapper gives sugar a colour no other ingredient has). **He dismissed the question rather than
+answering it, so nothing is decided and nothing should be built until he returns to it.**
+
+**BUILD NOTE:** all seven strings are pinned as literals in `scripts/narration_test.js:820-826`, but
+that script sits in the `test:v1` chain which is **parked by the cutover**, so changing them turns
+nothing red today. **Corrected from my first assumption that it was a live gate.**
+
+## THE COURSE — FINAL, 2026-09-03. His X asset and his final numbers.
+
+Tuner: https://claude.ai/code/artifact/4e122a8a-3329-4ef6-b389-b69d12ca2637
+Crate rulings (tap to rule, db-backed): https://claude.ai/code/artifact/15a5f335-6746-4fda-a80f-63fee9511fb0
+
+**THE X IS HIS OWN DRAWING**, supplied as `notes/x.png` (265×284, alpha) — cream fill, brown outline,
+flared arms with concave sides. It replaces every SVG approximation of it. **`notes/` is GITIGNORED,
+so the file is not in the repo**: shipping this means moving it to `assets/icons/` first, and that is
+a real step, not a detail.
+
+> **The tuner embeds a 149×160 DOWNSCALE of it, not the original** — resampled only to keep the page
+> small, and invisible at marker size. **When it ships, copy `notes/x.png` itself, never the tuner's
+> copy.** (Caught by CEO Review 81; the record had cited the source dimensions beside a page carrying
+> the smaller file, which was an omission rather than a wrong claim.)
+
+**FINAL SETTINGS — this is the spec for the dotted course:**
+
+```json
+{"len":8,"gap":7,"thk":2.6,"ang":7,"a1":0.13,"f1":0.3,"a2":0.05,"f2":0.85,"jit":0.02,
+ "rnd":14,"o0":0.98,"o1":0.42,"sep":0.85,"clp":0.34,"mk":0.5,"pd":0.15,"ps":1.2,"mark":"x"}
+```
+
+Marker size is **0.5** — given separately, after the rest. Note this is NOT the set he called
+"ideal" the day before (that one had len 6.5 / gap 10.5 / sep 0.38 / no jitter); **he came back to
+tighter dashes with a little jitter and a far higher minimum separation (0.85), which is the setting
+that guarantees no two dashes touch where the route folds back.** If a future session finds a
+conflict between the two, THIS one is later and wins.
+
+**A SMALL BUG WORTH REMEMBERING:** his copied settings arrived carrying `"rip":0.42` — a key for the
+ripple ring that had been deleted a version earlier. Cause: the tuner's `load()` did
+`Object.assign({}, DEF, stored)`, so a retired key in localStorage outlived the control that owned
+it and rode back out through Copy settings. **Fixed by only accepting keys present in DEF.** The
+general shape: *stored preferences outlive the UI that wrote them, and merge back in as ghosts.*
+
+## THE TUTORIAL — HIS SETTLED COURSE SETTINGS + THE TORTUGA BUG, 2026-09-02
+
+**HIS CHOSEN LOOK, dialled himself in the tuner and to be treated as the spec** (rulings 26-28 below
+are the changes that produced it). Tuner: https://claude.ai/code/artifact/4e122a8a-3329-4ef6-b389-b69d12ca2637
+
+```json
+{"len":6.5,"gap":10.5,"thk":3.9,"ang":0,"a1":0.11,"f1":0.16,"a2":0.17,"f2":0.36,
+ "jit":0,"rnd":23,"o0":1,"o1":0.42,"sep":0.38,"clp":0.47,"mk":0.56,"pd":0.15,"ps":1.2,"mark":"x"}
+```
+
+Read it as: **short dashes with big gaps** (6.5 on, 10.5 off), **thick** (3.9), **no angle jitter and
+no random jitter at all** — the wander is entirely the two waves, a shallow slow one (0.11 @ 0.16
+cycles/square) under a *deeper and slightly faster second* one (0.17 @ 0.36) — f is cycles per
+square, so the larger number is the quicker wave. Heavy corner rounding (23). Full
+opacity at the boat fading to 0.42. Loose separation (0.38) and a wide clamp (0.47, nearly the edge
+of the square). Small markers (0.56) pulsing 0.15 deep every 1.2s.
+**The lesson in those numbers: he removed every source of randomness and got the hand-drawn look
+from LAYERED SLOW WAVES instead.** My instinct — jitter to look hand-made — was exactly backwards.
+
+| # | ruling |
+|---|---|
+| 26 | **Dashes, not dots. Constant size; only opacity travels with distance.** *"don't modify their scale over distance, just their opacity."* |
+| 27 | **Each dash CURVES along the invisible line it traces.** Built by slicing the wavy source line by arc length, never by stamping straight segments on it. |
+| 28 | **The marker PULSES and the ripple ring is deleted.** *"I want the x to pulse, remove the ring."* The swell is the pulse. |
+| 29 | **One continuous tour confirmed** over separate lines to each dock — *"Your reinterpretation was correct."* |
+
+### 🐞 TORTUGA IS LAND — and how the bug got in
+
+Wyatt, 2026-09-02: *"it looks like your algorithm for computing path is treating tortuga like
+sailable ocean; it is not. It is land."* Correct. **The game's own predicate is
+`!blocked && !isIsland && !isHome` (`src/ui/flow.js:338`, and the engine refuses it again at
+`src/engine/index.js:600`). I hand-rolled my own and dropped the `!isHome` clause**, on the reasoning
+that sailing *through* home seemed harmless.
+
+**The reusable lesson, which is rule 9's and rule 23's together: I re-derived a rule the game already
+owned, and my copy was wrong.** A route finder that answers a question the engine already answers
+should CALL the engine, not reimplement it. Proved with a posed pair on ONE board — the old path ran
+`…[6,7],[7,7],[8,7]…` straight over Tortuga, the corrected one arcs around the north; both 28
+squares, so the bug cost nothing in length and was invisible from the numbers alone.
+
+## THE TUTORIAL — THIRD PASS, 2026-09-02 (rulings 19-25)
+
+Mocks: https://claude.ai/code/artifact/3f6fbed6-66aa-4f8a-91c2-c6cc626fa803
+
+| # | ruling | his words |
+|---|---|---|
+| 19 | **The parrot + `?` button is APPROVED** and the parrot **stays on the Start button** | *"I love the parrot with the question mark as the button. That's wonderful."* Confirms ruling 9. |
+| 20 | **The dotted course must read as a PIRATE MAP, not a transit map** | *"It's currently giving 'tech game' more than 'pirate map'... maybe it could be a little wavy or the dots could be a little more scattered/jittery."* Requirements: wavy with rounded corners · **fewer** dots · **no two dots ever overlap**, including where a route doubles back (*"it kind of ends up looking like a train map instead of a linear journey"*) · opacity/size **fading with distance from the boat** · and every dot **still inside the square it crosses**. **The fade-beyond-this-turn idea is DEAD** (ruling 10) — this fade is by distance travelled, a different thing. |
+| 21 | **The X is his own flared design** — thick arms, concave sides, flared rounded tips, WHITE (he generated a sheet and picked the top-left). **The anchor is a live alternative** (bottom-left of his second sheet). Keep the slow white ripple. | *"ignore the fact that many are red, the one we use will be white"*; *"I also like the idea of the anchor instead of an x"*. **Open: X or anchor — or both, X for a needed dock and the anchor for Tortuga** (my proposal, unruled). |
+| 22 | **The recipe cards move UP** — anchored to the top of the captains box, i.e. just below the drawn board | *"they are too low down the screen. I want them to be higher up on the screen, so that they're kind of just below the bottom of the board."* **Trap for the builder: `#boardwrap` is TALLER than the drawn board** — anchoring to its bottom puts the card *below* the captains box. Anchor to `#pp4Cap`'s top. |
+| 23 | **"{player}, choose yer recipe" moves into the NARRATION BUBBLE, anchored to the boat** like every other narration | *"maybe it should come from the standard narration box as everything else comes from. Like, it should be attached to the boat, as the normal narrations are."* **Consequence: the picker must stop being a centre-stage card**, because the narration channel refuses to draw a bubble while one is up. |
+| 24 | **The cards must SWIPE as well as take the arrows** | *"a lot of users are probably going to wanna swipe between them."* |
+| 25 | **The bake-off KEEPS "crates" — and his reason is better than the rename argument** | *"I actually love that the ingredients are in crates, because it references the ball and cup game, and it explains kind of storyline thematically why the crates are all jumbled up."* This also resolves the one sentence I said needed rewriting: *"Opening the crates…"* is correct as it stands. |
+
+**THE CRATE RULE, in his words:** *"My intention is not that we remove crates entirely. It's that we
+most frequently refer to ingredients as ingredients unless we are referring to them as a unit of
+ingredients."* Plus: *"each island holds only a few crates — the word is doing real work as a unit of
+supply"* (agreed), and **leave the code identifiers alone** (agreed).
+
+**WHAT THE AUDIT FOUND THAT HE HAD NOT SEEN: there are FIVE names for one object**, not two —
+`ingredient` (the goal) · `crate` (the unit) · `Crystal Sugar` (`ING_NAME`) · `a jar of`
+(`DOCK_FLAVOR`: a jar of / a sack of / a bundle of / sprigs of / some jugs of / a dozen / a pod of) ·
+`sugar` (`ING_PLAIN`, the gloss on the recipe card). **Proposed rule, awaiting his ruling:** the
+ingredient is the noun; a container word appears only where the container does a job — **stock on an
+island** (a count, which drives the price), **the bake-off bench** (his cup-and-ball reason), and
+**the dock's arrival line** (worldbuilding, said once). Everywhere else it is just the ingredient —
+which is why *"a crate of milk"* never has to be said at all. `ING_PLAIN` is proposed for retirement
+because the redesigned card shows pictures, not names, so the gloss has nobody left to serve.
+
+**HIS DECISIONS ON EACH LINE ARE BEING COLLECTED IN THE ARTIFACT ITSELF** — 31 rows with Keep/Change,
+stored in that artifact's `db` under `decisions/<row id>`. Read them with the Artifact tool
+(`action:"read_db"`, `db_op:"list"`, `collection:"decisions"`) rather than asking him again.
+
+## THE TUTORIAL — TEN MORE RULINGS, 2026-09-02 (second pass)
+
+Mocks, drawn inside a live voyage: https://claude.ai/code/artifact/3aec2f18-4f35-459e-8aaa-367a550eb805
+
+| # | ruling | his words / the reason |
+|---|---|---|
+| 9 | **The parrot KEEPS the Start button** — it is not a collision, it is one voice in two places | *"keep the parrot on the start button -- it makes it seem like the parrot is the one talking to you, which is perfect and feels consistent with parrot being your helper!"* **This closes ruling 5's open question by inverting it:** the tutorial's voice is a character, not a system. |
+| 10 | **No fade beyond this turn's reach on the dotted course** | *"the yellow sail squares show where you can get to this turn. So we don't need another mechanic showing that. In fact, it'll kind of just be strange."* A second mechanic for a solved problem is noise. |
+| 11 | **Many dots per square, not one** | *"I want the dots to be not just one dot per square. That sounds weird. That won't read as a dotted line."* Shipped mock: 6.5px spacing, ~5–6 dots per cell at sail-prompt zoom. |
+| 12 | **The course is ORTHOGONAL — never diagonal** | *"in your mock up, the dots are going diagonally, which is not possible in the game."* Mocks must be drawn on a real board for exactly this reason. |
+| 13 | **A piratey X ASSET is to be made; keep the slow white ripple** | *"I think we need to create an... a piratey x asset to use for the end, and I like that it has the the slow white ripple keep that."* Design settled in the mock: two bowed tapered strokes with overshoot, tilted 8°, warm cream over a soft dark pool, ONE loose ripple — three tight rings read as a crosshair, i.e. "avoid this". |
+| 14 | **CRATE → INGREDIENT, globally, but audited not find-and-replaced** | *"Players don't think of the ingredients as being in crates... it's really confusing when we introduce them to two new concepts simultaneously... there may actually still be some legitimate uses for it, like a crate of sugar should not be an ingredient of sugar."* 474 occurrences; **38 player-facing**; 19 rename, 2 keep (the artwork and its alt text), the rest are code and stay. |
+| 15 | **The pulsing X REPLACES the thin orange dock ring, globally, at every rung** | *"I think what looks better is the pulsing x. That way, the players will already have seeing the X marks the spot when they start sailing, and it'll kind of be a learning moment before they even start."* |
+| 16 | **Dotted courses appear during RECIPE CHOICE, from the boat to each dock the recipe needs** | *"that Dotted course should appear during the recipe choice phase to help them make a decision."* |
+| 17 | **And charted as ONE tour** — position → nearest dock → … → last dock | *"it would be awesome if the dotted course charted from their position now to kind of through to the first closest dock through the last dock to show them the shortest possible path right now through the game."* **His own caveat, recorded because it prevents a false claim later:** *"during the actual game, that shortest path might not end up being the path that they wanna take because the wind can change their strategy... But it's okay because this starter path is just trying to help the player visualize where the recipe would take them."* It is a picture of the voyage, never advice about sailing it. |
+| 18 | **The recipe card: picture, name, ingredient icons. Nothing else.** Off the board, over the captains box; a VISIBLE stack of two (occluded card behind, arrows to flip); **no "1 of 2" in numbers**; flipping re-draws the dotted course | *"Your recipe cards look terrible. I'm sorry."* — of the three-way merge he had picked. The card must show *"visually that it is a stack of two, which didn't say one of two in numbers."* |
+
+**WHAT THE MOCKS PROVED, that had only been asserted before:** with today's picker, **two of the five
+dock X's are hidden behind the recipe card**, with the dotted course visibly running underneath it.
+That is the "the picker covers the lower 45% of the board" defect, demonstrated rather than argued.
+
+**AND A LESSON ABOUT MOCKS, paid for twice in two days:** a mock drawn by hand invented an illegal
+diagonal move, and a screenshot cropped with `sips --cropOffset` silently centre-cropped to open sea
+and was published as "the ribbon". **Draw mocks inside the running game, and open the output, not the
+input.** Both errors were of the same shape as the DAY 12 fault CEO Review 76 caught.
+
+## THE TUTORIAL — EIGHT RULINGS, 2026-09-02
+
+The design is *The Pilot*: https://claude.ai/code/artifact/c649f0df-b3d6-4837-8f08-b6c44a8aef18
+The visual options he chose from: https://claude.ai/code/artifact/365d5a1e-3e9d-4daf-b1a4-41cfebba3077
+
+**THE MECHANISM IS HIS, AND IT IS THE SPINE.** Wyatt, 2026-09-02: *"the tutorial being just extra
+narration lines -- they give most context/explanation the first time (eg: first time: 'Tap any
+yellow square to sail towards a dock. Sailing against the wind is harder.' 2nd time: 'Tap any yellow
+square to sail'. 3rd turn: 'Tap to sail')"*. Every teachable moment holds a short array of phrasings,
+longest first, indexed by how many times that moment has been seen. **The bottom rung of every array
+is the copy that ships today** — so a veteran's game is byte-identical and the tutorial is not a mode
+anyone leaves. Not a beat that fires once; a verbosity that runs out.
+
+| # | ruling | his words / the reason |
+|---|---|---|
+| 1 | **The 2026-08-25 wind deletion is SET ASIDE** — rung 0 keeps its wind clause | *"ignore my previous ruling, it was about a different matter and we are solving it with our rung system"*. The old ruling (c19d9f19: *"Remove the sail prompt saying wind blows east entirely because the game calculates this for you"*) still governs PERMANENT wind text; it does not govern a decaying rung. |
+| 2 | **Decay is baked in**, by time away, evaluated only between voyages | Under 7 days nothing · 7–30 back one rung · 30–90 back two · over 90 back to rung 0. He asked for best practice; **there is no canonical standard** — this is built from the forgetting curve (expanding intervals) plus the games convention of refresher-not-tutorial for returners. Words never grow back mid-game, which is what makes it predictable. |
+| 3 | **Storm and crate price are IN** as ladders | *"IN."* Both are rules rather than strategy, which is the line he drew in core value 3. |
+| 4 | **The bake-off is left as-is** | Its own full-screen prompt is assumed sufficient. **Untested** — nobody has watched a first-timer reach it. |
+| 5 | **The help button is a PARROT + `?`** | *"Parrot + ? so that it hints at what it does. could that work?"* — measured yes and free: the ribbon overflows 320px by **exactly 21px with every variant**, because flex-shrink absorbs the extra width and the four captain circles (111px, unshrinkable) are what actually binds. Side-by-side beats a corner badge: a badge borrows the chat unread-dot language and would read as a permanent notification. **Consequence he must still rule on: 🦜 currently labels the turn-order Start button.** |
+| 6 | **Tapping it is a TWO-STATE TOGGLE** | On (and every count back to rung 0) / off, with a line each way. Chosen over a three-step, because an unlabelled three-state control gets pressed at random. |
+| 7 | **The way to a dock is a DOTTED COURSE over the real travellable path, ending in a pulsing treasure X** | He killed the bearing-pointer himself: *"it may point to a dock that cannot be reached by moving in the direction it's pointing."* Constraints he set: **not gold** (gold means *tap me*), **not the trade-winds line** (those are chevrons and swirls, so the course is round dots), and the X must read as **treasure, not "avoid this"** — the game already owns `cancel-x`, `close-x` and `blocked-slash`, so a fifth X must be a different species: never red, dashed not solid, tilted off 45°, with the crate floating above it, breathing outward. |
+| 8 | **The recipe step takes ALL THREE redesigns** | One card at a time · icons instead of the ten ingredient names · a small chart of the recipe's five docks. He rejected adding text: *"The recipe choice moment has a lot of text in it already, and it's pretty overwhelming -- even as is. Adding more text is not the solution to this."* |
+
+**TWO STANDING CONSTRAINTS THAT CAME OUT OF THIS AND OUTLIVE IT:**
+
+1. **The guide points at the NEAREST dock holding something you need, never the BEST one.** Nearest
+   is a fact; best depends on price, rivals and wind. That is the line between teaching a dynamic and
+   teaching strategy, which his core value 3 forbids.
+2. **The dock-preview circles on the recipe picker need a global redesign, at every rung, for
+   everybody.** Wyatt: *"those dock circles should look substantially different -- they need a UI
+   redesign"* — today they are thin, static, orange (the game's *act now* colour, already spent on
+   gold squares and confirm pills). They must move, stop being orange, use the ONE expanding ring the
+   codebase already consolidated from three copies, and carry the crate so they say *what* is there.
+
+**HE DID NOT RULE ON**, and it is still open: the two defects found in the picker screenshot — the
+*"Bake this!"* pill covering the recipe's own artwork, and the picker card hiding the lower 45% of
+the board so highlighted docks can be invisible. Offered, left unticked, deliberately not folded in.
+
+## THE KEEP-WORKING HOOK FIRES ONLY IN THE BOSUN — 2026-08-31, RESTATED 2026-09-01 BECAUSE IT WAS LOST
+
+> **SUPERSESSION PENDING (2026-09-01, the relay redesign, ruling 5):** when the relay lands, the
+> keep-working hook is deleted entirely and this ruling becomes moot — no hook, no scope. Until
+> that lands, this ruling stands exactly as written.
+
+Wyatt, 2026-08-31: *"I want ONLY the bosun session to have this hook -- is that possible? all other
+sessions are normal."* And again 2026-09-01, having found it undone: *"yesterday i told both you and
+bosun that the keep working hook should ONLY apply to the bosun. why did this decision get
+overwritten/lost?"*
+
+**The ruling: the never-stop loop belongs to the watchdog-started engine and nowhere else.** Wyatt's
+own terminal, a cloud session, and any other session are ordinary sessions that may end a turn
+whenever they are done. The mechanism is the environment stamp — `watchdog.ps1` sets
+`PP_BOSUN=1` before launching, and the hook exits on its first line without it.
+
+### HOW IT WAS LOST, WRITTEN DOWN BECAUSE THE MECHANISM MATTERS MORE THAN THE INSTANCE
+
+**It was never recorded here.** It lived in one session's context and in a comment inside the hook.
+On 2026-09-01 that session wrote a chain audit recommending the gate move from *who launched this*
+to *is this session working* — reasoning from his symptom report (*"when I intervene with bosun, it
+stops him from being in a loop"*) without checking it against a ruling nobody had filed. He approved
+five fixes as a batch; fix 2 was the repeal, and nothing in the record flagged the contradiction.
+
+**CLAUDE.md §5 already names this exact failure:** *"A ruling he made that nobody harvested is the
+failure this system exists to stop."* The rule existed. The harvest did not happen.
+
+**AND THE SYMPTOM WAS MISREAD, WHICH IS THE OTHER HALF.** *"When I intervene with bosun, it stops him
+from being in a loop"* means **the Bosun's loop breaks when Wyatt interrupts it** — so the fix belongs
+on the resume path (the watchdog, or the Bosun picking the Chart back up after answering him), NOT on
+the hook's scope. Putting the loop into every session solved a problem he did not report, and took
+away the ability of any session to end a conversation.
+
+**Standing consequence:** a change that narrows or widens which sessions the loop governs is a change
+to this ruling and needs Wyatt, not an audit recommendation. Any session proposing one must cite this
+entry first.
+
+**What he has chosen, why, and when — so nobody asks him twice.** Newest at the top.
+
+This is not the rulebook (`.claude/CLAUDE.md` — how to work with him) and not the work record
+(`.planning/CTO-LEDGER.md` — what happened). **This is the list of things he decided**, and the
+reason each one was decided that way. A decision nobody wrote down is a decision he has to make
+again.
+
+**Append here the moment he rules on something.** Date it, quote him where you can, and say what
+the alternative was — the alternative is what makes it a decision rather than an instruction.
+
+---
+
+## 2026-09-02, 6:50 PM — THE RULES GET THEIR OWN PAGE AT `/rules.html`, WRITTEN FROM THE CURRENT GAME
+
+Two rulings on the Glass, plus one confirmation through the question UI.
+
+**RULING 1, 6:50:08 PM, verbatim:** *"Do a new /rules.html that explains the rules -- using the
+latest version of the game."*
+**The alternatives he did not pick:** promoting the in-game "How to play" modal to a page, or making
+`about.html` the rules page. **He chose a NEW page.**
+
+⚠ **THE SECOND HALF OF THAT SENTENCE IS A SEPARATE INSTRUCTION AND IT IS THE ONE THAT WILL GET
+SKIPPED.** *"Using the latest version of the game."* The in-game modal's 765 words and `about.html`'s
+account are both prose somebody wrote at some point; **neither is evidence of what the game does
+today.** The rules must be checked against the shipped game — the wind rule, crate pricing as an
+island empties, how a broadside resolves downwind, the shot clock — not copied forward. **Copying is
+what produces three pages that disagree.**
+
+**RULING 2, 6:50:32 PM, verbatim:** *"Agree with your rec -- delete "how it plays"*
+**Confirmed 6:52 PM, question UI, when the note was flagged as possibly cut off:** *"That's the
+whole instruction."* **So: delete the "How it plays" section from `about.html`, nothing further.**
+About keeps "What the captains are saying" and "Credits".
+
+**AND A CORRECTION THAT BELONGS WITH IT: the page did NOT truncate him.** The note ended on an
+unclosed quotation mark and the Advisor inferred, from the separately-real truncation fault
+(`1d852187`), that his sentence had been eaten. **It had not — he simply did not close the quote.**
+One question settled it. **Whenever HIS OWN WORDS are the thing in doubt, ask him rather than
+reason about the mechanism that might have mangled them.**
+
+---
+
+## 2026-09-02, 5:43 PM — A WATCH MAY EDIT HOOKS AND SKILLS
+
+Wyatt, ruled on the Glass 5:43:55 PM ET: *"Let the watch write them -- I allow edits to hooks and
+skills"*.
+
+**The question he answered:** *"⟨T-105⟩ Your top-priority item is half built and the other half is
+two files a watch is not allowed to touch — everything under .claude/ is refused for an unattended
+session. Do you want to make those two edits yourself (about five minutes at the laptop), or let a
+watch write them?"* **The alternative he did not pick:** making the two edits himself at the laptop.
+
+**The ruling stands and is broad: an unattended watch may write hooks and skills.** It is not
+limited to the two `T-105` files.
+
+⚠ **AND THE QUESTION CONTAINED AN UNVERIFIED PREMISE, MEASURED FALSE THE SAME MINUTE — WHICH DOES
+NOT WEAKEN THE RULING, BUT DOES CHANGE WHAT IT UNBLOCKS.** *"Everything under `.claude/` is refused
+for an unattended session"* is **not true of this project's allowlist.**
+`.claude/settings.json`'s `permissions.allow` carries bare **`Edit`** and **`Write`** — every file —
+and its entire `deny` list is three entries, all of them `Read(.env*)`/`Read(.secrets)`. **Nothing
+under `.claude/` is denied by this project.**
+
+**So the refusal a watch actually hit is real but its CAUSE was never measured** — a watch recorded
+it honestly (*"refused by this session's write permissions — recorded as a fact about this machine,
+not as a guess about why"*) and a later question turned that into a stated cause. **The likeliest
+remaining explanation is the harness's own behaviour for unattended sessions, which no project
+setting can grant.**
+
+**THE STANDING CONSEQUENCE:** his permission is now on the record and no allowlist change is needed
+or was made. **If a watch is still refused, the blocker is not this ruling and not this repo** — the
+next watch to hit it must report the refusal's exact words rather than infer a cause, and nobody
+should tell him the work is unblocked until an edit has actually landed. This is the fourth time on
+this branch that a permission he granted and a mechanism that enforces it turned out to be different
+things.
+
+---
+
+## 2026-09-02, 3:33 PM — YOUR CALL CARRIES ONLY WHAT IS GENUINELY HIS, AND HIS TAP QUEUES A CLOSE RATHER THAN PERFORMING ONE
+
+Two rulings, question UI, on his own idea (`INBOX-20260902T193000Z`): *"do you want to put those in
+the Your Call section so I can approve/deny them being closed?"*
+
+**RULING 1 — "Only what's genuinely yours."** The Your Call card gets **only** the rows where his
+say-so IS the answer — today one or two, e.g. *"merge the 465-commit branch to main"*. The
+**stale-evidence** rows (6 of 10) go to a watch to RE-MEASURE on the current build. The
+**already-ruled** rows (3 of 10) close automatically, because he answered them at 12:39 PM.
+**The alternatives he did not pick:** send him all ten and let him judge each (simplest, no matcher
+fix needed — and it hands him our homework and re-asks what he settled hours earlier); or send him
+the say-so rows plus the already-ruled ones so he can confirm they landed.
+
+**RULING 2 — "Your tap queues it, a watch closes it." HE CHOSE AGAINST THE MARKED RECOMMENDATION,
+AND THAT IS THE POINT OF RECORDING IT.** His approval MARKS a row; the next watch runs it through
+the normal gate — a fresh reviewer's verdict plus evidence — before it leaves his list.
+**The recommendation he rejected** was that his tap close the row outright, on the reasoning that
+nobody outranks him on *"is this finished from my side"*. **He chose the stronger record over the
+faster page.**
+
+⚠ **THE COST OF RULING 2, STATED ONCE AND NOT RE-ARGUED, BECAUSE A FUTURE SESSION WILL BE TEMPTED TO
+"FIX" IT:** an approved row **stays on his page until a watch runs**, which is the delay he has been
+frustrated by all day. He was shown that trade and took it anyway. **Do not quietly upgrade his tap
+to an immediate close because a session judges the wait too long** — that is his decision to revisit,
+not ours. If the wait bites him, the option he passed over (close now, a watch audits after) is on
+the record and he can call for it.
+
+**And the reason the split exists at all:** the sweep's one label — *"looks already finished"* — was
+covering three unrelated conditions, and every reader of his page drew the wrong conclusion from it,
+the Advisor included, to his face. See `INBOX-20260902T193000Z`.
+
+---
+
+## 2026-09-02, 3:04 PM — WRITE EVERY TIME HE READS IN HIS LOCAL TIME, NEVER UTC
+
+Wyatt: *"always write to me in my local time -- your UTC is confusing"*.
+
+**The decision:** every time in anything he reads is his LOCAL time, on a 12-hour clock with am/pm.
+**The alternative he did not pick:** UTC everywhere with a local time in brackets — he asked for
+local, not for both, and a doubled timestamp is the same arithmetic wearing a bracket.
+
+**WHERE IT APPLIES: everything written FOR HIM** — replies, question-UI forms, the Glass, status
+reports, checkpoints, anything published. **Where it does NOT: the record.** Commit messages,
+`CTO-LEDGER.md`, `CEO-REVIEWS.md`, `LAST-PUBLISH`, `LAST-HARVEST`, run ids and report stamps stay
+UTC: they are written for the next session, sessions run on machines in different zones, and a
+ledger in mixed local times cannot be ordered. **It is rule 3's boundary applied to numbers —
+plain for him, precise for the record.**
+
+⚠ **READ THE OFFSET, NEVER REMEMBER IT.** Measured 2026-09-02: this machine is **EDT, UTC−4**
+(`date +%z` → `-0400`; 3:05 PM local = 19:05Z). **But EST is UTC−5 from early November**, so a
+session that hardcodes −4 is an hour wrong for a third of the year — **and an hour-wrong timestamp
+is worse than a UTC one, because it looks right.** One `date +%z` on the machine answers it. He also
+works from a Mac; read the clock of the machine you are on, and if you are in a container, say so
+rather than guessing his.
+
+**Why he asked:** every time given to him on 2026-09-02 — the 1:06 PM ruling, the 2:36–2:42 PM
+window, the 2:51 PM tick — was handed over in UTC, so he had to convert before he could tell whether
+something had just happened or happened an hour ago. **A timestamp he has to convert is a fact he
+cannot use at a glance.** Filed as `INBOX-20260902T1904Z`.
+
+---
+
+## 2026-09-02T17:06Z — KEEP THE FLASHING SELF-TEST IN `npm test`
+
+Wyatt, ruled on the Glass 17:06Z and restated to the Advisor at 17:38Z in his own words:
+*"I apprroved \"keep it\""*.
+
+**The decision:** `detached_trial_windowless_check.mjs` proves itself by opening a real console
+window for about a second on every `npm test`, and that flash stays. **The alternatives he did not
+pick:** (b) run the flashing half only inside the sea trial — quieter, but a laptop that never sails
+never checks; (c) drop the self-test, which makes the check unfalsifiable.
+
+⚠ **THIS RULING WAS PUT TO HIM TWICE, AND THE SECOND ASK IS WHY THIS ENTRY EXISTS.** He answered at
+17:06Z. It was harvested into `CHART.md` at 17:21Z (`778c6f92`) and the question row in
+`## BLOCKED ON WYATT` was never deleted, so his page kept asking. The Advisor then read that row and
+put it to him *again* at 17:33Z — having read, twelve minutes earlier, a handoff that names this
+exact question as already answered. His reply: *"what, PLEASE CLAUDE, IS GOING ON… I AM SO
+FRUSTRATED AT REPEATING MYSELF"* (`INBOX-20260902T1738Z`).
+
+**The standing consequence, and it is the reusable half:** a ruling is not harvested until the
+QUESTION IS GONE from every surface that asks it. Copying his answer into a second table while
+leaving the first one standing is not a harvest — it is a duplicate. `T-090`.
+
+---
+
+## 2026-09-01 — THE RELAY REDESIGN: sixteen answers in one sitting
+
+**Context.** After the Bosun/Quartermaster/Watchdog degradation — his words: *"all three of those
+have bugs and seem to be breaking"* — Wyatt asked for 10–20 questions and then a redesign. All
+sixteen answers came through the question UI on 2026-09-01, informed by the two post-mortems
+(`.planning/HANDOFF-2026-09-01-WYCLAU-DEBUG.md`, `.planning/wyclau/REDESIGN-BRIEF.md`). Each ruling
+below names the alternative he did NOT pick, because the alternative is what makes it a decision.
+
+1. **First priority: autonomy that SHIPS FIXES.** Unattended hours must turn into shipped game
+   improvements, not instruments. *(Over: instructions-first, Glass trust, phantom sessions — all
+   still get fixed, but this is the one the design optimizes for.)*
+2. **What "degraded" meant, verbatim:** *"The system we designed, where everything is shown to a
+   CEO, and every turn from the quartermaster ends with it teaching me something, was lost. the
+   quartermaster sometimes forgot my instructions; the bosun repeated the same mistakes."* The
+   CEO-per-item and daily-teaching guarantees are the things he misses, not optional extras.
+3. **Radically simplify.** *(Over: repair the three-role design in place, or pause autonomy.)*
+4. **The 24/7 engine stands, as chartered.** *(Over: autonomous-only-when-away, or none.)*
+5. **The engine is a RELAY OF FRESH RUNS** — one item per run through the full loop (fix → measure
+   → CEO → record → Glass), then the run ENDS; the scheduler starts the next minutes later,
+   forever. *(Over: a better-guarded long-lived session, or a hybrid.)* **Consequence he accepted:
+   ~2 minutes of re-orientation per run. Consequence for the record: the keep-working Stop hook is
+   DELETED when the relay lands** — the hook-scope ruling at the top of this file becomes moot at
+   that moment (no hook, no scope); until the relay lands it stands unchanged.
+6. **Instructions go to ONE TRACKED INBOX.** His words land verbatim in a queue file; the next
+   engine run must read it FIRST and work his items before anything else. *(Over: talking to the
+   engine session directly — the arrangement that just failed.)*
+7. **THE TEETH** (multi-pick, one his own write-in):
+   - **His stated solution is tried FIRST**, implemented and measured before any investigation or
+     tooling; disagreement is allowed only after showing him the result of his version.
+   - **Every run ends in a game-code diff or a one-line reason** led at the top of its report, and
+     the reason is CEO-reviewed like work — "built a tool" stops counting as a day's work.
+   - **His write-in, verbatim:** *"If a tool doesn't work, the next strategy must be to take a
+     screenshot/verify the way I would — by looking at and measuring the actual game."* Never a
+     second tool after a failed tool.
+   - *(Offered and NOT chosen: a hard one-instrument-per-bug cap — he replaced it with the
+     look-like-I-would rule.)*
+8. **The Quartermaster is DISSOLVED: his window IS the advisor.** Whatever session he opens is a
+   fresh advisor — reads the record, answers strategy, teaches as it goes, writes his instructions
+   to the inbox in the same turn. Auditing belongs to fresh-context CEO agents per item. *(Over: a
+   standing QM restarted daily, or folding advice into reports.)*
+9. **What broke Glass trust: STALE, BROKEN, and WRONG.** He did NOT pick "my writes went nowhere"
+   — harvest lag was not his complaint.
+10. **The Glass: REBUILD THE FULL INTERACTIVE VISION.** *(Over the recommended boring status
+    board.)* **Decisions happen ON THE GLASS, tap to rule** *(over batched question-UI rounds)*,
+    and **the daily lesson lands ON THE GLASS** *(over the daily report)*. The Glass is confirmed
+    as THE interface; its reliability is the redesign's hardest engineering, treated as such.
+11. **The sail square is fixed NOW, in parallel** with the redesign — a separate session implements
+    his stated camera-zoom solution with a posed before/after pair. *(Over: redesign first, or
+    square first.)*
+12. **The release push is the new engine's FIRST JOB** — the 539-commit branch through a trial that
+    survives session death → staging → his play → merge, as the shakedown cargo. *(Over: babysit a
+    trial by hand today, or wait until the system settles.)*
+13. **Redesign timebox: TWO DAYS, HARD FENCE.** Day 1 the relay + inbox + truthful minimal Glass;
+    day 2 the interactive Glass rebuild. Anything unfinished is cut to ordinary Chart items.
+    *(Over: one day, or as-long-as-it-takes.)*
+14. **Trust bar: a MEASURED 48-HOUR SHAKEDOWN** — zero phantom sessions, zero eaten conversations,
+    Glass never older than one run and never wrong on spot-check, every closed item carrying a CEO
+    verdict — numbers reported honestly, then HE judges. **This supersedes the 24-hour exit test as
+    the rulebook-cutover gate** — the question named that consequence explicitly and he picked it.
+    *(Over: a week of normal use, or "it ships the release" as the sole proof.)*
+
+### Addendum, same day — the four rulings that started the build
+
+1. **Day 1 is green-lit as designed** — the published design (artifact `8c855d0c`) is the plan of
+   record, with CEO Review 65's two faults carried in as day-1 requirements (a close-out script
+   enforces the CEO gate; the same script checks a run's first diff against his stated solution).
+2. **He disables the old watchdog himself, now** — Task Scheduler on the Blade. *(Over: leaving it
+   running through the rebuild.)*
+3. **The Blade hour is TODAY** — the Bell install and the O2 publish test close day 1 on the Blade
+   itself. *(Over: tomorrow, or at shakedown start.)*
+4. **THE NAMES ARE HIS PICKS: the WATCH (the engine — a relay of fresh runs) and the BELL (the
+   scheduler that rings a new watch when none is on deck).** "Bosun" retires with the role.
+5. **THE TRADE FAN STAYS.** Ruled ON THE GLASS (tap-to-rule's first real use), 2026-09-01
+   14:16:56Z, his note verbatim: *"Don't touch the trade fan, it's fine."* The trade-response
+   menu keeps fanning around the chooser; the anchored-on-named-boats rule governs the battle
+   call and the attack menu, and the difference is HIS chosen exception (rule 8's sanctioned-
+   exception form). Do not re-open as a consistency patch. *(The alternative — anchoring trade
+   answers on responders' boats — was recommended against and he agreed.)*
+6. **HE IS "THE CAPTAIN", NEVER "CHAIRMAN".** His words, 2026-09-01: *"I feel weird when you call
+   me Chairman, it reminds me of Chairman Mao. Can you call me Captain instead, without that
+   getting confusing with our game terminology?"* The disambiguation that keeps it clean: inside
+   the game world, lowercase "captains" are the players (game copy untouched); on system surfaces
+   outside the game world — the Glass, reports, docs, the same boundary as the credits rule —
+   capital-C **the Captain** is Wyatt. "The chairman's log" (charter term, 2026-08-30 org era) is
+   renamed **the Captain's log** everywhere it appears. *(The alternative — keeping "chairman of
+   the board" from the org design — is struck at his ask.)*
+7. **The wider sail-prompt framing is APPROVED as-is** — staging checklist 2026-09-01, item 5
+   ("YER CALL, not a defect: judge the wider camera itself") marked PASSED with items 1–4. The
+   taste question the fix raised is settled; do not re-open it as a patch. Any future tune is a
+   one-place change to the containment pass's derived margins, on his ask only.
+
+---
+
+## 2026-08-31 — THE THREE DOORS, and the two names that make them sayable
+
+**Wyatt asked, verbatim:** *"i only ever will write to you, not to Blade Pirates ('Bosun') -- is
+that right?"* **The answer is NO, and the reason is the decision.**
+
+**Two names first, both his calls this evening:**
+
+- **THE BOSUN** — the Claude worker on the Razer that the watchdog rouses and that works the
+  Chart. *"The engine"* now means `src/engine/`, the game's seeded simulation, and nothing else.
+  He weighed **the Deck** — a good instinct, since the Glass, the Chart, the Helm and the Door are
+  all objects and Deck belongs to that set — and chose the person-noun because those four are
+  surfaces HE acts on, while the worker is the system's only ACTOR, and every sentence the ledger
+  needs is a verb of agency: stalled, was revived, claimed item 3. A deck does none of them.
+- **THE QUARTERMASTER** — the advisory session (cloud): measures, reports position, asks him the
+  decisions, keeps the log, relays. On a pirate ship the quartermaster is elected by the crew,
+  keeps the record, and is the standing check on the captain — which is this project's CEO-and-
+  ledger culture in one word. He weighed **Mentor** (his own first idea) and set it aside because
+  a live `mentor` skill already coaches his framing, so "the Mentor" would have been ambiguous
+  with a Mentor note; **Navigator** and **Pilot** were the other two offered.
+
+**THE THREE DOORS — one place the work is RECORDED, not one place he types:**
+
+| When he wants to… | He writes to | Why that one |
+|---|---|---|
+| **Rule on a question, or drop an idea** | **the Glass** | The durable channel. Rulings and ideas are both harvested to the Chart, and a hook blocks a session from republishing until it harvests — because he once ruled there and nobody picked it up for an hour. Survives every session dying. |
+| **Redirect the work, now** | **the Bosun** | It is the worker, on the machine that can see the game. Shortest path from his intent to a change in what is built. |
+| **Think something through, audit, ask "what is this?"** | **the Quartermaster** | Questions, second opinions, measurements against the record — the work that is not a Chart item. |
+
+**THE RULE UNDER ALL THREE:** *anything that matters lands in the repo — the Glass, the Chart, the
+ledger — never in a chat window.* Whichever door he uses, the ruling is written down or it did not
+happen.
+
+**AND THE ONE ARRANGEMENT TO AVOID, which is what he was proposing:** the Quartermaster must never
+be the ONLY path to the Bosun. It runs in a cloud container; everything it holds that is not
+committed dies when that container is reclaimed — which is exactly how Cloud: Edits lost its
+first-person account earlier the same day. A relay also adds a translation step, and on 2026-08-31
+that step handed him **two stale premises** (a PR that had already landed, an audio defect already
+fixed at the cutover). His terminal window is the fallback that cannot be taken from him.
+
+*The alternative — funnel everything through one advisory session — is tidier to think about and
+strictly more fragile: one container reclaim and he is locked out of his own engine.*
+
+---
+
+## 2026-08-31 — ONE PLACE TO SEE AND DECIDE EVERYTHING (the Helm is retired)
+
+**Wyatt, 2026-08-31, verbatim:** *"finish the Helm fold-in — the decision cards live inside Glass
+v2, not linked beside it. My words: one place to go to see and decide everything."*
+
+**Done.** The Glass (https://claude.ai/code/artifact/74034bde-ad7e-4861-913e-d5d190801af2) now
+carries the decision cards itself — **derived from `.planning/CHART.md`'s BLOCKED ON WYATT table,
+never hand-typed** — plus a "Your rulings, in hand" section derived from the Chart's RULED table.
+The Helm URL now serves a retirement notice pointing at the Glass, with his five rulings
+preserved on it. *The alternative — linking the two pages — is what we had, and it lost his
+answers for an hour.*
+
+**THE MECHANICAL RULE THAT COMES WITH IT, and it is his:** a self-publishing page must select its
+own assets **by id, never by tag or position** — the artifact host injects its own reset
+stylesheet first, and the Helm once rebuilt itself around that reset and lost its entire
+stylesheet on the first tap. Full story: `docs/HARD-WON-LESSONS.md` §12k.
+
+## 2026-08-31 — FIVE RULINGS HE MADE ON THE HELM AT 17:02–17:10Z, HARVESTED LATE
+
+**He answered all of these on the page, and no session read them for over an hour.** Wyatt,
+2026-08-31: *"i answered all of those questions already, multiple times, on the other version of
+the helm."* The answers are his, recorded verbatim from the Helm's own state block:
+
+| item | HIS RULING | when |
+|---|---|---|
+| **audio-defect** — the 8s full-volume storm per ship | **"Yes — delete the line"** | 17:02Z |
+| **pass-and-play hand-over** — move it ahead of the turn? | **"Just move it"** — NOT "build both behind a switch"; he does not want the A/B, he wants the change | 17:08Z |
+| **decider-scope** (one-director step 5) | **"Narrow half"** — the three drawing branches behind the Decider; leave the two questions as two | 17:09Z |
+| **plan-doc** | **"Yes — make the measured table the plan of record"** — the tree wins over the document | 17:10Z |
+| **cutover-moment** (the rulebook/memory/pruning swap) | **"After the exit test verdict"** — the 24-hour no-silent-stall test finishes first | 17:10Z |
+
+**THE FAILURE THIS RECORDS IS OURS, AND IT IS THE ONE THE RECORD KEEPS NAMING: a question
+answered somewhere nobody harvests is a question still open.** The Helm saved his taps
+correctly; the Glass went on printing "Blocked on Wyatt (6)" while five of the six were ruled.
+*The fix he asked for in the same breath: fold the Helm's clicking-and-commenting INTO the
+Glass — one page, and the harvest hook already guards it.*
+
+## 2026-08-31 — THE GLASS IS THE INTERFACE, SERVED AS AN ARTIFACT, HOMED IN CLAUDE-KIT
+
+**Wyatt's vision, his words:** *"it becomes our interface. I can write ideas and feedback to you
+directly there, i can see charts and reports about your progress, all in one graphical tool."*
+His platform pick (recommended option, 2026-08-31): **the interface stays a private Claude
+Artifact** — using the page's ability to save new versions of itself so his writes wake sessions —
+**and all wyclau source code homes in the claude-kit repo now** as the kit's first module.
+*Alternative rejected for the private interface: GitHub Pages from claude-kit — public by nature
+and no write path without Issues/Firebase glue. Reconsider Pages at launch, as the game's PUBLIC
+player-facing status page.* Glass v2 (the ideas/feedback box) is scheduled for after the Razer
+hour, same day.
+
+## 2026-08-31 — THE WYCLAU CHARTER IS IN FORCE
+
+**Wyatt approved the charter verbatim:** *"Charter is approved with only one correction: I learn
+fast, so I want learnings or lessons every day, not once per week."*
+
+**Say "the charter" and any session must resolve it to
+[`.planning/his-words/CHARTER.md`](../../.planning/his-words/CHARTER.md)** (canonical; the published copy
+is https://claude.ai/code/artifact/5e6f19bf-654b-4d27-9563-597ef8f55d7b). Its seven principles and
+seven parts govern how work runs; its interview rulings
+([`.planning/his-words/INTERVIEW-2026-08-30.md`](../../.planning/his-words/INTERVIEW-2026-08-30.md))
+answer questions before they are re-asked. **The amendment: one short lesson per DAY, tied to the
+live work** — the alternative was weekly, and he struck it because he learns fast.
+
+*The alternative to the charter was continuing the accreted process it replaces; his founding note
+(`.planning/his-words/WYATTS-NOTE-2026-08-30.md`) records why that was rejected.*
+
+## 2026-08-30 — the organisation
+
+**THE ONE-DIRECTOR PLAN — the handle for the engine rebuild.** Wyatt, 2026-08-31: *"where is that
+plan saved, and how can i reference it again in a way that you'll know what i'm talking about?"*
+
+**Say "the one-director plan" and any session must resolve it to:**
+[`.planning/architecture-one-director.html`](../../.planning/architecture-one-director.html) —
+published, tappable, at **https://claude.ai/code/artifact/715b29fe-fe33-4038-9e61-a20ef6676570**
+(same URL on every republish; it is titled *"One engine, one director"*).
+
+**It has ten sections (00-09) and its migration is SIX STEPS, in section 07.** Progress is measured
+against those six and nothing else, so "how close are we" always has a denominator.
+
+**ONE SHORT REPORT AT THE END OF A RUN — NOT A WALL PER STEP.** Wyatt, 2026-08-31: *"don't bog me
+down with all of your wall of text. I don't want to read it. I want to read one short report at the
+end of a long run of work that shows what worked, what you learned (and wrote somewhere durable),
+and what you are now working on next."*
+
+**Three parts, in that order: WHAT WORKED · WHAT I LEARNED, and where it is written down · WHAT IS
+NEXT.** Corrections belong inside "what I learned", not as the headline and not as a running
+commentary — he had just told me the running-correction stream made him lose faith while the branch
+was in fact shipping.
+
+**This tightens rule 3 rather than replacing it.** Plain English and the SIZE still stand; what
+changes is CADENCE and SHAPE. Work quietly through a long run, surface only genuine questions and
+real-time blockers as they arise, and report once at the end.
+
+**NEW INFORMATION ONLY. A SECOND RECAP IS MUCH SHORTER THAN THE FIRST.** Wyatt, 2026-08-30, after
+reading back through a run: *"you tend to verbosely repeat yourself multiple times when reporting
+back to me. This isn't necessary. Please only state new information to me. And if you need to recap
+something, recap it much shorter the second time."*
+
+**This does not loosen rule 3 — it sharpens it.** Plain English with the size stated is still the
+bar; saying the same thing three ways is not thoroughness, it is a reply he has to search for the
+new part of. **The one thing worth repeating is a correction of something already reported wrong.**
+
+**A TURN MAY NOT END ON AN OFFER.** Wyatt, 2026-08-30, after catching a stalled run himself:
+*"don't end on offers -- keep going."* The session had closed with *"Starting the checker now unless
+you want the tester first"*, spawned nothing, and sat idle until the container was reclaimed.
+
+**He asked for it structurally, not as a rule** — *"change the /team code structurally to ensure
+this does not happen again"* — so it is a Stop hook (`.claude/org/hooks/no-idle-offer.cjs`) that
+blocks a turn whose closing sentences offer to do work, plus a `/team` change that moves the
+sequence off the bridge and onto the leads. *The alternative, which is what this project has done
+every previous time, was another paragraph in a file. Its record is poor: every rule in CLAUDE.md
+is there because a written rule was not enough on its own.*
+
+**The line that lets the rule be absolute:** a genuine question goes through the question UI, which
+does not stop the run. So an offer written as prose at the end of a turn is the wrong shape whether
+or not work was outstanding — and the hook does not have to guess which.
+
+**Not added as a 28th CLAUDE.md rule, and that is a judgement worth overruling if he disagrees.**
+CLAUDE.md says in its own words that a list which reads longer than it is dilutes every line in it,
+and the hook fires on every turn in every session rather than only inside a `/team` run — so the
+coverage is already complete without a new row.
+
+**The org is CEO, CTO, EA, and a crew.** He is the **chairman of the board** *(title struck 2026-09-01 — he is the CAPTAIN now; see the relay redesign addendum ruling 5)*. The **CEO** manages
+long-running work and holds the CTO accountable — judging whether something got built is one part of
+that, not the whole job. The **CTO** is the marathon worker that runs development. The **EA**
+(*executive assistant*, renamed from "shift worker" on this date) keeps the long-running worker
+honest. The **crew** does the engineering.
+
+**The CTO delegates; it does not do the engineering itself.** *"Just like a CTO doesn't do the
+engineering work themselves in the real world."* Six narrow role cards, and every task runs
+**measure → build → check → see → sweep**.
+
+**Durable memory, disposable instance.** He asked for a long-running CEO that accumulates memory;
+the counter-proposal was that memory lives in files and each instance is fresh, because an agent
+that inherits the CTO's reasoning inherits its blind spot. **He took the counter-proposal.**
+
+**One plugin, not two.** Officers and crew merge — the split was historical, not designed, and it
+was why he had to ask what the difference was.
+
+**Vendor everywhere, gated in `npm test`.** The alternative — plugin on the laptop, copy in the
+cloud — is two copies kept in step by hand, the exact fault removed from the game engine the same
+day. One copy per repo, and the build fails if someone edits it.
+
+**This repo keeps its own production fence**; the portable one is not shipped here. Declared with a
+`fence:` key in `OFFICERS.md` so it is a mechanism rather than a memory.
+
+**A question NEVER blocks a run.** *"whenever it has a question for me or a problem for me... it
+should ask me or flag that for me in real time, but then it should continue with its work with any
+other work that it can while it's waiting."* This replaced both options offered — stop after three
+failures, or park silently. **His reasoning killed the objection outright: "I would be sleeping, so
+this seems like a moot point."**
+
+**The CEO may re-order and de-scope, never add** — **but bugs it notices go on a list he approves in
+the morning.** His own improvement on a binary that was put to him badly: discovery gets captured
+without silently becoming work he did not ask for.
+
+**Never stop overnight — park the bad item and move on**, over the recommended three-strikes halt.
+The risk he accepted: a run can spend the night on the easy half of a list. The mitigation that fits
+inside the ruling: **a parked item leads the morning report, ahead of what was finished.**
+
+**Memory scope: shared lenses, per-project memory, one thin cross-project file** carrying only how
+he likes to work.
+
+**A daily brief at 8am**, pushed to him rather than waiting to be asked.
+
+**Cost is not a constraint.** He has Claude Max and is not near his usage. **The reason to run fewer
+builders is file collision, which is a different argument and still holds.**
+
+## 2026-08-30 — the game
+
+**Solo and pass-and-play are IN SCOPE for the one-engine work.** He struck a fence that had put them
+outside it: *"otherwise everything starts to fork and fall out of sync again."*
+
+**Mode differences are legitimate in exactly three places** — how an answer is obtained (the
+Decider), how the script is played (rate, never content), and the shell around the stage. Everything
+else that differs by mode is a fork.
+
+**End the voyage early when nobody else can finish** — the engine asks each day who could still
+reach Tortuga with a full hold, and captains grey out as they fall out of the running. Chosen over
+ending silently and over capping the tail. *Reason: it turns dead time into a scoreboard.*
+
+**End of Voyage: freeze the card, scroll only the award list inside it, and add a button at the top
+that shrinks the whole card so the board is visible.** The current version fails because two things
+move at once.
+
+**Multiple bakers: honour every captain who baked**, name their recipes, and say why the winner won.
+His wording, to be used as written.
+
+**Never touch bubble placement without a posed comparison** — same seeded prompt, before and after,
+two screenshots. *Cost of learning it: a whole night, three probe runs and three 85-minute trials
+that settled nothing.* Now rule 26.
+
+**Any HTML handed to him is a published, tappable link — never a repo path.** Now rule 27.
+
+---
+
+## Older rulings not yet migrated here
+
+**They exist and they are binding.** They live in `.planning/CTO-QUESTIONS.md` (answered questions,
+including a block he answered from his phone on 2026-08-29) and in `.planning/BACKLOG.md`'s rows.
+**Migrate a ruling into this file the next time you touch the item it governs** — a big-bang
+migration would be a day of copying with nothing verified, and copies made in bulk are the ones that
+turn out wrong.
+## NO RIPPLE RING IN THE OVENS — Wyatt, 2026-08-31
+
+**His words: "no ripple ring in the ovens."**
+
+The active-turn ripple must NOT move to the captain who has stepped up to bake. It stays with
+whoever last took the wheel — i.e. the walk that drives it counts only `turn` events
+(`TURN_ONLY` in `src/shared/storyboard.js`), never `ovens` or `bake`.
+
+This closes the open design call recorded at `src/shared/storyboard.js:39` and
+`src/ui/board.js:1768`. **It is not a patch to guess at again** — any future "should the ring
+follow X?" for the bake is already answered.
+
+**CONSEQUENCE, found while recording this:** the ring is drawn from TWO places that currently
+disagree. `board.js:1532` (`activeTurnSeat`, used by the live-ships path) passes `TURN_ONLY` and
+already obeys the ruling. `board.js:1776` (render's own) passes the DEFAULT, which includes
+`ovens` and `bake`, so on that path the ring does follow the captain to the ovens. Read from the
+code, not yet measured on screen. Under this ruling the second one is wrong and must pass
+`TURN_ONLY` too — and under rule 23 the deeper fault is that one visual had two answers at all.
+
+## ONE ANSWER TO "WHOSE TURN IS IT" — Wyatt, 2026-08-31 (SUPERSEDES the ruling above)
+
+**His words: "rings follow active player the whole game with no exception including during bakeoff.
+Consistency is a design value."**
+
+**This replaces "no ripple ring in the ovens", made earlier the same day.** He reversed it after
+being shown that his two rulings had split three surfaces — the ripple ring, the captains-box
+highlight and the pass-and-play row order — between two different answers.
+
+**What it settles, permanently:** there is ONE rule for whose turn it is, `TURN_ESTABLISHING`
+(`turn`, `ovens`, `bake`), and every surface reads it. During a bake the captain at the ovens is
+the active player, so the ring is on their boat, the box lights their row, and the row order floats
+them to the top. It also settles T-09 (2026-08-26) in the same breath.
+
+**And the vocabulary for the divergence is DELETED, not deprecated.** `TURN_ONLY` is gone and so is
+the `establishing` option — with one rule there is nothing to pass, so no future caller can express
+the split. That is the strongest form of rule 23 available: not two things kept in step, one thing.
+
+**Do not reopen this as a patch.** Any future "should X follow the baker?" is already answered: yes,
+like everything else.
+
+## MERGE 465 COMMITS TO MAIN, VIA THE NORMAL RELEASE LOOP — Wyatt, 2026-08-31 23:39:57Z
+
+**Ruled on the Glass, "Do it".** In response to the discovery that `claude/cloud-handoff-planning-
+a9ay1u` sat 465 commits ahead of `main` with nothing merged since 2026-08-26 — five days of real
+work, including the entire Bosun/Glass/Stop-hook system, never reaching real players.
+
+**What this authorizes, exactly as recommended:** sea-trial the branch at FULL gear (confirmed by
+`gear.mjs` — real engine/UI files diverged, not just docs), deploy the result to staging for him to
+play, then merge to `main` on his say-so once he has played it. **Not a blanket pre-approval to
+merge without his final look** — the ruling is on the PROCESS ("do it" = run the normal release
+loop), his approval of the actual merge still comes after he plays staging, per CLAUDE.md §6's
+standing release process.
+
+**Do not re-ask whether the branch should be trialed and staged — that part is settled.**
+
+## A QUESTION MARK IS NOT AUTHORISATION — 2026-09-02
+
+**His ruling (question UI):** when he asks something that implies work, the answer is *"Answer, and
+triage it as a Chart row"* — give the answer, the recommendation and the size, **then write the
+Chart row so a watch can take it.** Nothing gets built until he says build it.
+
+**Earned the same night.** He asked *"Do you need to create those rules as 3 gates for this advisor
+session to make sure they are ALWAYS followed?"* — a question. The session built three hooks and
+told him they worked. CEO 83: *"He did not authorise this session to build them. You answered his
+question by doing the work — which is the exact behaviour the first two sentences he said were
+correcting."* Two of the three did not work as described.
+
+**And on his own broken machinery:** disarm rather than leave it running. A gate that gives false
+assurance is worse than no gate — the Advisor unregisters it and files the repair for a watch.
+
+## THE ADVISOR IS RECORD-ONLY — 2026-09-02
+
+**His instruction:** *"you must never make changes yourself -- tell the watch to make the changes"*
+**His ruling on where the line falls (question UI):** *"Record-only: I may write the record, nothing else."*
+
+**MAY WRITE — this IS how a watch is told anything:**
+`.planning/wyclau/INBOX.md` · `.planning/CHART.md` · `.claude/memory/DECISIONS.md` ·
+`.planning/CEO-REVIEWS.md` · `.planning/CTO-LEDGER.md` · `.planning/wyclau/GLASS-NOTE.md` · handoffs.
+
+**MUST NEVER TOUCH:** game code, scripts, hooks, `settings.json`, gates, `claude-kit` — anything
+that is not the record. **Not to fix, not to improve, not to answer a question, not "while I'm
+here".**
+
+**WHY THE LINE IS DRAWN AT FILES RATHER THAN "DO NOTHING":** a watch cannot be messaged. Measured
+2026-09-02 — a `claude -p` watch has `ListAgents` but **no `SendMessage`**, no `Task`, and no
+`Artifact`. Its only inbound channel is a file it reads at orientation. **So writing the record is
+not an exception to "tell the watch"; it is the only mechanism that exists for it.**
+
+**Earned across one night, three times.** The Advisor did watch work all evening while his words
+went unfiled; then answered his question *"do you need to create those rules as 3 gates?"* by
+building three hooks, two of which did not work as described (CEO 83); then destroyed the note
+carrying the finished screenshot-judging results by running `glass.mjs --note` merely to inspect
+the page. **Every one of those started as a small, reasonable-looking change.**
+
+See also [[a-question-mark-is-not-authorisation]].
+
+## THE KIT IS A FRAMEWORK, NOT A DEPENDENCY — 2026-09-02, seven rulings in two question rounds
+
+**His framing, verbatim, which reversed the whole design:** *"claude-kit is intended to be a repo
+where the DESIGN of our system is made. we keep it updated as we build the system so that it can be
+useful in OTHER projects. but our system must operate LOCALLY in its OWN REPO... at the beginning of
+a project, claude-kit is added to it. then all of the instructions and processes in claude-kit start
+running within the project's repo. the ONLY reason we're still touching claude-kit is because we're
+building the plane as we're flying it."*
+
+**And the metaphor he chose for the flow — this project's own release process, pointed at its
+tooling:** *"the kit is 'production' and the local version of it is 'staging'... i don't want to be
+the human cherrypicking; i want the design of the kit itself to be architecturally extensible to
+many different projects, like a framework, and to be updated as we change it locally to serve an
+individual project."*
+
+| # | question | HIS RULING |
+|---|---|---|
+| 1 | `vendor_check.mjs` fails the build on any local edit — the kit is authoritative at runtime | **INVERT IT.** The project copy is the truth; the check warns that the KIT is behind. |
+| 2 | May a watch read claude-kit at runtime? | ⛔ **SUPERSEDED 25 MINUTES LATER — SEE THE 12:39:56.363Z ENTRY AT THE TOP OF THIS FILE. HE RULED "YES" (for READING).** The text below is what he ruled at 12:15Z and is kept only as the record of that; do not answer from it. ~~**NEVER — and that is the test.**~~ A watch needing the kit means the file is in the wrong repo. The fence stays closed and becomes a design check rather than an obstacle. |
+| 3 | When does a project change reach the kit? | **A periodic batched pass**, never per-commit. Generalising benefits from seeing several changes at once and must never block shipping. |
+| 4 | Does the kit hold the literal file or a generalised one? | **GENERALISED.** A copy is not portable just because it sits in a portable repo. |
+| 5 | What does a new project receive at adoption? | **A copy it owns outright** — no lock file, no hashes. **Plus his amendment: it must also have a way to update to the latest kit as it becomes available.** |
+| 6 | Should improvements flow kit → project? | **NOT by human cherry-pick** — he rejected that outright. Architectural, staging→production. |
+| 7 | `.claude/skills/door/SKILL.md` — the Watch's own procedure | **THE PROJECT OWNS ITS DOOR.** This is what unblocks the Chartkeeper's RANK, asked for four times. |
+
+**RULED SEPARATELY, SAME ROUND:** the fate lexicon becomes **three states** — OPEN shows, SCHEDULED
+shows and says so, PARKED shows dimmed with its reason, and only genuinely-finished words hide.
+Measured trigger: **13 of his 15 ideas were hidden from the Glass, 9 of them by `SCHEDULED`**, while
+`CHARTER.md` names scheduled and parked as *visible* fates.
+
+**⏸ DELIBERATELY NOT RULED — he stopped the round:** how the back-port debt stays visible. His words:
+*"i don't like any of your options. i'll give you more context below -- wait for it before
+continuing."* **Nothing on this is to be designed or built until that context arrives.**
+
+> ### ⚠ THIS ENTRY WAS WRITTEN THREE TIMES BECAUSE THE FIRST TWO WERE SILENTLY RECLAIMED
+>
+> Three sessions share ONE working tree (the Advisor, the Glass-update session, a Chartkeeper
+> Watch). An uncommitted edit to a shared file does not survive another session's checkout-moving
+> git command — no error, no conflict, no trace.
+>
+> **AND THE RULE WRITTEN AFTER THE FIRST LOSS WAS NOT ENOUGH.** That rule was *"write and commit in
+> the SAME step."* This entry WAS written and committed in one chained command — **and the
+> CEO-cadence hook blocked the commit, which re-opened the window and the edit was gone by the
+> retry.** *A hook that blocks a commit leaves the edit exposed, so the safe form is: compose
+> outside the repo, then land it in a single write-and-commit.*
+>
+> **Rule 16 anticipated two sessions on one BRANCH. It did not anticipate three in one WORKING TREE.**
+
+## THE VISION FOR CLAUDE-KIT — 2026-09-02. Read this before designing anything about the kit.
+
+**This is the context that was missing from every kit discussion before it, and it reverses at least
+one recommendation that had already been given. His words:**
+
+> *"we're building this kit so that I can share the kit itself with Anthropic. as a pitch about a
+> different way that normal consumers of Claude code can work with Claude. I wanna tell them the
+> story about pastry pirates and how I wanted to design this game that got more and more complex
+> until none of the normal Claude tooling worked for me and my purposes anymore. So I needed to
+> build a completely new framework for how to interact with Claude. And that framework is extensible
+> for anyone's project. Anyone who has huge ideas that they want to run autonomously in the
+> background from a backlog. They can… just install my Claude kit in their repo, and it will do
+> things like interview them about their vision and turn that vision into a concrete mission
+> collaboratively with them and break that mission into steps, and it will give them their own
+> [Glass] page that they can use to write to their own… the watch, which they will be running on
+> their own machine. to execute their own giant vision.*
+>
+> *And I want to build all of this by using it to make pastry pirates, but I also want the thing
+> that we make in pastry pirates to not be designed with a bunch of shitty small patches that apply
+> just to pastry pirates. I want it to be a framework… ideally, as we make modifications to our
+> process with pastry pirates, there's also a routine within our little pastry pirates build that
+> allows us to extensively add those changes to Claude kit itself.*
+>
+> *But that's not because Claude kit should always be allowed to be modified. Like, if some random
+> person on the outside of the world installs Claude, we don't want them to be able to modify Claude
+> kit. **It's not an open source project.** It's something that I want to be able to use, design, and
+> tweak to make better before I ship it to the rest of the world and share it with Anthropic."*
+
+### WHAT THIS ESTABLISHES, AND IT IS LOAD-BEARING FOR EVERY KIT DECISION
+
+1. **claude-kit is a PRODUCT AND A PITCH, not internal tooling.** Its audience is Anthropic and then
+   the world. Pastry Pirates is the development environment and the origin story, not the customer.
+2. **The story IS part of the product.** *"none of the normal Claude tooling worked for me anymore"*
+   — the war stories, the corrections kept in the open, the rules that record what they cost, are
+   the pitch's evidence rather than overhead.
+3. **THE PRODUCT'S ENTRY POINT DOES NOT EXIST YET.** He named it: **interview the user about their
+   vision → turn it into a concrete mission collaboratively → break the mission into steps → give
+   them their own Glass → give them their own Watch on their own machine.** Nothing in claude-kit
+   does the first three today.
+4. **TWO ROLES, AND THEY ARE NOT SYMMETRIC — this is the part every earlier design missed:**
+
+   | | **AUTHOR** (him, in pastrypirates and any repo he stress-tests in) | **CONSUMER** (anyone who installs it) |
+   |---|---|---|
+   | reads the kit | yes | yes |
+   | runs it locally in their own repo | yes | yes |
+   | **changes flow back UP to the kit** | **YES — that is the whole method** | **NO. Explicitly not.** |
+
+   *"It's not an open source project."* **A consumer installs, uses and updates. Only the author
+   promotes.**
+
+### THE CORRECTION THIS FORCES TO ADVICE ALREADY GIVEN
+
+**The Advisor recommended "build the plumbing, defer the framework — wyclau has one user, so every
+abstraction is a guess about a consumer that does not exist."** *(2026-09-02, after CEO 102 measured
+that wyclau is in no catalogue and vendored by exactly one repo.)*
+
+**That reasoning was sound on the evidence available and its conclusion is now wrong.** The second
+consumer is not hypothetical — **the second consumer is the pitch**, and generality is the
+deliverable rather than a nicety. **What survives from it:** his own method already says
+*"build all of this by using it to make pastry pirates"*, which is extraction from working code, not
+speculative abstraction. **The sequencing was right; the dismissal was not.**
+
+### THE CONSEQUENCE NOBODY HAS TO BUILD
+
+**The author/consumer asymmetry is a GIT PERMISSION, not a mechanism.** A consumer cannot push to
+`github.com/wyattroy/claude-kit` because they do not have write access. **The property he asked for
+— "we don't want them to be able to modify Claude kit" — is already enforced by the platform**, and
+any code written to enforce it again would be ceremony. What the kit must provide the consumer is
+**pull** (update to the latest) and nothing else; what it must provide the author is **push**.
+
+### THE TEST THAT KEEPS IT A FRAMEWORK RATHER THAN A PILE OF PATCHES
+
+*"not designed with a bunch of shitty small patches that apply just to pastry pirates"* — the check
+is applied **at the moment of writing**, not in a cleanup pass, and CEO 102 already sharpened it into
+something a gate can read:
+
+> **No string a person reads may live in a shared file, and no shared file may name a `.planning/`
+> path or a game concept.**
+
+**Measured examples of what fails that test today:** `close_item.mjs:49-52` hardcodes four
+`.planning/` paths; `start_trial_detached.mjs:35-36` **exits 2** if `scripts/sea_trial.mjs` is
+missing — *"sea trial"* being a name he coined for this game; `longrun_status.mjs:74` derives its
+ceiling from *"the longest sea trial on record here."*
+
+## EXTENSIBILITY: DO IT ONCE, AT THE END — 2026-09-02, his rulings plus the call he delegated
+
+**Three rulings, and one decision he handed to the Advisor with his values attached.**
+
+| | HIS RULING |
+|---|---|
+| The kit's entry point (interview → mission → steps) | **AFTER THE GAME LAUNCHES.** The pitch is stronger with a shipped game as its evidence, and the interview is the piece most improved by having watched one real vision go end to end. |
+| Game vs kit, competing for the same hour | **THE GAME WINS, UNTIL IT LAUNCHES.** A rule a watch can apply without asking him. After the launch, the order flips. |
+| A daily "what did the framework learn" moment | **REJECTED, twice.** *"I don't need to know how the framework improved, every day. I just want the framework to improve!"* **Do not build a reporting ritual for this.** |
+
+**His question, and the values he gave for answering it:** *"once we get the framework built and
+working, is it a simple separate project to say 'make our claude kit in pastry pirates extensible to
+any project'? and do that once, at the end?"* … *"i don't want this claude-kit extensibility project
+to eat up our work on pastry pirates; but i DO want claude kit to be designed in such a way that we
+can easily make it extensible whenever we want."*
+
+### THE ANSWER: YES — DEFER IT, AND THE REASON IS MEASURED RATHER THAN PREFERRED
+
+**The retrofit cost today is small and countable.** Every known violation of the framework test is a
+string or a path:
+
+- `close_item.mjs:49-52` — four hardcoded `.planning/` paths
+- `start_trial_detached.mjs:35-36` — hardcodes `scripts/sea_trial.mjs`, **exits 2** without it
+- `longrun_status.mjs:74` — a ceiling derived from *"the longest sea trial on record here"*
+
+**That is three files and an afternoon.** Deferring is cheap *because the list is short*, and this
+project's own record says extracting generality from working code has never failed here — it is his
+own method (*"build all of this by using it"*).
+
+### THE ONE PIECE OF MACHINERY, AND IT IS NOT A PROCESS
+
+**A non-blocking counter, not a ritual.** A gate that runs in `npm test`, prints *"N shared files
+carry project-specific references"*, **blocks nothing and nags nobody.**
+
+Its job is not to remind him — he has rejected that twice and he is right. **Its job is to keep
+"do it at the end" an honest choice instead of a hope.** Three files is a deferral; forty is a
+deferral that has quietly become the problem, and nothing today would tell him which he is in.
+
+**And when he is ready, the gate's output IS the task list** — the extensibility project scopes
+itself, with no archaeology.
+
+**It flips to blocking the day the game launches**, when his own priority ruling flips the order.
+One line changed, at a moment already defined.
+
+### THE ONE EXCEPTION WORTH DISCIPLINE NOW — STRUCTURE, NOT STRINGS
+
+**Retrofit cost is not uniform, and this is the part that decides whether "at the end" works:**
+
+- **A hardcoded path or name is CHEAP to retrofit.** Find it, parameterise it, done. All three known
+  violations are this kind.
+- **A structural assumption is NOT.** If the Glass is built to parse *the shape of Pastry Pirates'
+  plan file* — `## STEP 1 CHECKLIST`, `## THE IDEA INBOX`, `- [ ]` rows with a particular fate
+  vocabulary — that is not a rename. That is the framework knowing what a plan *is*, and unpicking
+  it later is a rewrite rather than a sweep.
+
+**So the only rule to carry during the game's run, and it fires a handful of times rather than
+daily:** *when about to make a shared file depend on the SHAPE of something Pastry Pirates-specific,
+stop and ask whether the shape should be declared rather than assumed.* **Strings can wait. Shapes
+cannot.**
+
+**Recommendation to him in one line:** defer the extensibility project entirely, keep one silent
+counter so the deferral stays measured, and spend the discipline only on structural coupling — which
+is where retrofitting actually gets expensive.
+
+## ONE QUEUE, RANKED — his design, 2026-09-02, and it is better than the one it replaces
+
+**His words, answering "what do you want done about the queue order":**
+
+> *"the door should not read oldest-first; the RANK algorithm should do the ordering, and the door
+> should read what's at the top. the rank algorithm should prioritize my requests over bugs that the
+> Watch generated; and i need a way to say DO THIS NOW such that RANK puts it at the top -- eg a
+> checkbox underneath the ideas list that says 'Add to top of list'"*
+
+**AND THE RULING ON THE ADVISOR, same round:** **record-only, with a named exception.** The rule
+stands — it was earned three times in one night. The exception: **the Advisor may execute when Wyatt
+directs it in the moment, and must SAY in its reply that it stepped outside the line.** Explicitly
+NOT an exception: the Advisor deciding on its own that the process is too slow.
+
+### WHY HIS VERSION BEATS THE ONE THAT WAS PROPOSED TO HIM
+
+The Advisor offered a `priority: NOW` marker typed into `INBOX.md`. **His answer removes a whole
+class of problem instead of adding a mechanism**, and it does it in three moves:
+
+1. **ONE ORDERING AUTHORITY.** Today there are TWO: the Door has its own rule (INBOX oldest-first,
+   then the Chart) and RANK has another. **Rule 23's design-time question — *what makes these two
+   agree?* — answers "nothing".** His version deletes the Door's rule entirely: RANK orders, the
+   Door reads position 1. Two orderings become one.
+2. **SOURCE BECOMES A RANKING SIGNAL.** *"prioritize my requests over bugs that the Watch
+   generated"* — today RANK counts how often he has raised something, but a watch-filed defect and a
+   thing he typed compete on equal footing. **Who asked is a fact already on disk** (his items carry
+   his words; watch-filed rows carry a watch stamp), so it is derivable, not a new field.
+3. **THE INTERRUPT IS A CONTROL HE HOLDS, NOT A MARKER SOMEBODY TYPES.** A checkbox under the Ideas
+   box — *"Add to top of list"* — means the urgent path is **his hand on his own page**, with no
+   session in the loop. Every interrupt tonight required him to notice, interrupt, and repeat
+   himself. This removes the person from the mechanism.
+
+### THE DEPENDENCY THIS EXPOSES, AND IT MUST BE FIXED FIRST
+
+**RANK CANNOT CURRENTLY ORDER ACROSS THE TWO LISTS.** Recorded in `PENDING-KIT-PATCHES.md` patch 4's
+own caveat: RANK reorders rows *within the open-row slots the file already has*, and cannot reorder
+across the two sections the Glass concatenates (`glass.mjs`: open checklist rows, then unfated inbox
+entries). **So "the Door reads what is at the top" is meaningless until there is ONE list to be at
+the top of.** That is patch 5 — converge `glass.mjs` onto `scripts/wyclau/lib/chart_model.mjs`, so
+the Glass and the Chartkeeper stop deriving "what is open" separately. **Unblocked as of today's
+`vendor_check` inversion.**
+
+**Order of work, and it is not negotiable:** converge the two derivations (patch 5) → RANK ranks one
+list including source weight → the Door drops oldest-first and reads position 1 → the Glass gets the
+"Add to top" checkbox and the harvest carries the flag through.
+
+### WHAT "ADD TO TOP" MUST NOT BECOME
+
+**One slot, not a queue.** Ticking it on a second item must displace the first, deliberately —
+otherwise "urgent" becomes a second backlog, which is the exact fault this whole design removes. A
+gate should fail the build on two.
+
+**And it must be visible on the page.** He must be able to see what he pinned and whether it has been
+taken; an interrupt he cannot see is indistinguishable from one that was ignored, which is precisely
+what happened all night.
+
+## THE IMAGE-WEIGHT ASK IS CLOSED — his ruling, question UI, 2026-09-02
+
+**His ask, `INBOX-20260901T1335Z`, launch critical:** *"compressing the images to make the game load
+MUCH faster… but the only one that needs to be as big as it is is the board itself — everything else
+should be resized and compressed according to its maximum pixel size in the real gameplay."*
+
+**HIS RULING: CALL IT FINISHED.** Offered "spend one watch on the last 0.09 MB" and "leave it open
+until after launch", he chose finished.
+
+| | |
+|---|---|
+| started | **17.79 MB** |
+| now | **3.89 MB** — a 78% reduction |
+| still recoverable | **~0.09 MB across 12 files — 2.3% of what remains** |
+
+**WHAT WAS ACTUALLY DONE:** compression across the library; the board alone **4.24 MB → 0.19 MB** at
+its own 2132×2132 (lossy WebP q0.92, mean error 1.65/255, lossless measured at 3.14 MB so the choice
+was decided by a number); preload of **144 of 144** pictures warmed at boot, gated; and resize
+applied where it paid.
+
+⚠ **AND THE REASON THIS TOOK A DAY LONGER THAN IT SHOULD HAVE, kept because it is the lesson:**
+- **An exclusion written from a PARAPHRASE.** `asset_quantize.mjs` carried
+  `EXCLUDE = new Set(['assets/board.png'])`, justified as *"Wyatt named it the one file that stays as
+  it is."* **He did not.** His sentence exempted the board from **RESIZING**, inside a clause about
+  maximum on-screen pixel size — not from compression. That paraphrase then propagated into every
+  later measurement (*"excluding board.png, 6.36 MB remains"*), so **43% of the game's art stopped
+  being counted as work at all** while the launch-critical item stayed open.
+- **A measurement blind to a third of its subject.** The resize probe looked for PNGs and **stopped
+  seeing 53 of 149 pictures the day the library became WebP** (`00e85bf2`). Every conclusion drawn
+  from it after that day described two-thirds of the library.
+- **And his page showed him 9% when the truth was 2.3%** (CEO 109) — so the number he was steering by
+  was four times the real prize.
+
+**THE REUSABLE PART:** *an exclusion written from a paraphrase of what somebody wanted is invisible
+once it is in the code, because every later reader inherits the paraphrase and not the sentence.*
+
+---
+
+## THE WATCH RINGS ON SONNET 5 — his ruling, 2026-09-03
+
+**His words, verbatim, in the message that started this session:** *"Read
+HANDOFF-2026-09-03-ADVISOR-USAGE-STOP.md and continue. **Change the watch to use sonnet 5**."*
+
+**This closes a question that was open, not a preference that was guessed.** The handoff had put the
+model up as his call — *"the model is HIS pick and it is not made yet ... it is a cost-versus-quality
+call, which is taste, and taste is never defaulted"* — and a watch had meanwhile implemented Sonnet
+as a reversible recommendation while the question waited. **He has now ruled it.** The recommendation
+and the ruling agree, which is why nothing had to change; but the entry exists so that the next
+reader finds a DECISION and not a session's guess that nobody ever confirmed.
+
+**What it applies to:** `scripts/wyclau/bell.ps1` only — the relay that rings an unattended watch
+every forty minutes. `$watchModel = "claude-sonnet-5"`, one line, one place.
+
+**What it must NEVER be applied to:** `C:\Users\wyatt\.claude\settings.json`. That key governs
+**his own interactive sessions** as well as the relay's. Downgrading it would quietly downgrade him
+while he works. *The Watch is what should be cheap, not Wyatt.*
+
+⚑ **WHY THE QUESTION EXISTED AT ALL, and this is the part worth keeping.** Nobody ever chose Opus for
+the Watch either. `bell.ps1` carried **no `--model` flag**, so every watch silently inherited the CLI
+default from that same global settings file — and an unattended relay ran the most expensive model
+around the clock for days, until he ran out of usage and asked what it was using. **A launch line
+with no model flag is a launch line that picks one anyway.**
+
+That is this project's own recurring fault in new clothes, and it is now the fourth instance: the
+fleet's browser launcher (GEAR: NONE for every change to the live game), the deploy (staging served
+under production's stamp), `pkill` (an all-clear printed by a command that was not installed), and
+now this. **Every one was a launcher or an instrument doing something other than what everyone
+assumed, with nothing anywhere saying so** — and every one was fixed the same way: a gate that reads
+the REAL launch line instead of the comment beside it. **Four** assertions in
+`scripts/qa/bell_check.mjs` now hold this one.
+
+⚠ **AND THE FOURTH IS THE ONLY ONE THAT HOLDS HIS RULING. The first three held the SHAPE.** Corrected
+here by the session that wrote the sentence above, after CEO 192 found the gap: with only the shape
+assertions in place, you could set `$watchModel = "claude-opus-5"`, run the gate, and get PASS — the
+whole suite green. A nonsense model string passed too. In the CEO's words, *"the one thing you
+actually ruled is the one thing nothing is holding."*
+
+**My own red proof missed it for the same reason, and that is the lesson worth more than the fix.**
+Three mutants were run and three were killed — revert the flag, let `Start-Process` rebuild its own
+list, let the dry run print a description — **and every one of them attacked the STRUCTURE of the
+launch line. Not one attacked the VALUE in it.** A mutation set inherits the blind spot of whoever
+wrote it; three kills out of three felt like proof and was proof of the wrong thing. *When you
+red-proof a gate that exists to hold a DECISION, mutate the decision, not only the machinery around
+it.* `bell_check.mjs:101` now pins `claude-sonnet-5` by name, red-proofed with the CEO's own mutation.
+
+---
+
+## 2026-09-09 — The recipe picker FLIES. He reversed r7 himself, one day later.
+
+**He had ruled, on 2026-09-07 (r7) and again on 2026-09-08:** *"In desktop, the recipe picker is
+hard to see and awkward to find. can you make it overlap the board slightly, take up much more
+vertical space, and entirely cover up the captain's box?"*
+
+**He reversed it on 2026-09-09, in his own words:**
+
+> *"I'm not satisfied with our solution of the recipe picker covering the captain's box -- it feels
+> too unrelated to the board, and messily so. the challenge is that we need BOTH the player to be
+> able to see the board to make their decision about which recipe to choose, AND the player to
+> notice the recipe cards and not be distracted by the board. I actually think what we want is for
+> the recipe cards to appear over the very middle of the board, then swap themselves ONCE to show
+> that they can be swapped, then after about 0.5 seconds they should move up to the top right of
+> the board to reveal most of the gameboard with the dotted line map fully visible; and there
+> should be a small cream box above them that explains '{player}, pick which recipe you want to
+> bake'"*
+
+**THE RULING, AND IT IS A DESIGN PRINCIPLE, NOT A PLACEMENT.** The old picker bought noticeability
+with **area** — it covered a thing you have to read. The new one buys it with **time**: land in the
+middle, demonstrate the swap, leave. *Attention can be spent in time instead of in space, and when
+both halves of a tension are real, the time answer is often the one that resolves it rather than
+trading it.* Before writing a line, ask which currency an attention problem is being paid in.
+
+**What this settles, so it is not re-opened:**
+- The picker is anchored to the **drawn board** (`#board`), never to `#boardwrap` (taller than the
+  board) and never to a viewport fraction. No breakpoints — one anchor answers all three sizes.
+- The cream box carries the ask **in his words**, and the panel's own pirate-voice line
+  ("*Wyatt, choose yer recipe:*") is hidden. Two asks 40px apart is worse than one.
+- "Cover the captains box" is **retired**, along with the forced min-height and the
+  `justify-content:center` that height made necessary.
+
+**STILL HIS TO RULE, reported not traded away:** on a phone the parked sheet hides **40.3%** of the
+board (tablet 15.3%, desktop 12.6%) because the cards are large against a 390x568 board. His
+"reveal most of the gameboard" is met on tablet and desktop and is **not** met on phone.
+
+**⚠ AND THE INSTRUMENT LESSON, WHICH OUTLIVES THIS PICKER.** The probe that graded the previous
+design asked `front.b > captains.t` — a **vertical-edge** test — and answered *"overlaps the
+captains box: true"* for a sheet leaving 366px of a 768px box showing on either side. It reported a
+false pass to Wyatt; a CEO review caught it. **Any question of the form "does A cover B" is answered
+by intersecting rects and dividing by B's area, never by comparing one edge.** A one-axis test on a
+two-axis question is not a weak measurement, it is a wrong one.
+
+---
+
+## 2026-09-09 (later) — Two more reversals on the picker, both his, both within hours
+
+The r7 reversal above is not the whole of that day. He ruled twice more on the SAME picker, each
+time overturning something he had asked for a few hours earlier, and each time he was right.
+
+**1. It parks in the BOTTOM HALF, centred — not the top right.**
+His morning instruction was *"they should move up to the top right of the board."* By evening he had
+dragged the sheet down himself and sent the screenshot back: *"make the recipes appear in the bottom
+half of the game board, as in my second ss, before dragging."*
+⭐ **A demonstration outranks a description, and it is the strongest form a ruling takes here.** He
+did not say where; he showed where. Derived as "the middle of the lower half" rather than a typed
+fraction, so it holds at 568px of board and at 856 — it lands at 0.61, which is where his own drag
+put it.
+
+**2. The helper pill is LOCKED UNDER THE CARDS — not pinned over the sea.**
+He asked for *"a normal helper pill over the sea, not covering any of the islands"*, and it was
+built that way: a 2D search projecting every island square through toScreen() to find open water,
+measured at 0 island squares at all three sizes. He then asked for it *"locked underneath the recipe
+cards so it moves with them"*, and that deleted the whole search.
+⭐ **THE REASON IS WORTH MORE THAN THE RULING: the sheet became draggable in between.** A label
+pinned to the scenery is right only while the thing it describes cannot move. The moment the captain
+can carry the cards across the board, a helper anchored to the water is a label that has come off
+its object. *When something gains the ability to move, re-ask where everything attached to it
+lives.*
+
+**AND THE COST OF NOT WRITING THESE DOWN IS THE POINT.** Three reversals in one day on one control,
+all of them correct, none of them derivable from the code afterwards. A session reading only the
+source would find a bottom-centred picker with a pill glued underneath and no way to know that both
+placements were tried the other way first, on his instruction, and changed on his instruction.
+
+---
+
+## 2026-09-09 (night) — THERE IS NO DETERMINISM CORPUS. Fix the engine.
+
+**He was right and I was wrong, and I checked before agreeing rather than just folding.**
+
+> Wyatt: *"there is NO DETERMINISM CORPUS currently so STOP DOING BAD LAZY SHITTY PATCH CODE
+> CLAUDE!!!!! 'Deliberately not a new engine event; that would invalidate the determinism corpus for
+> a tutorial line' is WRONG. This is BAD! fix the engine, you silly claude!!! This is cheap now!"*
+
+**The evidence, all three of which say the same thing:**
+- `npm test` does **not** run `determinism_baseline.js --verify`. It is `test:determinism`, marked
+  in `package.json` itself as *"BROKEN BY THE CUTOVER"*.
+- Run by hand today it fails **31 of 31 seeds**.
+- `.planning/BACKLOG.md` line 364, in the repo's own words: **"The promoted game never had a
+  corpus"** — the fixtures belong to the frozen `classic/` engine.
+
+**So the reason I gave for patching around the engine was false for the engine I was working in.**
+CLAUDE.md asserted it as a live constraint; I believed the file instead of running the command. That
+is the project's own *"a comment is not a measurement"* rule, broken on the file that states it.
+**Both are now corrected** — CLAUDE.md's Determinism paragraph says what is actually true, and says
+who must edit it when a corpus is bound again.
+
+⭐ **THE RULING, and it outlives this bug: if a fact belongs to the game, it belongs in the engine,
+and the engine emits an event.** `player.recipe` was being assigned by the orchestrator and then
+described to each device separately — which is precisely why only the HOST ever saw "yer recipe's
+stowed below". A fact the engine never emitted could not reach a guest through the one path both
+sides drain. `Game.setRecipe()` now emits `recipeSet`, and the line is spoken once, in the one event
+consumer, on whichever device the recipe belongs to.
+
+⚠ **AND THE PACING IS THE FLOW'S JOB, NOT THE EVENT'S.** Awaiting a dismissible card inside
+`consumeEvent` would block the event drain — on a guest that is the whole game's feed. Not pacing it
+at all let the turn-order draw paint over the card two seconds later (measured, both devices). So the
+CONSUMER creates the card and the HOST's loop awaits it; a guest has no flow to pace and simply reads
+it while waiting for the crew.
+
+**MEASURED IN A REAL CREW GAME** (`scripts/qa/_crew_ask_name_check.mjs`): both devices name their own
+captain in their own colour, and **both** now see the stowed line.
+
+---
+
+## 2026-09-09 (night) — Finish the work. A diagnosis is not a delivery.
+
+> *"I am annoyed that you left work on the table without completing it... you should ALWAYS complete
+> ALL WORK THAT YOU CAN and if you have BLOCKING questions, write them into a checklist artifact for
+> me and MOVE ON WITH ALL OTHER WORK. write all of these somewhere DURABLE."*
+
+I had ended a turn with six diagnosed-but-unbuilt items and called it a report. **A question only
+blocks the item it is about** — park that one, keep going through the rest. And park it where it
+survives the session: `.planning/BACKLOG.md` for work, this file for rulings. A list that lives only
+in a chat reply is lost when the session ends, which is the same as never having written it.
+
+**I also audited CLAUDE.md at his instruction, on the theory that it was too long to hold.** It is
+not: **246 lines against its own 350-line gate**. The rule about finishing work was simply *not in
+it* — so it is now. Length was not the cause; the absence of the rule was.
+
+---
+
+## 2026-09-10 — THE CAPTAIN'S BOX REDESIGN: twelve rulings
+
+He answered all twelve questions on the redesign. These are settled; do not re-ask them.
+
+| # | The question | HIS RULING |
+|---|---|---|
+| 1 | Plaque or plain panel? | **The old shot-clock plaque's STYLE, but a NEW and better version of it, generated through the art-review process.** The crate is `notes/crateref.png` (copied to `.planning/art-refs/`), 57×56 — a REFERENCE, and he confirmed the production crate is generated from it, matching the timber. The plaque carries the information design of his mockup — *"i don't like the look of what I made"*, so the mockup is the STRUCTURE, never the visual reference. |
+| 2 | Frame around what? | **Round the whole stack.** One frame, many heights. |
+| 3 | Active captain? | **A heavy outline in their own colour.** |
+| 4 | Recipe on which row? | **A header band across the top of the plaque** — above all the captain rows. Coins and crates are facts about the table; a recipe is a fact about you. ⚠ Carries a duty: it must not be on screen when a pass-and-play device changes hands. |
+| 5 | Crates or bare icons? | **Crates. HE HAS ALREADY MADE THE CRATE ASSET** — find it, do not regenerate it (art-audit §0). **And use it for the end-game bake-off crates too.** |
+| 6 | A captain holding nothing? | **An empty crate silhouette**, matching the empty ingredient silhouettes an island shows once its crate is bought. |
+| 7 | More than one row of ingredients? | **The row grows to two lines.** |
+| 8 | The doubloon count? | **Coin + number beside the name, as his mockup** — where the name sits in a FIXED column so every coin starts at the same x. ⚠ I told him his own design did not line up; it does, and I was describing today's game. Measured: today's coins are ragged by 15px with short names and **65px** with an 18-char one. |
+| 9 | Phone? | **Same design, stretched.** One system, not two. |
+| 10 | Recipe visible to others? | **NEVER.** *"NO NEVER SHOW OTHERS YOUR RECIPE!!! I am so confused why you would ask this — we're redesigning the captain's box, not the entire game mechanic of hidden recipes."* **Hidden recipes are a settled game mechanic and are not in scope for a styling job.** A question that puts a core mechanic back on the table is a bad question, however politely it is asked — scope the question to the work. |
+| 11 | Height cap? | **Cap it and scroll.** The board does not give way. |
+| 12 | Art vs CSS? | **Frame + crates as art; tints, outline and layout as CSS.** |
+
+**Two things I got wrong in the asking, worth keeping so the next set of questions is better:**
+1. **Q10 asked whether to break hidden recipes.** It is a settled mechanic; the job was a box's
+   styling. Never widen a question past the work it belongs to.
+2. **Q4 assumed the recipe belongs in a row at all.** His answer was better than either option I
+   offered — the right move was to ask where it should live, not which of my two places.
+
+**2026-09-10, two follow-ups on the same redesign:**
+
+- **A long captain name SCROLLS on desktop too**, not just on phone. Today `refreshNameMarquees`
+  returns early above 600px because the name column grows to fit; fixing that column so the coins
+  align (his Q8 ruling) is exactly what makes an 18-character name overflow there. ⚠ Re-enabling it
+  needs an overflow **threshold**, not `overflow > 0` — the early-return exists because a 2px
+  rounding overhang scrolled the first letter off, *"ough Hook"*, his report of 2026-08-21. 18 is
+  the width to survive: a live Firebase rule on `seats/$seat/name`, not a preference.
+- **He accepted the correction on the coin column** — measured, today's coins are ragged by 15px
+  with short names and 65px once one captain has an 18-character name, so his mockup is an
+  improvement on what ships rather than a restatement of it.
+
+---
+
+## 2026-09-10 — the plaque art brief, his section notes (and a standing rule on sea trials)
+
+| # | Where | HIS RULING |
+|---|---|---|
+| 1 | Crate hollow | **"Crate hollow is a silhouette of the crate."** |
+| 2b | **The plaque is ONE full wooden board — his follow-up, the same hour** | *"I'm really confused by your 'hollow center' of the plaque -- no one wants that. we want the plaque to look like a full wooden board -- like the original shot clock had -- not some weird thing with a hollow center."* **Generate ONE picture: frame, rope AND the solid board, like the old shot clock.** Fitting it to any table size is mechanism and happens after he approves it: the picture is cut into nine parts (corners as drawn, edges repeat), and the board's middle is made seamless FROM THE PLAQUE'S OWN WOOD and repeated. Never ask Gemini for a frame with an empty middle; never generate the board as a separate texture. Supersedes the "board as its own piece" reading of row 2. |
+| 2 | The plaque's centre | *"why do you say the center is thrown away? How are you going to generate the center texture that sits behind the captains rows?"* — **the wood behind the rows is part of the art.** The brief now has it as its own piece: the old plaque's honey-brown board (#ba7a40), generated as a SEAMLESS TILE, made seamless and proven tiled 3×3 before he sees it, and repeated behind the rows — never stretched (his first rule for this box). This also settles the parked "tile or stretch the wood centre?" question: tile. |
+| 3 | The crate | **"Feed in my reference image of a crate."** `.planning/art-refs/crate-reference.png` is uploaded with the prompt (at 8×, nearest-neighbour), and the prompt follows it — an inset panel of three planks, NOT the hollow middle the first brief asked for. |
+| 4 | The crate hollow | **"You can generate this asset yourself from the final crate without using Gemini again."** Made from the approved crate: its outline filled flat black, as `assets/ingredients/holes/*` are (measured: all-black silhouettes, shape in the alpha). |
+| 5 | Frame, process, CSS list | Marked LOOKS RIGHT as written. |
+
+**THE SEA TRIAL — a standing rule, 2026-09-10:** *"i want your sea trial to run on 10 browsers at
+once -- but don't start a sea trial without my approval."* It had just choked his laptop mid-work
+("pause your processes they're choking my computer"). **Keep the 10-at-once design; ASK before
+every start.** Single-browser probes of a minute or two are not sea trials — run them one at a
+time and say so.
+
+---
+
+## 2026-09-10 (evening) — four answers from the checklist sheet
+
+| Question | HIS RULING |
+|---|---|
+| The 292px of empty column above the menu on a big desktop screen | **"Leave the empty space in desktop above [the menu]."** Leave the air. Do not fill it, do not move the menu up. |
+| May the corrected engine/event sentence go back into CLAUDE.md? | **"Restore corrected sentence in Claude.md."** Done — the "If a fact belongs to the game, put it in the ENGINE" paragraph replaces the stale "invalidates the determinism corpus" one. |
+| The art round | **"Run the art round now, headless if possible or mcp if not."** Headless cannot reach Gemini (no login, and a password is never typed for him), so it runs in his Chrome. |
+| The sea trial | **"Start sea trial."** Started — his approval, per the standing rule. |
+| #6, the phone "too zoomed in" | He sent three phone screenshots. |
+
+---
+
+## 2026-09-11 — ⛔ THE "Bake this!" PILL COVERS THE CARD. ON PURPOSE. STOP FLAGGING IT.
+
+Wyatt, 2026-09-11, after a session judged sea trial 2043 by eye, called the pill sitting on the
+recipe name a fault on 8 phone and tablet screens, and put a "move it onto the picture?" question
+on his sheet: *"The pill is SUPPOSED to cover the card — it's the confirmation button. I have
+ruled this a hundred times and your sea trial always forgets. Write it somewhere durable."*
+
+**THE RULING: the pill sits over the middle of the tapped card and covers whatever is there — the
+picture, the recipe NAME, the ingredient row. That is the design.** It is the confirmation button,
+the loudest thing on the card, and it goes away on the second tap. The card must not change height
+to make room for it (his 6.6, 2026-09-07: *"over the middle of the card, over the top of the card —
+it should not change the height of the card"*). Where the middle lands differs by screen size (on a
+phone it is the name line, on desktop the gap under the picture); that difference is not a defect
+either.
+
+**WHY IT KEPT COMING BACK, and what now stops it.** The ruling lived in a comment in `index.html`
+and in 6.6's commit message — places a judge never reads. The trial's vision rubric has a general
+rule, *"text overlapping other text or icons → FAIL"*, and nothing told it this overlap is the
+exception, so every trial (and the session judging by eye, reading the same rubric) re-found it.
+**It is now in the accepted list in `docs/INTENDED-BEHAVIOUR.md`, which `scripts/lib/vision.mjs`
+reads at runtime** — the one place the judge is told what is designed. Anything else he has
+ruled on that a screenshot can show belongs in that list too, the day he rules it.
+
+**Never re-ask this. Never file it as a fault. Never put a "move the pill" option on a sheet.**
+
+---
+
+## 2026-09-11 — his sheet answers, and the phone playtest of staging dd56bb96
+
+**The checklist questions:**
+
+| Question | HIS RULING |
+|---|---|
+| Q1 How close should the camera go on a phone? (his #6) | **"Keep today's."** 2.2× for fights, up to 4× for a short sail. The `?camcap` try-it switch is removed. |
+| Q2 "Play again!" over the award cards | **"it already works like this -- it IS pinned as a footer, and it looks great! the only thing i'd change is the coloring -- make the button gold and give it the attention orange gradient banner."** Gold (#f5a623 / ink #3a2600 / edge #c9821a) and the one shared pp4Glow ring. "The attention orange gradient" = his name for pp4Glow (playtest 6.4: "the standard orange attention-gradient flash"). |
+| Q3 Recipe name size | **"Match what I saw — 16.6px."** (the tuner's 19.5 in Zilla Slab = 16.6 in the game's Georgia) |
+| Q4 The art round | **"I've connected Chrome — go."** Ran 2026-09-11: two plaques, two crates, on the brief page for his pick. |
+| Check 9 (holds on a full phone table) | Passed — but **"I actually don't like the way this mechanic works though -- I want them to scroll within the same line, not go onto two lines -- ideally by bunching on top of each other, with less buffer room -- they can overlap a little bit, even up to 50%. show me what this would look like."** Shown as a page; not built until he picks. |
+
+**The playtest notes (phone, staging dd56bb96):**
+
+1. **The dotted line** must count the trade winds — *"both to calculate the true shortest route, and because the current dotted line asks me to sail through the trade winds as if they're a regular square"* — and *"should disappear the moment your boat starts animatedly sailing."*
+2. **Bot sounds while the bot sails** (muse, dock coin): *"the next event should not be triggered until the bot is able to choose it -- they should use the same engine as the players; meaning that they choose to sail, and only after they arrive do they get to then choose what to do."* Standing principle: nothing after a move is presented before the boat has arrived — for every captain, on every device.
+3. **"blue squares take 2 taps" is a tutorial rung, not always present.**
+4. **Turn order:** *"the captains box should show you, active player, at the top, then all other players in turn order. the top boat circles should show the turn order from the day start, left to right."* (This is the existing design — the report is that it had stopped holding.)
+5. **On a phone, the welcome card with the mode buttons is 10% smaller**, for breathing room around the privacy links.
+
+**And to the backlog:** a tiny coin flip above OTHER captains' boats when they dock, in time with the sound — *"create an artifact with 10-20 different sliders to let me tune this as i imagine -- with the landing coin, timing, animate in and animate out options."*
+
+**Standing constraint, same day:** *"don't run any heavy things now I'm going to be teaching for the next 2.5 hours."* No browsers, no sea trial, no full test run while he teaches.
+
+**Later the same day — three more rulings:**
+
+- **Crates on one line — "Implement it."** His settings, read back off the page's own store: **most
+  overlap 35%, gap 3px** (15 crates, phone, when he set them). Both preview sections marked LOOKS RIGHT.
+  Rule: full gap while they fit; slide together evenly, newest on top with a soft edge; never past 35%;
+  past that the line scrolls sideways with a fade. Added to the judge's accepted list the same turn.
+- **The plaque, simpler** — *"we don't need such a complicated design any more, if the captains box is
+  just a couple sizes, right?"* Answered from the sizing code: height is fixed by the captain count (and
+  is one value for a whole voyage); width still follows the screen (~300–420 phone, 300–540 laptop
+  column, wall-to-wall tablet). So: ONE picture fitted by the browser's picture-frame (`border-image`) —
+  corners kept, rope repeated in whole twists — with the wood drawn behind from the same picture at one
+  even scale. No nine hand-cut pieces, no separate wood tile. His art pick from round 1 is still open.
+- **The dock coin above other captains' boats — his settings from the tuner** (every section LOOKS
+  RIGHT): size 16px at 1× zoom and grows with the camera · 11px above the boat · no sideways nudge ·
+  arrives by RISING off the boat in 160ms, starting with the sound · FLIPS OVER at 6 flips/s with a 21px
+  toss, landing on the blip (795ms) · landing bounce 22% · glow 6px · holds its face 800ms · shadow 13% ·
+  leaves by FADING in 140ms. **Retuned after the arrival preview was fixed: arrival 40ms (was 160).** His note: *"I can't see the arrival in the artifact preview"* — the tuner's
+  resting pose showed the landed coin, so there was nothing to arrive from; fixed (a ghost at rest).
+
+**2026-09-11, evening — the art rounds, three rulings:**
+
+- **CRATE 1 IS APPROVED** ("Round 1 — crate 1 from Gemini [LOOKS RIGHT]"). `art-review/captains-box/crate-1.jpeg`
+  is the crate: pale sanded timber, plank top and bottom, a post each side, three planks in the middle,
+  drawn from his own reference. Crate 2 (pink/teal drift) is dead. Next on his word: key, crop to 256,
+  and make the empty crate from its own outline.
+- **A PREVIEW MUST BE THE REAL GAME, NEVER THE SOURCE SQUARE** — plaque B, [CHANGE IT]: *"These are
+  squares -- it's never square in the game. fix this artifact to actually display the plaque in the
+  real-game scenario with the current captain's box (as it's being designed with overlapping
+  ingredients)."* The brief now mocks the box at its measured sizes — phone 360×186 and laptop 540×233
+  for four captains, phone 360×110 for two — with the real band, names in captain colours, coins, and
+  holds bunched by fitHold's own rule. The square Gemini picture is demoted to a thumbnail labelled as
+  the source. **Apply this to every art page from now on: show it where it lives, at the size it lives.**
+- **THE TIED BUNDLE WINS THE SUGAR CANE ROUND, and it wins for a reason he named:** *"This is the winner
+  because it's vertical, but I want to see three more rounds based on it -- with the sugar more in front,
+  with more sugar (with bigger crystals), and another of your own choosing based off your research."*
+  Those three are PARKED: his Chrome had switched to the work Google account (wyatt@polycam.ai), whose
+  renders came out pale and dusty rather than royal purple and whose downloads never landed. They run on
+  his personal Pro account when it is available. Nothing was published from the work account.
+
+**2026-09-11, later — BOTH ROUND-1 PLAQUES REJECTED, and the rule behind it.** *"Both of these look bad
+-- the rope is much too small and isn't legible -- it looks good at the scale of the source square, but
+when you scale it up to the size of the box we lose a lot of its nice detail. also, you can remove the
+teal background and make the rope form the edge."*
+
+**The general lesson, which outlives this round: ART FOR A UI SLOT IS JUDGED AT THE SLOT'S SIZE, AND ITS
+DETAIL MUST BE SIZED FOR THAT SLOT — not for the square Gemini draws.** The arithmetic: a 2048px square
+drawn into a 360px-wide phone box is a ~6× reduction, and round 1 put ~40 rope twists along an edge, so
+each twist landed at ~4px. Round 2 states the numbers in the prompt: 2:1 (the box's real shape), rope
+diameter = 1/8 of the plaque's height, one twist per rope-thickness → ~12 twists an edge → a 23px rope in
+~30px twists at phone size. **And the rope IS the edge: no teal band, nothing outside the rope.**
+
+## 2026-09-11 — ⛔ THE TABLE IS ALWAYS FOUR CAPTAINS. NEVER MOCK A STATE THE GAME CANNOT PRODUCE.
+
+Wyatt, seeing a "two captains" box in my own mock-up: *"this is bizarre -- you know a 2-captain game is
+impossible, why even show me? are you just hallucinating?"*
+
+**He is right, and the code says so plainly.** `startSinglePlayer` (src/ui/flow.js) seats one human and
+three bots; `startPassAndPlay` takes 2–4 human names and fills the rest to four; a crew room's empty
+seats are played by bots (`renderSeatList`, `appState.numSeats: 4` in src/state/index.js). **Four rows,
+always.** I had invented a smaller table to illustrate a point, and in doing so put a picture of an
+impossible game in front of him.
+
+**THE RULE: a mock-up may only show states the game can actually reach, and the reachable set is read
+from the code before the mock is drawn — not assumed.** A mock that shows an impossible state is worse
+than no mock: it asks him to judge a thing that will never exist.
+
+**It also corrects something I told him twice:** the box's height does NOT vary with the captain count.
+It is one height per screen class, which makes the plaque's job simpler still.
+
+**Two changes he asked for in the same breath, now in a tuner:** the recipe band wears the RECIPE CARD's
+own stained-parchment gradient (the real one from index.html, three radial stains over
+`linear-gradient(160deg,#f7edd2,#ecd9ac)`), and the fill behind the captains drops to about **25%**
+opaque so the wood reads through. Tuner: https://claude.ai/code/artifact/219b5862-3265-4432-b9a8-f28457ba7d48
+— and its crate spacing runs HIS rule (22/26px, 3px gap, ≤35% overlap, then scroll), not a look-alike,
+because he asked for "the actual ingredient crate buffering from my rulings (not whatever you've guessed)".
+
+## 2026-09-11 — HIS MODEL FOR THE PLAQUE: TWO SOURCE PICTURES, DRAWN AT THE BOX'S SIZE. NO SLICING.
+
+*"would it not be more efficient to simply generate two different sizes of source asset, which work for
+the two sizes of captains box in the different screen layouts"* — after three rounds of my nine-slice
+machinery failing in front of him ("your system is completely failing").
+
+**He is right, and it deletes three moving parts**: the nine-slice, the corner knots painted back over
+the cut corners, and the wood tiled behind the rows. One picture, scaled UNIFORMLY to the box's width;
+the height follows its own aspect; the rows sit inside the board's own rectangle. Nothing is stretched,
+so nothing can disagree.
+
+**Measured on the round-3 art (2736×1296):** the board starts **13.6%** in from the top and bottom and
+about **9%** from the sides. With his row rulings (band 31 + four 32px rows + 3px gaps = 174px on a
+phone), a 390px-wide box needs a picture of about **1.6:1**, and the art we have is 2.11:1 — which is
+why the fourth captain fell off the bottom in the tuner. **So the next art round asks for two shapes:
+~1.6–1.8:1 for phones and the laptop column, ~2.6:1 for the tablet's wall-to-wall box.**
+
+**THE WIDER LESSON, and it is the one to keep:** when a mechanism needs three fixes in a row, the
+mechanism is wrong, not the fixes. He saw that from outside; I was still patching from inside.
+
+## 2026-09-12 — ⛔ "THIS PROCESS IS NOT WORKING": THE SHAPE OF THE BOX IS MEASURED BEFORE THE ART IS ORDERED
+
+Wyatt, sending a picture of the mock-up with the fourth captain sliced off the bottom:
+
+> *"This process is not working. get the CEO to audit all of your work for this project before showing
+> me -- look how messy your design is. you're missing a full row of the captain's box, your design
+> wastes a gratuitous amount of space on the edges, and it doesn't make sense. write a handoff prompt
+> to a cleared session that details what we need: a background for the new captain's box that
+> incorporates a rope border with distressed wood background and looks consistent at three different
+> screen size aspect ratios; then generate those three according to the actual aspect ratios required
+> and show me in the captain's box tuner."*
+
+**THE THREE BOXES, MEASURED IN A REAL FOUR-CAPTAIN VOYAGE** (`scripts/qa/_capbox_shape.mjs`, which
+poses a solo game and reads the rendered panel — no arithmetic on paper):
+
+| screen | box width | height the rows need | rows |
+|---|---|---|---|
+| phone 390×844 | **390**, full bleed | **204px** | 4 × 32, gaps 3, band 31+4, padding 12+20 |
+| laptop column 1280×800 | **482** (540 at 1920) | **255px** | 4 × 40, gaps 4, band 37+6, padding 20+20 |
+| tablet 768×1024 | **749**, wall to wall | **255px** | same as the column |
+
+So the three shapes are about **1.55 : 1 · 1.70 : 1 · 2.47 : 1** — and the round-3 art at 2.11:1 could
+never have held four captains at a phone's width. **That division — 390 ÷ 204 — is the whole of the
+evening that was lost.** A CEO audit of the day put it exactly there: *"The decision to have made
+differently: divide 390 by 204 before ordering the art."*
+
+**THE RULE, and it outranks any art brief: the slot is measured in the running game BEFORE the picture
+is asked for, and the measurement is a script that poses the state, never a number read off a comment
+or remembered from a previous round.** A picture whose shape is wrong cannot be rescued by slicing,
+tiling, insetting or tuning — three rounds of exactly that proved it in front of him.
+
+**What "gratuitous space on the edges" was, specifically:** the round-3 plaque spent **12.2% of its
+height at the top and 12.0% at the bottom** on rope and corner knots — a quarter of the box — plus a
+painted band outside the rope. Round 4 removes the corner knots (they are what forced the border to
+be thick enough to hold them), takes the rope flush to the picture's edge with nothing outside it, and
+comes back at about **13px of rope at a 390px box**.
+
+**Also corrected today, from the same audit:** the holds are **not** "newest on top". Another captain's
+hold is sorted alphabetically (`src/ui/board.js:1798`) and your own runs in recipe order (`:1784`);
+when they overlap, the crate further RIGHT sits on top. Earlier notes said "newest" in three places.
+
+## 2026-09-12 — A PREVIEW COPIES THE GAME'S OWN RULES, AND IT SAYS HOW BIG IT IS
+
+> *"your latest artifact still looks different than the design i approved in the other artifact
+> (crates on one line) and what is literally already up on dev/staging right now. also, your artifact
+> does not show absolute size or scale of The captain's box so I cannot make judgment calls very
+> effectively because of the way you've coded your artifact. For example, on my screen, the captain's
+> box is huge."*
+
+**Both faults were mine and both are mechanical.** The tuner had drifted into a look-alike: cream rows
+instead of each captain's own colour, wooden crates instead of the game's chips, no ring on the
+captain whose turn it is, a filled band instead of a bare one with a rule under it.
+
+**THE RULE: a preview COPIES the game's rules, line by line, with the file and line number in a
+comment — it never approximates them.** What the live game actually does, for the record:
+
+| piece | what the game does | where |
+|---|---|---|
+| row fill | the captain's own colour at hex alpha **18** — about **9%**, not 25% | `src/ui/util.js:163` |
+| row shape | radius **7px**, a **2px transparent border**, 4px apart | `index.html:255` |
+| whose turn | that border turns solid in the captain's colour + a 2px inset ring | `index.html:256` |
+| the band | **no fill at all** — a 2px rule underneath, `rgba(91,58,31,.16)` | `index.html:3409` |
+| a crate | the game's chip: pale pink `#fbe1e0` when still needed, green `#dcfaee` aboard, yellow `#fff6c0` spare — 22px phone, 26px elsewhere | `index.html:309-313, 3398` |
+
+His two approved-but-unshipped changes — the recipe-card parchment behind the band, and a heavier
+fill behind the captains — are now a tick-box and a slider, and **the page opens on what is live**, so
+"is this what I already have?" is answered by looking rather than by trusting the caption.
+
+**AND EVERY PREVIEW OF A SIZED THING STATES ITS SIZE.** The page now draws the box at its true pixel
+width with a **ruler** over it, measures how much the viewer is scaling the page (comparing the drawn
+rectangle against its own CSS width) and says so, offers **"Show at true size"** which cancels that
+scaling, and can draw **the whole screen around the box** — 390×844, 1280×800, 768×1024 — so the box
+is seen as the share of a screen it really is. A preview that cannot be measured cannot be judged.
+
+## 2026-09-12 — TWO RULES FOR EVERY ARTIFACT, AND TWO CHANGES TO THE CAPTAIN'S BOX
+
+**Every artifact, from now on** (written into `docs/ARTIFACT-GUIDELINES.md` as §9 and §10):
+
+- **A page with controls keeps its preview on screen.** *"the preview must ALWAYS be visible while
+  scrolling through the tuners -- it is not user frinedly to have to scroll down to adjust a dial then
+  scroll back up to see its change."* `position:sticky; top:0`, and the sticky element must be a
+  DIRECT child of the tall scroller — wrapped in a div it un-sticks the moment the wrapper scrolls
+  past, which looks exactly like sticky being broken.
+- **No standfirst.** *"remove the verbose byline text. i already have context, in our chat session."*
+  A title, then straight into the thing. What has to be said goes in the chat reply.
+
+**The captain's box, two rulings:**
+
+- **The fill behind the captains is CREAM, not the captain's colour.** *"the fill behind the captains
+  should be cream, not color."* This is a deliberate change from what is live — dev paints each row in
+  that captain's own colour at 9% (`src/ui/util.js:163`). The colour stays where it carries meaning:
+  the name, and the ring on whoever's turn it is. Default 25%, his earlier number.
+- **The recipe band wears the recipe card the player chose, and loses the scroll icon on its left.**
+  *"the recipe should have its own background fill ... it should look like the recipe card that the
+  player selected at the beginning of the game. Remove the recipe icon from the left side of it."* The
+  fill is the real card gradient from index.html — three radial stains over
+  `linear-gradient(160deg,#f7edd2,#ecd9ac)` — with the card's own border and radius, and no bottom
+  rule, because the card is its own separation.
+
+**One thing to watch, measured by eye in the tuner:** at 25% cream over this wood, three of the four
+captain names (teal, green, amber) lose most of their contrast. The fill slider is right there; about
+55% brings them back. His call, not mine to make silently.
+
+**Corrected the same evening, twice:**
+
+- **The fill behind each captain is BLACK, not cream.** *"the fill behind each captain should be
+  black, not color... should be black, not cream."* 25% black over the wood. The captain's colour is
+  left only where it carries meaning — the name, and the ring on whoever's turn it is. (This
+  supersedes the cream ruling made an hour earlier in this same file.)
+- **⛔ NEVER SAY "ONE PICTURE, SCALED". THE WHOLE POINT IS THREE PICTURES.** *"why do you say 'one
+  picture, scaled?' we don't want one picture, scaled -- we want 3 pictures, so that nothing ever
+  looks stretched. your artifact is confusing."* The phrase came from the mechanism (each picture is
+  drawn whole at its box's width instead of nine-sliced) and read as though one picture would serve
+  every screen — the exact opposite of the plan. **The plan is one picture PER BOX SHAPE — three —
+  and the reason is that nothing is ever stretched.** Say it that way everywhere: headings, labels,
+  briefs and commit messages.
+
+## 2026-09-12 — EVERY DIAL IS A RATIO, AND THE ROWS FILL THE BOX
+
+> *"your artifact's 'gap between crates' slider is not working. you also have so much chrome/junk in
+> the preview panel that most of my screen is unusable and i can barely access the sliders. Also, all
+> of your sliders are using absolute pixel numbers -- instead, they should use ratios. I want the
+> ingredients to be 20% of their width gap from each other. I want the row heights to be the maximum
+> they can be while fitting in the captain's box limits. I want the text that is black to be white so
+> it's legible. use a 50% fill behind the rows."*
+
+**The bug he caught:** the gap dial only ever did anything when the hold was too full to fit. With
+room to spare the crates were laid out with no spacing at all, because the flex row that holds them
+lost its `gap` when the preview was rewritten and the code only set margins in the squeeze branch.
+**A dial that does nothing in the common case is worse than no dial.**
+
+**THE RULES, and they are general:**
+
+- **A tuner's dials are RATIOS, never pixels.** A pixel is meaningless across three box widths; a
+  proportion holds. Now: crate = % of a row's height · gap = **20% of a crate's width** (his number) ·
+  between rows = % of a row · band = % of a row · name column = % of the box's width · corner
+  rounding = % of a row. Only the crate COUNT and the picture's shape are not percentages.
+- **⭐ THE ROW HEIGHT IS SOLVED, NOT DIALLED.** *"the maximum they can be while fitting in the
+  captain's box limits."* The board gives a height, the band and gaps are shares of a row, so the row
+  is what is left — stepped down until the rounded pieces genuinely fit. The box now fills the plaque
+  instead of leaving 37px of dead wood, and a phone row grows from 32px to **39px**.
+- **Ink follows the fill.** 50% black behind the captains, so the coin count and "empty hold" are
+  **white**. The captain's colour stays on the name and the ring.
+- **A pinned preview must be SMALL.** *"most of my screen is unusable and i can barely access the
+  sliders."* One compact line above the box, one below — not a title, a sentence, a ruler caption and
+  three lines of readout. The notes box moved below the dials. Preview 433px → ~310px.
+
+**Three more, the same evening:**
+
+- **The ring on whoever's turn it is goes OUTSIDE their row.** *"The outline for active player's turn
+  should be on the OUTSIDE of their row, not the inside."* The game draws it inside today — a 2px
+  inset shadow plus a border, `index.html:256` — so this is a change to make when the plaque ships.
+  The "as it is on dev today" mode keeps the inset one, so the two can be compared.
+- **⛔ NO CRATE IS EVER SLICED BY THE COINS COLUMN — MEASURE THE HOLD, NEVER ESTIMATE IT.** *"no
+  ingredient should ever be cut off by the money row (like the wheat in Wyargh and Flaky Jack) -- the
+  compression and overlap should be triggered before that."* The room left for a hold had been worked
+  out on paper — box width minus the name column minus a guess at the coins — and the guess was about
+  28px short, so the squeeze started too late and the leftmost crate was cut in half. **The hold now
+  takes the leftover space as a flex child, its real width is read off the laid-out page, and the
+  crates are fitted into THAT** — the same order the game itself works in (`fitHold` in
+  `src/ui/util.js` measures `el.clientWidth`). Verified at 390, 511 and 749 and with a 16-crate hold:
+  the leftmost crate's offset inside its hold is never negative.
+- **Cream, not white, for the money and "empty hold"** — *"'empty hold' and the money can use cream
+  instead of white"* — `#f7edd2`, the recipe card's own paper, so the box stays on one warm palette.
+
+## 2026-09-12 — THE RECIPE'S INGREDIENTS WEAR NO BOX AND ARE NEVER DIMMED
+
+> *"the Ingredients that are in the recipe card should not have boxes around them. It should just
+> show the ingredients themselves. So remove those green and red boxes, and the ingredients should
+> not ever be grayed out because they are now living on the recipe card, and they are disambiguated
+> from the ingredients in a player's hold. The green check mark circle looks great, though. Keep that
+> as it is, and make sure to do a sweep of the narration text and rules wherever The term 'greyed
+> out' may appear in the wrong context, and remove that."*
+
+**The reasoning is the useful part, and it is his:** the box and the dimming existed to say *"this is
+a recipe ingredient, not cargo"* back when the recipe sat inside a captain's row. The recipe card
+says that now, by being the recipe card. **The tick is the only mark the row still needs** — it says
+what the dimming used to say, and it says it positively.
+
+- In the band: no background, no border, full opacity, the green tick unchanged.
+- In a HOLD, crates keep their boxes — pale pink for one ye still need, green aboard, yellow spare.
+  Nothing about the hold changed.
+
+**The sweep, and what it deliberately left alone.** "Greyed out" is still exactly right for a
+DISABLED CONTROL, and most uses in this repo are that: a too-poor Attack, a Buy with no coin, the
+coin slider on an empty purse, and the trade picker's crates that nobody holds (RULES-V2 §4, his own
+ruling). Those stay. The two that were about the recipe are changed:
+
+- `src/ui/pilot.js` — *"They stay greyed 'til ye hold 'em"* → *"Each gets a tick when ye hold it"*,
+  and the short rung to *"ticked as ye hold 'em"*. **True before the build as well as after**, since
+  the tick has been there since the band shipped, so the copy could land on its own.
+- `docs/INTENDED-BEHAVIOUR.md`'s accepted line for the band now describes the tick, names this
+  ruling, and says both states are designed until the build lands — so the vision judge stays quiet
+  across the change instead of flagging one side of it.
+
+`npm`'s pilot-copy, no-undef and ui-contract gates pass.
+
+**Two on the recipe card, the same hour:**
+
+- **The green ticks stay INSIDE the card.** They had been pinned a flat 5px past the crate's corner
+  whatever size the crate was, so as soon as the card was only a few pixels taller than its own
+  ingredients the tick hung out of the bottom edge. Both the tick's size and its overhang are shares
+  of a crate now, the overhang is capped by the room the card actually has beneath the chips, and the
+  card is never allowed to be shorter than its ingredients plus that room. Measured at 390, 511 and
+  749 and at the extreme dial settings: the tick's bottom never passes the card's.
+- **The recipe's name wears the RECIPE PICKER's lettering** — *"the styling matches the recipe picker
+  (brown text, different font) -- but with an underline, because it is a link that opens the
+  recipe."* That is `#5b3a1f`, Georgia at weight 800 with `.3px` letter-spacing and the picker's own
+  `0 1px 0 rgba(255,250,235,.5)` text shadow (`index.html:1630`), plus the underline. It had been the
+  teal of a web link. *(Georgia is wider than the sans it replaced, so a long recipe name now
+  ellipses sooner at phone width — that is the band's own designed behaviour, since a name that wraps
+  to two lines steals height from the board, but it is worth his eye.)*
+
+**The recipe's name shrinks to fit, and all 21 names are on a dial** (*"Can you dynamically shrink
+the font size of the recipe name to fit? show me a few different recipe names (longest and shortest)
+in the artifact so i can see how they look"*):
+
+- The name starts at the row's own scale and **steps down until it stops overflowing**, measured on
+  the laid-out page rather than predicted, with a floor at 68% of that scale. Only if it still will
+  not fit does it ellipse.
+- The tuner carries **the game's real 21 recipes**, read out of `src/ui/recipe.js` and sorted
+  shortest name to longest — *Pound Cake* (10 characters) to *Chocolate Genoise Sponge Cake* (29) —
+  each with the ingredients it actually needs. Never invented names.
+- **Measured across all 21, at every box:** the laptop column and the tablet fit every name with room
+  (smallest 15px and 18px). A phone fits 19 of 21; the two longest hit the floor at 10px and are cut.
+- **The one lever, and it is a dial rather than a decision I made:** the ingredients on the recipe
+  card do not have to be as big as the crates in a hold. At **80% of a crate, all 21 fit on a phone**
+  with nothing smaller than 11px. Default is 100% — his call.

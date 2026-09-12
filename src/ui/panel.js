@@ -14,7 +14,7 @@
 // the first 2 of 6 resolved; the remaining 4 land in 11-05/11-06.
 //
 // Purity bar for src/ui/: reads DOM and game state, NEVER imports src/net/ (D-07).
-// scripts/module_graph_check.js and scripts/ui_contract_check.js both gate this mechanically.
+// scripts/module_graph_check.js and scripts/ui_contract_check.js both gate this mechanically.  [UNGATED-IN-4: ui_contract_check.js does not read 4/ — 03-UI-CONTRACT-TRIAGE.md, plan 03-02]
 //
 // Deviation ($ duplicate, mirrors 11-01/11-03's precedent): `$` is a classic-script-local
 // `const $=id=>document.getElementById(id)` (index.html:863), used ~120+ times across the still-
@@ -33,21 +33,23 @@
 
 import { appState } from "../state/index.js";
 import {
-  PLAY_IMG, PAUSE_IMG, PAUSE_SYMBOL_IMG, BLOCKED_SLASH_IMG, STOPWATCH_IMG, SOUND_ON_IMG, SOUND_OFF_IMG, COIN_IMG, HEXCOL, iconImg, emojify,
+  SOUND_ON_IMG, SOUND_OFF_IMG, COIN_IMG, HEXCOL, iconImg, emojify, subjectOf,
 } from "../shared/index.js";
 import {
-  render, boardCell, boardShipEls, chatBubbles, positionChatBubble, removeChatBubble,
+  boardShipEls, chatBubbles, positionChatBubble, removeChatBubble,
 } from "./board.js";
 import {
-  soloBotGame, currentTurnSeat, syncLogLines, spawnPops, pn, boatXY, msgHoldMs, chatBubbleHoldMs,
-  waitWhilePaused, describeFor, narrationVariants, NEUTRAL_VIEWER, armClock,
+  pn, boatXY, narrationHoldMs, chatBubbleHoldMs,
+  sleepMs, describeFor, narrationVariants, NEUTRAL_VIEWER,
+  pickNarrVariant, eventCeremony, voyageAground,
 } from "./util.js";
 import { escHtml } from "./recipe.js";
 import { netHandlers } from "./handlers.js";
-import { playForEvent, isMuted } from "./audio.js";
+import { isMuted, audioDiagnosis } from "./audio.js";
 
 const $=id=>document.getElementById(id);
-const sleep=ms=>appState.replaying?Promise.resolve():waitWhilePaused().then(()=>new Promise(r=>setTimeout(r,ms)));
+// sleepMs, not a bare setTimeout: a dropped beat must cost a late line, never the voyage (util.js)
+const sleep=ms=>appState.replaying?Promise.resolve():sleepMs(ms);   // the waitWhilePaused gate left with play/pause (A-10)
 
 // Writes only what has actually CHANGED. This is a performance fix, not tidiness — see the note
 // on the welcome-screen early return below for what unconditional writes were costing.
@@ -58,8 +60,11 @@ function setStyleIf(el,prop,val){ if(el&&el.style[prop]!==val)el.style[prop]=val
 // this game is played on iOS. Compares first for the same reason setIf does: this runs on the 500ms
 // tick, and unconditional DOM writes are what made Safari burn 137% CPU behind the welcome blur.
 function setAttrIf(el,name,val){ if(el&&el.getAttribute(name)!==val)el.setAttribute(name,val); }
+/* Once the whole-table clock display, then the pause panel; both are gone (the clock 2026-08-28
+   morning, play/pause at Wyatt's A-10 the same day). What remains on the 500ms tick is exactly
+   what still draws: the mute button and the end-of-voyage Play again swap. The name stays until
+   something bigger renames the seam (main.js's interval and the onSetClockUI handler point here). */
 export function setClockUI(){
-  const wrap=$("shotClockPanel");if(!wrap)return;
   // ⚠ SAFARI CPU (Wyatt, 2026-08-01: "Safari rendering is killing my computer when I open
   // pastrypirates — even without running the game", 137% CPU on Safari Graphics and Media).
   //
@@ -81,7 +86,7 @@ export function setClockUI(){
   if(gameEl&&gameEl.classList.contains("bg-blurred"))return;
   // AUDIO-02/D-15/D-16 (phase 21): #btnMute is a #controlsRow sibling (index.html), not a third
   // corner icon on the clock face — rendered here, above the end-of-voyage early return below,
-  // so the same tick that hides #shotClockPanel at the win screen also hides #btnMute (D-16),
+  // so the same tick that swaps in Play again at the win screen also hides #btnMute (D-16),
   // one code path, no second branch. Its click is bound exactly once in wireLobby()
   // (src/orchestrator.js) — this block only ever writes display/innerHTML/title, exactly like
   // the #scTimerToggle block below, and must never touch that binding (CLOCK-03 discipline:
@@ -93,6 +98,10 @@ export function setClockUI(){
     // index.html sizes these to 60% of the button (~29px), overriding .narrIcon's inline 18px —
     // id+element beats class, so no extra rule is needed.
     setIf(muteEl,"innerHTML",isMuted()?iconImg(SOUND_OFF_IMG):iconImg(SOUND_ON_IMG));
+    /* ONE ATTRIBUTE CARRIES THE WHOLE TRUTH, so the menu row and the icon cannot disagree.
+       audioDiagnosis() is the only thing that decides; the CSS just renders what it says. */
+    const diag=audioDiagnosis();
+    if(muteEl.dataset.audio!==diag)muteEl.dataset.audio=diag;
     // Tooltip copy recorded in .planning/todos/pending/copy-shipped-vs-approved-gate.md — no
     // @copy marker (a new misc.sound.* id would need registering in art-review's node-group
     // table, out of scope for this phase; see that file's phase-21 entry for the follow-up).
@@ -116,175 +125,122 @@ export function setClockUI(){
     // and this game is played on iOS. Still compared before writing, because this runs on the 500ms
     // tick and unconditional DOM writes behind the blur are exactly what cost 137% CPU in Safari
     // (see this function's header).
-    const muteLabel=isMuted()?"Turn the sound back on":"Mute the sound";
+    /* THREE STATES, ONE SOURCE. The label names where the player IS and what the next tap does,
+       because a cycle has no "off" position to infer — his ruling, 2026-09-07. It is keyed off the
+       same audioDiagnosis() the row's CSS uses, so the words, the icon and the menu row cannot
+       disagree with each other or with what is actually audible.
+       ARIA-PRESSED IS GONE ON PURPOSE: it is a BINARY, and it would announce "sound off" or
+       "sound on" for a mode that is neither. aria-label carries the whole state instead, which is
+       the treatment that works on touch as well as desktop (see MUTE-01 above). */
+    const muteLabel=diag==="muted"?"Sound is off. Tap for sound and music."
+                   :diag==="nomusic"?"Sound on, music off. Tap to mute."
+                   // the stalled state names itself here too, or the row and the label disagree at
+                   // the one moment a player is actually looking for an explanation
+                   :diag==="stalled"?"Sound is on but yer browser has stalled it. Tap the board twice."
+                   :"Sound and music on. Tap to turn the music off.";
     setIf(muteEl,"title",muteLabel);
     setAttrIf(muteEl,"aria-label",muteLabel);
-    setAttrIf(muteEl,"aria-pressed",isMuted()?"true":"false");
+    if(muteEl.hasAttribute("aria-pressed"))muteEl.removeAttribute("aria-pressed");
   }
-  wrap.classList.remove("warming"); // UI-02: only the active countdown branch below re-adds it
-  if(appState.liveDone){
-    wrap.classList.remove("idle","urgent","paused");
-    wrap.style.display="none";
-    $("btnPlayAgain").style.display="";
-    return;
-  }
-  wrap.style.display="";
-  $("btnPlayAgain").style.display="none";
-  const state=appState.isHost?(appState.shotClockSeat==null?null:{seat:appState.shotClockSeat,deadline:appState.shotClockDeadline,paused:appState.shotClockPaused,pauseElapsed:appState.shotClockPauseElapsed}):appState.clockState;
-  // CLOCK-02 FIX (mp-pause-clock-desync): on a GUEST the frozen<->running decision AND the frozen
-  // remaining it renders must both flip from the SAME authoritative clock broadcast. Driving the
-  // paused branch off appState.shotClockPaused alone (set by watchPause on the /paused flag) let
-  // the flag land a network round-trip BEFORE the fresh deadline (watchClock) and flash a stale
-  // countdown — the "guest races to 0 on resume". Prefer the broadcast's own paused bit; fall back
-  // to the mirrored flag only until the first clock write arrives. The host owns the clock, so its
-  // inline state.paused IS its live flag — no behavior change for host or solo.
-  const paused=(state&&typeof state.paused==="boolean")?state.paused:appState.shotClockPaused;
-  const labelEl=$("scLabel"),numEl=$("shotClockNum"),unitEl=$("scUnit"),subEl=$("shotClockSub"),pauseEl=$("scPause");
-  // CLOCK-03: defensive reset, once per tick, BEFORE any branch below. setClockUI() re-runs on
-  // the 500ms interval, so a click-to-resume handler set in a prior PAUSED tick must never
-  // survive into a later non-paused tick (RESEARCH Anti-Pattern 4) — only the two paused
-  // branches below re-arm it. The .tappable affordance class is reset here for the same reason.
-  numEl.onclick=null;numEl.style.cursor="";numEl.classList.remove("tappable");
-  // CLOCK-02/D-09: de-gated from appState.isHost&&soloBotGame() — the ▶/⏸ pause is now shown to
-  // every player in both solo and multiplayer (a guest's click reaches togglePause() via
-  // src/orchestrator.js's wireLobby rewire, which routes through the networked pause path).
-  pauseEl.style.display=(!appState.liveDone)?"":"none";
-  setIf($("scPauseImg"),"src",paused?PLAY_IMG:PAUSE_IMG);
-  // #7 / D-20 (phase 21): the timer off/on toggle is offered to EVERY player in EVERY mode —
-  // the soloBotGame() gate that used to hide it in solo/pass-and-play is gone. It used to be a
-  // dead control there (toggleTimer() early-returned with no Firebase connection); Task 2 gave
-  // every mode a working code path behind it, so there is no longer a reason to hide it anywhere
-  // but end of voyage. Its icon reflects the current state.
-  const toggleEl=$("scTimerToggle");
-  if(toggleEl){
-    toggleEl.style.display=appState.liveDone?"none":"";
-    setIf(toggleEl,"innerHTML",appState.timerOff?iconImg(BLOCKED_SLASH_IMG):iconImg(STOPWATCH_IMG));
-    // @copy misc.timer.toggletooltip
-    toggleEl.title=appState.timerOff?"Turn the timer back on":"Turn the timer off";
-  }
-  if(appState.timerOff){
-    // synced to all clients — everyone sees the clock is disabled
-    wrap.classList.add("idle");wrap.classList.remove("urgent","paused");
-    labelEl.textContent="timer off";numEl.textContent="∞";unitEl.textContent="";
-    subEl.innerHTML=`no rush — tap ${iconImg(STOPWATCH_IMG)}`;
-    return;
-  }
-  if(!state){
-    if(paused){
-      wrap.classList.remove("idle","urgent");wrap.classList.add("paused");
-      labelEl.textContent="paused";numEl.innerHTML=iconImg(PAUSE_SYMBOL_IMG);unitEl.textContent="";subEl.innerHTML=`tap ${iconImg(PLAY_IMG)} to resume`;
-      // CLOCK-03: the big paused symbol is an ADDED resume affordance alongside #scPause — same
-      // togglePause seam, routed via netHandlers() since panel.js (ui-tier) may never import
-      // src/orchestrator.js (main-tier) directly.
-      numEl.style.cursor="pointer";numEl.onclick=()=>netHandlers().onTogglePause();
-      return;
-    }
-    // D-02 (18-05) UI obligation: a decision's own reveal is gating the button row right now
-    // (clockPendingSeat, set by panel() the instant it gates a real button row — see the D-02
-    // comment there), so there is genuinely no live clock state yet — the arm itself is what's
-    // deferred. Show a frozen full-window value instead of falling through to the idle "–" below,
-    // so a player never sees a blank or ticking clock during the 0-2.8s reveal. Derived from the
-    // SAME elapsed=0 expression the active/waiting branch further down uses, rather than a literal
-    // duplicate, so a future change to the 20/30 split can't desync the two.
-    if(appState.clockPendingSeat!=null){
-      const elapsed=0,urgent=elapsed>=20;
-      const num=urgent?30-elapsed:20-elapsed;
-      const activeViewer=appState.clockPendingSeat===appState.mySeat;
-      wrap.classList.remove("urgent","paused");
-      wrap.classList.toggle("idle",!activeViewer);
-      labelEl.textContent=activeViewer?"play in":"waiting";
-      numEl.textContent=num;
-      unitEl.textContent="seconds";
-      subEl.innerHTML=activeViewer?`or pay 1${iconImg(COIN_IMG)}`:`or gain 1${iconImg(COIN_IMG)}`;
-      return;
-    }
-    // notes/edits #5a: a bot's turn in solo mode never arms the shot clock, so `state` stays
-    // null the whole time it's playing — that used to fall through to the idle "turn clock"
-    // label even while a bot is actively moving. Show the same "waiting" copy multiplayer
-    // spectators see for a non-active seat instead, so it reads as "something's happening", not idle.
-    const activeSeat=currentTurnSeat();
-    const botPlaying=activeSeat!=null&&activeSeat!==appState.mySeat&&!(appState.game.players[activeSeat]&&appState.game.players[activeSeat].done);
-    wrap.classList.add("idle");wrap.classList.remove("urgent","paused");
-    labelEl.textContent=botPlaying?"waiting":"turn clock";numEl.textContent="–";unitEl.textContent="";subEl.innerHTML="&nbsp;";
-    return;
-  }
-  wrap.classList.remove("idle");
-  if(paused){
-    // CLOCK-02 FIX (mp-pause-clock-desync): the frozen remaining comes from the host's
-    // pauseElapsed carried in the clock broadcast (state.pauseElapsed) so host and guest show the
-    // IDENTICAL number — a guest never owns appState.shotClockPauseElapsed (it stays 0), which is
-    // why it used to freeze at 20s while the host showed 13s. Fall back to the live deadline only
-    // for the brief pre-broadcast window on a guest (self-corrects on the next clock write).
-    const peMs=(state.pauseElapsed!=null)?state.pauseElapsed:Math.max(0,30000-(state.deadline-Date.now()));
-    const elapsed=peMs/1000;
-    const urgent=elapsed>=20;
-    wrap.classList.remove("urgent");wrap.classList.add("paused");
-    labelEl.textContent="paused";
-    numEl.textContent=Math.ceil(urgent?30-elapsed:20-elapsed);
-    unitEl.textContent="seconds";
-    subEl.innerHTML=`tap ${iconImg(PLAY_IMG)} to resume`;
-    // CLOCK-03: same togglePause resume seam as the other paused branch above. UX (this phase):
-    // the frozen NUMBER didn't read as clickable (unlike the ⏸-symbol branch), so .tappable adds
-    // a dotted underline + hover lift making it obviously tap-to-resume on your own turn.
-    numEl.style.cursor="pointer";numEl.onclick=()=>netHandlers().onTogglePause();numEl.classList.add("tappable");
-    return;
-  }
-  const remain=Math.max(0,Math.ceil((state.deadline-Date.now())/1000));
-  const elapsed=30-remain;
-  const urgent=elapsed>=20;
-  // whose turn is being timed vs. who's looking: the active player sees a live "play in / or pay"
-  // countdown; everyone else sees a greyed "WAITING" clock with spectator-appropriate copy — a
-  // slow player hands the rest of the crew a coin, then (final 10s) forfeits their turn entirely.
-  const active=(state.seat===appState.mySeat);
-  wrap.classList.remove("paused");
-  // notes/edits UI-02: the clock's outer edge warms up as the 20s window burns down — 0 at a full
-  // 20s left, 1 at zero. The CSS reads --heat to size an orange glow (see #shotClockPanel.warming).
-  const heat=Math.max(0,Math.min(1,elapsed/20));
-  if(active){
-    wrap.classList.remove("idle");
-    wrap.classList.toggle("urgent",urgent);
-    wrap.classList.toggle("warming",!urgent&&heat>0);
-    wrap.style.setProperty("--heat",heat.toFixed(3));
-    labelEl.textContent="play in";
-    numEl.textContent=urgent?30-elapsed:20-elapsed;
-    unitEl.textContent="seconds";
-    // D-29 RESOLVED (Wyatt-approved 2026-07-29): every player-facing string in this file speaks the
-    // pirate register — the 2nd-person pronouns become ye/yer/yers/yerself. Applied as a one-time source
-    // transformation using art-review/narration-core.js's own PIRATE_RE/PIRATE_MAP as the spec — the one
-    // declaration site in the repo, imported by the audit page, the health gate and ui_contract_check.js
-    // alike (the
-    // page ran it LIVE at render, so a card tagged `keep` displayed the converted text — under D-25 that
-    // converted text is what he approved). No runtime helper is shipped for it: a pirateVoice() nothing
-    // calls would be dead code, which D-33/D-34/D-40 exist to prevent. Comments and identifiers are out
-    // of scope. scripts/ui_contract_check.js now gates this permanently.
-    subEl.innerHTML=urgent?"or lose yer turn":`or pay 1${iconImg(COIN_IMG)}`;
-  }else{
-    wrap.classList.remove("urgent");
-    wrap.classList.add("idle");
-    labelEl.textContent="waiting";
-    numEl.textContent=urgent?30-elapsed:20-elapsed;
-    unitEl.textContent="seconds";
-    subEl.innerHTML=urgent?"or their turn is skipped":`or gain 1${iconImg(COIN_IMG)}`;
-  }
+  // the end-of-voyage swap: the panel that once hid here is gone; only Play again remains to show
+  $("btnPlayAgain").style.display=appState.liveDone?"":"none";
 }
 
+/* ⭐ THE DRAIN HANDS BACK A PROMISE — Wyatt, 2026-09-08, reading the s4 fix: "All players, bot or
+   human, are supposed to feed actions to an engine, which feeds events back, which a different
+   piece of code displays. Is that not what you built here?"
+   IT IS, AND THIS IS THE LINE THAT MADE IT LOOK OTHERWISE. Because this drain was fire-and-forget,
+   a turn loop that needed to WAIT for a boat to finish moving could not wait on the drain — so it
+   reached past it and awaited the presentation directly (`await animateSailRoute(ev)` beside its
+   own liveRender()). That is the orchestration layer holding a reference to the display for its
+   own pacing, and it is what let the two get out of order in the first place.
+   Returning a promise removes the reason to reach past it: a caller that must stay behind the
+   animation now awaits THE DRAIN, and the consumer owns the drawing entirely.
+   ADDITIVE, WHICH IS WHY IT IS SAFE AT EVERY CALL SITE — and there is deliberately no count here
+   any more. Three comments said "~57" while the real number passed 87; a tally in prose is a fact
+   nobody updates. What matters is the property: the body is still fully synchronous
+   up to and including the moment every consumer is STARTED — that is what keeps a sail's sound
+   instant — and every existing caller simply ignores the return value, exactly as before.
+   AND IT CANNOT REJECT: each consumer keeps its own .catch(voyageAground), so the wreck screen
+   still surfaces a throw and `await liveRender()` never needs a try. */
+const DRAINED = Promise.resolve();
+/* ⭐ ONE TIMELINE ACROSS CALLS, NOT ONLY WITHIN ONE — Wyatt, 2026-09-11, playtest note 2: "Bot sfx:
+   they're still happening WHILE the bot sails... both with 'muse' sfx and 'dock' coin flip. it seems
+   like something may have regressed, or the architecture isn't consistent and elegant. remember,
+   the next event should not be triggered until the bot is able to choose it."
+   The 2026-09-09 fix below chains the consumers of ONE call's batch. It said nothing about the NEXT
+   call, and there are dozens of fire-and-forget liveRender() calls: a second call's first consumer
+   started in that very tick — its sound first — while the first call's boat was still walking. And
+   a call that found no new events returned DRAINED at once, so `await liveRender()` could "finish"
+   while another call's sail was mid-glide. `_tail` is the one timeline: every batch queues behind
+   whatever is still being presented, and an empty call hands back the presentation in flight.
+   The first consumer still starts SYNCHRONOUSLY when nothing is in flight (`_busy` false) — the
+   property the note below calls load-bearing (a sail's own sound, instant). */
+let _tail = DRAINED, _busy = false;
 export function liveRender(){
-  if(appState.replaying)return;          // during reload-replay we rebuild state silently, no render/broadcast
+  if(appState.replaying)return DRAINED;  // during reload-replay we rebuild state silently, no render/broadcast
   appState.evIdx=Math.max(0,appState.game.events.length-1);
-  if(!appState.game.events.length)return;
-  syncLogLines();
-  $("scrub").max=Math.max(0,appState.game.events.length-1);
-  render();
-  const e=appState.game.events[appState.evIdx];
-  spawnPops(e,boardCell()); // notes/edits 11-03: cell now lives in src/ui/board.js
-  playForEvent(e); // AUDIO-01/D-07: the host's per-event sound moment — fires once per game.ev() call, whole table audible, no isLocalTo gate
+  if(!appState.game.events.length)return DRAINED;
+  const _nh=netHandlers();
+  /* W1 (2026-08-28): THE HOST'S INLINE DRAWING IS GONE. The render/pops/sound lines that stood
+     here were the second orchestration CLAUDE.md rule 23 names — the host drew from this loop
+     while a guest drew from watchEvents, and every divergence of three phases lived in that gap.
+     This is now the local DRAIN feeding the ONE consumer (consumeEvent, src/orchestrator.js,
+     via the handler seam — panel.js is ui-tier and may never import the orchestrator). Rule A:
+     the host consumes locally, never reading its own write back off Firebase.
+     ⚠ AND IT NO LONGER "STAYS SYNCHRONOUS" IN THE SENSE THIS LINE ONCE MEANT: liveRender RETURNS A
+     PROMISE now (see above), so a caller may await the drain. What is still synchronous is the body
+     up to the moment the first consumer is started, which is what keeps a sail's own sound instant.
+     The aground catch is unchanged:
+     and a throw inside the consumer must still surface the wreck screen rather than vanish as
+     an unhandled rejection (the runLiveNet catch cannot see a detached promise). */
+  /* A-13 (Wyatt: "host and guest parity is the #1 goal of this work. If we need to change the
+     game to fix pace, we want to fix pace for ALL PLAYERS EQUALLY."): the drain hands the
+     consumer EVERY unconsumed event, in order — matching the guest, whose wire delivers each
+     event individually. The coalescing this replaces (only the LATEST event per call drew; a
+     burst's earlier pops and sounds were skipped on the host alone) was the last divergence
+     inside the one-consumer claim, flagged as Q-13 and closed by his (b). Start-in-order,
+     interleave-at-awaits — the same semantics a guest has when a burst arrives. */
+  /* ⭐ ONE AT A TIME, IN ORDER — Wyatt, 2026-09-09: "the coin flip sound from bots docking still
+     happens too soon -- it happens WHILE they are sailing. this may require an architectural fix,
+     like the engine being able to fire their 'dock' event until they actually have arrived in the
+     dock square; same as regular players."
+     ⚠ HIS DIAGNOSIS IS RIGHT AND THE FAULT IS THIS LOOP, not the engine. It used to START every
+     consumer synchronously and then Promise.all them — the comment above described it exactly:
+     "start-in-order, interleave-at-awaits". A bot's turn emits its sail and its dock in the same
+     burst, so BOTH consumers began in the same tick: the sail's began awaiting its square-by-square
+     walk, and the dock's ran straight past it to playForEvent, which sits at the top of consumeEvent
+     precisely so a sail's own sound is instant. The dock coin therefore rang while the boat was
+     still three squares out.
+     ⭐ AN EVENT STREAM IS A TIMELINE, so draining it concurrently is wrong for any event whose
+     consumer animates — this just happened to be audible first. Awaiting each before starting the
+     next makes the drain mean what it says.
+     ⚠ AND THE FIRST ONE STILL STARTS SYNCHRONOUSLY, which is load-bearing and was the whole point of
+     the note above: `chain` is seeded with the first consumer already CALLED, not with a resolved
+     promise .then()-ing into it. Seeding it the tidy way would have pushed every first sound of a
+     burst behind a microtask — the s4 regression, re-introduced by a refactor that looked neutral. */
+  let drained=_busy?_tail:DRAINED;
+  if(_nh.onConsumeEvent){
+    const batch=[];
+    while(appState.evConsumed<appState.game.events.length)batch.push(appState.game.events[appState.evConsumed++]);
+    if(batch.length){
+      const run=e=>_nh.onConsumeEvent(e).catch(err=>voyageAground(err,"consumeEvent"));
+      // started NOW, in this tick, when nothing is being shown; otherwise behind what is
+      let chain=_busy?_tail.then(()=>run(batch[0])):run(batch[0]);
+      for(let i=1;i<batch.length;i++){const e=batch[i];chain=chain.then(()=>run(e));}
+      const mine=chain.then(()=>{});
+      _tail=mine;_busy=true;
+      mine.then(()=>{if(_tail===mine)_busy=false;});
+      drained=mine;
+    }
+  }
   if(appState.isHost){
-    const _nh=netHandlers();
     // seam (D-07/criterion 1, RESEARCH Q1b edge 2): was a direct pushEvents() call — pushEvents
     // is itself still a classic-script global this wave, wired in through the still-present PP
     // bridge by src/main.js's setNetHandlers() call, formalized to a real src/net/ import in 11-06.
     if(_nh.onEvents)_nh.onEvents();       // broadcast the growing event feed to every other browser
   }
+  return drained;
 }
 // needsAction=true turns the panel yellow (this seat must decide something);
 // false (the default) is pale blue — informational only, nothing to click.
@@ -306,6 +262,7 @@ export function liveRender(){
 // cost, stated plainly so nobody has to rediscover it: 180ms of added latency per REPLACED line,
 // paid deliberately, his call. The rejection paragraph below is kept as history, not deleted.
 //
+
 // THE MECHANISM, which is the whole of the change. panel() stays fully SYNCHRONOUS — that is
 // REQUIRED, not a preference: flash() reads `.apMsg._revealDone` the instant panel() returns, so a
 // deferred swap would hand it the wrong element or none at all. So the DOM is still replaced
@@ -363,24 +320,10 @@ export const GHOST_FADE_MS=800;
 let panelSeq=0;
 // Resolver for the CURRENT message's reveal — runHeightSequence waits on it before SETTLED.
 let panelRevealSettle=null;
-// D-02 (18-05): sizes a REMOTE decision's host-side arm-defer window from the ACTOR's own prompt
-// text (never this browser's own shorter spectator line — see panel()'s clock-defer block below).
-// Derived from REVEAL_MS_PER_CHAR and GHOST_FADE_MS rather than a literal duplicate of either, so
-// a future change to the reveal pacing can't silently desync this estimate from the reveal it is
-// approximating — see CR-01's comment on GHOST_FADE_MS above for what a hardcoded companion
-// constant cost last time. Strips tags and counts CODE POINTS, not `.length` — narration text is
-// full of emoji/surrogate pairs `.length` would double-count. GHOST_FADE_MS is added
-// UNCONDITIONALLY (even though a real reveal only pays it when replacing a prior line): this
-// estimate can only ever grant the acting player MORE of their window, never less (hard
-// constraint 8) — erring long here is deliberate, not an oversight.
-function estimateRevealMs(html){
-  const codePoints=[...String(html||"").replace(/<[^>]*>/g,"")];
-  // + RESIZE_MS (2026-08-01): the swap sequence now waits for the height animation as well as the
-  // fade before the first character lands, so an estimate that stopped at GHOST_FADE_MS would run
-  // 180ms SHORT — and running short is the one thing hard constraint 8 forbids, because it would
-  // arm the acting player's clock before their prompt is readable. Erring long stays deliberate.
-  return codePoints.length*REVEAL_MS_PER_CHAR+GHOST_FADE_MS+RESIZE_MS;
-}
+/* estimateRevealMs() stood here — the deliberately-long reveal estimate the host used to defer
+   a remote seat's clock arm by (hard constraint 8: err long, never short). Left with the clock,
+   2026-08-28. RESIZE_MS and GHOST_FADE_MS above are NOT clock residue — they are the swap
+   sequence's own two clocks and stay. */
 // A CLEAR IS DEFERRED, and this is the single most important thing in this file.
 //
 // The harness caught it: almost every swap in a real game is `panel("")` immediately followed by
@@ -410,7 +353,7 @@ export function panel(html,needsAction=false){
       pendingClear=null;
       inner.innerHTML="";
       $("actionPanel").style.display="none";
-      $("actionPanel").classList.remove("needsAction","pendingReveal");
+      $("actionPanel").classList.remove("needsAction","pendingReveal","pendingStage");
       resizePanel(false);
     },CLEAR_GRACE_MS);
     return;
@@ -437,7 +380,30 @@ export function panel(html,needsAction=false){
   // still-fading ghost that the last round measured at 66px -> 26px during the fade.
   const fromH=pinCurrentHeight();
   inner.innerHTML=html;
-  if(ghost){
+  /* A GHOST CROSSFADES ONE SENTENCE INTO ANOTHER. IT MUST NOT SIT OVER A DIFFERENT KIND OF THING.
+     Wyatt, 2026-08-20, with a screenshot: "the Ahoy line is temporarily written into the recipe box,
+     and then faded out immediately upon clicking 'ahoy'. this shouldn't happen." And, on how often:
+     "the bug where stage narrations get temporarily displayed in other action boxes is pervasive and
+     happens many times, especially during pass and play."
+
+     MEASURED, not guessed — a per-animation-frame sampler over a solo game caught two .apMsg nodes
+     alive together twice in the first five seconds, the second one carrying `fadeOut`:
+       2743ms  n=2  "wy, choose yer recipe:"  ||  "Ahoy! Choose a recipe, gather each ingredien…"
+       4257ms  n=2  "The crew draws lots…"    ||  "wy, choose yer recipe:"
+     852ms of overlap against the ghost's own .8s fade. So this is not the Ahoy line specially — it
+     is EVERY transition, which is exactly the "pervasive" he reported.
+
+     The ghost itself is right and stays: fading one narration line into the next reads well, and a
+     great deal of care is pinned into it (position, width, the reduced-motion path, click-through).
+     What is wrong is fading a SENTENCE over a RECIPE PICKER — the old words land inside a box that
+     now belongs to something else, and read as text wrongly written into it.
+
+     So the crossfade survives message->message and is skipped whenever the incoming panel is more
+     than a bare message. Decided from the REAL DOM after the swap rather than by pattern-matching
+     the html string, so a future prompt shape cannot silently opt itself back in. */
+  const incomingIsBareMessage = inner.children.length===1 &&
+    inner.firstElementChild && inner.firstElementChild.classList.contains("apMsg");
+  if(ghost && incomingIsBareMessage){
     ghost.classList.add("fadeOut");
     // Pin the ghost to exactly where it sat and how wide it wrapped — position:absolute alone
     // would otherwise snap it to #apGridInner's padding-box corner (the FIX-16 "jump left" bug).
@@ -489,7 +455,23 @@ export function panel(html,needsAction=false){
   // has no .apMsg/.apBtns/.apBack at all, so they are correctly untouched by this gate.
   const gateEl=needsAction?$("actionPanel"):null;
   const hasButtons=!!(gateEl&&gateEl.querySelector(".apBtns, .apBack"));
-  if(hasButtons&&!reduced)gateEl.classList.add("pendingReveal");
+  /* TWO GATES, BECAUSE THEY ANSWER TWO QUESTIONS — Wyatt's blank-space lag, 2026-08-23 tier 1.
+     `pendingReveal` answers "may the player ACT yet" and holds the BUTTON ROW until the typewriter
+     and the board have both finished. Reusing that same flag for the whole popup's visibility
+     (D-20's stage.js gates) accidentally made the box wait for its OWN INVISIBLE TYPING: fade
+     (800ms) + resize (180ms) + 20ms/char all ran behind display:none, so every prompt was seconds
+     of dead air and then a fully-formed card — "it's like the game is thinking" (his words). The
+     typewriter is pointless while hidden; the player pays for it and never sees it.
+     `pendingStage` answers the question D-20 actually asked — "has the board stopped moving" — and
+     is what the box's visibility now reads (stage.js promptTick/centre-stage). It lifts the moment
+     stageSettled() resolves, so the box appears at once on a still board, the old line fades in
+     view, and the new text TYPES IN VISIBLY, exactly as notes/edits #1 always specified. Buttons
+     still arrive last (top-to-bottom rule), through the unchanged pendingReveal CSS. */
+  if(hasButtons&&!reduced)gateEl.classList.add("pendingReveal","pendingStage");
+  /* The board-settled promise, taken ONCE here so the box gate, the typewriter's start and the
+     button unhide all read the same answer (a second call could disagree mid-tween). Resolved
+     immediately when the stage is inactive (crew lobby, battle cards) or motion is reduced. */
+  const settledP=(hasButtons&&!reduced&&window.__pp4&&window.__pp4.settled)?window.__pp4.settled():Promise.resolve();
   // P3 + P5 (Wyatt, 2026-08-01): "the 2nd line is cut off during writing, but only sometimes" and
   // "narrow window action button: fail". Both are the SAME cause, and the intermittency is the tell
   // — he also noticed "sometimes the box adjusts to the correct size during fade-out", i.e. the
@@ -536,6 +518,11 @@ export function panel(html,needsAction=false){
     let settleReveal; const revealDone=new Promise(res=>{settleReveal=res;});
     panelRevealSettle=settleReveal;
     canReveal=runHeightSequence({ghostEl:(ghost&&!reduced)?ghost:null,targetH,fromH,revealDone});
+    // The typewriter also waits for the BOARD: the box becomes visible when settledP resolves
+    // (pendingStage lifts), so starting the type-in on the same signal means the box never pops
+    // with half its text already on screen. On a still board settledP is already resolved and this
+    // adds nothing.
+    if(hasButtons&&!reduced)canReveal=canReveal.then(()=>settledP);
   }
   // notes/edits #1: every message text types in one character at a time, whether it's passive
   // narration or an action prompt with buttons — see typewriterReveal() for how. The returned
@@ -569,46 +556,41 @@ export function panel(html,needsAction=false){
   if(hasButtons&&!reduced){
     const seq=++panelSeq;
     gateEl.dataset.revealSeq=String(seq);
-    // D-02 (18-05): THIS is the button row becoming clickable — the seam armClock defers onto.
-    // clockPendingSeat drives setClockUI()'s frozen pending display on whichever browser renders
-    // it: the host's own screen for a local decision, or the deciding guest's own screen for a
-    // remote one (the ONLY place a remote seat's own button row ever renders — see the host-side
-    // spectator-narration branch below for how the host defers without ever seeing hasButtons here).
-    appState.clockPendingSeat=currentTurnSeat();
-    // Ownership of clockPendingArm is taken SYNCHRONOUSLY here (read-and-null), not inside the
-    // .then() below — this is what lets ask()'s no-panel belt (checked synchronously right after
-    // onLocalAsk/onRemotePrompt returns) tell "a button row WILL arm, just not yet" apart from
-    // "nothing will ever arm this decision" (a pure flip prompt, which never reaches panel() at
-    // all). clockPendingLocal gates it to LOCAL decisions only — a guest rendering its own remote
-    // decision always finds clockPendingArm null here (ask() only ever runs host-side), a correct
-    // no-op: arming is the host's job, and the guest's own clock mirrors clockState once the
-    // host's deferred arm (below) broadcasts it.
-    const armFn=(appState.clockPendingLocal&&appState.clockPendingArm)?appState.clockPendingArm:null;
-    if(armFn){appState.clockPendingArm=null;appState.clockPendingLocal=false;appState.clockPendingText="";}
-    revealDone.then(()=>{
-      // T-18-15: reuse the SAME seq stamp the unhide above is gated by — a late-resolving EARLIER
-      // reveal must never clear a NEWER prompt's clockPendingSeat or arm a stale seat's clock.
+    // The box's own gate lifts on the board settling, independently of the typewriter — same seq
+    // guard, so a late-resolving earlier settle can never unhide a newer prompt's box early.
+    settledP.then(()=>{
       if(gateEl.dataset.revealSeq!==String(seq))return;
-      gateEl.classList.remove("pendingReveal");
-      appState.clockPendingSeat=null;
-      // armFn() marks the continuation claimed (unblocking ask()'s withShotClock chain) and hands
-      // back the REAL asked seat — armClock(seat) is what actually starts the 30s window.
-      if(armFn)armClock(armFn());
+      gateEl.classList.remove("pendingStage");
+    });
+    // D-02 (18-05): THIS is the button row becoming clickable.
+    // (The shot clock's arm claim stood here — the one-shot clockPendingArm continuation that
+    // deferred the 30s window past this reveal. Removed 2026-08-28 with the clock; the reveal
+    // gating below is the feature that STAYS — D-01: buttons hidden until the player can act.)
+    /* playtest 21 item 2: the buttons also wait for the BOAT TO ARRIVE. Extended here rather than
+       given its own mechanism, because pendingReveal already exists to answer exactly this
+       question — "may the player act yet?" — and a second gate would be a second thing able to
+       disagree with the first. src/ui/stage.js:stageSettled() waits on the camera tween and the
+       ship's rendered transform, and is HARD-BOUNDED so it can never hold a turn hostage.
+       Consequence worth stating: the shot clock arms on this same promise, so a captain no longer
+       burns seconds of their 30 while the board is still moving under them. That is a fix in its
+       own right, and it falls out of putting the wait in the existing seam instead of beside it. */
+    Promise.all([revealDone,settledP]).then(()=>{
+      // T-18-15: reuse the SAME seq stamp the unhide above is gated by — a late-resolving EARLIER
+      // reveal must never unhide a newer prompt's row early.
+      if(gateEl.dataset.revealSeq!==String(seq))return;
+      gateEl.classList.remove("pendingReveal","pendingStage");
     });
   }
-  // D-02 (18-05): a REMOTE decision's own button row never renders on the HOST's screen — the
-  // deciding seat is a different browser. This panel() call is the host's spectator "<seat> is
-  // deciding…" narration instead (hasButtons is false here, so the block above never runs on this
-  // browser for this decision). Claim the arm right here — a hasButtons render that would
-  // otherwise claim it is never coming on the host's own screen for a remote seat — and defer the
-  // actual arm by the ACTOR's own estimated reveal length (from their real prompt text via
-  // estimateRevealMs, not this shorter spectator line's own reveal): erring long by construction,
-  // never short (hard constraint 8, T-18-14).
-  if(!appState.clockPendingLocal&&appState.clockPendingArm){
-    const fn=appState.clockPendingArm,text=appState.clockPendingText;
-    appState.clockPendingArm=null;appState.clockPendingText="";
-    setTimeout(()=>armClock(fn()),estimateRevealMs(text));
-  }
+  // (The remote-decision arm claim stood here — the host deferring the clock by the actor's own
+  // estimated reveal length, T-18-14. Removed 2026-08-28 with the shot clock.)
+  // playtest 19: LAY THE NEW PROMPT OUT IN THE FRAME IT WAS BUILT. The /4 stage styles and places
+  // every prompt from its own tick loop, which drops to an 8Hz heartbeat when nothing is moving —
+  // so a freshly built prompt could sit up to ~125ms in its unstyled default before the stage
+  // reached it. Measured on the recipe chooser: the cards painted at 110px wide, then jumped to
+  // 163.5px once .pp4Recipes landed. Called here, at panel()'s single chokepoint, so EVERY prompt
+  // style gets the same treatment rather than the recipe sheet alone — the same reasoning that put
+  // the bake-off's stageCenterNow() before its panel build. No-op off the stage.
+  try{ if(window.__pp4&&window.__pp4.syncPrompt)window.__pp4.syncPrompt(); }catch(e){}
 }
 // FIX-03 (18-01 Task 1): the live prompt's own reveal-completion promise, exported so a later
 // caller (18-05's armClock chain) has exactly one seam to hook rather than re-deriving this
@@ -720,6 +702,13 @@ export function measurePanelHeight(minHeight=0){
 // when the reveal may START (i.e. once the box has finished moving) — that promise is handed to
 // typewriterReveal as its start SIGNAL, which is what keeps the two in step without either one
 // duplicating the other's duration.
+// playtest 19 item 1: the /4 centre stage owns its own height — index.html forces the row to
+// max-content and drops the clip there, so the ceremony card takes its natural size and can never
+// be drawn part-built (the "At the helm!" circle was being sliced 29.6px short of its own bottom).
+// With no transition left to fire, the RESIZING phase below would sit out its full RESIZE_BACKSTOP
+// waiting for a `transitionend` that can never arrive, delaying every centre-stage reveal by 300ms
+// for nothing. So it is skipped outright while the stage is up.
+const centreStaged=()=>{const b=$("pp4Prompt");return !!(b&&b.classList.contains("pp4Center"));};
 function runHeightSequence({ghostEl,targetH,fromH,revealDone}){
   const seq=++heightSeq;
   const grid=$("apGrid");
@@ -730,15 +719,48 @@ function runHeightSequence({ghostEl,targetH,fromH,revealDone}){
     if(!alive())return;
     if(grid.style.gridTemplateRows===targetH+"px")grid.style.gridTemplateRows="max-content";
   };
+  /* T-15 (Wyatt, 2026-08-26): "the stages have a brief (half second or so) pause where their
+     narration boxes are completely blank white... The exact instant that a box appears, the text
+     should start to appear in it. otherwise it looks like the game is laggy and stalling."
+
+     HE UNDER-ESTIMATED IT. Measured 2026-08-26 in a driven solo game with an in-page rAF recorder,
+     time from a box becoming visible to its FIRST character:
+         before  median 917ms · 90th 1001ms · worst 1001ms
+         after   median 334ms · 90th  360ms · worst  360ms
+     [UNGATED-IN-4: nothing keeps this duration low. The recorder is a measuring tool that was run
+     by hand, not a check that runs in npm test — it drives a real browser through a real voyage,
+     which the gate chain cannot afford. If this regresses, nothing will say so. Turning it into a
+     gate needs a threshold somebody is willing to defend, and that is a decision, not a chore.]
+     The cause was this line: the reveal waited for the OLD line's whole fade-out —
+     GHOST_FADE_MS (800) + 120 backstop — before typing the first character of the new one. 920ms
+     of white box, which is what he watched and called lag.
+
+     WHAT CHANGED: the resize no longer queues BEHIND the fade. It starts at once, and the reveal
+     waits only for it. The ghost keeps fading on its own clock, behind the arriving text, which is
+     a crossfade rather than a stall.
+
+     WHY NOT ZERO, which is literally what he asked for: the height animation is the thing that
+     makes the box the right size, and #apGridInner is overflow:hidden. Typing into a box still at
+     the OLD height is precisely P3/P5 — "the 2nd line is cut off during writing, but only
+     sometimes" — a bug he reported himself and which cost a session to find. So the wait is now
+     the RESIZE only (~180ms, and skipped entirely when the height is unchanged or the centre stage
+     owns the row), not the fade. ~920ms -> ~180ms, with the clipping fault still impossible.
+
+     If he still wants literal zero after seeing it, the change is to hand typewriterReveal() a
+     resolved promise instead of this one — and the clipping is what to watch for. */
   const fading = ghostEl ? once(ghostEl,"animationend",GHOST_FADE_MS+120) : Promise.resolve();
-  const canReveal = fading.then(()=>{
-    if(!alive())return;
-    // RESIZING — skipped entirely when the height is unchanged (rule 4).
-    if(Math.abs(targetH-fromH)<1)return;
+  const canReveal = (()=>{
+    if(!alive())return Promise.resolve();
+    // RESIZING — skipped entirely when the height is unchanged (rule 4), or when the centre stage
+    // has taken the row off us (see centreStaged() above).
+    if(centreStaged()||Math.abs(targetH-fromH)<1)return Promise.resolve();
     grid.style.gridTemplateRows=targetH+"px";
     return once(grid,"transitionend",RESIZE_BACKSTOP);
-  });
-  canReveal.then(()=>{ if(alive())revealDone.then(settle,settle); });
+  })();
+  // The ghost's fade is still awaited — for the SETTLE, not for the text. Releasing the pinned row
+  // to max-content while the old line is still painted is what collapsed the box mid-fade before.
+  const faded = fading;
+  Promise.all([canReveal,faded]).then(()=>{ if(alive())revealDone.then(settle,settle); });
   return canReveal;
 }
 // THE RESIZE / ORIENTATIONCHANGE PATH (src/main.js). Deliberately NOT the swap sequence.
@@ -883,7 +905,30 @@ export function typewriterReveal(msgEl,msPerChar,startDelayMs=0){
         if(r.dirty){r.shownEl.textContent=r.chars.slice(0,r.shown).join("");r.hiddenEl.textContent=r.chars.slice(r.shown).join("");r.dirty=false;}
       }
       if(revealed<total)msgEl._revealTimer=setTimeout(step,pollMs);
-      else resolve();
+      else{msgEl._revealNow=null;resolve();}
+    };
+    /* T-17 — his checklist #24 (Wyatt, 2026-08-26): "tapping the card, or the space around it, should instant-appear
+       all of the text. this is a nice affordance for players who are familiar with the game and
+       follows the same logic where they get to progress bot turns by tapping."
+
+       Exposed as a handle ON THE ELEMENT rather than as a global, for the same reason panelSeq
+       exists: a newer message must never be finished by a tap meant for an older one. The handle is
+       nulled the moment this reveal ends, either way, so a stale tap is a no-op instead of an
+       exception.
+
+       It reveals through the SAME bookkeeping the tick uses — every unit marked shown, every image
+       opaque, one write per node — so a hurried message and a fully-typed one end up in byte-
+       identical DOM. Writing the text straight in would skip the img opacity and leave icons
+       invisible on exactly the messages a player was impatient with. */
+    msgEl._revealNow=()=>{
+      if(msgEl._revealTimer){clearTimeout(msgEl._revealTimer);msgEl._revealTimer=null;}
+      while(revealed<total){
+        const u=units[revealed++];
+        if(u.img)u.img.style.opacity="1"; else u.rec.shown++;
+      }
+      for(const r of recs){r.shownEl.textContent=r.chars.join("");r.hiddenEl.textContent="";r.dirty=false;}
+      msgEl._revealNow=null;
+      resolve();
     };
     step();
   });
@@ -961,7 +1006,15 @@ export function setNeedsAction(v){const el=$("actionPanel");if(el)el.classList.t
 // The explicit-clear path is deliberately preserved: a caller passing empty content still empties
 // and hides the panel. A caller ASKING for an empty box is a different thing from a timer producing
 // one, and only the second is what F6 forbids.
-export function showNarration(html){
+// `opts.wait` rides through to stageFlash, which then registers no dismissal deadline — see its
+// note. The pre-stage panel path below has no hold of its own to skip, so it needs no branch.
+/* `variants` is FORWARDED, not read here (02.2-07, PAR-14). The renderer needs the payload's own
+   per-seat array to answer one question — is this wait line about a question coming to THIS
+   browser — and until now the host's entry into the renderer dropped it while a guest's kept it.
+   Same drawn thing, two shapes; the shape the host used could not carry the fact. Additive: every
+   two-argument caller behaves exactly as before, since `undefined` forwards as `undefined`. */
+export function showNarration(html,opts,variants){
+  if(html&&window.__pp4){const h=window.__pp4.narr(html,opts,variants);if(h)return;}
   panel(html?`<div class="apMsg">${html}</div>`:"");
 }
 // netNarrate/netBroadcast remain classic-script globals this wave (they call showNarration bare,
@@ -976,6 +1029,67 @@ export function appendChatLine(seat,text){
   line.innerHTML=`${pn(seat)}: ${escHtml(text)}`;
   log.appendChild(line);
   log.scrollTop=log.scrollHeight;
+  // D-07: watchChat (orchestrator.js) calls appendChatLine for EVERY incoming chat message,
+  // including this client's own echo — the flash and the unread mark hang off this same call
+  // rather than a second listener, so the orchestrator needs no edit (key_links, 02-05-PLAN.md).
+  //
+  // Never flash a captain's own sent message back at them, and never flash (or mark unread)
+  // while the sheet is open — the message is already sitting right there in the log they're
+  // looking at.
+  if(seat===appState.mySeat)return;
+  if(document.body.classList.contains("pp4Chat"))return;
+  renderChatFlash(seat,text);
+  setChatUnread(true);
+}
+// D-06's unread mark — a DOT, not a counter (nothing here counts messages). Exported so it is the
+// one place that turns it on or off; stage.js's own sheet-open handler (Task 1, committed ahead of
+// this function existing) clears the dot with a direct class toggle instead of importing this, so
+// that task's commit stayed self-contained — both write the same "on" class to the same element.
+export function setChatUnread(on){
+  const dot=$("pp4ChatDot");if(dot)dot.classList.toggle("on",!!on);
+}
+// D-07: the flash under the ribbon — seen without opening the sheet. ONE element, replaced rather
+// than stacked (T-02-15: a captain spamming chat must not wall the board off with piled-up
+// flashes), with the same instant-tap-dismissal a ship bubble carries at ANY stage of its
+// lifecycle, including mid-reveal, for the same reason (board.js's removeChatBubble comment: one
+// captain spamming chat must not be able to wall off the screen).
+//
+// Rendering route is copied verbatim from appendChatLine just above: pn() names the seat,
+// escHtml() bounds the free text. No second escaping path (T-02-14).
+let chatFlashTimer=null;
+export function renderChatFlash(seat,text){
+  let el=$("pp4ChatFlash");
+  if(!el){
+    el=document.createElement("div");
+    el.id="pp4ChatFlash";
+    el.addEventListener("pointerdown",removeChatFlash);
+    document.body.appendChild(el);
+  }
+  if(chatFlashTimer)clearTimeout(chatFlashTimer);
+  if(el._msgEl&&el._msgEl._revealTimer)clearTimeout(el._msgEl._revealTimer);
+  el.classList.remove("out");
+  el.innerHTML="";
+  const msgEl=document.createElement("span");
+  el.appendChild(msgEl);
+  el._msgEl=msgEl;
+  msgEl.innerHTML=`${pn(seat)}: ${escHtml(text)}`;
+  typewriterReveal(msgEl,REVEAL_MS_PER_CHAR);   // same reveal rate showChatBubble already uses
+  // D-15's own hold curve (chatBubbleHoldMs, util.js) — this IS chat, the exact same kind of
+  // message the ship bubble already paces, so it borrows that curve rather than msgHoldMs's
+  // narration one, and rather than a hand-typed duration nothing else in the codebase provides.
+  chatFlashTimer=setTimeout(()=>{
+    el.classList.add("out");
+    // .35s matches .pp4Bub's own transition:opacity — 300ms matches stageFlash's own removal
+    // delay after adding .out (stage.js) — the same fade-out timing this codebase already uses
+    // for a floating message card, not a new number.
+    setTimeout(()=>{ if($("pp4ChatFlash")===el)el.remove(); },300);
+  },chatBubbleHoldMs(text));
+}
+export function removeChatFlash(){
+  const el=$("pp4ChatFlash");if(!el)return;
+  if(el._msgEl&&el._msgEl._revealTimer)clearTimeout(el._msgEl._revealTimer);
+  if(chatFlashTimer){clearTimeout(chatFlashTimer);chatFlashTimer=null;}
+  el.remove();
 }
 // one bubble div per seat; a new message replaces whatever that seat was already showing.
 // chatBubbles/positionChatBubble/removeChatBubble all live in src/ui/board.js (chatBubbles since
@@ -1027,6 +1141,49 @@ export async function narrateLastEvent(){
   // pickNarrVariant, so building this from anything OTHER than the neutral default would leak
   // the host's own personalised phrasing into every other seat's broadcast.
   const L=describeFor(e,NEUTRAL_VIEWER);if(!L)return;
+  /* W4-2 (Wyatt): "Guest battle narration box is not centred", narrowed by him to the BATTLE box
+     because the tap-to-sail box was correctly centred on the same screen.
+     MEASURED IN A REAL CREW GAME BEFORE CHANGING THIS, and it corrects his premise once and sharpens
+     it once: NOT guest-only — the battle result sat 44px right of centre on BOTH seats — and within
+     ONE battle two lines were drawn two ways, "Dough Hook attacks Flaky Jack!" centred at offset 0
+     and "Dough Hook wins 1–0" anchored at 44.
+     THE CAUSE IS THIS LINE. A bubble with a subject anchors to that captain's boat and grows a tail,
+     which is right for "Flaky Jack takes the wheel". A battle event is {t:"battle", a:attacker,
+     d:defender}, so `e.a` handed the RESULT to the attacker — one of the two fighters, arbitrarily.
+     THE RULE IS DERIVED FROM THE EVENT'S OWN SHAPE, never a list of event names that would need
+     editing every time a new two-captain event appears: AN EVENT THAT NAMES TWO CAPTAINS IS NOT
+     ABOUT ONE OF THEM, so it takes no subject and its bubble is ambient — centred, like the opening
+     line of the same fight already is.
+     This is also what the codebase already says out loud about fights, in the camera hold a few
+     hundred lines away in stage.js: "the director should focus battles on the players fighting, not
+     the player calling the battle." Anchoring the result to one fighter was the same fault one
+     layer down. Held by scripts/qa/w42_battle_bubble_check.mjs. */
+  if(window.__pp4){
+    /* ONE RULE, ONE PLACE (Wyatt's Q-18 ruling, 2026-08-29; CEO Review 24). This test used to be
+       spelled out here and its ANSWER shipped to the guest as a wire field, which is two things
+       kept in step by nothing — rule 23's exact shape. `subjectOf` lives in src/shared/index.js,
+       the one module both this tier and the orchestrator already import, and the guest now runs
+       the SAME function over the event it already holds. Neither seat owns the rule any more. */
+    window.__pp4.subject = subjectOf(e);
+    /* AND WHICH EVENT IT WAS READ FROM. CEO Review 25: the first cut sent `events.length-1` with
+       EVERY narration line, but only THIS function is about the last event — every other flash()
+       in the game (prompts, dock lines, ceremonies, bot turn banners, the battle play-by-play)
+       went out carrying a serial for an event it had nothing to do with. The guest then resolved
+       that unrelated event, anchored the bubble to whichever captain it named, and marked the
+       subject DECIDED, while the host left the same sentence to the colour sniff. A host/guest
+       divergence in bubble placement, created by the fix meant to end host/guest divergence, in
+       the very family Wyatt reported (W4-2). THE SERIAL AND THE SUBJECT ARE ONE FACT AND NOW
+       TRAVEL AS ONE: a line that did not read an event sends neither. */
+    appState.narrEvIdx = appState.game.events.length - 1;
+    /* DECIDED IS NOT THE SAME AS ABSENT, and conflating them is why the first cut of W4-2 changed
+       nothing on either seat. stageFlash falls back to sniffing the sentence for captain colours
+       whenever the subject is null — a fallback that exists for turn-start lines, which carry no
+       event at all. A battle result names exactly ONE captain (the winner), so the sniff cheerfully
+       re-anchored the very line this rule had just decided to centre. The flag says "an event was
+       read and it yielded no subject", which the sniff must not override. */
+    window.__pp4.subjectSet = true;
+    window.__pp4.evType=e.t;
+  }
   const variants=narrationVariants(e);
   // notes/edits #1 follow-up: this used to be netNarrate()+a flat 3000ms sleep, a leftover from
   // before the typewriter/hold/fade system existed. That fixed window never accounted for reveal
@@ -1035,6 +1192,53 @@ export async function narrateLastEvent(){
   // next event overwrote it. flash() awaits real reveal completion, then holds for length*80ms —
   // scaling with the text instead of a one-size-fits-all timer.
   await flash(L.txt,undefined,undefined,variants);
+  // THE BLACK MARKET'S ONE LESSON (Wyatt, 2026-08-12, "ceremony + marker"): the first time any
+  // shelf on the board empties, a once-per-voyage centre-stage beat teaches that sold-out islands
+  // still sell, at cfg.blackMarket's flat price — after this it is only the 🏴 marker and the
+  // dock's own whisper. (The price is NOT repeated here on purpose: it moved once already and a
+  // number typed into a comment cannot move with it.) Keyed on
+  // the event's firstDry stamp (engine sets it exactly once), so a replayed voyage re-derives the
+  // same single showing. Hand-built stage barrier, same pattern as the bake-off intro card —
+  // panel.js may not import flow.js's localAsk (layering), and needs none of it.
+  //
+  // HIS ITEM 7: THE GATE ITSELF MOVED OUT OF THIS FUNCTION. It used to be an inline
+  // `if(e.firstDry&&!appState.replaying)` right here, in the HUMAN narration path only — and a
+  // bot's dock narrates through util.js's narrateCurrent(), a structurally separate function that
+  // knew nothing about it. A bot claims the first dry shelf in 76% of solo voyages, and in every
+  // one of those the ceremony was swallowed for good. The gate is now eventCeremony() in util.js,
+  // which BOTH narration paths call — rule 23's "make the FIRST one go through the new path too",
+  // rather than a second copy of the check that would have to be kept in step by discipline.
+  await eventCeremony(e);
+}
+// exported so the composition root (src/main.js) can hand it to eventCeremony() through the
+// handlers seam — util.js is imported BY this file and can never import it back.
+export function dryCeremony(){
+  return new Promise(res=>{
+    const ap=$("actionPanel");
+    ap.dataset.pp4Stage="1";
+    if(window.__pp4&&window.__pp4.stageCenterNow)window.__pp4.stageCenterNow();
+    // @copy prompt.blackmarket.ceremony — APPROVED as written, Wyatt 2026-08-27. He wrote this
+    // sentence HIMSELF, taking none of the three drafts he was offered, and two of its words are
+    // his deliberate picks rather than slips: "ingredient" (not "crate") and "black market flag"
+    // (not "black flag"). Do not "correct" either. He also cut "after dark" and "the Sugar Seas"
+    // on purpose — the latter agrees with W2-6. The paragraph it replaces was three lines long.
+    //
+    // THE PRICE IS READ, NEVER TYPED (rule 9). cfg.blackMarket is the one place the flat sold-out
+    // price lives; cratePrice() hands it back for an empty shelf, and the board's 🏴 marker reads
+    // the same field the same way (board.js, the flag build). So the card, the flag and the till
+    // cannot quote three different numbers — and when the price moves, this sentence moves with
+    // it instead of quietly lying to a captain about what the crate costs. Reached unguarded for
+    // the same reason board.js reaches it unguarded: no client ever draws without appState.game.
+    const bmPrice=appState.game.cfg.blackMarket;
+    panel(`<div class="apMsg">🏴 <b>The shelves be bare…</b><br><br>
+      Sold-out islands fly the black market flag. They'll find ye one more
+      ingredient — for <b>${bmPrice}🌕.</b></div>
+      <div class="apBtns"><button class="apBtn" id="bmCerGo" type="button">Arrgh!</button></div>
+      `,true);   /* the "Steep, aye…" helper line is gone — his call, 2026-08-25 */
+    const go=$("bmCerGo");
+    if(!go){delete ap.dataset.pp4Stage;res();return;}
+    go.onclick=()=>{go.onclick=null;delete ap.dataset.pp4Stage;panel("");res();};
+  });
 }
 
 // notes/edits #1: ms is no longer used to size the hold — the hold duration is derived purely
@@ -1076,12 +1280,76 @@ export async function fadeOutPanel(){
   ap.style.display="none";
   ap.classList.remove("needsAction");
 }
-export async function flash(msg,ms,holdMs,variants){
+/* THE ONE PLACE A NARRATION LINE IS DRAWN FROM (02.15-01 Stage 1, D-25).
+   Until 2026-08-20 the host drew its narration here, from the game loop, and a guest drew its own
+   from watchNarr -> showNarration -> __pp4.narr. Two orchestrations, one renderer, and they drifted
+   — four of the seven divergences in Wyatt's side-by-side screenshots were narration.
+   orchestrator.js's watchNarr now calls THIS function, so a guest draws a narration line through
+   exactly the code the host's own loop draws it through, holds included. That is watchChat's shape
+   applied to the game display: one renderer, every client, nothing to keep in step by hand.
+   AND THE HOST STILL NEVER ROUND-TRIPS. It feeds this function directly and mirrors to Firebase
+   only through onNetBroadcast, whose netBroadcast target is guarded by `isHost && db && room`. In
+   solo and pass-and-play there is no room, the mirror is a no-op, and this function is the whole
+   path — which is exactly what it was before. A guest calling it broadcasts nothing for the same
+   reason (it is not the host), so there is no echo and no loop. */
+export async function flash(msg,ms,holdMs,variants,opts){
+  // /4 stage: narration renders as a board bubble instead of the panel (solo only; the stage
+  // hook returns null before a game is on screen, and the classic path runs unchanged).
+  /* CREW GAMES PAINTED EVERY NARRATION LINE TWICE, AND THE SECOND PAINT ATE THE FIRST ONE'S HOLD.
+     Measured 2026-08-19 on a live board, rAF-driven at ~60fps: the same flash() call held 2701ms
+     in solo and 1ms in a crew game. Wyatt saw it as "the pass narration is immediately blitzed
+     past by the bots" and as "the final coin image didn't load" — the coin had in fact loaded and
+     was painted, then wiped 1ms later, because humanFlip awaits this very promise before blanking
+     the coin (flow.js:298).
+
+     The cause was one identifier. `onBroadcast` is netNarrate, which BOTH broadcasts AND repaints
+     this screen's panel; `onNetBroadcast` is netBroadcast, which exists for exactly this case —
+     "broadcast narration to spectators WITHOUT touching this screen's panel" (orchestrator.js:305).
+     Calling the former meant stageFlash ran a second time, and stageFlash's first act is
+     `if (S.hurry) S.hurry()` — retire the live bubble NOW (stage.js:558) — which resolved the
+     promise this function had just returned. The hold was computed correctly all along and thrown
+     away; no duration needed changing, and none was.
+
+     WHY THE PICKED VARIANT IS PASSED TO THE BUBBLE: stageFlash takes only `msg` and never reads
+     `variants`, so the bubble always carried the NEUTRAL line while the panel echo carried the
+     host's addressed one ("ye flip HEADS"). Since the echo is what he actually read, deleting it
+     alone would have quietly demoted his own lines to the neutral wording — a copy regression
+     hiding inside a timing fix. Picking here keeps what he reads identical.
+
+     ...and why only when `appState.room` is set: in solo there was never an echo, so the bubble's
+     neutral line IS the shipped solo wording. Picking unconditionally would have changed solo copy
+     nobody asked to change. The broadcast still sends the neutral `msg` so every other client picks
+     its own variant, exactly as before. */
+  /* READ THE SUBJECT BEFORE THE LOCAL DRAW SPENDS IT — and this is one level up from where that
+     lesson was learned, which is why it was still broken.
+     MEASURED ON THE WIRE, 2026-08-29, two real browsers, 47 narration lines in one crew game:
+     **NOT ONE carried a subject.** W4-2's second half — "the host's decision crosses the wire so
+     both seats draw it alike" — has never worked in a crew game, and gate 42 could not see it
+     because the code that sends the subject is all present and correct.
+     THE CAUSE IS THE ORDER, TWO LINES APART. On the v2 stage path — every crew game — this
+     function calls `window.__pp4.flash(...)` FIRST, and stageFlash's own act is to read the flag
+     and clear it (`const decided = !!S.subjectSet; S.subjectSet = false;`, src/ui/stage.js). Only
+     THEN does it reach the broadcast, which finds the flag already spent and sends nothing. CEO
+     Review 20 fixed exactly this inside netNarrate — "reading it after would always send nothing"
+     — but the stage path never goes through netNarrate; it goes through netBroadcast, from here.
+     So the decision is captured HERE, before the draw, and handed to the broadcast explicitly.
+     src/ui/ may never import the orchestrator (D-07), so it rides the handler seam like every
+     other cross-tier value. */
+  if(window.__pp4){
+    const pre=window.__pp4.subjectSet
+      ? {subj:window.__pp4.subject, evN:appState.narrEvIdx}
+      : null;
+    const shown=appState.room?pickNarrVariant({html:msg,variants},appState.mySeat):msg;
+    const h=window.__pp4.flash(shown,ms,holdMs,variants,opts);
+    if(h){if(appState.room){const _nh0=netHandlers();if(_nh0.onNetBroadcast)_nh0.onNetBroadcast(msg,variants,opts,pre);}
+      appState.narrEvIdx=null;   // spent with the line it belonged to, whether or not it was sent
+      return h;}
+  }
   const _nh=netHandlers();
   // seam (D-07/criterion 1, RESEARCH Q1b edge 1): was a direct netNarrate(msg) call — netNarrate
   // is itself still a classic-script global this wave, wired in through the still-present PP
   // bridge by src/main.js's setNetHandlers() call, formalized to a real src/net/ import in 11-06.
-  if(_nh.onBroadcast)_nh.onBroadcast(msg,variants);
+  if(_nh.onBroadcast)_nh.onBroadcast(msg,variants,opts);
   const el=$("actionPanel").querySelector(".apMsg");
   if(el&&el._revealDone)await el._revealDone;
   const text=el?el.textContent:msg;
@@ -1090,7 +1358,12 @@ export async function flash(msg,ms,holdMs,variants){
   // MSG_HOLD_MULTIPLIER (0.72) and the chat-bubble curve are not to be touched at all. Removing the
   // hold would make lines race past each other, which is not what "never fade the last line" asks
   // for.
-  await sleep(typeof holdMs==="number"?holdMs:msgHoldMs(text));
+  // D-34/D-45: the classic-path fallback reads from the SAME reading-speed model the stage bubble
+  // does. It is dead in practice (initStage() sets window.__pp4 at boot, so the branch above always
+  // takes it) but it is a real second reader of "how long does one line of narration read", and two
+  // things that must agree are one thing or they will drift (rule 23). A numeric holdMs still wins
+  // -- that is botWindLeg's own per-square override (D-10), an argument, not a curve.
+  await sleep(typeof holdMs==="number"?holdMs:narrationHoldMs(text));
   // F6: the two things that CLEARED the box at the end are gone — the fadeOut class, and the
   // trailing sleep(500) that existed solely to let that fade finish. The next render replaces this
   // line, so it stays fully readable until something takes its place and the box is never empty.

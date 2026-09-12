@@ -1,0 +1,774 @@
+{
+  "counter": "none",
+  "holders": 1,
+  "responderDelayMs": 3000,
+  "sampleIntervalMs": 200,
+  "startedAt": "2026-08-23T07:19:26.333Z",
+  "steps": [
+    {
+      "name": "00-voyage-open",
+      "note": "after the draft",
+      "at": 1787469596149,
+      "host": {
+        "seat": 0,
+        "isHost": true,
+        "room": "JHJG",
+        "round": 1,
+        "events": 1,
+        "dlogLen": 2,
+        "strategies": [
+          "human",
+          "human",
+          "trader",
+          "rusher"
+        ],
+        "names": [
+          null,
+          null,
+          null,
+          null
+        ],
+        "coins": [
+          6,
+          4,
+          3,
+          5
+        ],
+        "ing": [
+          [],
+          [],
+          [],
+          []
+        ],
+        "ings": [
+          "wheat",
+          "dairy",
+          "sugar",
+          "eggs",
+          "cocoa",
+          "spice",
+          "vanilla"
+        ],
+        "apMsg": null,
+        "apBtns": [],
+        "apSub": null,
+        "hasSlider": false,
+        "hasSliderWrap": false,
+        "sliderOut": null,
+        "promptCls": null,
+        "bub": "— Day 1: wind is blowin' north — Next day: wind west."
+      },
+      "guests": [
+        {
+          "seat": 1,
+          "isHost": false,
+          "room": "JHJG",
+          "round": 1,
+          "events": 1,
+          "dlogLen": 0,
+          "strategies": [
+            "human",
+            "human",
+            "trader",
+            "rusher"
+          ],
+          "names": [
+            null,
+            null,
+            null,
+            null
+          ],
+          "coins": [
+            6,
+            4,
+            3,
+            5
+          ],
+          "ing": [
+            [],
+            [],
+            [],
+            []
+          ],
+          "ings": [
+            "wheat",
+            "dairy",
+            "sugar",
+            "eggs",
+            "cocoa",
+            "spice",
+            "vanilla"
+          ],
+          "apMsg": null,
+          "apBtns": [],
+          "apSub": null,
+          "hasSlider": false,
+          "hasSliderWrap": false,
+          "sliderOut": null,
+          "promptCls": null,
+          "bub": "— Day 1: wind is blowin' north — Next day: wind west."
+        }
+      ]
+    },
+    {
+      "name": "01-parked",
+      "note": "the turn loop is parked on a LOCAL prompt; the wire is free",
+      "at": 1787469636438,
+      "host": {
+        "seat": 0,
+        "isHost": true,
+        "room": "JHJG",
+        "round": 1,
+        "events": 12,
+        "dlogLen": 5,
+        "strategies": [
+          "human",
+          "human",
+          "trader",
+          "rusher"
+        ],
+        "names": [
+          null,
+          null,
+          null,
+          null
+        ],
+        "coins": [
+          6,
+          5,
+          4,
+          3
+        ],
+        "ing": [
+          [],
+          [],
+          [],
+          [
+            "sugar"
+          ]
+        ],
+        "ings": [
+          "wheat",
+          "dairy",
+          "sugar",
+          "eggs",
+          "cocoa",
+          "spice",
+          "vanilla"
+        ],
+        "apMsg": "test1, what'll ye do:",
+        "apBtns": [
+          "Trade",
+          "Pass +1"
+        ],
+        "apSub": null,
+        "hasSlider": false,
+        "hasSliderWrap": false,
+        "sliderOut": null,
+        "promptCls": "radial",
+        "bub": null
+      },
+      "guests": [
+        {
+          "seat": 1,
+          "isHost": false,
+          "room": "JHJG",
+          "round": 1,
+          "events": 12,
+          "dlogLen": 0,
+          "strategies": [
+            "human",
+            "human",
+            "trader",
+            "rusher"
+          ],
+          "names": [
+            null,
+            null,
+            null,
+            null
+          ],
+          "coins": [
+            6,
+            5,
+            4,
+            3
+          ],
+          "ing": [
+            [],
+            [],
+            [],
+            [
+              "sugar"
+            ]
+          ],
+          "ings": [
+            "wheat",
+            "dairy",
+            "sugar",
+            "eggs",
+            "cocoa",
+            "spice",
+            "vanilla"
+          ],
+          "apMsg": null,
+          "apBtns": [],
+          "apSub": null,
+          "hasSlider": false,
+          "hasSliderWrap": false,
+          "sliderOut": null,
+          "promptCls": null,
+          "bub": "test1 is deciding…"
+        }
+      ]
+    },
+    {
+      "name": "02-round-open",
+      "note": "every holder's screen at the same moment",
+      "at": 1787469641221,
+      "host": {
+        "seat": 0,
+        "isHost": true,
+        "room": "JHJG",
+        "round": 1,
+        "events": 13,
+        "dlogLen": 5,
+        "strategies": [
+          "human",
+          "human",
+          "trader",
+          "rusher"
+        ],
+        "names": [
+          null,
+          null,
+          null,
+          null
+        ],
+        "coins": [
+          6,
+          5,
+          8,
+          3
+        ],
+        "ing": [
+          [],
+          [
+            "wheat"
+          ],
+          [
+            "dairy",
+            "sugar"
+          ],
+          [
+            "sugar"
+          ]
+        ],
+        "ings": [
+          "wheat",
+          "dairy",
+          "sugar",
+          "eggs",
+          "cocoa",
+          "spice",
+          "vanilla"
+        ],
+        "apMsg": "test1, what'll ye do:",
+        "apBtns": [
+          "Trade",
+          "Pass +1"
+        ],
+        "apSub": null,
+        "hasSlider": false,
+        "hasSliderWrap": false,
+        "sliderOut": null,
+        "promptCls": "radial",
+        "bub": "📣 Dough Hook hails the table: \"Who'll give me Toasty Wheat for Fresh Milk + 3?\""
+      },
+      "guests": [
+        {
+          "seat": 1,
+          "isHost": false,
+          "room": "JHJG",
+          "round": 1,
+          "events": 13,
+          "dlogLen": 0,
+          "strategies": [
+            "human",
+            "human",
+            "trader",
+            "rusher"
+          ],
+          "names": [
+            null,
+            null,
+            null,
+            null
+          ],
+          "coins": [
+            6,
+            5,
+            8,
+            3
+          ],
+          "ing": [
+            [],
+            [
+              "wheat"
+            ],
+            [
+              "dairy",
+              "sugar"
+            ],
+            [
+              "sugar"
+            ]
+          ],
+          "ings": [
+            "wheat",
+            "dairy",
+            "sugar",
+            "eggs",
+            "cocoa",
+            "spice",
+            "vanilla"
+          ],
+          "apMsg": null,
+          "apBtns": [],
+          "apSub": null,
+          "hasSlider": false,
+          "hasSliderWrap": false,
+          "sliderOut": null,
+          "promptCls": null,
+          "bub": "📣 Dough Hook hails the table: \"Who'll give me Toasty Wheat for Fresh Milk + 3?\""
+        }
+      ]
+    },
+    {
+      "name": "04-settled",
+      "note": "after the trade resolved",
+      "at": 1787469652694,
+      "host": {
+        "seat": 0,
+        "isHost": true,
+        "room": "JHJG",
+        "round": 1,
+        "events": 14,
+        "dlogLen": 6,
+        "strategies": [
+          "human",
+          "human",
+          "trader",
+          "rusher"
+        ],
+        "names": [
+          null,
+          null,
+          null,
+          null
+        ],
+        "coins": [
+          6,
+          8,
+          5,
+          3
+        ],
+        "ing": [
+          [],
+          [
+            "dairy"
+          ],
+          [
+            "sugar",
+            "wheat"
+          ],
+          [
+            "sugar"
+          ]
+        ],
+        "ings": [
+          "wheat",
+          "dairy",
+          "sugar",
+          "eggs",
+          "cocoa",
+          "spice",
+          "vanilla"
+        ],
+        "apMsg": "test1, what'll ye do:",
+        "apBtns": [
+          "Trade",
+          "Pass +1"
+        ],
+        "apSub": null,
+        "hasSlider": false,
+        "hasSliderWrap": false,
+        "sliderOut": null,
+        "promptCls": "radial",
+        "bub": null
+      },
+      "guests": [
+        {
+          "seat": 1,
+          "isHost": false,
+          "room": "JHJG",
+          "round": 1,
+          "events": 14,
+          "dlogLen": 0,
+          "strategies": [
+            "human",
+            "human",
+            "trader",
+            "rusher"
+          ],
+          "names": [
+            null,
+            null,
+            null,
+            null
+          ],
+          "coins": [
+            6,
+            8,
+            5,
+            3
+          ],
+          "ing": [
+            [],
+            [
+              "dairy"
+            ],
+            [
+              "sugar",
+              "wheat"
+            ],
+            [
+              "sugar"
+            ]
+          ],
+          "ings": [
+            "wheat",
+            "dairy",
+            "sugar",
+            "eggs",
+            "cocoa",
+            "spice",
+            "vanilla"
+          ],
+          "apMsg": null,
+          "apBtns": [],
+          "apSub": null,
+          "hasSlider": false,
+          "hasSliderWrap": false,
+          "sliderOut": null,
+          "promptCls": null,
+          "bub": null
+        }
+      ]
+    }
+  ],
+  "notes": [],
+  "profileRoot": "/var/folders/4z/574czt1n0yxfn9m22xbnr6tm0000gn/T/crew-trade-prof-j0NO0O",
+  "seats": {
+    "strategies": [
+      "human",
+      "human",
+      "trader",
+      "rusher"
+    ],
+    "names": [
+      null,
+      null,
+      null,
+      null
+    ]
+  },
+  "holderSeats": [
+    1
+  ],
+  "pose": {
+    "ok": true,
+    "askerIdx": 2,
+    "offer": {
+      "want": "wheat",
+      "giveIng": "dairy",
+      "giveCoins": 3
+    },
+    "heard": [
+      1
+    ],
+    "holderStrategies": [
+      "human"
+    ],
+    "askerIng": [
+      "dairy",
+      "sugar"
+    ],
+    "askerCoins": 8
+  },
+  "dlogBefore": 5,
+  "fire": {
+    "t0": 1787469636441,
+    "state": "resolved",
+    "result": true,
+    "err": null,
+    "t1": 1787469649846
+  },
+  "dlogAfter": 6,
+  "ledger": {
+    "askerIdx": 2,
+    "offer": {
+      "want": "wheat",
+      "giveIng": "dairy",
+      "giveCoins": 3
+    },
+    "ing": [
+      [],
+      [
+        "dairy"
+      ],
+      [
+        "sugar",
+        "wheat"
+      ],
+      [
+        "sugar"
+      ]
+    ],
+    "coins": [
+      6,
+      8,
+      5,
+      3
+    ],
+    "tradeEvents": [
+      {
+        "t": "openoffer",
+        "p": 2,
+        "want": "wheat",
+        "offer": "<img class=\"narrIcon\" src=\"../assets/ingredients/dairy.png\" alt=\"Fresh Milk\"> Fresh Milk + 3 coins",
+        "round": 1,
+        "wind": "N",
+        "storm": false,
+        "wind2": null,
+        "state": [
+          {
+            "pos": [
+              7,
+              5
+            ],
+            "coins": 6,
+            "ing": [],
+            "done": false,
+            "baking": false
+          },
+          {
+            "pos": [
+              7,
+              9
+            ],
+            "coins": 5,
+            "ing": [
+              "wheat"
+            ],
+            "done": false,
+            "baking": false
+          },
+          {
+            "pos": [
+              8,
+              8
+            ],
+            "coins": 8,
+            "ing": [
+              "dairy",
+              "sugar"
+            ],
+            "done": false,
+            "baking": false
+          },
+          {
+            "pos": [
+              5,
+              8
+            ],
+            "coins": 3,
+            "ing": [
+              "sugar"
+            ],
+            "done": false,
+            "baking": false
+          }
+        ],
+        "tokens": {
+          "wheat": 3,
+          "dairy": 3,
+          "sugar": 2,
+          "eggs": 3,
+          "cocoa": 3,
+          "spice": 3,
+          "vanilla": 3
+        }
+      },
+      {
+        "t": "trade",
+        "a": 2,
+        "b": 1,
+        "gave": "<img class=\"narrIcon\" src=\"../assets/ingredients/dairy.png\" alt=\"Fresh Milk\"> Fresh Milk + 3 coins",
+        "got": "wheat",
+        "kind": "open",
+        "round": 1,
+        "wind": "N",
+        "storm": false,
+        "wind2": null,
+        "state": [
+          {
+            "pos": [
+              7,
+              5
+            ],
+            "coins": 6,
+            "ing": [],
+            "done": false,
+            "baking": false
+          },
+          {
+            "pos": [
+              7,
+              9
+            ],
+            "coins": 8,
+            "ing": [
+              "dairy"
+            ],
+            "done": false,
+            "baking": false
+          },
+          {
+            "pos": [
+              8,
+              8
+            ],
+            "coins": 5,
+            "ing": [
+              "sugar",
+              "wheat"
+            ],
+            "done": false,
+            "baking": false
+          },
+          {
+            "pos": [
+              5,
+              8
+            ],
+            "coins": 3,
+            "ing": [
+              "sugar"
+            ],
+            "done": false,
+            "baking": false
+          }
+        ],
+        "tokens": {
+          "wheat": 3,
+          "dairy": 3,
+          "sugar": 2,
+          "eggs": 3,
+          "cocoa": 3,
+          "spice": 3,
+          "vanilla": 3
+        }
+      }
+    ],
+    "dlog": [
+      0,
+      0,
+      [
+        7,
+        9
+      ],
+      1,
+      [
+        7,
+        5
+      ],
+      0
+    ]
+  },
+  "promptChannel": {
+    "writes": [
+      {
+        "ms": 53,
+        "id": null,
+        "kind": null,
+        "seat": null,
+        "msg": null,
+        "nOpts": 0,
+        "slider": false
+      },
+      {
+        "ms": 4349,
+        "id": "q5_1787469640789",
+        "kind": "ask",
+        "seat": 1,
+        "msg": "test2: Dough Hook offers  Fresh Milk + 3 coins for yer  Toasty Wheat.",
+        "nOpts": 3,
+        "slider": false
+      },
+      {
+        "ms": 9060,
+        "id": null,
+        "kind": null,
+        "seat": null,
+        "msg": null,
+        "nOpts": 0,
+        "slider": false
+      }
+    ],
+    "distinct": 1
+  },
+  "responders": [
+    {
+      "acts": [
+        {
+          "t": 1787469645442,
+          "a": "ANSWER \"Accept\""
+        }
+      ],
+      "stepperTaps": 0,
+      "sliderSets": 0,
+      "err": null,
+      "phase": "answering"
+    }
+  ],
+  "measured": {
+    "responderDelayMs": 3000,
+    "sampleIntervalMs": 200,
+    "openofferToSettlementMs": 16000,
+    "tradeWallClockMs": 13405,
+    "longestDecidingSpanMs": {
+      "host": {
+        "ms": 4803,
+        "fromMs": 4403
+      },
+      "guest1": {
+        "ms": 0,
+        "fromMs": null
+      }
+    },
+    "longestDecidingSpanAnyScreenMs": 4803,
+    "promptWrites": 3,
+    "distinctPromptIds": 1,
+    "dlogBefore": 5,
+    "dlogAfter": 6,
+    "dlogEntriesAdded": 1,
+    "stepperTaps": [
+      0
+    ],
+    "sliderDrags": [
+      0
+    ]
+  },
+  "finishedAt": "2026-08-23T07:20:52.762Z"
+}

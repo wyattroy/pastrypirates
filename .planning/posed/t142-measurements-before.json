@@ -1,0 +1,147 @@
+{
+  "tablet-820x1180": {
+    "ok": true,
+    "viewport": {
+      "w": 820,
+      "h": 1180,
+      "dpr": 2
+    },
+    "stage": true,
+    "side": false,
+    "bleed": true,
+    "overlayId": "howToPlayModal",
+    "overlayZ": "1000",
+    "capVisible": true,
+    "capZ": "22",
+    "capDisplay": "block",
+    "capRect": {
+      "top": 864,
+      "bottom": 1054,
+      "left": 0,
+      "right": 820,
+      "h": 190,
+      "w": 820
+    },
+    "cardRect": {
+      "top": 192,
+      "bottom": 988,
+      "left": 170,
+      "right": 650,
+      "h": 796,
+      "w": 480
+    },
+    "bandPx": 124,
+    "exposedPx": 340,
+    "scrimAlphas": [
+      0.22,
+      0.4,
+      0
+    ],
+    "scrimMaxAlpha": 0.4,
+    "cutRows": [
+      {
+        "text": "Davy Scones –",
+        "visiblePx": 145,
+        "totalPx": 770
+      },
+      {
+        "text": "Crustbeard –",
+        "visiblePx": 145,
+        "totalPx": 770
+      },
+      {
+        "text": "Dough Hook –",
+        "visiblePx": 145,
+        "totalPx": 770
+      }
+    ],
+    "posedVia": "howToPlayModal(posed)",
+    "shot": "C:\\Users\\wyatt\\Projects\\pastrypirates\\.planning\\posed\\t142-captains-under-recipe-tablet-820x1180-before.png"
+  },
+  "phone-390x664": {
+    "ok": true,
+    "viewport": {
+      "w": 390,
+      "h": 664,
+      "dpr": 2
+    },
+    "stage": true,
+    "side": false,
+    "bleed": false,
+    "overlayId": "howToPlayModal",
+    "overlayZ": "1000",
+    "capVisible": true,
+    "capZ": "22",
+    "capDisplay": "block",
+    "capRect": {
+      "top": 474,
+      "bottom": 664,
+      "left": 0,
+      "right": 390,
+      "h": 190,
+      "w": 390
+    },
+    "cardRect": {
+      "top": 40,
+      "bottom": 526,
+      "left": 16,
+      "right": 374,
+      "h": 486,
+      "w": 358
+    },
+    "bandPx": 52,
+    "exposedPx": 32,
+    "scrimAlphas": [
+      0.22,
+      0.4,
+      0
+    ],
+    "scrimMaxAlpha": 0.4,
+    "cutRows": [],
+    "posedVia": "howToPlayModal(posed)",
+    "shot": "C:\\Users\\wyatt\\Projects\\pastrypirates\\.planning\\posed\\t142-captains-under-recipe-phone-390x664-before.png"
+  },
+  "desktop-1440x900": {
+    "ok": true,
+    "viewport": {
+      "w": 1440,
+      "h": 900,
+      "dpr": 1
+    },
+    "stage": true,
+    "side": true,
+    "bleed": false,
+    "overlayId": "howToPlayModal",
+    "overlayZ": "1000",
+    "capVisible": true,
+    "capZ": "22",
+    "capDisplay": "block",
+    "capRect": {
+      "top": 42,
+      "bottom": 232,
+      "left": 886,
+      "right": 1426,
+      "h": 190,
+      "w": 540
+    },
+    "cardRect": {
+      "top": 136,
+      "bottom": 764,
+      "left": 203,
+      "right": 683,
+      "h": 628,
+      "w": 480
+    },
+    "bandPx": 96,
+    "exposedPx": 743,
+    "scrimAlphas": [
+      0.22,
+      0.4,
+      0
+    ],
+    "scrimMaxAlpha": 0.4,
+    "cutRows": [],
+    "posedVia": "howToPlayModal",
+    "shot": "C:\\Users\\wyatt\\Projects\\pastrypirates\\.planning\\posed\\t142-captains-under-recipe-desktop-1440x900-before.png"
+  }
+}

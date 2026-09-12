@@ -2,12 +2,22 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc>https://playpastrypirates.com/</loc>
-    <changefreq>weekly</changefreq>
-    <priority>1.0</priority>
+    <lastmod>2026-09-11</lastmod>
   </url>
   <url>
     <loc>https://playpastrypirates.com/about.html</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.5</priority>
+    <lastmod>2026-09-03</lastmod>
+  </url>
+  <url>
+    <loc>https://playpastrypirates.com/credits.html</loc>
+    <lastmod>2026-09-07</lastmod>
+  </url>
+  <url>
+    <loc>https://playpastrypirates.com/privacy.html</loc>
+    <lastmod>2026-09-03</lastmod>
+  </url>
+  <url>
+    <loc>https://playpastrypirates.com/rules.html</loc>
+    <lastmod>2026-09-08</lastmod>
   </url>
 </urlset>

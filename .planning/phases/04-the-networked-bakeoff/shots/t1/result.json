@@ -1,0 +1,989 @@
+{
+  "mode": "measure",
+  "startedAt": "2026-08-23T06:00:48.571Z",
+  "steps": [
+    {
+      "name": "00-voyage-open",
+      "note": "after the draft",
+      "at": 1787464869751,
+      "host": {
+        "seat": 0,
+        "isHost": true,
+        "room": "PEDH",
+        "round": 0,
+        "events": 0,
+        "cardIngs": [],
+        "benchIngs": [],
+        "bowlCount": 0,
+        "lockedCount": 0,
+        "shell": null,
+        "shellPresent": false,
+        "stage": false,
+        "hint": null,
+        "goBtn": null,
+        "watchBtn": null,
+        "introGo": false,
+        "apMsg": "Ahoy! Choose a recipe, gather each ingredient, then sail home first to win!",
+        "apBtns": [
+          "Arrgh!"
+        ],
+        "narr": null,
+        "coins": [
+          3,
+          3,
+          3,
+          3
+        ],
+        "names": [
+          null,
+          null,
+          null,
+          null
+        ],
+        "orders": [
+          [
+            "eggs.png",
+            "spice.png",
+            "wheat.png",
+            "cocoa.png",
+            "dairy.png"
+          ],
+          [
+            "vanilla.png",
+            "spice.png",
+            "cocoa.png",
+            "dairy.png",
+            "wheat.png"
+          ],
+          [
+            "eggs.png",
+            "sugar.png",
+            "cocoa.png",
+            "vanilla.png",
+            "spice.png"
+          ],
+          [
+            "cocoa.png",
+            "dairy.png",
+            "spice.png",
+            "eggs.png",
+            "wheat.png"
+          ]
+        ],
+        "bakeState": [
+          null,
+          null,
+          null,
+          null
+        ],
+        "baking": [
+          false,
+          false,
+          false,
+          false
+        ],
+        "dlogN": 0,
+        "dlogLen": 0
+      },
+      "guest": {
+        "seat": 1,
+        "isHost": false,
+        "room": "PEDH",
+        "round": 0,
+        "events": 0,
+        "cardIngs": [],
+        "benchIngs": [],
+        "bowlCount": 0,
+        "lockedCount": 0,
+        "shell": null,
+        "shellPresent": false,
+        "stage": false,
+        "hint": null,
+        "goBtn": null,
+        "watchBtn": null,
+        "introGo": false,
+        "apMsg": "Ahoy! Choose a recipe, gather each ingredient, then sail home first to win!",
+        "apBtns": [
+          "Arrgh!"
+        ],
+        "narr": null,
+        "coins": [
+          3,
+          3,
+          3,
+          3
+        ],
+        "names": [
+          null,
+          null,
+          null,
+          null
+        ],
+        "orders": [
+          [
+            "eggs.png",
+            "spice.png",
+            "wheat.png",
+            "cocoa.png",
+            "dairy.png"
+          ],
+          [
+            "vanilla.png",
+            "spice.png",
+            "cocoa.png",
+            "dairy.png",
+            "wheat.png"
+          ],
+          [
+            "eggs.png",
+            "sugar.png",
+            "cocoa.png",
+            "vanilla.png",
+            "spice.png"
+          ],
+          [
+            "cocoa.png",
+            "dairy.png",
+            "spice.png",
+            "eggs.png",
+            "wheat.png"
+          ]
+        ],
+        "bakeState": [
+          null,
+          null,
+          null,
+          null
+        ],
+        "baking": [
+          false,
+          false,
+          false,
+          false
+        ],
+        "dlogN": 0,
+        "dlogLen": 0
+      },
+      "hostBench": null,
+      "guestBench": null
+    },
+    {
+      "name": "01-first-bake",
+      "note": "the first bench of the voyage",
+      "at": 1787464907824,
+      "host": {
+        "seat": 0,
+        "isHost": true,
+        "room": "PEDH",
+        "round": 1,
+        "events": 11,
+        "cardIngs": [
+          "dairy.png",
+          "vanilla.png",
+          "wheat.png",
+          "spice.png",
+          "cocoa.png"
+        ],
+        "benchIngs": [],
+        "bowlCount": 0,
+        "lockedCount": 0,
+        "shell": null,
+        "shellPresent": false,
+        "stage": true,
+        "hint": null,
+        "goBtn": null,
+        "watchBtn": null,
+        "introGo": true,
+        "apMsg": "The ovens be roarin'! Yer ingredients be waitin'. Ye must bake yer recipe by addin' them in the correct order.",
+        "apBtns": [
+          "Get bakin'!"
+        ],
+        "narr": null,
+        "coins": [
+          4,
+          3,
+          6,
+          6
+        ],
+        "names": [
+          null,
+          null,
+          null,
+          null
+        ],
+        "orders": [
+          [
+            "dairy.png",
+            "wheat.png",
+            "cocoa.png",
+            "spice.png",
+            "eggs.png"
+          ],
+          [
+            "dairy.png",
+            "vanilla.png",
+            "wheat.png",
+            "spice.png",
+            "cocoa.png"
+          ],
+          [
+            "eggs.png",
+            "sugar.png",
+            "spice.png",
+            "wheat.png",
+            "dairy.png"
+          ],
+          [
+            "cocoa.png",
+            "dairy.png",
+            "spice.png",
+            "eggs.png",
+            "wheat.png"
+          ]
+        ],
+        "bakeState": [
+          {
+            "attempts": 0,
+            "solved": false,
+            "locked": 0
+          },
+          {
+            "attempts": 0,
+            "solved": false,
+            "locked": 0
+          },
+          null,
+          null
+        ],
+        "baking": [
+          true,
+          true,
+          false,
+          false
+        ],
+        "dlogN": 2,
+        "dlogLen": 2
+      },
+      "guest": {
+        "seat": 1,
+        "isHost": false,
+        "room": "PEDH",
+        "round": 1,
+        "events": 11,
+        "cardIngs": [],
+        "benchIngs": [],
+        "bowlCount": 0,
+        "lockedCount": 0,
+        "shell": null,
+        "shellPresent": false,
+        "stage": false,
+        "hint": null,
+        "goBtn": null,
+        "watchBtn": null,
+        "introGo": false,
+        "apMsg": null,
+        "apBtns": [],
+        "narr": null,
+        "coins": [
+          4,
+          3,
+          6,
+          6
+        ],
+        "names": [
+          null,
+          null,
+          null,
+          null
+        ],
+        "orders": [
+          [
+            "eggs.png",
+            "spice.png",
+            "wheat.png",
+            "cocoa.png",
+            "dairy.png"
+          ],
+          [
+            "vanilla.png",
+            "spice.png",
+            "cocoa.png",
+            "dairy.png",
+            "wheat.png"
+          ],
+          [
+            "eggs.png",
+            "sugar.png",
+            "spice.png",
+            "wheat.png",
+            "dairy.png"
+          ],
+          [
+            "cocoa.png",
+            "dairy.png",
+            "spice.png",
+            "eggs.png",
+            "wheat.png"
+          ]
+        ],
+        "bakeState": [
+          null,
+          null,
+          null,
+          null
+        ],
+        "baking": [
+          true,
+          true,
+          false,
+          false
+        ],
+        "dlogN": 0,
+        "dlogLen": 0
+      },
+      "hostBench": 1,
+      "guestBench": null
+    },
+    {
+      "name": "02-first-bench-answerable",
+      "note": "every crate named, before Bake it!",
+      "at": 1787464921323,
+      "host": {
+        "seat": 0,
+        "isHost": true,
+        "room": "PEDH",
+        "round": 1,
+        "events": 11,
+        "cardIngs": [
+          "dairy.png",
+          "vanilla.png",
+          "wheat.png",
+          "spice.png",
+          "cocoa.png"
+        ],
+        "benchIngs": [
+          "dairy.png",
+          "wheat.png",
+          "cocoa.png",
+          "spice.png",
+          "vanilla.png"
+        ],
+        "bowlCount": 5,
+        "lockedCount": 0,
+        "shell": {
+          "w": 364,
+          "h": 323,
+          "t": 314,
+          "opacity": 1,
+          "visible": true,
+          "hitIsSelf": true
+        },
+        "shellPresent": true,
+        "stage": false,
+        "hint": "Tap the crates in recipe order. Tap again to undo.",
+        "goBtn": {
+          "txt": "Bake it!",
+          "disabled": false
+        },
+        "watchBtn": {
+          "txt": "Watch again 1",
+          "hidden": false,
+          "disabled": false
+        },
+        "introGo": false,
+        "apMsg": null,
+        "apBtns": [
+          "Watch again 1",
+          "Bake it!"
+        ],
+        "narr": null,
+        "coins": [
+          4,
+          3,
+          6,
+          6
+        ],
+        "names": [
+          null,
+          null,
+          null,
+          null
+        ],
+        "orders": [
+          [
+            "dairy.png",
+            "wheat.png",
+            "cocoa.png",
+            "spice.png",
+            "eggs.png"
+          ],
+          [
+            "dairy.png",
+            "vanilla.png",
+            "wheat.png",
+            "spice.png",
+            "cocoa.png"
+          ],
+          [
+            "eggs.png",
+            "sugar.png",
+            "spice.png",
+            "wheat.png",
+            "dairy.png"
+          ],
+          [
+            "cocoa.png",
+            "dairy.png",
+            "spice.png",
+            "eggs.png",
+            "wheat.png"
+          ]
+        ],
+        "bakeState": [
+          {
+            "attempts": 0,
+            "solved": false,
+            "locked": 0
+          },
+          {
+            "attempts": 0,
+            "solved": false,
+            "locked": 0
+          },
+          null,
+          null
+        ],
+        "baking": [
+          true,
+          true,
+          false,
+          false
+        ],
+        "dlogN": 2,
+        "dlogLen": 2
+      },
+      "guest": {
+        "seat": 1,
+        "isHost": false,
+        "room": "PEDH",
+        "round": 1,
+        "events": 11,
+        "cardIngs": [],
+        "benchIngs": [],
+        "bowlCount": 0,
+        "lockedCount": 0,
+        "shell": null,
+        "shellPresent": false,
+        "stage": false,
+        "hint": null,
+        "goBtn": null,
+        "watchBtn": null,
+        "introGo": false,
+        "apMsg": null,
+        "apBtns": [],
+        "narr": null,
+        "coins": [
+          4,
+          3,
+          6,
+          6
+        ],
+        "names": [
+          null,
+          null,
+          null,
+          null
+        ],
+        "orders": [
+          [
+            "eggs.png",
+            "spice.png",
+            "wheat.png",
+            "cocoa.png",
+            "dairy.png"
+          ],
+          [
+            "vanilla.png",
+            "spice.png",
+            "cocoa.png",
+            "dairy.png",
+            "wheat.png"
+          ],
+          [
+            "eggs.png",
+            "sugar.png",
+            "spice.png",
+            "wheat.png",
+            "dairy.png"
+          ],
+          [
+            "cocoa.png",
+            "dairy.png",
+            "spice.png",
+            "eggs.png",
+            "wheat.png"
+          ]
+        ],
+        "bakeState": [
+          null,
+          null,
+          null,
+          null
+        ],
+        "baking": [
+          true,
+          true,
+          false,
+          false
+        ],
+        "dlogN": 0,
+        "dlogLen": 0
+      },
+      "hostBench": 1,
+      "guestBench": null
+    },
+    {
+      "name": "03-first-verdict",
+      "note": "the reveal running",
+      "at": 1787464923353,
+      "host": {
+        "seat": 0,
+        "isHost": true,
+        "room": "PEDH",
+        "round": 1,
+        "events": 12,
+        "cardIngs": [
+          "dairy.png",
+          "vanilla.png",
+          "wheat.png",
+          "spice.png",
+          "cocoa.png"
+        ],
+        "benchIngs": [
+          "dairy.png",
+          "wheat.png",
+          "cocoa.png",
+          "spice.png",
+          "vanilla.png"
+        ],
+        "bowlCount": 5,
+        "lockedCount": 0,
+        "shell": {
+          "w": 364,
+          "h": 323,
+          "t": 314,
+          "opacity": 1,
+          "visible": true,
+          "hitIsSelf": true
+        },
+        "shellPresent": true,
+        "stage": false,
+        "hint": "Opening the crates…",
+        "goBtn": {
+          "txt": "In the oven…",
+          "disabled": true
+        },
+        "watchBtn": {
+          "txt": "Watch again 1",
+          "hidden": true,
+          "disabled": false
+        },
+        "introGo": false,
+        "apMsg": null,
+        "apBtns": [
+          "Watch again 1",
+          "In the oven…"
+        ],
+        "narr": null,
+        "coins": [
+          4,
+          3,
+          6,
+          6
+        ],
+        "names": [
+          null,
+          null,
+          null,
+          null
+        ],
+        "orders": [
+          [
+            "dairy.png",
+            "wheat.png",
+            "cocoa.png",
+            "spice.png",
+            "eggs.png"
+          ],
+          [
+            "dairy.png",
+            "vanilla.png",
+            "wheat.png",
+            "spice.png",
+            "cocoa.png"
+          ],
+          [
+            "eggs.png",
+            "sugar.png",
+            "spice.png",
+            "wheat.png",
+            "dairy.png"
+          ],
+          [
+            "cocoa.png",
+            "dairy.png",
+            "spice.png",
+            "eggs.png",
+            "wheat.png"
+          ]
+        ],
+        "bakeState": [
+          {
+            "attempts": 0,
+            "solved": false,
+            "locked": 0
+          },
+          {
+            "attempts": 1,
+            "solved": false,
+            "locked": 2
+          },
+          null,
+          null
+        ],
+        "baking": [
+          true,
+          true,
+          false,
+          false
+        ],
+        "dlogN": 3,
+        "dlogLen": 3
+      },
+      "guest": {
+        "seat": 1,
+        "isHost": false,
+        "room": "PEDH",
+        "round": 1,
+        "events": 11,
+        "cardIngs": [],
+        "benchIngs": [],
+        "bowlCount": 0,
+        "lockedCount": 0,
+        "shell": null,
+        "shellPresent": false,
+        "stage": false,
+        "hint": null,
+        "goBtn": null,
+        "watchBtn": null,
+        "introGo": false,
+        "apMsg": null,
+        "apBtns": [],
+        "narr": null,
+        "coins": [
+          4,
+          3,
+          6,
+          6
+        ],
+        "names": [
+          null,
+          null,
+          null,
+          null
+        ],
+        "orders": [
+          [
+            "eggs.png",
+            "spice.png",
+            "wheat.png",
+            "cocoa.png",
+            "dairy.png"
+          ],
+          [
+            "vanilla.png",
+            "spice.png",
+            "cocoa.png",
+            "dairy.png",
+            "wheat.png"
+          ],
+          [
+            "eggs.png",
+            "sugar.png",
+            "spice.png",
+            "wheat.png",
+            "dairy.png"
+          ],
+          [
+            "cocoa.png",
+            "dairy.png",
+            "spice.png",
+            "eggs.png",
+            "wheat.png"
+          ]
+        ],
+        "bakeState": [
+          null,
+          null,
+          null,
+          null
+        ],
+        "baking": [
+          true,
+          true,
+          false,
+          false
+        ],
+        "dlogN": 0,
+        "dlogLen": 0
+      },
+      "hostBench": 1,
+      "guestBench": null
+    },
+    {
+      "name": "04-second-bake",
+      "note": "the second captain's bake, both browsers at the same moment",
+      "at": 1787464923870,
+      "host": {
+        "seat": 0,
+        "isHost": true,
+        "room": "PEDH",
+        "round": 1,
+        "events": 12,
+        "cardIngs": [
+          "dairy.png",
+          "vanilla.png",
+          "wheat.png",
+          "spice.png",
+          "cocoa.png"
+        ],
+        "benchIngs": [
+          "dairy.png",
+          "wheat.png",
+          "cocoa.png",
+          "spice.png",
+          "vanilla.png"
+        ],
+        "bowlCount": 5,
+        "lockedCount": 0,
+        "shell": {
+          "w": 364,
+          "h": 323,
+          "t": 314,
+          "opacity": 1,
+          "visible": true,
+          "hitIsSelf": true
+        },
+        "shellPresent": true,
+        "stage": false,
+        "hint": "Opening the crates…",
+        "goBtn": {
+          "txt": "In the oven…",
+          "disabled": true
+        },
+        "watchBtn": {
+          "txt": "Watch again 1",
+          "hidden": true,
+          "disabled": false
+        },
+        "introGo": false,
+        "apMsg": null,
+        "apBtns": [
+          "Watch again 1",
+          "In the oven…"
+        ],
+        "narr": null,
+        "coins": [
+          4,
+          3,
+          6,
+          6
+        ],
+        "names": [
+          null,
+          null,
+          null,
+          null
+        ],
+        "orders": [
+          [
+            "dairy.png",
+            "wheat.png",
+            "cocoa.png",
+            "spice.png",
+            "eggs.png"
+          ],
+          [
+            "dairy.png",
+            "vanilla.png",
+            "wheat.png",
+            "spice.png",
+            "cocoa.png"
+          ],
+          [
+            "eggs.png",
+            "sugar.png",
+            "spice.png",
+            "wheat.png",
+            "dairy.png"
+          ],
+          [
+            "cocoa.png",
+            "dairy.png",
+            "spice.png",
+            "eggs.png",
+            "wheat.png"
+          ]
+        ],
+        "bakeState": [
+          {
+            "attempts": 0,
+            "solved": false,
+            "locked": 0
+          },
+          {
+            "attempts": 1,
+            "solved": false,
+            "locked": 2
+          },
+          null,
+          null
+        ],
+        "baking": [
+          true,
+          true,
+          false,
+          false
+        ],
+        "dlogN": 3,
+        "dlogLen": 3
+      },
+      "guest": {
+        "seat": 1,
+        "isHost": false,
+        "room": "PEDH",
+        "round": 1,
+        "events": 11,
+        "cardIngs": [],
+        "benchIngs": [],
+        "bowlCount": 0,
+        "lockedCount": 0,
+        "shell": null,
+        "shellPresent": false,
+        "stage": false,
+        "hint": null,
+        "goBtn": null,
+        "watchBtn": null,
+        "introGo": false,
+        "apMsg": null,
+        "apBtns": [],
+        "narr": null,
+        "coins": [
+          4,
+          3,
+          6,
+          6
+        ],
+        "names": [
+          null,
+          null,
+          null,
+          null
+        ],
+        "orders": [
+          [
+            "eggs.png",
+            "spice.png",
+            "wheat.png",
+            "cocoa.png",
+            "dairy.png"
+          ],
+          [
+            "vanilla.png",
+            "spice.png",
+            "cocoa.png",
+            "dairy.png",
+            "wheat.png"
+          ],
+          [
+            "eggs.png",
+            "sugar.png",
+            "spice.png",
+            "wheat.png",
+            "dairy.png"
+          ],
+          [
+            "cocoa.png",
+            "dairy.png",
+            "spice.png",
+            "eggs.png",
+            "wheat.png"
+          ]
+        ],
+        "bakeState": [
+          null,
+          null,
+          null,
+          null
+        ],
+        "baking": [
+          true,
+          true,
+          false,
+          false
+        ],
+        "dlogN": 0,
+        "dlogLen": 0
+      },
+      "hostBench": 1,
+      "guestBench": null
+    }
+  ],
+  "redProof": {
+    "benchSeenSomewhere": true,
+    "hostBench": 1,
+    "guestBench": null,
+    "armedBowls": {
+      "host": 5,
+      "guest": 0
+    },
+    "armedWhose": {
+      "host": 1,
+      "guest": null
+    }
+  },
+  "firstBake": {
+    "tag": "host",
+    "steps": [
+      "intro",
+      "ready",
+      "armed",
+      "guess-entered",
+      "committed"
+    ],
+    "openCrates": [
+      0,
+      1,
+      2,
+      3,
+      4
+    ]
+  },
+  "secondBakeSurface": {
+    "host": true,
+    "guest": false,
+    "ticks": 0
+  },
+  "answer": {
+    "hostShowsABench": true,
+    "guestShowsABench": false,
+    "hostBenchBelongsToSeat": 1,
+    "guestBenchBelongsToSeat": null,
+    "hostSeat": 0,
+    "guestSeat": 1,
+    "guestApMsg": null,
+    "hostApMsg": null
+  },
+  "finishedAt": "2026-08-23T06:02:03.871Z",
+  "exit": 0
+}

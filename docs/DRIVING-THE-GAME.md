@@ -8,11 +8,25 @@ results). This says **how** to drive it. Read both before a browser pass.
 
 ---
 
+> **BEFORE YOU WRITE A PROBE, READ [`QA-PROCESS.md` → THE WHOLE LOOP](QA-PROCESS.md).** This file
+> tells you how to drive the game; that one tells you how not to fool yourself with what you
+> measure. On 2026-08-26 three probes written against this manual could not have failed — one began
+> sampling after the animation it was timing had finished, one used an emoji with no artwork so it
+> never became the image it was testing, and one resolved "the card" to the full-screen container.
+> **Red-proof every probe: feed it the broken case and watch it go red.**
+
 ## 1. Serve it, and use a port you have never loaded
 
 ```bash
-python3 -m http.server 8421     # any port NOT used earlier in this session
+# `python3` on Mac / Linux; on WINDOWS the interpreter registers only as `python`.
+python -m http.server 8421      # any port NOT used earlier in this session
 ```
+
+**The spelling is not pedantry, and the code already knows it.** `scripts/lib/chrome.mjs:110`
+resolves `PYTHON` by trying `python3` then `python`, and its comment records why: on 2026-08-31 the
+Razer's interpreter registered only as `python`, so **twelve spawns failed with ENOENT** the first
+time anything tried to serve a leg here. **That fix reached the code and never reached this page** —
+which is the whole reason `doc_command_check.js` now checks shell commands too.
 
 **Chrome caches ES modules per URL.** Reusing a port that has already served an older build will
 hand you the old `src/**/*.js` even after a hard reload, and you will "verify" code that is not on
@@ -27,9 +41,17 @@ Kill the old servers when you move on, so a stale port cannot be reached by acci
 localStorage.clear();   // then reload
 ```
 
-`boot()` resumes an interrupted solo game from `pp_solo` and, historically, took an early return
-before Firebase init. Leftover `pp_solo`/`pp_sess` from a previous run will silently put you in a
-resumed game instead of the welcome screen.
+`boot()` resumes an interrupted solo game from **`pp4_solo`** and, historically, took an early
+return before Firebase init. Leftover `pp4_solo`/`pp4_sess` from a previous run will silently put
+you in a resumed game instead of the welcome screen.
+
+> ⚠ **THE KEYS ARE `pp4_solo` / `pp4_sess`, and this page said `pp_solo` / `pp_sess` until
+> 2026-09-07.** Nobody noticed because `localStorage.clear()` above wipes everything regardless.
+> It costs you the moment you want to clear the SAVED GAME while keeping something else — which is
+> exactly what a probe testing "a device that has already played" needs. It cost an hour: five of
+> six flag modes came back testing a resumed voyage, with no error and no hint.
+> `clearSoloState()` / `clearSession()` (`src/ui/util.js`) own these blobs; call those rather than
+> naming the keys, and this cannot go stale again.
 
 Two tabs on the same origin share `localStorage`, so a second tab inherits the first tab's `pp_id`.
 For a two-seat multiplayer test use a separate Chrome profile or an incognito window.
@@ -67,6 +89,34 @@ appState.game.players.some(p => p.strategy === 'human')
 Hosting instead: `document.getElementById('choiceHost').click()` creates a real Firebase room on the
 first click. **Delete the room afterwards** — `appState.db.ref('rooms/'+room).remove()` — or use the
 back link on the room screen, which calls `abandonRoom()` and tears it down properly.
+
+### 3d. `?pilot=new` — the tutorial's own entry point
+
+`src/ui/pilot.js` spends every rung the first time it is seen, so "show me the first-time copy"
+otherwise means finding a device that has never played. Three modes, **on a dev host only**
+(localhost, `*.local`, and **staging** — `src/shared/host.js`):
+
+| URL | what it does |
+|---|---|
+| `?pilot=new` | every ladder back to rung 0, the fork un-answered, **and the saved voyage cleared** so it really is a new one |
+| `?pilot=vet` | every ladder at its last rung — today's game exactly, no fork |
+| `?pilot=off` | the parrot silenced, as if it had been tapped off |
+
+**It does nothing at all on the live domain, silently** — that is the `devHost()` gate and it is
+deliberate. Any checklist item using it must point at staging.
+**The LOGIC is gated deterministically** in `scripts/qa/pilot_gates.mjs` §10 — a stubbed
+`globalThis.location`, the same trick `dev_flag_gate_check.js` uses — including the safety property
+that on the LIVE domain the flag does nothing at all.
+
+**The end-to-end proof is a PROBE, not a gate:** `scripts/qa/_pilot_url_flag_probe.mjs` drives all
+three modes in a real browser. Run it by hand when you change the flag.
+
+> ⚠ **It was a gate and it had to come out of `npm test`, and the reason generalises.** It was
+> INTERMITTENT — pass, fail, and once a HANG on an unsettled CDP promise (`node` exited 13 with
+> *"Detected unsettled top-level await"*). **A gate that sometimes hangs is worse than one that is
+> red**, because the next session reads the timeout as a machine problem and re-runs until it goes
+> green. Any probe that drives a browser through several game starts has this shape; keep those out
+> of the chain and gate the pure logic instead.
 
 ## 3b. STARTING A CREW GAME — "Start the voyage!" is not the button that starts the voyage
 
@@ -158,6 +208,32 @@ bot turns and narration holds dominate the wall clock, so poll rather than block
 while the loop is running wedges it — tried, and it cost a run. If you must shortcut, call the real
 render functions directly (below) instead of editing state the loop is mid-way through reading.
 
+### 5a. `?endcard=1` — the shortcut to the ending, and the trap in it
+
+**A solo voyage takes longer than ten minutes to reach its ending in this container**, so a probe
+about the End of Voyage card should not play its way there. `?endcard=1` poses the state the ending
+reads — every captain home with a full recipe — and then lets the voyage end through
+`liveResolveEndNet()`, **the same and only function that ends every other voyage**
+(`src/orchestrator.js:1259`, called at `:1313`). Nothing about it draws a card, so the card you
+inspect is the card players get. ONE DISPLAY PATH.
+
+**THE TRAP, paid for on 2026-08-31: the flag fires when a VOYAGE STARTS, not when the page loads.**
+It is read inside `runLiveNet()`. A probe that put `?endcard=1` in the URL, waited, and then
+measured got **the title screen** — and reported "7 structural rules ran on the End of Voyage
+screen", which was true of the rules and false of the screen. The screenshot is the only reason
+that was caught, and it is rule 6 exactly: an instrument that never reached its subject tells you
+about itself, not about the world.
+
+```
+load  http://127.0.0.1:PORT/?endcard=1
+then  start a solo (or crew) game normally — click Play Solo, name the captain
+then  the shortcut fires as the voyage begins, before the turn-order intro
+```
+
+**It is placed BEFORE the turn-order intro deliberately, and that was measured**: behind it, the
+shortcut sat waiting for the "🦜 Start" tap, so a URL whose whole purpose is removing taps added
+one. **Always screenshot what you posed before you measure it.**
+
 ## 5b. The autoplay driver — the loop that actually plays
 
 One `setInterval` that answers whatever the game is currently asking. **Priority order matters** —
@@ -226,6 +302,33 @@ later read can miss it.
 
 ## 5c. Driving a GUEST seat while a human hosts
 
+> ### ⚠ `#btnStart` DOES NOT START THE GAME. IT OPENS A CONFIRM MODAL.
+>
+> **Four crew attempts died here on 2026-08-28/29, three of them producing no output at all.**
+>
+> Pressing `Start the voyage!` opens `#startConfirmModal` — *"⛵ Set sail? Is everyone at the table?
+> Once the voyage starts, no one else can join — empty seats sail with bots."* The voyage begins only
+> when **`#btnConfirmStart`** ("Everyone's aboard?") is pressed. A driver that clicks Start and then
+> waits sits in the lobby for as long as you let it, with the board blurred behind a modal.
+>
+> **AND THE OBVIOUS PROBE CANNOT SEE IT.** The modal's buttons live in a `.modalCard`, not in
+> `#actionPanel` or `#pp4Prompt`, so a probe reading the prompt panel reports an empty screen and
+> says nothing about why — "no buttons, no day, no stage" for twenty-six samples running. A
+> screenshot is what finally showed it. **If a crew rig reports an empty screen, take the picture
+> before theorising.**
+>
+> **Use the helper, do not re-roll it:** `startVoyage(C)` in `scripts/mp_rig.mjs` clicks both buttons
+> and returns only once a seat is genuinely on the stage — so a caller cannot mistake *clicked* for
+> *started*, which is the distinction all four attempts turned on.
+>
+> ```js
+> const code = await makeHost(H, url, "HostCap");
+> await makeGuest(G, url, code, "GuestCap");
+> await startVoyage(H);          // clicks Start AND the confirm, waits for the stage
+> await driver(H, ""); await driver(G, "");
+> ```
+
+
 This is the setup for verifying multiplayer without a second person. The human hosts in one browser;
 this drives the other seat.
 
@@ -283,7 +386,7 @@ snap.state.map(s => s.pos.join(','));                  // the positions actually
 |---|---|---|
 | `turnOrder` | both sides | must be identical on both clients |
 | `game.events.length` | both sides | the broadcast frontier — should track the host's |
-| `timerOff` / `shotClockPaused` | both sides | the host's clock changes must propagate to the guest |
+| `shotClockPaused` | both sides | a pause toggled anywhere must propagate to every client *(`timerOff` left with the shot clock, 2026-08-28)* |
 | `turnExpired` | both sides | must NOT be stuck true after a pause/resume cycle (that was BUG-02) |
 | `events[last].state[].pos` | both sides | the rendered board — **use this, not `game.players`** |
 | `game.players[].pos` / `.ing` / `round` | **HOST ONLY** | stale on a guest; never compare these across clients |
@@ -489,6 +592,18 @@ leverage tool in this document.
 curl -s http://127.0.0.1:9333/json/version    # confirm it is up
 ```
 
+> **`--user-data-dir` GOES IN `/tmp`, AND NEVER INSIDE THE REPO.** A Chrome profile is ~10 MB and
+> ~700 files of browser bookkeeping, and it carries `Cookies`, `Login Data` and `History` alongside
+> the parts you want. On **2026-08-26** a playtest pointed it at
+> `.planning/phases/02.2-…/playtest-…/prof-*` and the whole run was committed: **15 profiles, 10,713
+> files, 142 MB**, in commit `5d82213`. At 3:50am GitHub emailed Wyatt *"Possible valid secrets
+> detected"* — its scanner had found, in `Default/shared_proto_db/000003.log`, the Google API key
+> **baked into every copy of Chrome** (sent as `X-Goog-Api-Key` to
+> `optimizationguide-pa.googleapis.com`). It is Google's key, not ours, so nothing needed rotating —
+> but the repo is public, the profiles' `Cookies` and `Login Data` were empty only because they were
+> newly made, and it cost 142 MB and an alert. `.gitignore` now carries `prof-*/` and
+> `chrome-probe*/`. **Keep profiles in `/tmp` and they cannot be added by accident.**
+
 Headless **does** run rAF and CSS animations properly. Confirm the environment before trusting a
 reading — a wrong answer here invalidates everything downstream:
 
@@ -658,6 +773,167 @@ returns success but does not move `window.innerWidth` when `outerWidth` is 0, so
 `@media (max-width: 480px)` breakpoints and any 320/375/390 sweep are **not testable** from a hidden
 tab. That work needs a real visible window — or Wyatt's own browser. Say so rather than reporting a
 width-dependent check as passed.
+
+## 8c. SAFARI/WEBKIT — it finds Playwright on its own now
+
+**Do not put it in `/tmp`.** `/tmp` is cleared on reboot, and that is exactly what silently
+disabled every Safari leg: on 2026-08-27 a full sea trial reported **2 legs NOT RUN** with
+*"playwright not found"*, while the WebKit **browsers** sat perfectly intact in
+`~/Library/Caches/ms-playwright/`. Only the little npm package directory had evaporated, and
+nothing said so until a trial refused to sail.
+
+`scripts/lib/wk.mjs` now searches, in order:
+
+1. **`$PW_DIR`** — an explicit override still wins, for a one-off or a CI image
+2. **`~/.pw`** — the durable home. 18 MB, survives reboots, created 2026-08-27
+3. **bare `playwright`** — a global or workspace install, if one exists
+
+So the normal case needs no environment variable at all. If it is ever missing again:
+
+```bash
+mkdir -p ~/.pw && cd ~/.pw && npm i playwright && npx playwright install webkit
+```
+
+*(`npm init -y` fails in `~/.pw` — npm rejects a package name beginning with a dot. It is not
+needed; `npm i` works regardless, and a hand-written `package.json` is already there.)*
+
+**Verified 2026-08-27 with `PW_DIR` explicitly unset:** `solo-phone-wk` launched and played to
+DAY 2 with no environment variable in sight.
+
+---
+
+## 8d. THE PROBE WAS FINE AND THE WAY YOU RAN IT WAS NOT — two shapes of the same fault
+
+**Earned 2026-09-07, by two sessions, in one afternoon, three times between them.** Each time a
+browser check reported that working code was broken, and each time the code was innocent. Written
+here rather than in two session transcripts, because the next person to drive Chrome from a script
+will hit one of these two ends of it.
+
+**THE PATTERN, and it is the reusable part:** *we are both faster at suspecting the code than the
+instrument.* CLAUDE.md already says "when a check condemns something known to work, suspect the
+check first" — every one of these three was caught by reaching for that line, and every one was
+reached for a step later than it should have been. Reach for it first.
+
+### The run poisoning the NEXT run — do not share the resource
+
+**`killAll()` does not wait.** So anything that waits for a shared resource races the corpse of the
+last run. A gate that launched Chrome on a FIXED debug port and a FIXED profile directory
+alternated pass/fail on identical source, three ways:
+
+- **a fixed debug port — THIS IS THE HALF WITH THE MEASUREMENT.** `attach()` found the PREVIOUS
+  run's Chrome, still shutting down, still holding a profile that had already played. Making the
+  port unique is what took that gate from alternating to 5-for-5; a per-run profile alone had not.
+- **a fixed profile dir** — `localStorage` lives in it, so "a device that has never played" becomes
+  a property of that DIRECTORY rather than of the code. ⚠ **Deleting it at startup did not appear
+  to fix it, and the tempting explanation — that the dying Chrome flushes its storage back in
+  after the deletion — WAS NEVER ISOLATED.** The port explained the alternation on its own. Treat
+  the flush as a plausible second race, not an established mechanism, until somebody measures it;
+  it is written here as a suspicion precisely because it first travelled as a fact.
+  `freshProfileDir()` (`scripts/lib/cdp.mjs`) is the fix for this half regardless — it verifies the
+  wipe actually happened and hands back a timestamped sibling when it cannot.
+- **a lost CDP reply** — `send` resolves on a matching id; a navigation mid-call means the reply
+  never arrives, the promise never settles, and node exits **13** with *"Detected unsettled
+  top-level await"*. That is a HANG, not a failure, and it is the worst of the three.
+
+**The fix is not to win the race. It is to not have one:** derive the port and the profile
+directory from the pid, sweep old ones, and put a deadline on every eval.
+
+### ⚠ AND ONE GATE IN `npm test` HAD EXACTLY THIS SHAPE — the audits that said none were wrong
+
+`scripts/qa/sail_window_single_check.mjs` is the ONLY gate in the chain that starts a browser, and
+it carried both halves: `DBG = 9479` and a fixed `pp4-sail-window-check` profile. Its own comment
+said *"this gate's own ports, never shared"* — **true of other gates and false of its own previous
+run**, which is exactly why nobody looked twice. Fixed 2026-09-07; both now derive from the pid.
+
+**Two sessions independently parsed this chain for browser-driving gates and BOTH reported zero.**
+Both greps looked for `launch(` and `--user-data-dir`; this file spells it
+`openChrome({ profileDir })`. **An audit that greps a spelling measures the spelling.** If you are
+sweeping for this fault, enumerate the chain from `package.json` and follow each gate's IMPORTS —
+`openChrome`, `launch`, and a bare `spawn` of Chrome are three spellings of one thing.
+
+**And one of those two audits was worse than a blind spot**, in its own author's words: it used two
+different patterns in the same session — a tree-wide one matching `launch(|openChrome(`, and a
+chain one matching only `launch(` — and quoted the narrower result as "verified independently,
+twice". The right instrument was already written, in the same file, minutes earlier. **Check that
+the check you are quoting is the check you built.**
+
+### The general form, and it is the most reusable thing here
+
+**A comment that is true against everyone except yourself is a very good way to stop two people
+looking twice.** *"This gate's own ports, never shared"* was true of every other gate in the
+repository and false of the only thing that gate actually races — its own previous run. Neither
+session re-read it, because it answered a real question convincingly; it just was not the question
+being asked. When a comment explains why something is safe, check what it is claiming safety
+FROM.
+
+### The runner poisoning the run — reap between runs
+
+**A back-to-back loop over a browser check measures the backlog, not the code.** Five consecutive
+runs of a freshly-FIXED gate gave `0, 0, 1, 13, 13` and very nearly had the fix reported as failed.
+From a clean slate with a reap between runs it was 3 for 3. Every run had been starting against the
+dying Chromes of the runs before it — the same race as above, arriving through the loop instead of
+through the script.
+
+```bash
+node scripts/qa/stray_probe_check.mjs   # what is actually up, before you believe a red run
+```
+
+### And a gate that HANGS does not belong in `npm test` at all
+
+Worse than a red one: the next session reads the timeout as a machine problem and re-runs until it
+goes green. **Gate the logic without a browser** — a stubbed `globalThis.location` is enough for
+anything URL-shaped, exactly as `scripts/dev_flag_gate_check.js` drives `devHost()` — and keep the
+browser run beside it as an underscored one-off (`scripts/qa/_pilot_url_flag_probe.mjs` is the
+worked example) that a person runs when they want it.
+
+---
+
+### 8e. THE SAME FAULT, ONE STEP EARLIER: the page you never looked at
+
+**Earned the same afternoon, by the session that wrote §8d's other half, and it is the one that
+would have cost Wyatt the most.** A playtest checklist was published to him TWICE and **it did not
+render at all** — no items, no Pass buttons, nowhere to write. It was found only when that session
+went back to build a second sheet on top of the first.
+
+**THE BUG WAS A SPLICE BOUNDED BY THE WRONG TOKEN.** The edit read
+
+```js
+old = s[s.index(' {note:"…the sea trial'):s.rindex('];')]     // ← rindex
+```
+
+`];` terminates the `DATA` array — and also appears inside `buildNotes()` further down. `rindex`
+found the LAST one, so the replacement silently swallowed the storage key, the whole render loop
+and half the note builder. Nothing threw. The file still parsed. `grep` for `const KEY=` returned
+nothing and that was the first sign.
+
+> **BOUND A SPLICE WITH A MARKER SEARCHED FORWARD FROM A KNOWN START, AND ASSERT IT IS UNIQUE.**
+> `s.index(end, start)` rather than `s.rindex(end)`, plus `assert s.count(start) == 1`. The other
+> session's equivalent edit survived only because it happened to use a forward search — its own
+> words: *"that is luck as much as care; rindex would have done to me exactly what it did to you."*
+
+**AND THE REASON IT REACHED HIM IS SIMPLER THAN THE BUG: THE PAGE WAS PUBLISHED WITHOUT EVER BEING
+LOADED.** Every requirement in the checklist rule was satisfied — build stamp, per-item URLs, his
+decisions marked, an already-known list — and the artifact was still worthless, which is that
+rule's own stated lesson arriving by a new road.
+
+> **A PAGE WHOSE WHOLE JOB IS TO BE USABLE GETS RENDERED BEFORE IT IS HANDED OVER** — and the
+> machinery EXERCISED, not just drawn. Count what a browser actually produces, then tap one
+> control and confirm the state moved:
+>
+> ```
+> 29 items · 29 Pass buttons · 29 note boxes · 29 links · no JS errors
+> tapped Passed → counter 0/29 → 1/29 · item took .pass · note persisted to localStorage
+> ```
+>
+> Both sheets that afternoon were checked this way afterwards. Both were sound. Neither session
+> knew that until it looked.
+
+**⚠ ONE PHANTOM TO NOT CHASE WHILE DOING THIS.** Served from a plain `python3 -m http.server`, a
+UTF-8 page renders `â€"` for every em dash and `Â·` for every middot — **that is the server sending
+no charset, not the file.** Decode the file as UTF-8 to confirm it is clean; the Artifact wrapper
+supplies the header, so the published page is fine. Chasing it costs an hour and there is nothing
+there.
+
 
 ## 9. Never verify against production
 

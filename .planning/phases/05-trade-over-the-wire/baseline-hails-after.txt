@@ -1,0 +1,18 @@
+
+games 150   finished 150   unfinished 0
+mean voyage            16.4 rounds     <- THE SCOREBOARD
+open offers            368  (2.45 per game)
+mean coins offered     4.16
+  ...alongside a crate 4.71   (n=34)  [cap was 2]
+  ...coins alone       4.11   (n=334)  [cap was 5]
+trades struck          142  (0.95 per game)
+offers -> trade rate   38.6%
+
+CONTROLS
+  dock buys            3719   ok
+  IDENTICAL re-hails    3  (0.8% of hails)  <- THE spam metric
+  re-hails (better price) 35  = haggling, not spam
+  any repeat hail         38  (10.3% of hails)  <- the anti-spam metric
+  illegal ingredients  none
+  early offers (r<=5)  126, mean 2.73 coins   <- Wyatt's "early on"
+

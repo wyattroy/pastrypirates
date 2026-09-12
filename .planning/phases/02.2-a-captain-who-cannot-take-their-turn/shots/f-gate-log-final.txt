@@ -1,0 +1,270 @@
+[  32s] 
+== 960x1080  STACKED  --pp4W=842px  v4 · build 2026-08-21h  (30s)
+[  32s]   [opening] 960x1080-0-opening.png
+[  32s]     ok   board box inside the window
+[  32s]     ok   board starts below the wind pill (not under it)
+[  32s]     ok   stacked: captains card sits below the board
+[  32s]     ok   captains card fully inside the window (bottom=1080 of 1080)
+[  32s]     ok   captains card does not cover the board
+[  32s]     ok   no captain row hidden behind an internal scroll (224 content vs 224 visible)
+[  32s]     ok   captains card hugs its content — no empty tower (card 224px vs content 204px)
+[  32s]     ok   no captain name scrolling/clipped (all fit)
+[  32s]     ok   every captain name fits its column (all fit)
+[  32s]     ok   every captain name clears the coin (all clear)
+[  32s]     ok   opening ceremony sits below the ribbon, not clipped by it (top=439, ribbon bottom=45)
+[  32s]     ok   opening ceremony is on the board (top=439, bottom=640, board 45–856)
+[  32s]   [sail prompt] 960x1080-1-sail.png
+[  32s]     ok   board box inside the window
+[  32s]     ok   board starts below the wind pill (not under it)
+[  32s]     ok   stacked: captains card sits below the board
+[  32s]     ok   captains card fully inside the window (bottom=1080 of 1080)
+[  32s]     ok   captains card does not cover the board
+[  32s]     ok   no captain row hidden behind an internal scroll (231 content vs 231 visible)
+[  32s]     ok   captains card hugs its content — no empty tower (card 231px vs content 211px)
+[  32s]     ok   no captain name scrolling/clipped (all fit)
+[  32s]     ok   every captain name fits its column (all fit)
+[  32s]     ok   every captain name clears the coin (all clear)
+[  32s]     ok   legal sail squares are drawn (10)
+[  32s]     ok   every legal sail square is fully inside the board (0 cropped)
+[  32s]     ok   every prompt button on screen and inside the column (1 ok)
+[  32s]     ok   no two prompt buttons stacked on each other (none)
+[  32s]     ok   every prompt button is the thing under the mouse at its centre (all reachable)
+[  32s]   [action menu] 960x1080-2-menu.png
+[  32s]     ok   board box inside the window
+[  32s]     ok   board starts below the wind pill (not under it)
+[  32s]     ok   stacked: captains card sits below the board
+[  32s]     ok   captains card fully inside the window (bottom=1080 of 1080)
+[  32s]     ok   captains card does not cover the board
+[  32s]     ok   no captain row hidden behind an internal scroll (231 content vs 231 visible)
+[  32s]     ok   captains card hugs its content — no empty tower (card 231px vs content 211px)
+[  32s]     ok   no captain name scrolling/clipped (all fit)
+[  32s]     ok   every captain name fits its column (all fit)
+[  32s]     ok   every captain name clears the coin (all clear)
+[  32s]     ok   every prompt button on screen and inside the column (2 ok)
+[  32s]     ok   no two prompt buttons stacked on each other (none)
+[  32s]     ok   every prompt button is the thing under the mouse at its centre (all reachable)
+[  42s] 
+== 390x664  PHONE  --pp4W=-  v4 · build 2026-08-21h  (41s)
+[  42s]   [opening] 390x664-0-opening.png
+[  42s]     ok   board box inside the window
+[  42s]     ok   board starts below the wind pill (not under it)
+[  42s]     ok   opening ceremony sits below the ribbon, not clipped by it (top=213, ribbon bottom=45)
+[  42s]     ok   opening ceremony is on the board (top=213, bottom=440, board 86–440)
+[  42s]   [sail prompt] 390x664-1-sail.png
+[  42s]     ok   board box inside the window
+[  42s]     ok   board starts below the wind pill (not under it)
+[  42s]     ok   legal sail squares are drawn (15)
+[  42s]     ok   every legal sail square is fully inside the board (0 cropped)
+[  42s]     ok   every prompt button on screen and inside the column (1 ok)
+[  42s]     ok   no two prompt buttons stacked on each other (none)
+[  42s]     ok   every prompt button is the thing under the mouse at its centre (all reachable)
+[  42s]   [action menu] 390x664-2-menu.png
+[  42s]     ok   board box inside the window
+[  42s]     ok   board starts below the wind pill (not under it)
+[  42s]     ok   every prompt button on screen and inside the column (2 ok)
+[  42s]     ok   no two prompt buttons stacked on each other (none)
+[  42s]     ok   every prompt button is the thing under the mouse at its centre (all reachable)
+[  43s] 
+== 820x1180  STACKED  --pp4W=820px  v4 · build 2026-08-21h  (41s)
+[  43s]   [opening] 820x1180-0-opening.png
+[  43s]     ok   board box inside the window
+[  43s]     ok   board starts below the wind pill (not under it)
+[  43s]     FAIL stacked: captains card sits below the board
+[  43s]     ok   captains card fully inside the window (bottom=1089 of 1180)
+[  43s]     FAIL captains card does not cover the board
+[  43s]     ok   no captain row hidden behind an internal scroll (224 content vs 224 visible)
+[  43s]     ok   captains card hugs its content — no empty tower (card 224px vs content 204px)
+[  43s]     ok   no captain name scrolling/clipped (all fit)
+[  43s]     ok   every captain name fits its column (all fit)
+[  43s]     ok   every captain name clears the coin (all clear)
+[  43s]     ok   opening ceremony sits below the ribbon, not clipped by it (top=489, ribbon bottom=45)
+[  43s]     ok   opening ceremony is on the board (top=489, bottom=690, board 45–956)
+[  43s]   [sail prompt] 820x1180-1-sail.png
+[  43s]     ok   board box inside the window
+[  43s]     ok   board starts below the wind pill (not under it)
+[  43s]     ok   stacked: captains card sits below the board
+[  43s]     ok   captains card fully inside the window (bottom=1180 of 1180)
+[  43s]     ok   captains card does not cover the board
+[  43s]     ok   no captain row hidden behind an internal scroll (231 content vs 231 visible)
+[  43s]     ok   captains card hugs its content — no empty tower (card 231px vs content 211px)
+[  43s]     ok   no captain name scrolling/clipped (all fit)
+[  43s]     ok   every captain name fits its column (all fit)
+[  43s]     ok   every captain name clears the coin (all clear)
+[  43s]     ok   legal sail squares are drawn (11)
+[  43s]     ok   every legal sail square is fully inside the board (0 cropped)
+[  43s]     ok   every prompt button on screen and inside the column (1 ok)
+[  43s]     ok   no two prompt buttons stacked on each other (none)
+[  43s]     ok   every prompt button is the thing under the mouse at its centre (all reachable)
+[  43s]   [action menu] 820x1180-2-menu.png
+[  43s]     ok   board box inside the window
+[  43s]     ok   board starts below the wind pill (not under it)
+[  43s]     ok   stacked: captains card sits below the board
+[  43s]     ok   captains card fully inside the window (bottom=1180 of 1180)
+[  43s]     ok   captains card does not cover the board
+[  43s]     ok   no captain row hidden behind an internal scroll (231 content vs 231 visible)
+[  43s]     ok   captains card hugs its content — no empty tower (card 231px vs content 211px)
+[  43s]     ok   no captain name scrolling/clipped (all fit)
+[  43s]     ok   every captain name fits its column (all fit)
+[  43s]     ok   every captain name clears the coin (all clear)
+[  43s]     ok   every prompt button on screen and inside the column (3 ok)
+[  43s]     ok   no two prompt buttons stacked on each other (none)
+[  43s]     ok   every prompt button is the thing under the mouse at its centre (all reachable)
+[  84s] 
+== 1890x960  SIDE-BY-SIDE  --pp4W=916px  v4 · build 2026-08-21h  (41s)
+[  84s]   [opening] 1890x960-0-opening.png
+[  84s]     ok   board box inside the window
+[  84s]     ok   board starts below the wind pill (not under it)
+[  84s]     ok   side-by-side: board is a square (916×916)
+[  84s]     ok   side-by-side: board reaches the bottom of the window (no empty band; bottom=960 of 960)
+[  84s]     ok   side-by-side: captains column stands beside the board, not under it
+[  84s]     ok   captains card fully inside the window (bottom=268 of 960)
+[  84s]     ok   captains card does not cover the board
+[  84s]     ok   no captain row hidden behind an internal scroll (224 content vs 224 visible)
+[  84s]     ok   captains card hugs its content — no empty tower (card 224px vs content 204px)
+[  84s]     ok   no captain name scrolling/clipped (all fit)
+[  84s]     ok   every captain name fits its column (all fit)
+[  84s]     ok   every captain name clears the coin (all clear)
+[  84s]     ok   opening ceremony sits below the ribbon, not clipped by it (top=379, ribbon bottom=44)
+[  84s]     ok   opening ceremony is on the board (top=379, bottom=580, board 44–960)
+[  84s]   [sail prompt] 1890x960-1-sail.png
+[  84s]     ok   board box inside the window
+[  84s]     ok   board starts below the wind pill (not under it)
+[  84s]     ok   side-by-side: board is a square (916×916)
+[  84s]     ok   side-by-side: board reaches the bottom of the window (no empty band; bottom=960 of 960)
+[  84s]     ok   side-by-side: captains column stands beside the board, not under it
+[  84s]     ok   captains card fully inside the window (bottom=282 of 960)
+[  84s]     ok   captains card does not cover the board
+[  84s]     ok   no captain row hidden behind an internal scroll (238 content vs 238 visible)
+[  84s]     ok   captains card hugs its content — no empty tower (card 238px vs content 218px)
+[  84s]     ok   no captain name scrolling/clipped (all fit)
+[  84s]     ok   every captain name fits its column (all fit)
+[  84s]     ok   every captain name clears the coin (all clear)
+[  84s]     ok   legal sail squares are drawn (20)
+[  84s]     ok   every legal sail square is fully inside the board (0 cropped)
+[  84s]     ok   every prompt button on screen and inside the column (1 ok)
+[  84s]     ok   no two prompt buttons stacked on each other (none)
+[  84s]     ok   every prompt button is the thing under the mouse at its centre (all reachable)
+[  84s]   [action menu] 1890x960-2-menu.png
+[  84s]     ok   board box inside the window
+[  84s]     ok   board starts below the wind pill (not under it)
+[  84s]     ok   side-by-side: board is a square (916×916)
+[  84s]     ok   side-by-side: board reaches the bottom of the window (no empty band; bottom=960 of 960)
+[  84s]     ok   side-by-side: captains column stands beside the board, not under it
+[  84s]     ok   captains card fully inside the window (bottom=282 of 960)
+[  84s]     ok   captains card does not cover the board
+[  84s]     ok   no captain row hidden behind an internal scroll (238 content vs 238 visible)
+[  84s]     ok   captains card hugs its content — no empty tower (card 238px vs content 218px)
+[  84s]     ok   no captain name scrolling/clipped (all fit)
+[  84s]     ok   every captain name fits its column (all fit)
+[  84s]     ok   every captain name clears the coin (all clear)
+[  84s]     ok   every prompt button on screen and inside the column (2 ok)
+[  84s]     ok   no two prompt buttons stacked on each other (none)
+[  84s]     ok   every prompt button is the thing under the mouse at its centre (all reachable)
+[  84s] 
+== 1400x900  SIDE-BY-SIDE  --pp4W=856px  v4 · build 2026-08-21h  (52s)
+[  84s]   [opening] 1400x900-0-opening.png
+[  84s]     ok   board box inside the window
+[  84s]     ok   board starts below the wind pill (not under it)
+[  84s]     ok   side-by-side: board is a square (856×856)
+[  84s]     ok   side-by-side: board reaches the bottom of the window (no empty band; bottom=900 of 900)
+[  84s]     ok   side-by-side: captains column stands beside the board, not under it
+[  84s]     ok   captains card fully inside the window (bottom=268 of 900)
+[  84s]     ok   captains card does not cover the board
+[  84s]     ok   no captain row hidden behind an internal scroll (224 content vs 224 visible)
+[  84s]     ok   captains card hugs its content — no empty tower (card 224px vs content 204px)
+[  84s]     ok   no captain name scrolling/clipped (all fit)
+[  84s]     ok   every captain name fits its column (all fit)
+[  84s]     ok   every captain name clears the coin (all clear)
+[  84s]     ok   opening ceremony sits below the ribbon, not clipped by it (top=349, ribbon bottom=44)
+[  84s]     ok   opening ceremony is on the board (top=349, bottom=550, board 44–900)
+[  84s]   [sail prompt] 1400x900-1-sail.png
+[  84s]     ok   board box inside the window
+[  84s]     ok   board starts below the wind pill (not under it)
+[  84s]     ok   side-by-side: board is a square (856×856)
+[  84s]     ok   side-by-side: board reaches the bottom of the window (no empty band; bottom=900 of 900)
+[  84s]     ok   side-by-side: captains column stands beside the board, not under it
+[  84s]     ok   captains card fully inside the window (bottom=282 of 900)
+[  84s]     ok   captains card does not cover the board
+[  84s]     ok   no captain row hidden behind an internal scroll (238 content vs 238 visible)
+[  84s]     ok   captains card hugs its content — no empty tower (card 238px vs content 218px)
+[  84s]     ok   no captain name scrolling/clipped (all fit)
+[  84s]     ok   every captain name fits its column (all fit)
+[  84s]     ok   every captain name clears the coin (all clear)
+[  84s]     ok   legal sail squares are drawn (16)
+[  84s]     ok   every legal sail square is fully inside the board (0 cropped)
+[  84s]     ok   every prompt button on screen and inside the column (1 ok)
+[  84s]     ok   no two prompt buttons stacked on each other (none)
+[  84s]     ok   every prompt button is the thing under the mouse at its centre (all reachable)
+[  84s]   [action menu] 1400x900-2-menu.png
+[  84s]     ok   board box inside the window
+[  84s]     ok   board starts below the wind pill (not under it)
+[  84s]     ok   side-by-side: board is a square (856×856)
+[  84s]     ok   side-by-side: board reaches the bottom of the window (no empty band; bottom=900 of 900)
+[  84s]     ok   side-by-side: captains column stands beside the board, not under it
+[  84s]     ok   captains card fully inside the window (bottom=282 of 900)
+[  84s]     ok   captains card does not cover the board
+[  84s]     ok   no captain row hidden behind an internal scroll (238 content vs 238 visible)
+[  84s]     ok   captains card hugs its content — no empty tower (card 238px vs content 218px)
+[  84s]     ok   no captain name scrolling/clipped (all fit)
+[  84s]     ok   every captain name fits its column (all fit)
+[  84s]     ok   every captain name clears the coin (all clear)
+[  84s]     ok   every prompt button on screen and inside the column (3 ok)
+[  84s]     ok   no two prompt buttons stacked on each other (none)
+[  84s]     ok   every prompt button is the thing under the mouse at its centre (all reachable)
+[ 107s] 
+== 1920x1080  SIDE-BY-SIDE  --pp4W=1036px  v4 · build 2026-08-21h  (64s)
+[ 107s]   [opening] 1920x1080-0-opening.png
+[ 107s]     ok   board box inside the window
+[ 107s]     ok   board starts below the wind pill (not under it)
+[ 107s]     ok   side-by-side: board is a square (1036×1036)
+[ 107s]     ok   side-by-side: board reaches the bottom of the window (no empty band; bottom=1080 of 1080)
+[ 107s]     ok   side-by-side: captains column stands beside the board, not under it
+[ 107s]     ok   captains card fully inside the window (bottom=268 of 1080)
+[ 107s]     ok   captains card does not cover the board
+[ 107s]     ok   no captain row hidden behind an internal scroll (224 content vs 224 visible)
+[ 107s]     ok   captains card hugs its content — no empty tower (card 224px vs content 204px)
+[ 107s]     ok   no captain name scrolling/clipped (all fit)
+[ 107s]     ok   every captain name fits its column (all fit)
+[ 107s]     ok   every captain name clears the coin (all clear)
+[ 107s]     ok   opening ceremony sits below the ribbon, not clipped by it (top=439, ribbon bottom=44)
+[ 107s]     ok   opening ceremony is on the board (top=439, bottom=640, board 44–1080)
+[ 107s]   [sail prompt] 1920x1080-1-sail.png
+[ 107s]     ok   board box inside the window
+[ 107s]     ok   board starts below the wind pill (not under it)
+[ 107s]     ok   side-by-side: board is a square (1036×1036)
+[ 107s]     ok   side-by-side: board reaches the bottom of the window (no empty band; bottom=1080 of 1080)
+[ 107s]     ok   side-by-side: captains column stands beside the board, not under it
+[ 107s]     ok   captains card fully inside the window (bottom=282 of 1080)
+[ 107s]     ok   captains card does not cover the board
+[ 107s]     ok   no captain row hidden behind an internal scroll (238 content vs 238 visible)
+[ 107s]     ok   captains card hugs its content — no empty tower (card 238px vs content 218px)
+[ 107s]     ok   no captain name scrolling/clipped (all fit)
+[ 107s]     ok   every captain name fits its column (all fit)
+[ 107s]     ok   every captain name clears the coin (all clear)
+[ 107s]     ok   legal sail squares are drawn (14)
+[ 107s]     ok   every legal sail square is fully inside the board (0 cropped)
+[ 107s]     ok   every prompt button on screen and inside the column (1 ok)
+[ 107s]     ok   no two prompt buttons stacked on each other (none)
+[ 107s]     ok   every prompt button is the thing under the mouse at its centre (all reachable)
+[ 107s]   [action menu] 1920x1080-2-menu.png
+[ 107s]     ok   board box inside the window
+[ 107s]     ok   board starts below the wind pill (not under it)
+[ 107s]     ok   side-by-side: board is a square (1036×1036)
+[ 107s]     ok   side-by-side: board reaches the bottom of the window (no empty band; bottom=1080 of 1080)
+[ 107s]     ok   side-by-side: captains column stands beside the board, not under it
+[ 107s]     ok   captains card fully inside the window (bottom=282 of 1080)
+[ 107s]     ok   captains card does not cover the board
+[ 107s]     ok   no captain row hidden behind an internal scroll (238 content vs 238 visible)
+[ 107s]     ok   captains card hugs its content — no empty tower (card 238px vs content 218px)
+[ 107s]     ok   no captain name scrolling/clipped (all fit)
+[ 107s]     ok   every captain name fits its column (all fit)
+[ 107s]     ok   every captain name clears the coin (all clear)
+[ 107s]     ok   every prompt button on screen and inside the column (3 ok)
+[ 107s]     ok   no two prompt buttons stacked on each other (none)
+[ 107s]     ok   every prompt button is the thing under the mouse at its centre (all reachable)
+[ 107s] 
+branch coverage: phone, side-by-side, stacked — all three shapes measured
+[ 107s] 
+CONTACT SHEET (open it and READ it before showing anyone anything): open /tmp/f-final6/contact-sheet.html  [18 tiles, all present on disk]
+[ 107s] 
+RESULT: FAIL

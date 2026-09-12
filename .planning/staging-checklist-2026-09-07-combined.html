@@ -1,0 +1,319 @@
+<title>Pastry Pirates — playtest checklist</title>
+<style>
+:root{
+  --ink:#12303a; --muted:#5b7580; --line:#d8e3e7; --card:#fffdf7; --bg:#eef4f6;
+  --pass:#1f9d6b; --fail:#d1495b; --accent:#0f7f96; --shadow:0 1px 2px rgba(16,48,58,.08),0 6px 18px rgba(16,48,58,.06);
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme=light]){
+  --ink:#e8f1f4; --muted:#93aab3; --line:#22414c; --card:#12262e; --bg:#0b1a20;
+  --pass:#3ec38c; --fail:#ff7085; --accent:#4fc3dd; --shadow:0 1px 2px rgba(0,0,0,.4),0 6px 18px rgba(0,0,0,.3);
+}}
+
+/* THE SAME DARK PALETTE AGAIN, and the duplication is deliberate rather than sloppy. The block
+   above only fires when the reader has made no explicit choice and their OS is dark; a reader who
+   taps a light/dark toggle gets data-theme stamped on the root instead, and a media query cannot
+   see that. Plain CSS has no way to give one palette two selectors across a media boundary, so
+   these two lists are ONE palette in two places: change a colour and change it in both. */
+:root[data-theme=dark]{
+  --ink:#e8f1f4; --muted:#93aab3; --line:#22414c; --card:#12262e; --bg:#0b1a20;
+  --pass:#3ec38c; --fail:#ff7085; --accent:#4fc3dd; --shadow:0 1px 2px rgba(0,0,0,.4),0 6px 18px rgba(0,0,0,.3);
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);
+  font:16px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;
+  padding:0 0 120px}
+header{position:sticky;top:0;z-index:10;background:var(--card);border-bottom:1px solid var(--line);
+  padding:14px 18px;box-shadow:var(--shadow)}
+.wrap{max-width:920px;margin:0 auto}
+h1{margin:0 0 2px;font-size:19px;letter-spacing:.2px}
+.sub{color:var(--muted);font-size:13.5px}
+.sub a{color:var(--accent)}
+.bar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:10px}
+.count{font-variant-numeric:tabular-nums;font-weight:700;font-size:13.5px}
+button{font:inherit;font-size:13.5px;padding:7px 13px;border-radius:9px;border:1px solid var(--line);
+  background:var(--card);color:var(--ink);cursor:pointer}
+button.primary{background:var(--accent);color:#fff;border-color:transparent;font-weight:600}
+button:active{transform:translateY(1px)}
+section{max-width:920px;margin:22px auto 0;padding:0 18px}
+h2{font-size:15px;text-transform:uppercase;letter-spacing:.9px;color:var(--muted);
+  margin:26px 0 10px;font-weight:700}
+.note{background:var(--card);border:1px solid var(--line);border-left:3px solid var(--accent);
+  border-radius:10px;padding:12px 14px;margin:0 0 14px;font-size:14.5px;box-shadow:var(--shadow)}
+.item{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px;
+  margin:0 0 12px;box-shadow:var(--shadow)}
+.item.pass{border-left:4px solid var(--pass)}
+.item.fail{border-left:4px solid var(--fail)}
+.top{display:flex;gap:11px;align-items:flex-start}
+.n{flex:0 0 auto;min-width:26px;height:26px;padding:0 7px;border-radius:7px;background:var(--bg);
+  color:var(--muted);font-size:12.5px;font-weight:700;display:flex;align-items:center;justify-content:center}
+.txt{flex:1 1 auto;min-width:0}
+.look{font-weight:650}
+.right{color:var(--muted);font-size:14.5px;margin-top:3px}
+.why{color:var(--muted);font-size:13px;margin-top:5px;font-style:italic;opacity:.85}
+.acts{display:flex;gap:7px;margin:11px 0 0;flex-wrap:wrap}
+.acts button{min-width:74px}
+.acts button[aria-pressed=true][data-v=pass]{background:var(--pass);color:#fff;border-color:transparent;font-weight:650}
+.acts button[aria-pressed=true][data-v=fail]{background:var(--fail);color:#fff;border-color:transparent;font-weight:650}
+textarea{width:100%;margin-top:9px;min-height:0;height:38px;padding:8px 10px;border-radius:9px;
+  border:1px solid var(--line);background:var(--bg);color:var(--ink);font:inherit;font-size:14.5px;resize:vertical}
+textarea:focus{outline:2px solid var(--accent);outline-offset:1px;height:84px}
+textarea.has{height:84px;background:var(--card)}
+.saved{color:var(--muted);font-size:12.5px}
+/* THE ITEM'S OWN ENTRY POINT — a thumb-sized button, not a line of prose. Different items need
+   different doors, so the link lives beside what to do rather than once at the top. */
+.go{margin-top:7px}
+.go a{display:inline-block;background:var(--accent);color:#fff;text-decoration:none;font-size:13px;
+  font-weight:650;padding:8px 12px;border-radius:9px;word-break:break-all;line-height:1.25}
+.go a:active{transform:translateY(1px)}
+dialog{border:none;border-radius:12px;padding:0;max-width:680px;width:92vw;box-shadow:var(--shadow);background:var(--card);color:var(--ink)}
+dialog::backdrop{background:rgba(6,20,26,.55)}
+dialog .in{padding:16px}
+dialog textarea{height:46vh;font:13px/1.45 ui-monospace,SFMono-Regular,Menlo,monospace}
+@media print{header{position:static}.acts,button{display:none}.item{break-inside:avoid}}
+</style>
+
+<header><div class="wrap">
+  <h1>Pastry Pirates — playtest · the tutorial AND the sea</h1>
+  <div class="sub">Build <strong id="stamp">2026.09.07.3-staging@bd68862c</strong> ·
+   <a href="https://staging.playpastrypirates.com/?pilot=new" target="_blank" rel="noopener">staging.playpastrypirates.com</a>
+   — <strong>the &#9776; stamp must end <code>-staging@bd68862c</code></strong>, read off the wire before this
+   sheet was written. A different stamp is a different build: stop and tell me.
+   <em>Production is untouched at 2026.09.06.2 — real players have seen none of this.</em>
+   <strong>Every item has its own link.</strong> Tap the one in the item, not this one.</div>
+  <div class="bar">
+    <span class="count" id="count">0 / 0</span>
+    <button class="primary" id="copy">Copy my notes</button>
+    <button id="reset">Clear all</button>
+    <span class="saved" id="saved">saves as you type</span>
+  </div>
+</div></header>
+
+<section id="list"></section>
+
+<dialog id="out"><div class="in">
+  <p style="margin:0 0 8px"><strong>Paste this back to me.</strong> Only items you marked or commented on are included.</p>
+  <textarea id="outtxt" readonly></textarea>
+  <div style="display:flex;gap:8px;margin-top:10px">
+    <button class="primary" id="docopy">Copy to clipboard</button>
+    <button id="close">Close</button>
+  </div>
+</div></dialog>
+
+<script>
+const DATA = [
+ {h:"Start here"},
+ {note:"<strong>Two features in one voyage for the first time.</strong> Both branches are merged into <code>dev</code>, and this is <code>dev</code> — the tutorial (mine) plus the sea ambience, the fiddle and the three-way sound switch (the other session's). 106 gates, <code>npm test</code> exit 0.<br><br><strong>The tutorial is not a mode and there is nothing to turn off.</strong> Every teachable moment holds a few phrasings, longest first; ye get a shorter one each time until it is back to exactly the line the game says today. The bottom rung of every list is literally &ldquo;whatever the game already says&rdquo;, so a captain who has played sees the game ye played this morning, word for word."},
+ {note:"<strong>&#9888; The sound items are NOT my work</strong>, and that is worth knowing before ye read them. I have described them from that session's commits and from the code rather than from its summary &mdash; but if a sound item reads oddly, suspect my description before ye suspect their build. Their own deeper 17-item sound sheet is <a href='https://claude.ai/code/artifact/9455f7df-2baa-4eeb-a099-a121f0dab0b7'>here</a>."},
+ {note:"<strong>The <code>?pilot=&hellip;</code> links only work on staging</strong> &mdash; on the live domain they do nothing at all, silently, which is deliberate. <code>?pilot=new</code> makes ye a first-time captain <em>and clears any saved voyage</em>. <code>?pilot=vet</code> is the game with no tutorial. Both were driven in a browser and red-proofed against a typo'd flag."},
+ {note:"<strong>&#127911; WEAR HEADPHONES FOR THE SOUND HALF, and put them on before ye start.</strong> Half of it is stereo, and the music is panned 70% to port &mdash; on a laptop speaker that reads completely differently, and ye would be judging the wrong thing. The other session flagged this as the one instruction most likely to change yer verdict, and they are right.<br><br><strong>And the music needs patience rather than a flag.</strong> From the board appearing: about 35 seconds of song, then about a minute of quiet, then it comes back &mdash; measured at 95.0s. If ye are clicking about during the gap ye will conclude the music is broken when it is only waiting."},
+ {n:1,look:"Open the link, ☰ menu, read the build stamp.",url:"https://staging.playpastrypirates.com/",
+  right:"“Build 2026.09.07.3-staging” with @bd68862c beneath it. Tab reads [STAGING].",
+  why:"No build step, so a different stamp is a different build. Read off the wire with curl before this sheet was written, not taken from the deploy script's word."},
+
+ {h:"A first-time captain — the first ten seconds"},
+ {n:2,look:"Open and start a solo game. Read the very first card, before the Ahoy card.",url:"https://staging.playpastrypirates.com/?pilot=new",
+  right:"“🦜 Do ye know how to play?” with two circles — Yaargh! and Nah. Tap Nah.",
+  why:"Yer fork. It is a STARTING RUNG, not a yes/no — so if some captains later want a middle setting, that is a third circle and a number, not a new system."},
+ {n:3,look:"Get to yer first sail prompt. Read BOTH lines above the board.",url:"https://staging.playpastrypirates.com/?pilot=new",
+  right:"“Wyatt: Tap a gold square to sail — head for a dock.” and beneath it, in italics: “Sailin' into the wind is slower — half sail, half the squares.”",
+  why:"The whole point of the feature. The wind rule is what makes this a game of planning rather than a race, and it has never been said out loud — a first-timer saw a lopsided blob of gold squares with no reason for its shape."},
+ {n:4,look:"Sail three more turns and watch that line get shorter each time.",url:"https://staging.playpastrypirates.com/?pilot=new",
+  right:"turn 2 “Tap a gold square to sail toward a dock.” · turn 3 “Tap a gold square to sail.” · turn 4 and forever after “Wyatt: tap to sail”, with no second line.",
+  why:"Yer own mechanism. The tutorial does not end, it wears off. If turn 4 says anything other than exactly “tap to sail”, that is a real defect and I want to know."},
+ {n:5,look:"Look at the WATER while choosing a recipe, before ye tap anything.",url:"https://staging.playpastrypirates.com/?pilot=new",
+  right:"A wavy line of cream dashes from yer boat, round the islands, through five docks — each marked with yer flared white X, breathing. No thin orange rings anywhere.",
+  why:"Every number is yers off the Course Tuner on 3 Sept — dashes not dots, constant size, only the opacity fading, each dash bent along the line it traces. The route uses the game's OWN path finder, so it can never sail over Tortuga again."},
+ {n:6,look:"Look at the recipe card itself, and the arrows either side of it.",url:"https://staging.playpastrypirates.com/?pilot=new",
+  right:"ONE card — picture, name, five ingredient pictures, nothing else. Behind it a BLANK strip of the same parchment peeks out bottom-right, like the edge of a second card. No “1 of 2” anywhere. Gold ‹ › arrows at both edges.",
+  why:"Yer ruling 18, including the awkward half: show it is a stack of two WITHOUT saying so in numbers. ⚠ This is the third version — the sea trial caught the first two. On a tablet the back card used to stick out far enough to READ, its title clipped to “n-Chocolate Fudge”, which looked broken rather than stacked."},
+ {n:7,look:"Tap an arrow, or SWIPE the card sideways. Watch the board, not the card.",url:"https://staging.playpastrypirates.com/?pilot=new",
+  right:"The other recipe comes to the front AND the dotted course redraws to that recipe's five docks.",
+  why:"Yer rulings 24 and 18. Measured before shipping: “Molten Chocolate Lava Cake” → “Cinnamon Dutch Baby”, 80 dashes then 78. Comparing two recipes is now comparing two voyages."},
+ {n:8,look:"Choose a recipe. Watch the moment right after it disappears.",url:"https://staging.playpastrypirates.com/?pilot=new",
+  right:"A bubble from yer own boat: “Yer recipe's stowed below, Wyatt — five crates to find…” — and the captains box gives two slow amber blinks as it lands.",
+  why:"Yer own ask: “where did my recipe go”. It is the ONE place the tutorial adds a sentence where the game says nothing today, and its bottom rung is silence, so a veteran's game is untouched."},
+ {n:9,look:"Find the 🦜? button in the top bar. Tap it, then tap it again.",url:"https://staging.playpastrypirates.com/?pilot=new",
+  right:"First tap dims it and the parrot goes quiet. Second brings it back and resets every line to the longest. Between turns it also says a line; mid-prompt it just dims.",
+  why:"The parrot also KEEPS the turn-order Start button — “it makes it seem like the parrot is the one talking to you.” It stays silent mid-prompt because it used to print straight over the sail prompt's helper text at 320px."},
+
+ {h:"The sea and the fiddle — the other session's work"},
+ {n:10,look:"Start any solo game and just LISTEN for ten seconds. Do not tap anything.",url:"https://staging.playpastrypirates.com/",
+  right:"An ocean bed comes up under the board — waves, the odd gull, the odd rope creak. It runs for as long as the board is on screen and stops on the home and room screens.",
+  why:"Luis's clips at the levels YE dialled in the Sea Bed Tuner and pasted back with “THIS IS AWESOME BUILD IT NOW”: sea −4.5 dB, gulls −15.5 dB, creaks +1.0 dB, a gull every ~10s, a creak every ~13s. The game is no longer silent between sounds."},
+ {n:11,look:"Keep listening for a minute. Judge the BALANCE, not the clips.",url:"https://staging.playpastrypirates.com/",
+  right:"Gulls and creaks sit under the sea rather than on top of it.",
+  why:"⚠ YER CALL, not a defect. Raw, the gulls land 12 dB ABOVE the sea; they are pulled down to −15.5. If they now feel too shy, or the sea too loud, that is one number to move — say which way and how far."},
+ {n:12,look:"Same game — listen for the music under the sea. Headphones if ye have them.",url:"https://staging.playpastrypirates.com/",
+  right:"“Out on the Ocean” by Fiddlers Plus starts the moment the board is visible, quiet, panned mostly to the LEFT.",
+  why:"Yer instruction: “it should start playing from the MOMENT the gameboard is visible.” Level 0.141 (−17 dB), pan 70% to port — yer choice, and the pan is the thing a headphone check settles. ⚠ This is that session's cut of the master, NOT yer own “short 1” edit — so judge the level and the pan, but not the loop point."},
+ {n:13,look:"Leave a game running and do not touch it. Note when the song comes back.",url:"https://staging.playpastrypirates.com/",
+  right:"The track plays to its end (~35s), goes quiet, and returns about a minute later — roughly 95 seconds after it started. The sea keeps running throughout.",
+  why:"⚠ IF YE ARE CLICKING ABOUT DURING THE GAP YE WILL THINK IT IS BROKEN — it is waiting. Yer instruction: “the song shouldn't immediately restart after it finishes — it should wait a minute.” It deliberately does NOT loop, or the gap would be dead code. Measured live at 95.0s against a predicted 94.47. ⚠ The gap is 60s: an older handoff said two minutes, and yer 7 Sept ruling is the later one."},
+ {n:14,look:"☰ menu, tap the sound row THREE times, listening after each.",url:"https://staging.playpastrypirates.com/",
+  right:"Tap 1 — the music stops, the sea keeps running. Tap 2 — silence. Tap 3 — both return. Three taps land back where ye started, and nothing restarts from the top.",
+  why:"Yer instruction, verbatim: “Make sure The audio/mute switch is 3-way — sound+music, sound, mute — repeat again from sound+music.” The ORDER is yer ruling, not an implementation detail."},
+ {n:15,look:"In that same menu, read the WORDS on the row in each of the three states.",url:"https://staging.playpastrypirates.com/",
+  right:"Each state names itself, and the dash before “with music” has a space after it.",
+  why:"⚠ The wording is YER call — those three labels are draft. Also a real bug they caught on screen: a CSS hex escape eats the space after it, so the row read “ON —with music”. Fixed here and in two older rows carrying the same fault."},
+ {n:16,look:"Open the credits page and look for the music credit.",url:"https://staging.playpastrypirates.com/credits.html",
+  right:"Fiddlers Plus AND Muster Field Farms both named for the music.",
+  why:"Yer fourth instruction that day. Remember the credits page is NOT pirate speak — it is yer own voice, so a “you” there is correct and should not be “fixed”."},
+ {n:17,look:"If ye have a device where ye muted an older build, open staging on it and check.",url:"https://staging.playpastrypirates.com/",
+  right:"Still muted. Ye do not get sound blasting at ye because the switch gained a third state.",
+  why:"The old pp_muted key migrates to pp_soundMode on first read and is kept in step, so a mute survives both the upgrade and a rollback. Skip this if ye have no such device — cheap insurance, not a headline."},
+
+ {h:"The game ye already played — it must be untouched"},
+ {n:18,look:"Open THIS link instead and play a few turns. Read the sail prompt.",url:"https://staging.playpastrypirates.com/?pilot=vet",
+  right:"“Wyatt: tap to sail”, no second line, no dotted course while sailing, no fork card — the game exactly as it was this morning, but with the sea and the fiddle.",
+  why:"The guarantee the whole tutorial design rests on, made by construction rather than by me keeping two copies of every line in step. Anything here reading differently from the game ye know is the most serious finding on this sheet."},
+ {n:19,look:"Same link. Look at the docks on the board while ye sail.",url:"https://staging.playpastrypirates.com/?pilot=vet",
+  right:"The pulsing white X marks the docks even with the tutorial off. The thin orange ring is gone for everybody.",
+  why:"Yer ruling, and deliberately NOT tutorial-only: “the players will already have seeing the X marks the spot when they start sailing.” It also answers yer separate complaint that those circles needed a redesign — they were thin, static and orange, which is the “act now” colour already spent on the gold squares."},
+
+ {h:"Crate becomes ingredient — yer 31 rulings"},
+ {n:20,look:"Dock at any island. Read the flip prompt, then the buy prompt.",url:"https://staging.playpastrypirates.com/?pilot=vet",
+  right:"“…Either way, ye may then buy an ingredient.” and then “Buy a crate of 🥛 Milk Jugs?”",
+  why:"r01 — the first time a new player is ever offered one, seconds after being told to gather INGREDIENTS, which is why ye called it the most important line on the list. The buy prompt KEEPS “a crate of” because that is yer reversal of r30: the phrase is the teaching."},
+ {n:21,look:"Dock at the sugar island and read what ye hauled aboard.",url:"https://staging.playpastrypirates.com/?pilot=vet",
+  right:"“a crate of Sugar Cane” — and the recipe card says Sugar Cane too.",
+  why:"Six of the seven ingredients name the RAW thing a baker transforms; sugar alone named the refined product. All seven dock lines now read “a crate of X” in YOUR wording — 24.0 characters average against 25.9 before and 30.3 for my draft."},
+ {n:22,look:"This link starts ye at the ovens on day one. Read the words on the bake-off.",url:"https://staging.playpastrypirates.com/?pilot=vet&ovens=1",
+  right:"It still says CRATES throughout — “Tap the crates in recipe order”, “Opening the crates…”, “Every crate in its place — ye baked it!”",
+  why:"Yer ruling, and yer reason was better than the rename argument: the crate is why the ingredients are jumbled, the cup in cup-and-ball. ?ovens=1 is the existing day-one skip, not something I added, and it draws no random number."},
+ {n:23,look:"Open the rules page. Read Dock, black market, battle and Best Baker.",url:"https://staging.playpastrypirates.com/rules.html",
+  right:"“buy an ingredient”, “ONE more ingredient under the counter”, “the winner takes one ingredient”, “most ingredients in the hold”. But “Each island holds only a few crates” STAYS.",
+  why:"Yer rule: ingredients are ingredients unless the word is a UNIT of supply. The island's stock is a count, and the count is what makes the price rise. One line beyond yer list — “any two crates from yer hold” — I changed for consistency with r08–r10; flag it if ye disagree."},
+
+ {h:"On a phone, narrow"},
+ {n:24,look:"Open on the narrowest thing ye have, or squeeze a window to 320px. Look at the top bar.",url:"https://staging.playpastrypirates.com/?pilot=vet",
+  right:"DAY 1, the four captain boats, the 🦜? and the ☰ all on one row. Nothing runs off the right edge.",
+  why:"Measured: the row ran 21px off the edge at 320 once the ? was added, and the four captain circles at a fixed 111px were what would not shrink — so they became the elastic one. After: overflow 0, furthest edge 312 of 320."},
+
+ {h:"YER CALL, not defects — I want a ruling, not a bug report"},
+ {n:25,look:"Play until the action circles appear (Dock / Attack / Trade / Muse) and read the italic line under them.",url:"https://staging.playpastrypirates.com/?pilot=new",
+  right:"A line like “A hail reaches the whole table, not one captain…”, for the first two sightings of each button, then never again.",
+  why:"⚠ THIS RUNS INTO A RULING OF YERS. On 25 Aug ye deleted the shared helper line here — “this looks great to me — delete the tooltip at the top”. What ye deleted was a DUPLICATE of each greyed button's own reason. What this says is a RULE no button states. I think they are different things; ye may not. If ye read it as the tooltip coming back, the fix is one line and I will drop it."},
+ {n:26,look:"Look at the recipe card and decide whether three gold things on one small card is one too many.",url:"https://staging.playpastrypirates.com/?pilot=new",
+  right:"The two arrows and the “Bake this!” pill are all the card's gold, which is also the sail squares' gold.",
+  why:"Yer rule is that gold means TAP ME — and all three of these ARE tappable, so it is consistent. But it is three at once on a small card. The alternative is a quieter brown outline on the arrows, which reads less like a control."},
+ {n:27,look:"Decide whether Tortuga should be marked with an anchor instead of the X, once yer recipe is full.",url:"https://staging.playpastrypirates.com/?pilot=new",
+  right:"Right now every mark is the X, home included.",
+  why:"Ye said ye liked the anchor too, and my own pick on the ruling sheet was X for docks and an anchor for Tortuga. I did not build it: yer flared X is the only marker art in the repo, so the anchor would have meant me drawing one. Say the word and it is one asset and one line."},
+ {n:28,look:"Decide whether the sea should keep running under the End of Voyage card.",url:"https://staging.playpastrypirates.com/?pilot=vet&endcard=1",
+  right:"Right now it does.",
+  why:"⚠ That session flagged this as YER call rather than a defect. This link jumps straight to the end card rather than making ye sail sixteen days to hear it."},
+ {n:29,look:"Read this one and decide whether R5 is worth its own change.",url:"https://staging.playpastrypirates.com/?pilot=new",
+  right:"“Wyatt, choose yer recipe:” is still in the panel above the card, NOT in a bubble attached to yer boat.",
+  why:"⚠ NOT BUILT — the one ruling of yer 31 that is not. I tried it: with the panel's message emptied the question VANISHED from the screen, because the narration channel will not draw a bubble while a prompt card is up. Making it work means the picker stops being a prompt card at all, which changes how EVERY question in this game is drawn. Reverted rather than half-landed."},
+
+ {h:"Already known — please do NOT spend yer eyes"},
+ {note:"<strong>1. The sea trial FAILED and it was right.</strong> 116 minutes, ten voyages. Three findings were mine and all three are fixed in the build ye are playing — the recipe stack rendering as a broken clipped card on a tablet, the hidden card still reachable by keyboard, and the picker rebuilding itself every frame. I re-ran the two legs that caught them: <strong>4 structural failures &rarr; 0, and 2 &rarr; 0</strong>, with a complete voyage to day 15.<br><br><strong>2. A crash that kills CREW voyages is still open and is NOT from today.</strong> <code>stormSummary</code> reading .length of undefined — named as a known fault in yer own 2026-08-21 handoff. If a crew game dies mid-storm, that is it. Serious, pre-existing, and I did not fix it blind at the end of a long day.<br><br><strong>3.</strong> Empty cream space below the recipe card on a phone — real, mine, unfixed. The judge flagged it and I had seen it and left it.<br><br><strong>4.</strong> Neither the sea NOR the music ducks under a cannon or a drumroll &mdash; absent by omission, not by decision, so it is a thing to ask for rather than a bug to report. The drumroll is still wired nowhere, and ClockTick and Alarm still have no moment in the game. All that session's, all known.<br><br><strong>5.</strong> The captains panel showing a different row order on host and guest is <strong>yer own rule</strong>, and so is the greyed red-backed chips being yer RECIPE rather than yer hold.<br><br><strong>6.</strong> A guest reading a LONGER sail prompt than the host is <strong>correct and deliberate</strong> — the tutorial counts per device, so a first-time guest gets help a veteran host does not need. It has its own row in docs/INTENDED-BEHAVIOUR.md now.<br><br><strong>7.</strong> The recipe hint says “those five” with no noun — I dropped “crates” rather than pick a side while crate&rarr;ingredient was landing in the same change. Tell me which ye want."}
+];
+
+const KEY="pp4-staging-2026-09-07-combined";
+/* EVERY TOUCH OF localStorage IS GUARDED, and it is not defensive habit. This sheet is opened as
+   a hosted page on his PHONE, where a private tab or blocked site data makes the accessor itself
+   THROW rather than return null -- and an unguarded read at the top of this script would take the
+   whole page down with it, leaving him a blank screen instead of a checklist. The marks are a
+   convenience; the sheet working is not. So a storage failure costs him his saved marks and
+   nothing else. */
+const store = {
+  read(){ try{ return JSON.parse(localStorage.getItem(KEY)||"{}"); }catch(e){ return {}; } },
+  write(v){ try{ localStorage.setItem(KEY,JSON.stringify(v)); return true; }catch(e){ return false; } },
+  drop(){ try{ localStorage.removeItem(KEY); }catch(e){} }
+};
+let state=store.read();
+const save=()=>{const ok=store.write(state);const s=document.getElementById("saved");s.textContent=ok?"saved ✓":"can’t save here — copy yer notes before ye leave";clearTimeout(save._t);save._t=setTimeout(()=>s.textContent="saves as you type",1200);tally();};
+const list=document.getElementById("list");
+
+for(const d of DATA){
+  if(d.h){const h=document.createElement("h2");h.textContent=d.h;list.appendChild(h);continue;}
+  if(d.note){const p=document.createElement("div");p.className="note";p.innerHTML=d.note;list.appendChild(p);continue;}
+  const it=document.createElement("div");it.className="item";it.id="i"+d.n;
+  it.innerHTML=`<div class="top"><div class="n">${d.n}</div><div class="txt">
+      <div class="look"></div>${d.url?'<div class="go"></div>':""}${d.right?'<div class="right"></div>':""}${d.why?'<div class="why"></div>':""}
+    </div></div>
+    <div class="acts">
+      <button data-v="pass" aria-pressed="false">Passed</button>
+      <button data-v="fail" aria-pressed="false">Problem</button>
+    </div>
+    <textarea placeholder="Notes on #${d.n}…"></textarea>`;
+  it.querySelector(".look").textContent=d.look;
+  if(d.url){
+    const a=document.createElement("a");
+    a.href=d.url; a.target="_blank"; a.rel="noopener";
+    a.textContent=d.url.replace("https://staging.playpastrypirates.com","staging");
+    it.querySelector(".go").appendChild(a);
+  }
+  if(d.right) it.querySelector(".right").textContent=d.right;
+  if(d.why) it.querySelector(".why").textContent=d.why;
+  const st=state[d.n]||{};
+  const ta=it.querySelector("textarea");
+  ta.value=st.c||""; if(ta.value) ta.classList.add("has");
+  if(st.v) it.classList.add(st.v);
+  it.querySelectorAll(".acts button").forEach(b=>{
+    if(st.v===b.dataset.v) b.setAttribute("aria-pressed","true");
+    b.onclick=()=>{
+      const cur=state[d.n]||{}; const v=cur.v===b.dataset.v?null:b.dataset.v;
+      state[d.n]={...cur,v};
+      it.classList.remove("pass","fail"); if(v) it.classList.add(v);
+      it.querySelectorAll(".acts button").forEach(o=>o.setAttribute("aria-pressed", String(o.dataset.v===v)));
+      save();
+    };
+  });
+  ta.oninput=()=>{state[d.n]={...(state[d.n]||{}),c:ta.value};ta.classList.toggle("has",!!ta.value);save();};
+  it._d=d; list.appendChild(it);
+}
+function tally(){
+  const items=DATA.filter(d=>d.n);
+  const done=items.filter(d=>(state[d.n]||{}).v).length;
+  const bad=items.filter(d=>(state[d.n]||{}).v==="fail").length;
+  document.getElementById("count").textContent=`${done} / ${items.length} checked${bad?` · ${bad} problem${bad>1?"s":""}`:""}`;
+}
+tally();
+/* W0-2 (Wyatt, 2026-08-27): "Copy my notes takes two clicks." It did — the first built the text
+   and opened the box, the second copied. On a phone, at the end of a playtest, that is one tap too
+   many at exactly the moment his hands are full. THE FIRST TAP NOW COPIES; the box becomes
+   confirmation of something that already happened rather than a second thing to do.
+
+   ORDER MATTERS AND IS NOT ARBITRARY. showModal() comes BEFORE the copy because the execCommand
+   fallback can only select a textarea that is actually on screen — copying first would leave the
+   fallback selecting a hidden element and silently doing nothing. The clipboard write still
+   happens inside the same user gesture, which is what the permission model requires.
+
+   AND IT NEVER CLAIMS A COPY IT DID NOT MAKE. If both routes fail (an insecure origin, a denied
+   permission) the button says so and the text is sitting selected in the box, ready to copy by
+   hand. A confirmation that lies is worse than the second tap it replaced. */
+function buildNotes(){
+  const L=[`Pastry Pirates playtest — build ${document.getElementById("stamp").textContent}`,""];
+  for(const d of DATA){ if(!d.n) continue; const s=state[d.n]||{}; if(!s.v && !(s.c||"").trim()) continue;
+    L.push(`#${d.n} [${s.v==="pass"?"PASSED":s.v==="fail"?"PROBLEM":"—"}] ${d.look}`);
+    if((s.c||"").trim()) L.push(`    ${s.c.trim().replace(/\n/g,"\n    ")}`);
+  }
+  const items=DATA.filter(d=>d.n), skipped=items.filter(d=>!(state[d.n]||{}).v).map(d=>d.n);
+  if(skipped.length) L.push("", `Not checked: ${skipped.join(", ")}`);
+  if(L.length<=2) L.push("(nothing marked yet)");
+  document.getElementById("outtxt").value=L.join("\n");
+}
+// ONE copy routine, used by the first tap and by the in-box button (rule 23: two things that must
+// behave the same are one thing, or they drift).
+async function copyNotes(){
+  const t=document.getElementById("outtxt"), b=document.getElementById("docopy");
+  t.select(); t.setSelectionRange(0,t.value.length);
+  let ok=false;
+  try{ await navigator.clipboard.writeText(t.value); ok=true; }
+  catch(e){ try{ ok=document.execCommand("copy"); }catch(e2){ ok=false; } }
+  b.textContent = ok ? "Copied ✓" : "Press ⌘/Ctrl+C — the text is selected";
+  setTimeout(()=>b.textContent="Copy to clipboard", ok?1800:4000);
+  return ok;
+}
+document.getElementById("copy").onclick=async()=>{
+  buildNotes();
+  document.getElementById("out").showModal();
+  await copyNotes();
+};
+document.getElementById("docopy").onclick=()=>copyNotes();
+document.getElementById("close").onclick=()=>document.getElementById("out").close();
+document.getElementById("reset").onclick=()=>{ if(!confirm("Clear every mark and note?"))return;
+  state={}; store.drop(); location.reload(); };
+</script>

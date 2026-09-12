@@ -1,0 +1,35 @@
+Q-18 — the wire itself, 110s.
+
+  room ASKB
+  wire listener: listening
+  both seats driving
+
+  47 narration line(s) crossed the wire
+    carrying a SERIAL (evN): 46
+    carrying a SUBJECT:      0
+    carrying exactly ONE of the two — the fault: 46
+
+  lines where they disagree:
+    evN=0 subj=null   "Day 1: Storm blowin’ SOUTH. It’ll blow every ship 3 square"
+    evN=7 subj=null   "🧭 Flaky Jack takes the wheel…"
+    evN=10 subj=null   "⛵ Ahoy, test2's turn!"
+    evN=10 subj=null   "test2 is choosing where to sail…"
+    evN=11 subj=null   "test2 is deciding…"
+    evN=13 subj=null   "🧭 Dough Hook takes the wheel…"
+    evN=16 subj=null   "⛵ Ahoy, test1's turn!"
+    evN=16 subj=null   "test1 is choosing where to sail…"
+    evN=17 subj=null   "test1 is deciding…"
+    evN=19 subj=null   "Day 2: Wind WEST. Tomorrow: SOUTH."
+
+  a sample of the lines that DO carry a serial (these are the ordered ones):
+    evN=0 subj=null   "Day 1: Storm blowin’ SOUTH. It’ll blow every ship 3 square"
+    evN=7 subj=null   "🧭 Flaky Jack takes the wheel…"
+    evN=10 subj=null   "⛵ Ahoy, test2's turn!"
+    evN=10 subj=null   "test2 is choosing where to sail…"
+    evN=11 subj=null   "test2 is deciding…"
+    evN=13 subj=null   "🧭 Dough Hook takes the wheel…"
+
+  a sample of the lines that carry NEITHER (both seats fall back identically):
+    "⚓ Everyone's choosing their recipe…"
+
+=== FAIL — 46 line(s) carry a serial without a subject or the reverse. They are one fact; the guest and the host will not agree on those lines.
