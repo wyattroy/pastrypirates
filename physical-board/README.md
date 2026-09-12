@@ -1,5 +1,20 @@
 # Pastry Pirates — the laser-cut set
 
+## The two live pages — update these, never publish a third
+
+Both are re-used in place. Publishing without their URL makes a duplicate and orphans whatever he
+has already dialled or ticked (docs/ARTIFACT-GUIDELINES.md §3).
+
+| Page | URL |
+|---|---|
+| **Cutting sheets** — the four files, drawn to one scale, with the rules at the laser | https://claude.ai/code/artifact/e7bbbc72-cad8-4550-b0c6-102416ad449f |
+| **Board pieces** — the tuner: tile, beach, ingredient, price, on the real geometry | https://claude.ai/code/artifact/29500861-942d-4690-a1ef-cae20fe0e54e |
+
+The tuner is fed by `tuner-data.json`, which `generate.mjs` writes on every run: each island's real
+cut outline and its real engraved grass line at thirteen beach settings, plus the ingredient icons
+and every current default. Regenerate and republish together, or the page dials against stale wood.
+
+
 A physical Pastry Pirates as vector files ready for Rhino (SVG and DXF), black and white, two
 layers: **CUT** (red hairline) and **RASTER** (black fill, engrave). Styled after the game's own art
 — Wyatt, 2026-08-22: *"It should be piratey and match the online game as closely as you can."*
