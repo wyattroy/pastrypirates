@@ -6,6 +6,176 @@ say whether a fault is *recurring* — which is the check this file exists to ma
 
 ---
 
+## 2026-09-12 · `d227e12d` · AUDIT: is the plaque keyed out, and is the X fixed? · **TWO OF THE THREE PICTURES ARE PROPERLY CUT OUT. THE LAPTOP ONE IS NOT — IT IS STILL A RECTANGLE OF WOOD.**
+
+**Its one sentence for Wyatt, verbatim:**
+
+> **The white is genuinely gone from all three pictures — you were right, it was there, and it has
+> been removed — but only two of the three plaques were actually cut around the rope: the one your
+> laptop and desktop use is still a rectangular slab of wood with the corners nicked off, so on a big
+> screen you will still see a hard straight edge of bare plank above and to the left of the rope
+> instead of the page behind it.**
+
+**Reviewed:** commit `d227e12d` on `dev`. Method: read the three PNGs' actual bytes with node
+(IHDR / PLTE / tRNS chunks, then inflate the image data and decode every pixel's alpha), rendered a
+3× magnified corner line-up of all three on a magenta ground so transparency is unmistakable, and
+read the CSS and the two QA scripts. **No browser and no server was started** (per the brief). The
+repo was not edited except for this entry. Probe scripts lived in the CEO's scratchpad.
+
+---
+
+### 1. For each thing he asked for
+
+#### (a) "Key it out for all sizes" — **PARTIAL. Two of three.**
+
+Every PNG does have a real alpha channel, so the headline claim is not a fabrication: all three are
+8-bit **palette** PNGs (IHDR colour type **3**) carrying a `tRNS` chunk, and **all four corners of
+all three decode to alpha 0** — fully transparent. Decoding the whole image, **not one of the three
+has a single near-white opaque pixel** (`r,g,b` all > 235: **zero**, in all three). *The white
+background he photographed is really gone.* That much is DONE and I can prove it.
+
+But "keyed out" means cut around the object, and that is where they part company:
+
+| | phone.png | column.png | tablet.png |
+|---|---|---|---|
+| size | 760×495 | 1024×597 | 1024×412 |
+| `tRNS` alpha entries | **77 partial + 1 clear** | **1 clear, 0 partial** | **28 partial + 1 clear** |
+| transparent + part-transparent | 1.19% + 1.35% | **0.35% + 0.00%** | 1.34% + 1.07% |
+| how deep the cut goes from the top edge | max **77 px**, mean 3.2 | max **22 px**, mean **0.1** | max **231 px**, mean 3.1 |
+| opaque pixels along the very top row | 330 / 760 | **1002 / 1024** | 71 / 1024 |
+
+**`column.png` is 99.65% kept.** The brief warned me an earlier run reported "100% kept" for this
+picture; that warning was real and is only cosmetically resolved. Its whole transparent area is a
+nick at each corner no more than 22 px deep on a 1024-px-wide image — about 2%. And its `tRNS` chunk
+has exactly **one** entry, meaning a hard on/off cut with **zero** anti-aliased edge pixels, where
+the phone picture has 77 and the tablet 28. **These three files are not the output of one consistent
+process**, whatever `scripts/art/key.mjs` was asked to do.
+
+The magnified corner line-up settles it by eye: on phone and tablet the rope is the outer edge and
+the page shows through outside it; on **column** there is a band of **bare wood outside the rope,
+sliced flat by the canvas edge** along the top and the left. Sampling the outer edge ring, **89 of
+124 sample points on column.png are opaque**, mean colour `rgb(122,83,48)` — brown plank, not
+background. On phone only 8 of 122 are opaque; on tablet 24 of 124.
+
+So: **phone DONE · tablet DONE · column NOT DONE.** He said "for all sizes", and the size he sits in
+front of on a laptop is the one that missed.
+
+#### (b) "Ensure the entire plaque is visible within the screen area" — **NOT DONE, and the check cannot fail.**
+
+The cited evidence is `overflowsLeft: 0, overflowsRight: 0` from
+`scripts/qa/_modal_and_plaque_look.mjs:38`. That check reads `#pp4Cap.getBoundingClientRect()` and
+compares it to `innerWidth`. **`#pp4Cap` is a block element filling its column — it can never report
+a horizontal overflow.** The two numbers are zero by construction, at every screen size, on every
+build, before and after this commit. *A check that cannot go red is not a measurement.* It also
+tests the **box**, never the **picture** inside it.
+
+And the picture is the thing he photographed. `index.html:3524` sets
+`background: url(...) center / 100% 100% no-repeat`. **`100% 100%` stretches** the image to the box's
+exact shape, ignoring its real proportions. By the CTO's own reported number the box measured
+`w390 h217` — **1.80 : 1** — while `phone.png` is 760×495 = **1.54 : 1**. That is a **17% horizontal
+stretch** on a picture of twisted rope.
+
+This flatly contradicts the repo's own claim. `index.html:3509-3511` states the box "lands at
+390x243 … about 1.60 : 1.68 : 2.46" and that "the worst stretch anywhere is **4%**". The measurement
+taken for *this* commit says the phone box is **217 px tall, not 243** — 12% shorter than the comment
+assumes, which is precisely where the extra stretch comes from. **One of those two numbers is wrong
+and nobody noticed they disagreed.** I cannot settle which without a browser, and the brief forbids
+one, so I report it as what it provably is: *a contradiction inside the CTO's own evidence*, not yet
+a confirmed on-screen defect. One posed screenshot at 390 wide would close it.
+
+#### (c) "The x button is misaligned and the wrong color" — **alignment DONE; colour FIXED but the stated reason is false.**
+
+**Alignment: genuinely fixed, and the mechanism is right.** `index.html:365` is now
+`align-items: flex-start` (was `center`). The X is injected into the card (`src/orchestrator.js:2945`)
+and pinned at `top: 14px` (`index.html:392`); the title row's top padding is `14px`
+(`index.html:372`), so with `flex-start` the icons sit at the same 14 px. I checked the detail the
+claim skipped: **the X and the icons are both 38×38** (`index.html:392` and `index.html:387`), so
+aligning their tops also aligns their centres. This holds.
+
+**Colour: the cyan is really gone — the explanation is arithmetic that does not survive checking.**
+`brightness(0)` first does flatten any source hue to black, so the cyan he photographed cannot
+recur. But the comment at `index.html:396-398` claims "sepia+saturate warms the white to the card's
+cream." I ran the filter chain through the spec's own colour matrices. Starting from black,
+`invert(1)` → `rgb(255,255,255)`; `sepia(.35)` → `rgb(255,255,249)`; `saturate(2.2)` →
+`rgb(255,255,243)`; `hue-rotate(-12deg)` → `rgb(255,254,244)`; and then the trailing
+**`brightness(1.06)` multiplies it straight back to `rgb(255,255,255)`.** The final X is **pure
+white**. The card's cream is roughly `rgb(253,245,225)`. **The last four steps of that filter are
+dead weight and the comment describes an effect that does not happen.** White may well be the right
+answer — but the code says it is doing something it is not, and the next person will believe it.
+
+---
+
+### 2. Delivered but not asked for
+
+Two things rode along in the same commit:
+
+- **`src/ui/audio.js` (+46) and `scripts/qa/w36_music_resumes_check.mjs` (+58)** — the W3-6
+  music-resume work. The CTO's own account says that check is **RED** (start offsets read `[0,0]`).
+  A known-broken feature is bundled into the commit he is being asked to approve for the plaque and
+  the X. It displaced nothing, but it means staging now carries a feature its own instrument says
+  does not work, inside a release whose stated subject is two art fixes.
+- **`package.json` weight ceiling raised.** PNG is heavier than JPEG, so the gate was moved to let
+  the art through. This is defensible — the files *were* quantized to 0.86 MB total, which matches
+  the claim — but it is a gate loosened, and it is the second commit in a row to loosen it.
+
+### 3. Claims unsupported by what is in the repo
+
+1. **`package.json`** — the account says `ceilingBytes` was raised "4194304 -> 5138022". In *this*
+   commit it went **4561920 → 5138022**. The 4194304 figure belongs to the previous commit
+   `dc0bbf2f`. Small, but it is the CTO misreporting its own diff.
+2. **`index.html:3511`** — "the worst stretch anywhere is 4%" is contradicted by the CTO's own
+   measurement of the same box in the same commit (17%, per §1b).
+3. **`index.html:398`** — "sepia+saturate warms the white to the card's cream." It does not; the
+   result is `rgb(255,255,255)` (per §1c).
+4. **The account's framing that all three pictures were keyed by one process** is contradicted by
+   the files themselves: 77 / 1 / 28 partial-alpha entries (per §1a).
+5. **No one looked.** `scripts/qa/_modal_and_plaque_look.mjs:42,58` writes `look-plaque.png` and
+   `look-modal.png`, and the script's own header (`:1-4`) says both things "were *verified* by
+   reading CSS last time, which is how they shipped wrong." **Neither screenshot exists anywhere in
+   the tree.** This repo commits posed screenshots as a matter of course (`.planning/posed/` holds
+   dozens). There is no artefact showing anybody looked at the rendered result. That is the fault
+   "Did you QA any of this??" names, and on the evidence in the repo it has not changed.
+
+### 4. Is the last verdict's fault fixed, or recurring?
+
+**RECURRING, in new clothes — the same shape, twice.** The previous verdict's fault was *a guarantee
+pinned to one direction that reads as a general guarantee*: a rule that stopped the board being
+**shorter** than a square and said nothing about **taller**.
+
+Here it happens twice over:
+
+- **The keying was checked at the corners.** The corners are the one place where all three files
+  pass. Check the **edges** and column.png fails outright (1002 of 1024 top-row pixels opaque). A
+  pass at one location, read as a pass everywhere.
+- **`overflowsLeft` / `overflowsRight`** measure the horizontal axis only, on the box only. Nothing
+  looks at the vertical, and nothing looks at the picture — which is the axis the stretch is on.
+
+Same mistake, one axis over, exactly as last time.
+
+### 5. Did the CTO spend its own head on reading it could have delegated?
+
+**None that I can name — and I want to be precise about why.** The account handed to me describes
+*what was built*, not *how it was read*, so there is no record of file-reading to audit. What I can
+see is circumstantial and points the right way: the commit is 11 files and 184 lines, which is not
+the signature of a session that had filled itself with bulk file contents. I found no evidence of
+whole files read to find one rule, no trial reports read line by line, no git archaeology in the
+main thread. **I am not going to invent a finding to fill this slot.**
+
+One thing I will say in the other direction, since the brief asks me to flag the inverse fault: the
+reading that *should* have been in the main thread — **looking at the rendered picture** — is the
+reading that did not happen at all (§3.5). The failure here is not too much reading. It is too
+little looking.
+
+### 6. One sentence
+
+At the top of this entry.
+
+**Housekeeping, observed not acted on:** the 44 dead `.tmp-*` Chrome profile directories the last
+CEO reported are still in this worktree, and the probes in this commit create more of the same shape
+(`.tmp-look-<pid>`, `.tmp-capshape-<pid>`). Still not the CEO's to delete.
+
+---
+
 ## 2026-09-12 · `be8a5208` · AUDIT: is the board drawn as a square? · **HE IS RIGHT — THE FRAME IS NOT SQUARE, THE BOARD INSIDE IT IS**
 
 **Reviewed:** Wyatt's *"the board is always supposed to be viewed in a square, and it looks like that
