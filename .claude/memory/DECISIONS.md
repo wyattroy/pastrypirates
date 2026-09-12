@@ -2453,3 +2453,23 @@ own stained-parchment gradient (the real one from index.html, three radial stain
 opaque so the wood reads through. Tuner: https://claude.ai/code/artifact/219b5862-3265-4432-b9a8-f28457ba7d48
 — and its crate spacing runs HIS rule (22/26px, 3px gap, ≤35% overlap, then scroll), not a look-alike,
 because he asked for "the actual ingredient crate buffering from my rulings (not whatever you've guessed)".
+
+## 2026-09-11 — HIS MODEL FOR THE PLAQUE: TWO SOURCE PICTURES, DRAWN AT THE BOX'S SIZE. NO SLICING.
+
+*"would it not be more efficient to simply generate two different sizes of source asset, which work for
+the two sizes of captains box in the different screen layouts"* — after three rounds of my nine-slice
+machinery failing in front of him ("your system is completely failing").
+
+**He is right, and it deletes three moving parts**: the nine-slice, the corner knots painted back over
+the cut corners, and the wood tiled behind the rows. One picture, scaled UNIFORMLY to the box's width;
+the height follows its own aspect; the rows sit inside the board's own rectangle. Nothing is stretched,
+so nothing can disagree.
+
+**Measured on the round-3 art (2736×1296):** the board starts **13.6%** in from the top and bottom and
+about **9%** from the sides. With his row rulings (band 31 + four 32px rows + 3px gaps = 174px on a
+phone), a 390px-wide box needs a picture of about **1.6:1**, and the art we have is 2.11:1 — which is
+why the fourth captain fell off the bottom in the tuner. **So the next art round asks for two shapes:
+~1.6–1.8:1 for phones and the laptop column, ~2.6:1 for the tablet's wall-to-wall box.**
+
+**THE WIDER LESSON, and it is the one to keep:** when a mechanism needs three fixes in a row, the
+mechanism is wrong, not the fixes. He saw that from outside; I was still patching from inside.
