@@ -27,7 +27,7 @@
 import fs from "node:fs";
 import zlib from "node:zlib";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "..");
 
 const argv = process.argv.slice(2);
@@ -106,7 +106,9 @@ async function toPNG(file){
   const buf = fs.readFileSync(file);
   if (buf.length > 8 && buf.toString("ascii",1,4) === "PNG") return buf;
   if (!(buf[0] === 0xFF && buf[1] === 0xD8)) die("not a PNG or a JPEG");
-  const rig = await import(path.join(REPO, "scripts", "mp_rig.mjs"));
+  /* file:// URL, not a bare path: on Windows "C:\\..." is not a valid module specifier, and
+     scripts/qa/esm_import_url_check.mjs exists to catch exactly this before the Blade does */
+  const rig = await import(pathToFileURL(path.join(REPO, "scripts", "mp_rig.mjs")).href);
   const PORT = 8940 + (process.pid % 25), DBG = 9640 + (process.pid % 25);
   const dir = path.join(REPO, ".tmp-key-" + process.pid);
   fs.mkdirSync(dir, { recursive: true });
