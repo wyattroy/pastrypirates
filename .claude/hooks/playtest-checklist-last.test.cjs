@@ -56,6 +56,23 @@ function repo(build) {
   git("init -q");
   git("symbolic-ref HEAD refs/heads/main");
   git('config user.email "t@t"'); git('config user.name "t"'); git("config commit.gpgsign false");
+  /* THE THROWAWAY REPO PINS THE GIT SETTINGS THAT COULD CHANGE THE ANSWER. A test should measure
+     the HOOK, not the computer it runs on, and these four are the ones that can quietly rewrite what
+     `git diff` sees.
+
+     ⚠ THIS IS HARDENING, NOT THE FIX for the cross-machine split — I thought it was and I was wrong,
+     so it is written down rather than left as a plausible story. This suite is green on the Mac and
+     3 FAILED on Wy-Blade at the same sha (2026-09-12), every failure an expected-SILENT that
+     BLOCKed: uniformly too eager, nothing over-permissive. I tested `core.autocrlf` by forcing
+     Windows' defaults here — `autocrlf true`, `eol crlf` — and the Mac stayed 7/7 green. Dead
+     hypothesis. Wy-Blade had already killed three others by measuring: the sitemap exclusion, the
+     path separators, and the reflog format.
+
+     WHAT IS STILL UNEXPLAINED, for whoever picks this up: run with --verbose on the machine that
+     goes red. It prints the hook's own words and the fixture's git state per scenario, which is the
+     thing the harness was throwing away. */
+  git("config core.autocrlf false"); git("config core.eol lf");
+  git("config core.filemode false"); git("config core.safecrlf false");
 
   // main: the game's own history. Four commits so a "last change" exists well before any branch.
   write(GAME, "export function drawBoard(){ return 1; }\n");
@@ -87,15 +104,32 @@ function run(dir, base) {
       stdio: ["pipe", "pipe", "pipe"],
     });
   } catch (e) { out = (e.stdout || "") + ""; }
+  run.lastOut = out;                       // --verbose prints this; the harness used to drop it
   let blocked = false;
   try { blocked = JSON.parse(out.trim() || "{}").decision === "block"; } catch { blocked = false; }
   return blocked;
 }
 
+const VERBOSE = process.argv.includes("--verbose");
+
 function check(name, expectBlock, build) {
   const ctx = repo(build);
   const { dir, base } = ctx;
   const got = run(dir, base);
+  ctx.hookSaid = run.lastOut;
+  if (VERBOSE) {
+    const g = (cmd) => { try { return execSync(`git ${cmd}`, { cwd: dir, encoding: "utf8" }).trim(); } catch (e) { return "(" + (e.message || "failed").split("\n")[0] + ")"; } };
+    console.log(`\n  ── ${name}`);
+    console.log(`     git            ${g("--version")}`);
+    console.log(`     autocrlf=${g("config --get core.autocrlf") || "(unset)"} eol=${g("config --get core.eol") || "(unset)"} filemode=${g("config --get core.filemode") || "(unset)"}`);
+    console.log(`     HEAD           ${g("rev-parse --short HEAD")} on ${g("rev-parse --abbrev-ref HEAD")}`);
+    console.log(`     base recorded  ${base || "(none)"}`);
+    console.log(`     remote refs    ${g("for-each-ref --format=\"%(refname)\" refs/remotes").replace(/\n/g, " ") || "(none)"}`);
+    console.log(`     -r --contains  ${g(`branch -r --contains ${g("rev-parse HEAD")}`).replace(/\n/g, " ") || "(empty)"}`);
+    console.log(`     status         ${g("status --porcelain").replace(/\n/g, " | ") || "(clean)"}`);
+    console.log(`     reflog         ${g('reflog --format=%h\\ %gs').split("\n").slice(0, 3).join(" | ") || "(none)"}`);
+    console.log(`     HOOK SAID      ${(ctx.hookSaid || "").trim().slice(0, 600) || "(nothing)"}`);
+  }
   const ok = got === expectBlock;
   if (!ok) failures++;
   console.log(`${ok ? "  ok  " : "  FAIL"}  ${expectBlock ? "BLOCK " : "silent"}  ${name}${ok ? "" : `   <- got ${got ? "BLOCK" : "silent"}`}`);
