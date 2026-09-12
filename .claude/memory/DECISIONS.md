@@ -2416,3 +2416,15 @@ ruled on that a screenshot can show belongs in that list too, the day he rules i
   Those three are PARKED: his Chrome had switched to the work Google account (wyatt@polycam.ai), whose
   renders came out pale and dusty rather than royal purple and whose downloads never landed. They run on
   his personal Pro account when it is available. Nothing was published from the work account.
+
+**2026-09-11, later — BOTH ROUND-1 PLAQUES REJECTED, and the rule behind it.** *"Both of these look bad
+-- the rope is much too small and isn't legible -- it looks good at the scale of the source square, but
+when you scale it up to the size of the box we lose a lot of its nice detail. also, you can remove the
+teal background and make the rope form the edge."*
+
+**The general lesson, which outlives this round: ART FOR A UI SLOT IS JUDGED AT THE SLOT'S SIZE, AND ITS
+DETAIL MUST BE SIZED FOR THAT SLOT — not for the square Gemini draws.** The arithmetic: a 2048px square
+drawn into a 360px-wide phone box is a ~6× reduction, and round 1 put ~40 rope twists along an edge, so
+each twist landed at ~4px. Round 2 states the numbers in the prompt: 2:1 (the box's real shape), rope
+diameter = 1/8 of the plaque's height, one twist per rope-thickness → ~12 twists an edge → a 23px rope in
+~30px twists at phone size. **And the rope IS the edge: no teal band, nothing outside the rope.**
