@@ -2686,3 +2686,19 @@ ruling). Those stay. The two that were about the recipe are changed:
   teal of a web link. *(Georgia is wider than the sans it replaced, so a long recipe name now
   ellipses sooner at phone width — that is the band's own designed behaviour, since a name that wraps
   to two lines steals height from the board, but it is worth his eye.)*
+
+**The recipe's name shrinks to fit, and all 21 names are on a dial** (*"Can you dynamically shrink
+the font size of the recipe name to fit? show me a few different recipe names (longest and shortest)
+in the artifact so i can see how they look"*):
+
+- The name starts at the row's own scale and **steps down until it stops overflowing**, measured on
+  the laid-out page rather than predicted, with a floor at 68% of that scale. Only if it still will
+  not fit does it ellipse.
+- The tuner carries **the game's real 21 recipes**, read out of `src/ui/recipe.js` and sorted
+  shortest name to longest — *Pound Cake* (10 characters) to *Chocolate Genoise Sponge Cake* (29) —
+  each with the ingredients it actually needs. Never invented names.
+- **Measured across all 21, at every box:** the laptop column and the tablet fit every name with room
+  (smallest 15px and 18px). A phone fits 19 of 21; the two longest hit the floor at 10px and are cut.
+- **The one lever, and it is a dial rather than a decision I made:** the ingredients on the recipe
+  card do not have to be as big as the crates in a hold. At **80% of a crate, all 21 fit on a phone**
+  with nothing smaller than 11px. Default is 100% — his call.
