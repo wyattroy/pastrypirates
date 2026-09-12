@@ -2576,3 +2576,17 @@ is seen as the share of a screen it really is. A preview that cannot be measured
 **One thing to watch, measured by eye in the tuner:** at 25% cream over this wood, three of the four
 captain names (teal, green, amber) lose most of their contrast. The fill slider is right there; about
 55% brings them back. His call, not mine to make silently.
+
+**Corrected the same evening, twice:**
+
+- **The fill behind each captain is BLACK, not cream.** *"the fill behind each captain should be
+  black, not color... should be black, not cream."* 25% black over the wood. The captain's colour is
+  left only where it carries meaning — the name, and the ring on whoever's turn it is. (This
+  supersedes the cream ruling made an hour earlier in this same file.)
+- **⛔ NEVER SAY "ONE PICTURE, SCALED". THE WHOLE POINT IS THREE PICTURES.** *"why do you say 'one
+  picture, scaled?' we don't want one picture, scaled -- we want 3 pictures, so that nothing ever
+  looks stretched. your artifact is confusing."* The phrase came from the mechanism (each picture is
+  drawn whole at its box's width instead of nine-sliced) and read as though one picture would serve
+  every screen — the exact opposite of the plan. **The plan is one picture PER BOX SHAPE — three —
+  and the reason is that nothing is ever stretched.** Say it that way everywhere: headings, labels,
+  briefs and commit messages.
