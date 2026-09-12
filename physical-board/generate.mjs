@@ -50,7 +50,7 @@ const CLR  = 0.4;                       // per-side clearance so a loose piece d
 // Wyatt, 2026-08-30: with the decks baked in there is no notch, so the SHORE line is no longer
 // engraved at all — the cut edge is the shoreline, and it waves. Only the beach/grass line remains.
 // BEACH is how far that one line sits inside the cut; WAVE_AMP is how much the coast wanders.
-const BEACH = opt("beach", 2.6), WAVE_AMP = opt("wave", 0.35);   // his pick, 2026-08-30: option A — beach 2.6, calm coast
+const BEACH = opt("beach", 2.2), WAVE_AMP = opt("wave", 0.35);   // 2.6 was his 2026-08-30 pick; 2.2 is what he dialled in the tuner, 2026-09-12
 const LINE_W = 0.6;   // the engraved beach/grass line's weight (his build weight, kept over the pen's 0.7)
 // (declared here, not with the island code, because the ingredient tile is derived from it below)
 const PIECE = CELL - 2 * CLR;           // a one-square piece
@@ -401,7 +401,11 @@ const TOKEN_MM = 20; // artToken's default longest side; the ingredient TILE bel
 // ...and 1.4 of daylight rather than 0.6: measured against the real engraved line, the first
 // corrected tile still crossed it by up to 0.30 mm, because the line is an inset of the ROUNDED
 // island and pulls further in at the corners than a straight offset predicts. Measured again after.
-const TOKEN_TILE = CELL - 2 * (CLR + BEACH + LINE_W / 2 + 0.5) - 1.4, TOKEN_R = 3.4, TOKEN_INK = TOKEN_TILE - 3.2;
+// Dialled by him in the Board Pieces tuner, 2026-09-12 — these OVERRIDE the derived fit. The
+// derivation (CELL - 2*(CLR + BEACH + LINE_W/2 + 0.5) - 1.4) kept the tile inside the engraved line;
+// at 19 mm it deliberately covers it, so the line is hidden while a square is stocked and appears
+// when the tile is lifted. Design units here; his numbers were real mm, divided by the grid scale.
+const TOKEN_TILE = opt("tile", 20.343), TOKEN_R = opt("tiler", 3.854), TOKEN_INK = TOKEN_TILE - 3.2;
 function tokenTile(name, cx, cy) {
   const h = TOKEN_TILE / 2;
   return [item(CU, [roundCorners([[cx - h, cy - h], [cx + h, cy - h], [cx + h, cy + h], [cx - h, cy + h]], TOKEN_R)]),
@@ -793,22 +797,33 @@ function shipStanding(kind, captain) {
 // mw = 2.6, shoulder = 0 reproduces the sail as it has been since 2026-08-25. Pulled out of ship3d
 // on 2026-09-11 so the mast options could be drawn from the real thing — Wyatt: "the sails in your
 // image are not the actual shape of the current sailes, so I cannot trust them."
-// mw is the mast's width, `head` how far it stands proud above the sail, `spar` a CENTRED notch in
-// that masthead. No chamfers: a mast the width of its own tab needs none, and Wyatt, 2026-09-11:
-// "your thickers sails are jagged and wrong; your spar would look stupid because it's off center."
+// THE SAIL, rebuilt symmetric 2026-09-12. Wyatt, on the 8 mm post: "why is your new mast so messed
+// up ... it is asymmetric, glitchy, and wrong. redesign it from scratch if you need to."
+// He was right and the cause was in the old outline: its foot was inset 2.8 mm on one side and 1.5 on
+// the other — a hand-placed "belly" that read as a curve at a 2.6 mm mast and as a glitch at 8.
+// Now the whole piece is built about x = 0 and is symmetric BY CONSTRUCTION: a square sail on a yard,
+// a foot that bellies on a parabola, a centred post, a centred tab. mw is the post's width, `head`
+// how far it stands proud for a spar, `spar` a centred notch in that masthead.
 function sailPiece(w, hgt, { mw = 2.6, sl = 7, pat = 0, head = 0, spar = 0 } = {}) {
-  const mh = hgt + 8 + head, y0 = 2 + head, y1 = y0 + hgt, c = mw / 2, tab = tab_(sl);
-  const foot = y1 + 2.4;
-  // the spar notch sits ON THE MAST'S CENTRELINE, in the masthead that `head` raises above the sail
-  const nw = MAT3 + .1, nd = Math.min(3, head - 2);
-  const mastTop = spar ? [[0, 0], [c - nw / 2, 0], [c - nw / 2, nd], [c + nw / 2, nd], [c + nw / 2, 0], [mw, 0]] : [[0, 0], [mw, 0]];
-  const outline = [...mastTop, [mw, y0], [c + w / 2, y0], [c + w / 2, y1], [c + w / 2 - 2.8, y1 + 1.6],
-    [mw, foot], [mw, mh],
-    [c + tab / 2, mh], [c + tab / 2, mh + MAT], [c - tab / 2, mh + MAT], [c - tab / 2, mh], [0, mh],
-    [0, foot], [c - (w / 2 - 1.5), y1 + 1.6], [c - w / 2, y1], [c - w / 2, y0], [0, y0]];
-  const cx = c, cy = y0 + 1.4 + (hgt - 1.4) * .5, sk = Math.min(w - 4, hgt - 3.4);
+  const W = w, H = hgt, belly = 2.2, post = 5.0, tab = tab_(sl);
+  const hw = W / 2, hm = mw / 2, ht = tab / 2;
+  const footY = x => H + belly * (1 - (2 * x / W) ** 2);      // the foot, deepest on the centreline
+  const armR = [], armL = [];
+  for (let n = 0; n <= 10; n++) { const x = hw + (hm - hw) * n / 10; armR.push([x, footY(x)]); armL.unshift([-x, footY(x)]); }
+  const postBottom = footY(hm) + post;
+  const nw = MAT3 + .1, nd = Math.min(3, Math.max(0, head - 2));
+  const top = head
+    ? (spar ? [[-hm, -head], [-nw / 2, -head], [-nw / 2, -head + nd], [nw / 2, -head + nd], [nw / 2, -head], [hm, -head], [hm, 0]]
+            : [[-hm, -head], [hm, -head], [hm, 0]])
+    : [[-hm, 0]];
+  const outline = [...top, [hw, 0], ...armR, [hm, postBottom],
+    [ht, postBottom], [ht, postBottom + MAT], [-ht, postBottom + MAT], [-ht, postBottom],
+    [-hm, postBottom], ...armL, [-hw, 0], ...(head ? [[-hm, 0]] : [])];
+  const sk = Math.min(W - 4, H - 3.6);
   void pat;
-  return [item(CU, [polyCmds(outline)]), rect(RA, c - w / 2, y0 + .6, w, .5), ...artToken("skullref", cx, cy, sk, { cut: false, solid: true })];
+  return [item(CU, [polyCmds(outline)]),
+    rect(RA, -hw, 0.7, W, .5),                                  // the yard the sail hangs from
+    ...artToken("skullref", 0, H * 0.52, sk, { cut: false, solid: true })];
 }
 // a spar that braces the two mastheads: a bar half-lapped into a notch in each mast
 function sailSpar(gap = 8 * GRID_SCALE, len = 8 * GRID_SCALE + 14, wdt = 4.2) {
@@ -959,8 +974,8 @@ function medallion(ch, cx, cy, r, size) {
   return [{ ...disc, sub: [...disc.sub, ...letter.flatMap(i => i.sub)] }];
 }
 // the island's engraving, all tunable from one place (the Board Pieces tuner dials these)
-const ING_SIZE = opt("ingsize", 8.6), ING_DX = opt("ingdx", 3.4);
-const PRICE_R = opt("pricer", 3.4), PRICE_DX = opt("pricedx", 6.0), PRICE_DY = opt("pricedy", 0);
+const ING_SIZE = opt("ingsize", 14.989), ING_DX = opt("ingdx", 1.285);
+const PRICE_R = opt("pricer", 3.854), PRICE_DX = opt("pricedx", 4.497), PRICE_DY = opt("pricedy", 3.533);
 
 function islandClean(cells, artKey, mirror = false, extra = [], seedBase = 17, { dockEdge = 0, ing = null } = {}) {
   // ONE dock per island, baked into the cut (Wyatt, 2026-08-30). dockEdge picks which perimeter edge
