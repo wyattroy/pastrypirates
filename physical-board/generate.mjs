@@ -950,6 +950,18 @@ function islandFromArt(shapeIdx) {
 // the number under the tile you lift exactly what you pay. A fourth square, where a shape has one,
 // carries the ingredient alone. All of it sits UNDER the tile while the island is stocked, and is
 // revealed as the island empties — which is the whole point.
+// The compass coin: a filled disc with the letter knocked out of it. The spinner's dial has used it
+// since 2026-08-22; Wyatt, 2026-09-12: "style the outer compass NSEW the same way as on the wind
+// spinner inner wheel -- black circle, white letter" — and the island prices take the same treatment.
+function medallion(ch, cx, cy, r, size) {
+  const disc = circ(RA, cx, cy, r);
+  const letter = ftext(RA, ch, cx, cy, size, { font: "avenir-next-demibold", align: "center", valign: "middle" }).map(reverseItem);
+  return [{ ...disc, sub: [...disc.sub, ...letter.flatMap(i => i.sub)] }];
+}
+// the island's engraving, all tunable from one place (the Board Pieces tuner dials these)
+const ING_SIZE = opt("ingsize", 8.6), ING_DX = opt("ingdx", 3.4);
+const PRICE_R = opt("pricer", 3.4), PRICE_DX = opt("pricedx", 6.0), PRICE_DY = opt("pricedy", 0);
+
 function islandClean(cells, artKey, mirror = false, extra = [], seedBase = 17, { dockEdge = 0, ing = null } = {}) {
   // ONE dock per island, baked into the cut (Wyatt, 2026-08-30). dockEdge picks which perimeter edge
   // carries it; the cut, the single engraved line and the deck all come from islandBody, the same
@@ -957,11 +969,13 @@ function islandClean(cells, artKey, mirror = false, extra = [], seedBase = 17, {
   const { items: it } = islandBody(cells, { docks: [dockEdge], seedBase });
   // No palm, stones or tufts (2026-08-30). What a square carries now is the ingredient it sells and,
   // on the three stocked squares, what that one costs.
-  if (ing) cells.forEach(([cx, cy], k) => {
-    const x = (cx + .5) * CELL, y = (cy + .5) * CELL, priced = k < 3;
-    const ix = priced ? x - 3.4 : x;
-    it.push(...artToken(ing, ix, y, 8.6, { cut: false }));
-    if (priced) it.push(...ftext(RA, String(3 + k), x + 5.6, y, 6.4, { font: "avenir-next-demibold", align: "center", valign: "middle" }));
+  // Only the THREE stocked squares are engraved. Wyatt, 2026-09-12: "Remove the 4th (unpriced)
+  // ingredient raster from the island" — a fourth icon with no price said nothing and implied stock
+  // that is never there. The price sits in a disc, letter knocked out, like the compass medallions.
+  if (ing) cells.slice(0, 3).forEach(([cx, cy], k) => {
+    const x = (cx + .5) * CELL, y = (cy + .5) * CELL;
+    it.push(...artToken(ing, x - ING_DX, y, ING_SIZE, { cut: false }));
+    it.push(...medallion(String(3 + k), x + PRICE_DX, y + PRICE_DY, PRICE_R, PRICE_R * 1.18));
   });
   it.push(...extra);
   void artKey; void mirror;
@@ -1111,6 +1125,12 @@ function partedLine(linePts, edges, reach = 6, halfW = TDOCK.stem / 2 + 1.1) {
 // and the grass is engraved." So: the CUT IS THE SHORELINE and it waves; ONE engraved line inside it
 // divides bare-wood beach from grass. Docks bake into the cut, reaching into the neighbouring square
 // exactly as Tortuga's do, from the one shared tArmPts.
+// the engraved beach/grass line as points — factored out so the Board Pieces tuner can be handed the
+// REAL line at a range of beach settings instead of a lookalike drawn in the browser
+function grassPts(loop, beach, seedBase) {
+  return waveCoast(roundCorners(offsetPoly(loop, -CLR - beach), ISLAND_R).cmds, [],
+    { amp: 0.5, lambda: 11, quiet: 0, step: 0.6, phase: seedBase * 2.71 + 1.9, ripple: 0.4 });
+}
 function islandBody(cells, { docks = [], beach = BEACH, waveAmp = WAVE_AMP, seedBase = 17, deckIn = null } = {}) {
   const loop = traceCells(cells)[0].map(([x, y]) => [x * CELL, y * CELL]);
   const edges = perimeterEdges(cells).map(e => ({ ...e, m: [e.m[0] * CELL + e.inward[0] * CLR, e.m[1] * CELL + e.inward[1] * CLR] }));
@@ -1126,8 +1146,7 @@ function islandBody(cells, { docks = [], beach = BEACH, waveAmp = WAVE_AMP, seed
   if (signedArea(pts) < 0) pts = pts.reverse();
   for (const e of dockEdges) pts = notchPolyline(pts, e.m, e.along, TDOCK.stem / 2 + 0.2, tArmPts(e.m, e.along, [-e.inward[0], -e.inward[1]]));
   const it = [item(CU, [polyCmds(pts)])];
-  const grass = waveCoast(roundCorners(offsetPoly(loop, -CLR - beach), ISLAND_R).cmds, [],
-    { amp: 0.5, lambda: 11, quiet: 0, step: 0.6, phase: seedBase * 2.71 + 1.9, ripple: 0.4 });
+  const grass = grassPts(loop, beach, seedBase);
   it.push(...partedLine(grass, dockEdges, beach + 2.5));
   for (const e of dockEdges) it.push(...tArmRaster(e.m, e.along, [-e.inward[0], -e.inward[1]], deckIn == null ? beach : deckIn));
   return { items: it, edges, dockEdges };
@@ -1703,9 +1722,12 @@ function nestedSpinner() {
   // CEO review, 2026-09-12: the letters sat where the ring's point lands, so the point covered 39–51 %
   // of the very letter it was aiming at. Letters and dots now share ONE ring further out, and the
   // point stops short of it — it aims AT the marks instead of sitting on them.
-  const bMark = RB - 4.1, bTxt = 6.4;
+  // medallions, not bare letters (2026-09-12). The base's lip is only RB - RR = 12.7 mm wide, so these
+  // are smaller than the dial's 5.4 — big enough to read, small enough that the ring's point still
+  // has somewhere to stop short of them.
+  const bMark = RB - 5.2, bDisc = 3.6;
   for (const [L, a] of [["N", -90], ["E", 0], ["S", 90], ["W", 180]])
-    backing.push(...ftext(RA, L, bMark * Math.cos(rad(a)), bMark * Math.sin(rad(a)), bTxt, { font: "avenir-next-demibold", align: "center", valign: "middle" }));
+    backing.push(...medallion(L, bMark * Math.cos(rad(a)), bMark * Math.sin(rad(a)), bDisc, bDisc * 1.28));
   for (let i = 0; i < 24; i++) { const ang = i * 15; if (ang % 90 === 0) continue; const a = rad(ang);
     backing.push(circ(RA, bMark * Math.cos(a), bMark * Math.sin(a), ang % 45 === 0 ? 1.1 : .7)); }
   parts.push(part("spinner-backing", backing));
@@ -1736,7 +1758,7 @@ function nestedSpinner() {
   // outward at the letters now on the base. Nothing stands up; the whole spinner packs flat.
   // the point stops 0.5 mm short of the letter ring's inner edge (RB - 4.1 - 6.4/2), so it never
   // covers a letter — CEO review, 2026-09-12
-  const PT_HW = 8.6, PT_OUT = (RB - 4.1 - 6.4 / 2 - 0.5) - RR;
+  const PT_HW = 8.6, PT_OUT = (RB - 5.2 - 3.6 - 0.6) - RR;
   const hw = Math.asin(PT_HW / RR) * 180 / Math.PI, edge = [];
   for (let a = 90 + hw; a <= 450 - hw + 1e-9; a += (360 - 2 * hw) / 200) edge.push([RR * Math.cos(rad(a)), RR * Math.sin(rad(a))]);
   edge.push([0, RR + PT_OUT]);                          // the tip, at the WIND NOW label (+y)
@@ -1982,6 +2004,25 @@ function buildVersion(V) {
   } else {
     const all = docs.filter(d => d.id !== "board"), allParts = all.map(d => part(d.id, d.items));
     docs.push(sheet("pieces-all", "All pieces on one sheet", allParts, { maxW: SHEET_W, notes: `Every piece except the board, nested in a ${SHEET_W} mm wide sheet.`, count: all.reduce((a, d) => a + d.count, 0) }));
+  }
+  if (v === "v3") {
+    // ---- data for the Board Pieces tuner (Wyatt, 2026-09-12) ----
+    // The island outline and the grass line at every beach setting come from THIS generator, so what
+    // he dials against is the real part, not a browser approximation. Only the tile, the icon and the
+    // price disc are drawn live in the page — shapes simple enough to reproduce exactly.
+    const S = GRID_SCALE, pathOf = its => its.filter(i => i.layer === CU).flatMap(i => i.sub.map(sp => flatten(sp, 12).pts.map(([x, y]) => [r3(x * S), r3(y * S)])));
+    const tuner = { cell: r3(CELL_REAL), clr: r3(CLR * S), scale: S, lineW: r3(LINE_W * S),
+      defaults: { beach: BEACH, tile: r3(TOKEN_TILE * S), tileR: r3(TOKEN_R * S), ink: r3(TOKEN_INK * S),
+        ingSize: r3(ING_SIZE * S), ingDx: r3(ING_DX * S), priceR: r3(PRICE_R * S), priceDx: r3(PRICE_DX * S), priceDy: r3(PRICE_DY * S) },
+      icons: Object.fromEntries(ING.map(g => [g, artToken(g, 0, 0, 10, { cut: false }).flatMap(i => i.sub.map(sp => flatten(sp, 10).pts.map(([x, y]) => [r3(x), r3(y)])))])),
+      islands: ISLAND_LIVE.slice(0, 3).map(i => {
+        const cells = ISLAND_SHAPES[i], loop = traceCells(cells)[0].map(([x, y]) => [x * CELL, y * CELL]);
+        const body = islandBody(cells, { docks: [DOCK_EDGE[i]], seedBase: i });
+        return { n: i + 1, ing: ISLAND_ING[i], cells, cut: pathOf(body.items),
+          grass: Object.fromEntries([...Array(13)].map((_, k) => { const b = r3(1.4 + k * 0.2);
+            return [b.toFixed(1), grassPts(loop, b, i).map(([x, y]) => [r3(x * S), r3(y * S)])]; })) };
+      }) };
+    fs.writeFileSync(path.join(HERE, "tuner-data.json"), JSON.stringify(tuner));
   }
   return { ...V, docs };
 }
