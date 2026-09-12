@@ -286,3 +286,56 @@ size) rather than forcing a square. Forcing square once got past review and ship
 icon squished into a square canvas read as a subtly-wrong hand shape until someone actually looked
 for it. If a resize step is added anywhere without that in mind, re-derive it from this default,
 don't reintroduce forced-square as the norm.
+
+---
+
+# 2026-09-12 — THE BROWSER PIPELINE IS THE PROBLEM. REPLACE IT WITH AN API KEY.
+
+Wyatt: *"come up with a better pipeline -- we don't need to use gemini. research a better image
+generation pipeline that doesnt' require all this nonsense from you."*
+
+**What "the nonsense" actually was, named so it is not repeated.** Four separate failures, none of
+them about art:
+
+1. **Chrome's download system silently refused the 2nd and 3rd file of a batch.** One picture landed;
+   the others reported "Image downloaded" and produced no file.
+2. **The page's own security policy blocked every way out.** Gemini's `connect-src` refuses a fetch
+   to `127.0.0.1`, and after a reload the pictures are cross-origin URLs, so a canvas that touches
+   one is tainted and cannot be exported.
+3. **The workaround worked and then jammed the browser.** Navigating to a local drop box with the
+   picture in the URL got the bytes out — and left the tab parked on a 200KB address. The Chrome
+   extension classifies the active tab's URL before *every* call that touches a tab, cannot classify
+   that, and refuses everything, including closing the tab. **Two and a half hours lost to this
+   once, and forty minutes a second time.** Wyatt had to close the tab by hand.
+4. **The wrong Google account renders differently.** A round was lost to the work profile: pale,
+   dusty colours instead of royal purple, and downloads that never landed.
+
+**None of that exists with an HTTP API.** `curl` with a key writes the bytes straight to disk: no
+browser, no downloads folder, no content policy, no tab to classify, no account to be on the wrong
+one of. It is also scriptable, so a round of four variants is one loop instead of forty clicks.
+
+## What to use
+
+| | ratios it can draw | price / image | why it matters here |
+|---|---|---|---|
+| **Gemini image API** (`gemini-3-pro-image`, the "Nano Banana" family) | **ten fixed**: 1:1, 2:3, 3:2, 3:4, 4:3, 4:5, 5:4, 9:16, 16:9, 21:9 | ~$0.04 | **the same model that drew round 4**, so round 5 matches what he has already approved. Key is free from AI Studio and he already has the Google account |
+| **FLUX** (`api.bfl.ai`, or fal.ai / Replicate) | **any width × height**, multiples of 32 | ~$0.03–0.055 | the only one that can draw an exact 2.49:1. Reach for it when a slot's shape is not on the list above |
+| OpenAI `gpt-image-1` | three sizes only (1:1, 3:2, 2:3) | $0.005–0.04 | cannot do our shapes. Best in class at text in the picture, which we never want |
+
+**The catch, and it is the whole decision:** the captain's box wants **1.53 : 1 · 1.71 : 1 · 2.49 : 1**
+and none of those is one of Gemini's ten. Two ways out, and they are both fine:
+
+- **Snap the box to the standard ratios** — 3:2 for the phone (390×260), 16:9 for the laptop column
+  (511×287), 21:9 for the tablet (749×321). Nothing is stretched, the look stays continuous with
+  round 4, and the tuner confirms the fit in one click. The tablet's box grows by about 20px.
+- **Use FLUX for the odd shapes** and keep Gemini for everything square-ish. Exact ratios, but a
+  different painter — so do not mix the two inside one set of art.
+
+## The shape of the script when it is built
+
+`node scripts/art/gen.mjs --prompt-file <f> --size 1600x640 --out art-review/<name>.png`, key read
+from an untracked file, the bytes written straight to `art-review/`, the same trim-the-white-edge
+pass that already exists, and the aspect printed back so a wrong shape is caught before it is judged.
+**Never commit the key; never print it.**
+
+*(Researched 2026-09-12. Not built — it needs a key, which only Wyatt can create.)*
