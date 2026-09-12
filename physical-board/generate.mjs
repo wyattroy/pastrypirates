@@ -47,6 +47,11 @@ const ONLY = (argv.includes("--versions") ? argv[argv.indexOf("--versions") + 1]
 const GRID = 15;                        // engine: cfg.grid
 const CC   = (GRID - 1) / 2;            // engine: centre of the round world
 const CLR  = 0.4;                       // per-side clearance so a loose piece drops into a square
+// Wyatt, 2026-08-30: with the decks baked in there is no notch, so the SHORE line is no longer
+// engraved at all — the cut edge is the shoreline, and it waves. Only the beach/grass line remains.
+// BEACH is how far that one line sits inside the cut; WAVE_AMP is how much the coast wanders.
+const BEACH = opt("beach", 2.6), WAVE_AMP = opt("wave", 0.35);   // his pick, 2026-08-30: option A — beach 2.6, calm coast
+// (declared here, not with the island code, because the ingredient tile is derived from it below)
 const PIECE = CELL - 2 * CLR;           // a one-square piece
 const GAP  = 4;                         // spacing between nested parts on a sheet
 const SHEET_W = opt("sheet", 300);      // wrap width for the preview sheets
@@ -385,7 +390,11 @@ const TOKEN_MM = 20; // artToken's default longest side; the ingredient TILE bel
 // corners and nothing on its back, so a tile turned face down gives nothing away — which a
 // silhouette, readable by its outline alone, never could. Drawn in design units and scaled with the
 // squares, so it always sits inside one with room to lift it out.
-const TOKEN_TILE = CELL - 3, TOKEN_R = 2.6, TOKEN_INK = TOKEN_TILE - 4.2;
+// Wyatt, 2026-09-11: "the ingredient squares must fit neatly on the green grass part of the island
+// -- so they may need to be shrunken a little." The grass begins BEACH inside the island's cut and
+// the cut is CLR inside the square, so the grass square is CELL - 2*(CLR + BEACH); the tile takes
+// that less 0.6 of daylight, and is derived so it follows if either line ever moves again.
+const TOKEN_TILE = CELL - 2 * (CLR + BEACH) - 0.6, TOKEN_R = 2.2, TOKEN_INK = TOKEN_TILE - 3.6;
 function tokenTile(name, cx, cy) {
   const h = TOKEN_TILE / 2;
   return [item(CU, [roundCorners([[cx - h, cy - h], [cx + h, cy - h], [cx + h, cy + h], [cx - h, cy + h]], TOKEN_R)]),
@@ -889,9 +898,16 @@ function notchPolyline(ptsIn, m, along, hw, notchPts, offTol = 1.5) {
 //   island-2 (the three-square L): under the top arm's right square, dropping into the corner
 //   island-8 (the J): the hanging square's left side, pointing into the corner
 const DOCK_EDGE = [1, [1.5, 1], 2, 0, 5, 4, 6, [2, 1.5], 3];
+// Wyatt, 2026-09-11, by screenshot: "remove these two islands" — island-1 (the three-in-a-row) and
+// island-9 (the mirrored S), identified by their place on the sheet, their shape and their dock side.
+// That leaves SEVEN shapes for SEVEN ingredients, one each, in the game's own ingredient order. The
+// names keep their original numbers so they still match what he has seen; there is no island-1 or -9.
+const ISLAND_OUT = [0, 8];
+const ISLAND_LIVE = ISLAND_SHAPES.map((_, i) => i).filter(i => !ISLAND_OUT.includes(i));
+const ISLAND_ING = Object.fromEntries(ISLAND_LIVE.map((i, k) => [i, ING[k]]));
 function islandFromArt(shapeIdx) {
   const cells = ISLAND_SHAPES[shapeIdx], artKey = shapeIdx === 7 ? "island5" : shapeIdx === 8 ? "island6" : `island${shapeIdx + 1}`, mirror = shapeIdx >= 7;
-  return islandClean(cells, artKey, mirror, [], shapeIdx, { dockEdge: DOCK_EDGE[shapeIdx] });
+  return islandClean(cells, artKey, mirror, [], shapeIdx, { dockEdge: DOCK_EDGE[shapeIdx], ing: ISLAND_ING[shapeIdx] });
 }
 // Wyatt's SECOND drawing (notes/islands.jpeg, 2026-08-22) and his answers to the questions, all rulings his:
 //   the cut is ruler-straight between 5 mm corners (no wave), 0.4 mm inside the squares, a plain 9 x 2.6 notch in the
@@ -899,13 +915,28 @@ function islandFromArt(shapeIdx) {
 //   and grass, 0.6 mm, each waving its own way, bare wood between them as the beach; one mark per square, centred: the
 //   wind-blown palm on an end square, the three stones on the junction square with a tuft beside them, the game's tuft
 //   on every other square. Tortuga (marks: false) gets the same coast and keeps its piers and name.
-function islandClean(cells, artKey, mirror = false, extra = [], seedBase = 17, { dockEdge = 0 } = {}) {
+// Wyatt, 2026-09-11: "each island will be rastered with the ingredient it stocks (so that when an
+// island is out of stock, the player still knows which to return to for the black market of that
+// ingredient)" and "next to each island's ingredient raster will be the cost of that ingredient
+// (3/4/5)". The 3/4/5 is the engine's own ladder — src/engine/index.js: "price = 6 - crates still on
+// the island. 3 left -> 3, 2 -> 4, 1 -> 5" — so it is not one price per ingredient but one per
+// square: the three stocked squares are numbered 3, 4, 5 and you take the lowest left, which makes
+// the number under the tile you lift exactly what you pay. A fourth square, where a shape has one,
+// carries the ingredient alone. All of it sits UNDER the tile while the island is stocked, and is
+// revealed as the island empties — which is the whole point.
+function islandClean(cells, artKey, mirror = false, extra = [], seedBase = 17, { dockEdge = 0, ing = null } = {}) {
   // ONE dock per island, baked into the cut (Wyatt, 2026-08-30). dockEdge picks which perimeter edge
   // carries it; the cut, the single engraved line and the deck all come from islandBody, the same
   // one Tortuga uses.
   const { items: it } = islandBody(cells, { docks: [dockEdge], seedBase });
-  // NO MARKS. Wyatt, 2026-08-30: "remove the gras, pebbles, and tree from the island." The palm, the
-  // three stones and the grass tufts are all gone; the island is its coast, its one line, and its dock.
+  // No palm, stones or tufts (2026-08-30). What a square carries now is the ingredient it sells and,
+  // on the three stocked squares, what that one costs.
+  if (ing) cells.forEach(([cx, cy], k) => {
+    const x = (cx + .5) * CELL, y = (cy + .5) * CELL, priced = k < 3;
+    const ix = priced ? x - 3.4 : x;
+    it.push(...artToken(ing, ix, y, 8.6, { cut: false }));
+    if (priced) it.push(...ftext(RA, String(3 + k), x + 5.6, y, 6.4, { font: "avenir-next-demibold", align: "center", valign: "middle" }));
+  });
   it.push(...extra);
   void artKey; void mirror;
   return it;
@@ -967,10 +998,6 @@ const NOTCH = { tab: { hw: 4.5, depth: 2.5 }, socket: { hw: 4.525, depth: 2.6 } 
 // the sand") while the dock's 2.5 mm tab stays as it is — so the shore line straddles the 2.6 mm notch floor. The beach
 // between the lines is the drawing's 2.4 mm.
 const SHORE_LINE = 2.6, GRASS_LINE = 5.6, LINE_W = 0.6;
-// Wyatt, 2026-08-30: with the decks baked in there is no notch, so the SHORE line is no longer
-// engraved at all — the cut edge is the shoreline, and it waves. Only the beach/grass line remains.
-// BEACH is how far that one line sits inside the cut; WAVE_AMP is how much the coast wanders.
-const BEACH = opt("beach", 2.6), WAVE_AMP = opt("wave", 0.35);   // his pick, 2026-08-30: option A — beach 2.6, calm coast
 function dovetailPts(m, along, inward, { neck, head, depth }, dir) {
   const n = [inward[0] * dir, inward[1] * dir], t = along, P = (x, d) => [m[0] + t[0] * x + n[0] * d, m[1] + t[1] * x + n[1] * d];
   return [P(-neck / 2, 0), P(-head / 2, depth), P(head / 2, depth), P(neck / 2, 0)];
@@ -1451,6 +1478,46 @@ function kerfCompensate(items, k) {
   return out;
 }
 // ---- shelf-pack named parts onto bed-sized sheets, tallest first ----
+// Wyatt, 2026-09-11: "I know for a fact that you can more tightly pack the 3mm sheets -- there is
+// much wasted space. your goal: print 2 games worth of pieces on 3 3mm sheets, not 4."
+// packSheets lays parts in SHELVES, so every short part in a tall row wastes the space beneath it —
+// exactly the waste he is looking at. This one places each part at the lowest, then leftmost, spot
+// that will take it, trying BOTH ways round, keeping a running set of candidate corners. Same margin
+// and gap; no shelves. Parts may be turned 90°, which is free here: no 3 mm part is grain-critical.
+function packBL(parts, bed = BED3, { gap = GAP, order = "area" } = {}) {
+  const W = bed.w, H = bed.h, m = bed.m ?? BED_MARGIN, g = gap;
+  const key = { area: b => b.w * b.h, height: b => b.h, width: b => b.w, maxdim: b => Math.max(b.w, b.h) }[order];
+  const sized = parts.map(p => { const b = bbox(p.items); return { p, b }; }).sort((a, z) => key(z.b) - key(a.b));
+  const sheets = [];
+  const place = (sh, p, b, q) => {
+    const items = q.rot ? xf(p.items, { rot: q.rot }) : p.items, bb = q.rot ? bbox(items) : b;
+    sh.items.push(...tag(xf(items, { tx: q.x - bb.x0, ty: q.y - bb.y0 }), p.name));
+    sh.parts++;
+    sh.rects.push({ x0: q.x, y0: q.y, x1: q.x + q.w, y1: q.y + q.h });
+    sh.pts.push([q.x + q.w + g, q.y], [q.x, q.y + q.h + g]);
+  };
+  for (const { p, b } of sized) {
+    let done = false;
+    for (const sh of sheets) {
+      let best = null;
+      for (const rot of [0, 90]) {
+        const w = rot ? b.h : b.w, h = rot ? b.w : b.h;
+        for (const [cx, cy] of sh.pts) {
+          if (cx + w > W - m || cy + h > H - m) continue;
+          if (sh.rects.some(r => cx < r.x1 + g && cx + w + g > r.x0 && cy < r.y1 + g && cy + h + g > r.y0)) continue;
+          if (!best || cy < best.y || (cy === best.y && cx < best.x)) best = { x: cx, y: cy, w, h, rot };
+        }
+      }
+      if (best) { place(sh, p, b, best); done = true; break; }
+    }
+    if (done) continue;
+    const sh = { items: [], parts: 0, rects: [], pts: [[m, m]] };
+    sheets.push(sh);
+    place(sh, p, b, { x: m, y: m, w: b.w, h: b.h, rot: 0 });
+  }
+  return sheets;
+}
+
 function packSheets(parts, bed = BED) {
   const W = bed.w, H = bed.h, m = bed.m ?? BED_MARGIN, g = GAP, sorted = parts.map(p => ({ ...p, b: bbox(p.items) })).sort((a, b) => b.b.h - a.b.h);
   const sheets = []; // each: {items, parts, shelves:[{y, h, x}]}
@@ -1602,7 +1669,17 @@ function nestedSpinner() {
   // it grew with it. It has its own radius now, back at 48: 12.7 mm of base shows all round as a lip
   // to hold while the WIND NOW ring turns.
   const RB = 60.7, RR = 48, RD = 35, RI = RD + 0.4, parts = [];
-  parts.push(part("spinner-backing", [circ(CU, 0, 0, RB), circ(CU, 0, 0, 1.65), ring(RA, 0, 0, RD + .2, RD - .3)]));
+  // Wyatt, 2026-09-11: "the large outer ring of the wind spinner should also have N S E W on it with
+  // dots; to make it clear which direction the wind is facing NOW when the new wind arrow is pointing
+  // at it." The ring's pointer aims outward, past the dial's own letters, so the letters it reads must
+  // live out here on the base's lip. Upright like the dial's medallions, with a dot every 15° between.
+  const backing = [circ(CU, 0, 0, RB), circ(CU, 0, 0, 1.65), ring(RA, 0, 0, RD + .2, RD - .3)];
+  const bLet = RB - 6.8, bDot = RB - 2.4;
+  for (const [L, a] of [["N", -90], ["E", 0], ["S", 90], ["W", 180]])
+    backing.push(...ftext(RA, L, bLet * Math.cos(rad(a)), bLet * Math.sin(rad(a)), 7, { font: "avenir-next-demibold", align: "center", valign: "middle" }));
+  for (let i = 0; i < 24; i++) { const ang = i * 15; if (ang % 90 === 0) continue; const a = rad(ang);
+    backing.push(circ(RA, bDot * Math.cos(a), bDot * Math.sin(a), ang % 45 === 0 ? 1.1 : .7)); }
+  parts.push(part("spinner-backing", backing));
   const dial = [circ(CU, 0, 0, RD), circ(CU, 0, 0, 1.65), ring(RA, 0, 0, 4.2, 3.4)];
   // the two scroll bands, broken where the medallions sit so no line ever crosses a letter
   const arcBand = (r0, r1, a0, a1) => { const pts = [], n = 24; for (let i = 0; i <= n; i++) { const a = rad(a0 + (a1 - a0) * i / n); pts.push([r1 * Math.cos(a), r1 * Math.sin(a)]); } for (let i = n; i >= 0; i--) { const a = rad(a0 + (a1 - a0) * i / n); pts.push([r0 * Math.cos(a), r0 * Math.sin(a)]); } return poly(RA, pts); };
@@ -1624,12 +1701,15 @@ function nestedSpinner() {
     const local = [...artToken("stormemoji", 23.5, 0, 5.8, { cut: false, solid: true, rot: 90 }), ...xf(ftext(RA, "STORM", 0, 0, 2.0, { font: "avenir-next-demibold", align: "center", valign: "middle" }), { rot: -90, tx: 29.5, ty: 0 })];
     const holes = xf(local, { rot: mid }).map(reverseItem); dial.push({ ...w, sub: [...w.sub, ...holes.flatMap(i => i.sub)] }); }
   parts.push(part("spinner-dial", dial));
-  // Wyatt, 2026-08-22: "a 3D wind-now flag/vane that slots in to show the current wind direction visibly, and
-  // differentiates it from the flat spun forecast". The ring carries a radial slot at its pointer; the vane's
-  // tab drops through it and stands on the backing disc. Its pennant streams inward, toward the letter the
-  // ring is set to — the way the wind blows — 25 mm above the flat needle, so the two can never be confused.
-  const VS = MAT3 + .05, VL = 7, vr = RR - 5;   // slot: material + 0.05 so the vane stands snug (same ruling as the sails), 7 long, centred at r = 43
-  const ringPart = [circ(CU, 0, 0, RR), circ(CU, 0, 0, RI), rect(CU, -VS / 2, -(vr + VL / 2), VS, VL), ring(RA, 0, 0, RR - 1, RR - 1.6), ...icon("fleur", 0, -(RI + 2.6), 5, 180), ...ftext(RA, "WIND NOW", 0, RR - 5, 3, { font: "avenir-next-demibold", align: "center" })];
+  // Wyatt, 2026-09-11: "the 'wind now' flag is a bad design -- remove it, it makes the assembly not pack
+  // flat. instead, add a cut arrow below the WIND NOW part of the ring". So the standing vane and the slot
+  // it stood in are both gone, and the ring's own edge comes to a point under its WIND NOW label, aimed
+  // outward at the letters now on the base. Nothing stands up; the whole spinner packs flat.
+  const PT_HW = 8.6, PT_OUT = 6.4;                      // the point: half-width at the rim, and its reach past it
+  const hw = Math.asin(PT_HW / RR) * 180 / Math.PI, edge = [];
+  for (let a = 90 + hw; a <= 450 - hw + 1e-9; a += (360 - 2 * hw) / 200) edge.push([RR * Math.cos(rad(a)), RR * Math.sin(rad(a))]);
+  edge.push([0, RR + PT_OUT]);                          // the tip, at the WIND NOW label (+y)
+  const ringPart = [item(CU, [polyCmds(edge)]), circ(CU, 0, 0, RI), ring(RA, 0, 0, RR - 1, RR - 1.6), ...icon("fleur", 0, -(RI + 2.6), 5, 180), ...ftext(RA, "WIND NOW", 0, RR - 5, 3, { font: "avenir-next-demibold", align: "center" })];
   for (let i = 0; i < 24; i++) { if (i >= 4 && i <= 8) continue; const rr = RR - 4; ringPart.push(xf([rect(RA, rr - 1.2, -.25, 2.4, .5)], { rot: i * 15 })[0]); }  // no ticks under the WIND NOW label
   parts.push(part("spinner-ring", ringPart));
   // the needle: a classic compass needle (Wyatt, 2026-08-25: the balanced double-fleur was symmetric — "it is not
@@ -1643,13 +1723,7 @@ function nestedSpinner() {
   darkHalf.push([0, -NR], [0, -NW]);
   const needle = [item(CU, [polyCmds(needleOutline)]), circ(CU, 0, 0, 1.65), poly(RA, darkHalf)];
   parts.push(part("spinner-needle", needle), part("spinner-washer", [circ(CU, 0, 0, 4), circ(CU, 0, 0, 1.65)]));
-  // the vane: a pennant on a mast, the tab below the mast (through the ring, onto the backing). Drawn as it
-  // stands — pennant at the top, tab at the bottom — so WIND NOW reads upright once it is in the slot.
-  const mh = 30, pw = 30, ph = 10, tab = VL - .4;
-  const pts = [[0, 0.6], [2.6, 0.6], [2.6, mh], [tab / 2 + 1.3, mh], [tab / 2 + 1.3, mh + MAT3], [-tab / 2 + 1.3, mh + MAT3], [-tab / 2 + 1.3, mh], [0, mh],
-    [0, ph + 0.6], [-pw, ph + 0.6], [-pw + 5, ph / 2 + 0.6], [-pw, 0.6]];
-  const vane = [item(CU, [polyCmds(pts)]), rect(RA, 0.9, ph + 2.4, 0.8, mh - ph - 3.6), ...ftext(RA, "WIND NOW", -(pw - 5) / 2 - 1, ph / 2 + 0.6 + 1.7, 4.2, { font: "avenir-next-demibold", align: "center" })];   // 4.2 (Wyatt, 2026-08-25: bigger)
-  parts.push(part("spinner-vane", vane));
+  // (the standing vane is retired — see the ring's pointer above)
   return parts.map(p => ({ ...p, mat: MAT3 }));
 }
 
@@ -1735,7 +1809,7 @@ function buildVersion(V) {
   // Wyatt, 2026-09-10: "i want the islands packed onto 3mm". They carry no joint — the docks are
   // baked into the cut and nothing plugs into them — so thickness is free, and moving them off the
   // 6 mm sheet is what lets the whole board fit one sheet of it.
-  const islandPartsDesign = (v === "v3" ? ISLAND_SHAPES : TET).map((_, i) => part(`island-${i + 1}`, islandPiece(v, i)));
+  const islandPartsDesign = (v === "v3" ? ISLAND_LIVE : TET.map((_, i) => i)).map(i => part(`island-${i + 1}`, islandPiece(v, i)));
   const islandParts = islandPartsDesign.map(p => (v === "v3" ? { ...p, mat: MAT3, items: xf(p.items, { s: GRID_SCALE }) } : p)); cutParts.push(...islandParts);
   docs.push(sheet("islands", v === "v3" ? "Island shapes (9)" : "Island shapes (7)", islandParts, { notes: v === "v3" ? "Every tetromino orientation: the seven footprints of the app plus the mirror images of the L and the S. Seven go out each voyage. Remade 2026-08-30: the CUT EDGE is the shoreline and waves on its own — no shore line is engraved any more — and ONE engraved line inside it divides bare-wood beach from grass. Each island carries its own T-dock, baked into the cut on a different edge per island, reaching 12.5 mm into the neighbouring square where a ship berths broadside. No palm, no stones, no tufts. 3 mm ply since 2026-09-10." : v === "v1" ? "Plain edges. Shoreline band and a palm engraved. 0.4 mm clearance per side so they sit inside the squares." : v === "v2" ? "A jigsaw socket is cut into the middle of EVERY outside edge, so a dock can click onto any side of any square." : "A 4.5 mm slot in the middle of every outside edge takes the mooring post of a dock." }));
   // docks
@@ -1761,7 +1835,7 @@ function buildVersion(V) {
   const spParts = v === "v3" ? nestedSpinner() : [part("dial", spinnerDial(v === "v1" ? "quadrants-storm" : "roulette", 40, 0, 0)), part("arrow-now", arr.now), part("arrow-next", arr.next), part("washer-1", arr.washers[0]), part("washer-2", arr.washers[1])];
   
   cutParts.push(...spParts);
-  docs.push(sheet("spinner", "Wind spinner", spParts, { notes: (v === "v1" ? "80 mm dial (also engraved on the board's corner). Each quadrant's last 18° is a storm wedge — one fifth of the wheel, the app's 20%. " : v === "v2" ? "80 mm weather wheel: 20 sectors, the last of every five is a storm sector (20%). " : "Nested, all 3 mm: a 96 mm backing disc; the game's compass as a 70 mm dial glued on it (storm wedge in the last fifth of each quadrant); a ring that turns around the dial — its slot takes the standing WIND NOW vane, a pennant on a 30 mm mast that streams toward the letter the ring is set to; a flat compass needle on the centre pivot for the forecast — the dark half is the pointer. Stack: backing, dial + ring (same level), needle, washer — an M3 × 16 bolt with a nyloc nut; the vane just drops into the ring. ") + (v === "v3" ? "" : `Two arrows on one pivot: the bold one labelled NOW is this round's wind, the hollow one is the forecast. Stack: dial, hollow arrow, washer, NOW arrow, washer — ${MAT * 3 + 2 * MAT} mm of wood, so an M3 × ${MAT * 5 + 8} bolt and nyloc nut.`) }));
+  docs.push(sheet("spinner", "Wind spinner", spParts, { notes: (v === "v1" ? "80 mm dial (also engraved on the board's corner). Each quadrant's last 18° is a storm wedge — one fifth of the wheel, the app's 20%. " : v === "v2" ? "80 mm weather wheel: 20 sectors, the last of every five is a storm sector (20%). " : "Nested, all 3 mm: a 96 mm backing disc; the game's compass as a 70 mm dial glued on it (storm wedge in the last fifth of each quadrant); a ring that turns around the dial, its edge coming to a point under WIND NOW and aimed at the N/E/S/W lettered round the base's lip; a flat compass needle on the centre pivot for the forecast — the dark half is the pointer. Stack: backing, dial + ring (same level), needle, washer — an M3 × 16 bolt with a nyloc nut. Nothing stands up, so it packs flat (Wyatt, 2026-09-11). ") + (v === "v3" ? "" : `Two arrows on one pivot: the bold one labelled NOW is this round's wind, the hollow one is the forecast. Stack: dial, hollow arrow, washer, NOW arrow, washer — ${MAT * 3 + 2 * MAT} mm of wood, so an M3 × ${MAT * 5 + 8} bolt and nyloc nut.`) }));
   // ships
   const shipParts = [];
   for (let c = 0; c < 4; c++) {
@@ -1801,7 +1875,23 @@ function buildVersion(V) {
     // the cutting sheets: every part, tallest first, on bed-sized sheets, kerf-compensated
     // one run of sheets per material: the board and its tokens in 6 mm, the thin parts in 3 mm
     const noGuide = p => ({ ...p, items: p.items.filter(i => i.layer !== GU) });
-    const thick = packSheets(cutParts.filter(p => (p.mat || MAT) === MAT).map(noGuide), BED), thin = packSheets(cutParts.filter(p => (p.mat || MAT) === MAT3).map(noGuide), BED3);
+    // The numbered sheets are the 3 mm run now, and they carry TWO GAMES — the 6 mm for both games is
+    // the two-boards sheet below. One game's thin parts, then the same again with a -b suffix.
+    const oneGame = cutParts.filter(p => (p.mat || MAT) === MAT3).map(noGuide);
+    // The copy must be RE-TAGGED, not just renamed: tag() never overwrites an existing piece tag, so a
+    // part that tags its own items (Tortuga does) would hand both games' copies the same name — and the
+    // emitter, which opens a new group only when the name changes, then writes them as ONE group.
+    const twoGames = [...oneGame, ...oneGame.map(p => ({ ...p, name: p.name + "-b", items: p.items.map(it => ({ ...it, piece: p.name + "-b" })) }))];
+    // No single ordering wins on every set, and the difference here is a whole sheet — so try four and
+    // keep the best. 3 mm of gap rather than 4 on these sheets: small parts in thin ply, and he asked
+    // for them squeezed. Fewest sheets wins; ties go to the one whose last sheet is emptiest.
+    const thin = ["area", "height", "maxdim", "width"].map(order => packBL(twoGames, BED3, { gap: 3, order }))
+      .reduce((best, cand) => {
+        if (!best || cand.length < best.length) return cand;
+        if (cand.length > best.length) return best;
+        const fill = sh => Math.max(...sh.rects.map(r => r.y1));
+        return fill(cand[cand.length - 1]) < fill(best[best.length - 1]) ? cand : best;
+      }, null);
     // ---- TWO BOARDS ON ONE 42 x 84 cm SHEET (Wyatt, 2026-09-10: "can you get 2 boards onto a 42 x 84
     // sheet? and squeeze the ingredients etc around its edges?") ----
     // 420 is too narrow for two 409.8 mm circles abreast, so they stack, touching at one point with G
@@ -1841,12 +1931,12 @@ function buildVersion(V) {
         items: [...boards, ...placed], w: SW, h: SH, count: 2 + parts.length - left.length,
         notes: `${SW} × ${SH} mm, ${MAT} mm ply. Two whole boards, each one circle split in place, stacked — ${r3(4 * R + G)} mm of length. Around them, in the corners and the waist: two full sets of the 6 mm small parts (${small.length} each — 28 ingredient tokens and 4 ship hulls), ${G} mm apart.` + (left.length ? ` ${left.length} did not fit: ${left.join(", ")}.` : "") });
     }
-    const all = [...thick.map(sh => ({ sh, m: MAT })), ...thin.map(sh => ({ sh, m: MAT3 }))], N = all.length;
+    const all = thin.map(sh => ({ sh, m: MAT3 })), N = all.length;
   const matByPart = new Map(cutParts.map(p => [p.name, p.mat || MAT]));
-  KERF_FOR = name => (matByPart.get(name) === MAT3 ? KERF3 : KERF);   // thin parts get the thin kerf, everywhere
+  KERF_FOR = name => (matByPart.get(String(name).replace(/-b$/, "")) === MAT3 ? KERF3 : KERF);   // thin parts get the thin kerf; -b is the second game's copy
     all.forEach(({ sh, m }, i) => docs.splice(1 + i, 0, { id: `sheet-${i + 1}`, title: `Cutting sheet ${i + 1} of ${N} — ${m} mm`, kind: "sheet", kerf: m === MAT3 ? KERF3 : KERF, mat: m, items: kerfCompensate(sh.items, KERF_FOR),
       kerfNote: sh.items.some(it => it.noKerf) ? `KERF-COMPENSATED (every cut pushed ${KERF / 2} mm off the kept wood) EXCEPT the board's four seams and the three sides of Tortuga's square, which are cut on their nominal line on purpose: one cut makes both faces, so the beam itself is the fit. Cut the board's rim LAST.` : undefined, w: bedFor(m).w, h: bedFor(m).h, count: sh.parts,
-      notes: `${bedFor(m).w} × ${bedFor(m).h} mm sheet, ${m} mm material. Every red line is already pushed ${(m === MAT3 ? KERF3 : KERF) / 2} mm away from the wood that stays (kerf ${m === MAT3 ? KERF3 : KERF} mm), so cut exactly on the line. ${sh.parts} parts.` }));
+      notes: `${bedFor(m).w} × ${bedFor(m).h} mm sheet, ${m} mm material — TWO GAMES across these sheets. Every red line is already pushed ${(m === MAT3 ? KERF3 : KERF) / 2} mm away from the wood that stays (kerf ${m === MAT3 ? KERF3 : KERF} mm), so cut exactly on the line. ${sh.parts} parts.` }));
   } else {
     const all = docs.filter(d => d.id !== "board"), allParts = all.map(d => part(d.id, d.items));
     docs.push(sheet("pieces-all", "All pieces on one sheet", allParts, { maxW: SHEET_W, notes: `Every piece except the board, nested in a ${SHEET_W} mm wide sheet.`, count: all.reduce((a, d) => a + d.count, 0) }));
@@ -1899,11 +1989,8 @@ function mockups(five, P) {
   docs.push(doc("mockup-chest-closed", "Mockup: a treasure chest, closed", isoScene(chestSlabs.filter(sb => !sb.openOnly).map(sb => sb.xform ? { ...sb, xform: null } : sb), { scale: 5 }), "The same chest shut: lid walls meet the body walls, the tongues interleave at the back."));
   // the spinner: backing, dial + ring at one level, needle above, vane standing in the ring's slot
   const spSlabs = (() => { const g = n => byName(P.spParts, n), t = MAT3, s = [flatAt(g("spinner-backing"), 0, 0, 0, t), flatAt(g("spinner-dial"), 0, 0, t, t), flatAt(xf(g("spinner-ring"), { rot: -30 }), 0, 0, t, t), flatAt(xf(g("spinner-needle"), { rot: -20 }), 0, 0, 2 * t, t), flatAt(g("spinner-washer"), 0, 0, 3 * t, t)];
-    const a = rad(-30 - 90), vr = 43, vx = vr * Math.cos(a), vy = vr * Math.sin(a); // the slot, turned with the ring
-    const vane = g("spinner-vane"), vb = bbox(vane.filter(i => i.layer === CU)); // tab bottom at vb.y1, mast base at vb.y1 - MAT3
-    s.push(slab(vane, { origin: [vx - 1.3 * Math.cos(a), vy - 1.3 * Math.sin(a), t + (vb.y1 - t)], U: [Math.cos(a), Math.sin(a), 0], V: [0, 0, -1], T: t, bias: 60 }));
-    return s; })();
-  docs.push(doc("mockup-spinner", "Mockup: the wind spinner, assembled", isoScene(spSlabs, { scale: 4 }), "Backing disc; the compass dial glued on it with the ring turning around it; the flat forecast needle on the pivot above; the WIND NOW vane standing in the ring's slot, pennant toward the letter the ring is set to."));
+    return s; })();   // nothing stands up any more: the ring points, the base is lettered
+  docs.push(doc("mockup-spinner", "Mockup: the wind spinner, assembled", isoScene(spSlabs, { scale: 4 }), "Backing disc; the compass dial glued on it with the ring turning around it; the flat forecast needle on the pivot above; the ring's own point, under its WIND NOW label, aimed at the letter on the base. Nothing stands up — it packs flat."));
   // a cargo crate with tokens standing in it
   const crateSlabs = (() => { const c = 2, g = n => byName(P.crateParts, `crate-${CAPTAINS[c]}-${n}`), t = MAT3, { Lo, Wo } = crateSize(), hw = 10 - MAT3;
     const s = [{ ...flatAt(g("base"), 0, 0, 0, t), bias: -40 }, slab(g("front"), { origin: [Lo - t, 0, t + hw], U: [-1, 0, 0], V: [0, 0, -1], T: t }), slab(g("back"), { origin: [t, Wo, t + hw], U: [1, 0, 0], V: [0, 0, -1], T: t }),   // the floor paints FIRST: a big flat face out-means standing walls in this projection
