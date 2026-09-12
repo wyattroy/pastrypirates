@@ -2547,3 +2547,32 @@ width with a **ruler** over it, measures how much the viewer is scaling the page
 rectangle against its own CSS width) and says so, offers **"Show at true size"** which cancels that
 scaling, and can draw **the whole screen around the box** — 390×844, 1280×800, 768×1024 — so the box
 is seen as the share of a screen it really is. A preview that cannot be measured cannot be judged.
+
+## 2026-09-12 — TWO RULES FOR EVERY ARTIFACT, AND TWO CHANGES TO THE CAPTAIN'S BOX
+
+**Every artifact, from now on** (written into `docs/ARTIFACT-GUIDELINES.md` as §9 and §10):
+
+- **A page with controls keeps its preview on screen.** *"the preview must ALWAYS be visible while
+  scrolling through the tuners -- it is not user frinedly to have to scroll down to adjust a dial then
+  scroll back up to see its change."* `position:sticky; top:0`, and the sticky element must be a
+  DIRECT child of the tall scroller — wrapped in a div it un-sticks the moment the wrapper scrolls
+  past, which looks exactly like sticky being broken.
+- **No standfirst.** *"remove the verbose byline text. i already have context, in our chat session."*
+  A title, then straight into the thing. What has to be said goes in the chat reply.
+
+**The captain's box, two rulings:**
+
+- **The fill behind the captains is CREAM, not the captain's colour.** *"the fill behind the captains
+  should be cream, not color."* This is a deliberate change from what is live — dev paints each row in
+  that captain's own colour at 9% (`src/ui/util.js:163`). The colour stays where it carries meaning:
+  the name, and the ring on whoever's turn it is. Default 25%, his earlier number.
+- **The recipe band wears the recipe card the player chose, and loses the scroll icon on its left.**
+  *"the recipe should have its own background fill ... it should look like the recipe card that the
+  player selected at the beginning of the game. Remove the recipe icon from the left side of it."* The
+  fill is the real card gradient from index.html — three radial stains over
+  `linear-gradient(160deg,#f7edd2,#ecd9ac)` — with the card's own border and radius, and no bottom
+  rule, because the card is its own separation.
+
+**One thing to watch, measured by eye in the tuner:** at 25% cream over this wood, three of the four
+captain names (teal, green, amber) lose most of their contrast. The fill slider is right there; about
+55% brings them back. His call, not mine to make silently.
