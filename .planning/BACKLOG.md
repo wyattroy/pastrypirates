@@ -238,6 +238,12 @@ and every prompt promise** (`docs/DISPLAY-RULES.md` Rule C) — which is where t
 |---|---|
 | ~~W6-1~~ | ✅ **CLOSED — the slider is drawn dead rather than omitted, on BOTH seats.** See `.planning/CTO-LEDGER.md` (search `W6-1`) for the measurement and its CEO verdict. **"Would ye offer any coin on top?" appears with NO SLIDER** when the player has no money left. **Expectation: the slider appears greyed out, and the button reads "Nah" instead of "Offer it!"** |
 
+## Wave 7 — nice to have, and he said so (1)
+
+| # | Item |
+|---|---|
+| **W7-1** | 🟡 **EVERY NON-GAME PAGE SHOULD LOOK LIKE THE PREGAME INDEX.** His words, 2026-09-12, and his own priority: *"I want all of the non game pages to follow the same format as the index pregame page where the content sits in a cream rounded corner box floating over a blurry background of the game board itself. Please put that last on the list in the backlog. It's a nice to have."* So: the rules page, credits, About, privacy — the pages outside the game world — take the pregame screen's own shape, a cream rounded card floating over the board blurred behind it. **Filed LAST at his instruction.** Do not let it displace a fault a player can see. ⚠ Two things it touches that have rules of their own: the credits and About pages are **not in pirate speak** (`.claude/memory/project_voice_boundary`), so a restyle must not "fix" their voice; and `robots.txt`, `CNAME` and `sitemap.xml` never leave this repo. |
+
 ## ⛔ PARKED — needs Wyatt's ruling, the CTO may NOT default these
 
 **These are TASTE or RULES. Per the 10-minute rule's exemption, they never time out — they park.**
