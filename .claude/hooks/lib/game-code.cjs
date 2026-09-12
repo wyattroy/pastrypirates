@@ -41,6 +41,17 @@ const NOT_GAME = [
      how six instruments rotted through the cutover without one of them failing loudly. */
   /^\.gitignore$/,
   /^\.gitattributes$/,
+  /* AND THE CRAWLER'S MANIFEST. Added 2026-09-12, on Wy-Blade's finding: docs/GIT-AND-DEPLOY.md §5
+     instructs every merge touching a listed page to run scripts/qa/sitemap_write.mjs afterwards,
+     which rewrites a date in sitemap.xml — so the DOCUMENTED WORKFLOW tripped this gate on itself,
+     every single time, for a number computed from git log. A session that changed nothing but docs
+     was told to produce a staging checklist.
+
+     It clears the same one-sentence bar as the two above: the browser never fetches sitemap.xml
+     during play — nothing in index.html or src/ references it (the only hit anywhere is a COMMENT at
+     src/shared/index.js:30 about the deploy exclusion) — it is a manifest for crawlers, and no build
+     step exists that could carry it into a served page. */
+  /^sitemap\.xml$/,
 ];
 
 /** A repo-relative path. `.md` is never game code, wherever it lives. */

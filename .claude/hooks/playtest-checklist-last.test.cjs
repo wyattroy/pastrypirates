@@ -161,6 +161,19 @@ check("catches up with a published branch and writes only docs", false, (c) => {
   c.git("add -A"); c.git('commit -q -m "docs only"');
 });
 
+/* THE DOCUMENTED WORKFLOW MUST NOT TRIP THE GATE ON ITSELF — 2026-09-12, found on Wy-Blade.
+   docs/GIT-AND-DEPLOY.md §5 tells every merge touching a listed page to run sitemap_write.mjs
+   afterwards, which rewrites a date in sitemap.xml computed from git log. Before sitemap.xml was
+   excluded in lib/game-code.cjs, a session that changed nothing but docs and then followed its own
+   instructions was told to produce a staging checklist. Fourth wrong accusation from this hook. */
+check("silent: follows the documented workflow — docs, plus the sitemap date it tells you to write", false, (c) => {
+  awayBranch(c);
+  c.git("merge -q main --no-edit");
+  c.write(c.DOC, "# notes\nmore words\n");
+  c.write("sitemap.xml", '<?xml version="1.0"?><urlset><url><lastmod>2026-09-12</lastmod></url></urlset>\n');
+  c.git("add -A"); c.git('commit -q -m "docs, and the sitemap date"');
+});
+
 /* KNOWN GAP, RECORDED ON PURPOSE — 2026-09-12.
    `const ours = new Set(dirty)` says uncommitted work is ours because nobody else could have
    written it. That is false in a STALE CHECKOUT: a second folder on the same branch shows every
