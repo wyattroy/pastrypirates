@@ -2723,3 +2723,36 @@ nothing cut, and for every name a font one pixel larger would overflow — the s
 largest that fits.
 
 **And his number: the ingredients on the recipe card are 88% of a hold's crate.**
+
+## 2026-09-12 — BUILT: the captain's box, everything that does not need the plaque art
+
+*"this looks great. build it."* Shipped to `dev` and measured in a real four-captain voyage at 390 and
+1280, not only in the tuner:
+
+| what | before | now |
+|---|---|---|
+| the recipe band | a bare strip with a rule under it | **the recipe card the player chose** — the picker's own parchment, its border and radius |
+| the recipe's name | teal, sans, 13.5px | **the picker's brown Georgia 800**, underlined, and **shrunk until it fits** |
+| the scroll icon on its left | there | gone |
+| the recipe's ingredients | boxed, dimmed until held | **no box, never dimmed**, green tick when held, 88% of a hold's crate |
+| the tick | 5px past the crate's corner, through the card's edge | inside the card at every size |
+| whose turn it is | a ring INSIDE the row | **a ring outside it** |
+| between crates | a flat 3px | **20% of a crate's width** — 5px at 26, 4px at 22, in the CSS gap AND in `fitHold` |
+
+**Measured after, in the game:** the longest name, *Chocolate Genoise Sponge Cake*, draws at 12px on a
+phone and fits; every other name keeps its full 13.5. On the laptop column all 21 fit at 15px. The
+tick's bottom clears the card's by 3px at both sizes. The ring computes as
+`rgb(242,103,158) 0 0 0 2px` — 2px of the captain's own colour, **not inset**. `npm test`: 404 checks,
+0 failures.
+
+**WHAT IS NOT BUILT, AND WHY.** The plaque itself — the wooden board behind the box — and the two
+things that only make sense on it: the **50% black fill** behind the captains and the **cream ink**
+on top of it, and the **row height solved from the board's height**. All three assume wood behind
+them; on today's cream card a 50% black row is four dark bars on cream, which is not what he approved.
+They ship together with the art, and **the art is two pictures short**: only the phone's 1.54:1
+exists. The 1.70:1 and 2.47:1 could not be generated because the Chrome extension has been refusing
+every navigation with "Could not verify this site's safety category" since mid-evening.
+
+**A gate caught a real fault of mine in the same commit** (`scripts/qa/machine path` check):
+`scripts/qa/_capbox_shape.mjs` had this Mac's absolute path baked in from debugging, which would have
+died on the Blade. Rooted off `fileURLToPath(import.meta.url)`.

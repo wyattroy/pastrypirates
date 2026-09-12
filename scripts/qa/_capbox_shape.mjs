@@ -4,8 +4,8 @@
    need, and the ratio between them. No guesses — every number is read off the rendered page. */
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { serve, launch, attach, killAll, sleep } from "/Users/wyattroy/Documents/Projects/pastrypirates/.claude/worktrees/google-search-console-020493/scripts/mp_rig.mjs";
-const REPO = "/Users/wyattroy/Documents/Projects/pastrypirates/.claude/worktrees/google-search-console-020493";
+import { serve, launch, attach, killAll, sleep } from "../mp_rig.mjs";
+const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "..");
 const PORT=8790+(process.pid%25), DBG=9390+(process.pid%25);
 const url=serve(PORT); launch(DBG, path.join(REPO,`.tmp-capshape-${process.pid}`));
 const C=await attach(DBG);

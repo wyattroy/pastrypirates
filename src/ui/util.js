@@ -190,7 +190,11 @@ export function buildPlayerRows(){
    one crate tall, so the box's height is set by the number of captains alone.
    MEASURED at fit time, never assumed: the room is the hold's own width after the name and coin
    columns have taken theirs, and the crate's size is its drawn size (22px on a phone, 26 elsewhere). */
-export const HOLD_GAP_PX=3, HOLD_MAX_OVERLAP=0.35;
+/* ⭐ THE GAP IS A SHARE OF A CRATE, NOT A COUNT OF PIXELS — Wyatt, 2026-09-12: "I want the
+   ingredients to be 20% of their width gap from each other." A pixel means different things at 22px
+   and at 26px; a proportion does not. The CSS `gap` on .chips carries the same 20% (5px desktop,
+   4px phone), so the laid-out gap and the squeezed one can never disagree. */
+export const HOLD_GAP_RATIO=0.20, HOLD_MAX_OVERLAP=0.35;
 export function fitHold(el){
   if(!el)return;
   const chips=[...el.children].filter(c=>c.classList&&c.classList.contains("chip"));
@@ -199,16 +203,41 @@ export function fitHold(el){
   if(chips.length<2)return;
   const cs=chips[0].offsetWidth, room=el.clientWidth, n=chips.length;
   if(!(cs>0&&room>0))return;                              // not laid out yet — the next fit catches it
-  if(n*cs+(n-1)*HOLD_GAP_PX<=room)return;                 // they fit: the CSS gap is the whole answer
+  const gap=Math.round(cs*HOLD_GAP_RATIO);                // the same 20% the CSS gap uses
+  if(n*cs+(n-1)*gap<=room)return;                         // they fit: the CSS gap is the whole answer
   const floor=cs*(1-HOLD_MAX_OVERLAP);
   let step=(room-cs)/(n-1), scroll=false;
   if(step<floor){step=floor;scroll=true;}
-  // the container's own 3px gap still applies between crates, so the margin takes it back out
-  const ml=(step-cs-HOLD_GAP_PX).toFixed(2)+"px";
+  // the container's own gap still applies between crates, so the margin takes it back out
+  const ml=(step-cs-gap).toFixed(2)+"px";
   chips.forEach((c,i)=>{ if(i){ c.style.marginLeft=ml; if(step<cs)c.classList.add("ov"); } });
   el.classList.toggle("holdScroll",scroll);
 }
 export function fitHolds(){ document.querySelectorAll("#players .chips").forEach(fitHold); }
+/* ⛔ THE RECIPE'S NAME SHRINKS TO FIT, AND IT IS MEASURED — NEVER `scrollWidth > clientWidth`.
+   Both of those are rounded to whole pixels, and on a page the browser is scaling (any zoom that is
+   not 100%, and every artifact preview) they round INDEPENDENTLY: scrollWidth can read a pixel wider
+   than clientWidth for text that genuinely fits, and a shrink loop then walks all the way to its
+   floor. Wyatt caught exactly that on 2026-09-12 — a 21-character name at the floor with half the
+   card empty. So: a hidden copy of the name INSIDE the same element (same font, same scaling), both
+   widths read with getBoundingClientRect() — fractional, no rounding — and one division.
+   Longest name in the game is "Chocolate Genoise Sponge Cake"; the floor is 68% of the CSS size. */
+export function fitRecipeName(){
+  const el=document.querySelector("#capRecipeBand .capRecipeName");
+  if(!el)return;
+  el.style.fontSize="";                                    // back to the size the CSS asks for
+  const base=parseFloat(getComputedStyle(el).fontSize)||13.5;
+  const avail=el.getBoundingClientRect().width;
+  if(!(avail>0))return;                                    // not laid out yet — the next fit catches it
+  const probe=document.createElement("span");
+  probe.textContent=el.textContent;
+  probe.style.cssText="position:absolute;left:0;top:0;white-space:nowrap;visibility:hidden;pointer-events:none";
+  el.appendChild(probe);
+  const natural=probe.getBoundingClientRect().width;
+  probe.remove();
+  if(!(natural>avail))return;                              // it already fits at full size
+  el.style.fontSize=Math.max(Math.max(9,Math.round(base*0.68)), Math.floor(base*(avail/natural)))+"px";
+}
 export function refreshNameMarquees(){
   const $=id=>document.getElementById(id);
   /* ⭐ ONE COLUMN FOR EVERY NAME — his Q8 ruling, 2026-09-10: the name sits in a FIXED column so
@@ -251,6 +280,7 @@ export function refreshNameMarquees(){
   }
   /* the name column just moved, so every hold's room moved with it — re-fit them (his one-line holds) */
   fitHolds();
+  fitRecipeName();   // the name column just moved, so the room for the recipe's name did too
 }
 // dock.png is authored facing right (+x, East) in a slightly perspective/isometric style —
 // rotating it 180° to face West flips it upside down and puts the anchor on the wrong side,
