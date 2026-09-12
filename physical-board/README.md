@@ -10,6 +10,14 @@ has already dialled or ticked (docs/ARTIFACT-GUIDELINES.md §3).
 | **Cutting sheets** — the four files, drawn to one scale, with the rules at the laser | https://claude.ai/code/artifact/e7bbbc72-cad8-4550-b0c6-102416ad449f |
 | **Board pieces** — the tuner: tile, beach, ingredient, price, on the real geometry | https://claude.ai/code/artifact/29500861-942d-4690-a1ef-cae20fe0e54e |
 
+**A QUESTION CARRIES ITS OWN EVIDENCE.** Wyatt, 2026-09-12: *"you ask me about the ship's masts
+without showing me any of the renders. expectation: your artifacts must always give me all the
+context i need to make the decisions they ask me to make."* A choice between shapes shows the
+shapes — inside the page, at one scale, with what is being replaced drawn beside them. A link back
+to chat, or a sentence describing a drawing, is not context; it is a round trip. This belongs in
+`docs/ARTIFACT-GUIDELINES.md` with the rest, but that file is currently DELETED from the working
+tree, so it is written here where the laser work can see it.
+
 The tuner is fed by `tuner-data.json`, which `generate.mjs` writes on every run: each island's real
 cut outline and its real engraved grass line at thirteen beach settings, plus the ingredient icons
 and every current default. Regenerate and republish together, or the page dials against stale wood.
