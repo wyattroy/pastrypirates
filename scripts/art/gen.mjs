@@ -25,9 +25,9 @@
  * process." So the model's ten output shapes stop being a constraint: ask in the PROMPT for the art
  * drawn at the shape ye want, sitting on a flat near-black background with a margin all round, then
  * `scripts/art/key.mjs` crops to the art's own edges and the ratio is exactly what was drawn.
- * Ask for a .png so the keyer can read it, and the whole round never leaves node.
+ * The model returns JPEG; the keyer reads JPEG and PNG both.
  *
- *   node scripts/art/gen.mjs --prompt-file p.txt --out art-review/x.png && node scripts/art/key.mjs art-review/x.png
+ *   node scripts/art/gen.mjs --prompt-file p.txt --out art-review/x.jpeg && node scripts/art/key.mjs art-review/x.jpeg
  */
 import fs from "node:fs";
 import os from "node:os";
@@ -76,7 +76,12 @@ function dims(buf) {
   return null;
 }
 
-const mime = /\.png$/i.test(out) ? "image/png" : "image/jpeg";
+/* ⚠ JPEG, NOT PNG — measured against the live API on 2026-09-12, which answers a request for
+   'image/png' with a flat 400: "Supported values: 'image/jpeg'". --mime is here for the day a model
+   offers more; it is not a wish. key.mjs reads JPEG as well as PNG, so this costs nothing. */
+const mime = arg("mime", "image/jpeg");
+if (/\.png$/i.test(out) && mime === "image/jpeg")
+  console.error("gen: note — this model only returns JPEG, so " + out + " will hold JPEG bytes. Name it .jpeg.");
 const body = {
   model,
   input: [{ type: "text", text: prompt }],

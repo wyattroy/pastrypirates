@@ -368,13 +368,40 @@ pictures a day). Only `gemini-3-pro-image` demands a billing account, so reach f
 Write it without it ever appearing in a transcript or a shell history:
 
 ```bash
-read -rs -p "paste the key, then Return: " K && printf '%s' "$K" > ~/.pastrypirates-art-key && chmod 600 ~/.pastrypirates-art-key && unset K && echo && echo "saved, $(wc -c < ~/.pastrypirates-art-key | tr -d ' ') characters"
+pbpaste > ~/.pastrypirates-art-key && chmod 600 ~/.pastrypirates-art-key && echo "saved, $(wc -c < ~/.pastrypirates-art-key | tr -d ' ') characters"
 ```
+
+⚠ **Not `read -p`.** His shell is zsh, where `-p` means "read from a coprocess" and the line dies with
+*"read: -p: no coprocess"* — taking the rest of the `&&` chain with it, so nothing is written while
+the terminal looks like it worked. If he would rather type than paste:
+`printf 'paste the key: '; stty -echo; read -r K; stty echo; echo; printf '%s' "$K" > ~/.pastrypirates-art-key; chmod 600 ~/.pastrypirates-art-key; unset K`
 
 **What has to be in the prompt now**, since the canvas no longer carries the shape:
 
 > …the plaque drawn **two and a half times wider than it is tall**, centred on a **flat near-black
 > background (#0a0c10)** with a clear margin all round it, nothing touching the edges of the frame…
 
-*(Researched and built 2026-09-12. Untested against the live API until the key exists — the request
-shape is from Google's own REST documentation, not from memory.)*
+## VERIFIED AGAINST THE LIVE API, 2026-09-12 — and one thing left, which is his
+
+With his key in place, measured rather than assumed:
+
+- **The key and the endpoint are right.** `GET /v1beta/models` answers 200 and lists six image
+  models: `gemini-2.5-flash-image`, `gemini-3-pro-image`, `gemini-3.1-flash-image`,
+  `gemini-3.1-flash-lite-image` and the two previews.
+- **⚠ THE MODEL RETURNS JPEG AND ONLY JPEG.** A request for `image/png` comes back as a flat 400:
+  *"The value 'image/png' is not supported for 'response_format.mime_type'. Supported values:
+  'image/jpeg'."* `gen.mjs` asks for JPEG now. Do not "fix" this back to PNG.
+- **⛔ THE PROJECT BEHIND THE KEY HAS NO CREDITS.** Every model, image and text alike, answers 429:
+  *"Your prepayment credits are depleted."* It is the PROJECT, not the model and not the free tier —
+  a plain `gemini-3.6-flash` text call fails the same way. The key he made sits on **Default Gemini
+  Project**, which is on prepay with a zero balance.
+
+  **Two ways out, both his:** top that project up at <https://ai.studio/projects> — a flash picture is
+  about 2-4 cents, so a whole art round of a dozen variants is well under a dollar — or make a second
+  key against a project that has never been switched to prepay, which keeps the free tier's ~500
+  pictures a day.
+
+- **Also worth knowing:** `models/gemini-2.5-flash` is retired for new users; the current text model
+  is `gemini-3.6-flash`. Only relevant for diagnostics — the art path never calls a text model.
+
+*(Built and verified 2026-09-12. Everything but the quota is proven end to end.)*
