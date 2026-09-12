@@ -6,6 +6,66 @@ say whether a fault is *recurring* — which is the check this file exists to ma
 
 ---
 
+## 2026-09-12 · `claude/sfx-background-sound-tuner-ef949a` · the stranded one-commit branch · **LEAVE IT**
+
+**Reviewed:** Wyatt's *"also get ceo to verify that claude/sfx-background-sound-tuner-ef949a needs to
+be merged, and if save, merge it."* Read-only; `git ls-remote` rather than `git fetch`.
+
+**Its one sentence for Wyatt, verbatim:**
+
+> **Leave it — that stranded branch holds five lines of a playtest sheet that was replaced by a better
+> one on `dev` seven minutes later, the replacement already has the corrected build stamp in it, so
+> there is genuinely nothing to save and nothing to merge.**
+
+**Verdict: LEAVE IT** — not merge, and not even push. `eda99761` is one file,
+`.planning/staging-checklist-2026-09-07-sfx.html`, 5 lines, correcting a build stamp. Seven minutes
+later `ef20473b` put a *combined* sheet on `dev` that already carries the corrected stamp three times
+over (lines 77, 79, 110) and the sound items with it. Nothing in the repo links to the old sheet.
+The repo's own habit is that superseded sheets keep their original stamps and are never
+retro-corrected. The worktree still sitting on the branch is clean and holds nothing.
+
+**Its correction to the CTO, and it was right:** *"The CTO correctly established that the commit is
+unique to this machine, then stopped one step short of asking whether unique meant valuable.
+'Local-only' is a fact about storage, not a claim about worth."* One command —
+`git log --all -- '.planning/staging-checklist*'` — would have shown the replacement sitting directly
+above it. **ACTED ON: not merged, not pushed.**
+
+---
+
+## 2026-09-12 · `6e3940e9` · the checklist-hook "fix" · **SAFE TO MERGE, BUT IT IS NOT THE FIX IT SAYS IT IS**
+
+**Reviewed:** Wyatt's *"get ceo to review your hook fix, and if ceo approves, merge it."* Read-only in
+this repo; it built throwaway repos under its own scratchpad to construct seven sessions this repo
+cannot produce, and re-ran the PRE-FIX hook beside the fixed one at three session bases.
+
+**Its one sentence for Wyatt, verbatim:**
+
+> **Merge it — I spent an hour trying to make this hook go quiet on a session that really did change
+> the game and I could not, in seven different ways — but know that on your branch today it changes
+> nothing: the old hook and the new one print the same 71 lines, character for character, the files
+> it was arguing about are the laser-cut `.dxf` files and not `index.html` at all, and the "proven
+> both ways" in that commit message tested code that was already there.**
+
+**What it found.** The new code is safe — both of its exits default to *ours*, and it could not be
+made to silence a session that authored game code in seven constructed scenarios. But it never runs:
+`git diff --name-only 9fd9955c..HEAD | while read f; ... → 75 ATTR, 0 EMPTY`. Both claimed proofs
+tested code that predated the commit — proof (a) is the 2026-08-31 reflog test's silence, proof (b)
+exercises `const ours = new Set(dirty)` at `:132`. It also caught the brief citing
+`git diff d1ecf9c7 HEAD -- physical-board/` as empty when the command that is empty is
+`git diff d1ecf9c7 061f8971 -- physical-board/`: right answer, wrong evidence.
+
+**WHAT HAPPENED NEXT, and it goes further than the verdict.** Its two conditions were "amend the
+message" and "write the test". Writing the test settled it: **all six ownership scenarios pass on
+BOTH versions of the hook.** The fix is inert, so `253ad9ad` reverts it and keeps the test.
+
+**The real cause, measured.** Running the hook with the MAIN folder as the project directory
+reproduces its firing list exactly — 21 paths, the game files among that stale checkout's **132
+phantom staged changes**. `ours = new Set(dirty)` treats a stale index as authored work. Recorded in
+the test as a KNOWN GAP row asserting today's behaviour, so a future fix is visible rather than a
+silent loosening. **ACTED ON: fix reverted, test landed, the diagnosis corrected on the record.**
+
+---
+
 ## 2026-09-12 · `086beee8`..`5eff19e4` · eleven commits · **THE PAPERWORK IS EXCELLENT AND THE GAME DID NOT MOVE**
 
 **Reviewed:** his ten asks in the captain's-box stream, oldest first, ending with *"This process is
