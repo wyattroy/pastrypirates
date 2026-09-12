@@ -51,6 +51,7 @@ const CLR  = 0.4;                       // per-side clearance so a loose piece d
 // engraved at all — the cut edge is the shoreline, and it waves. Only the beach/grass line remains.
 // BEACH is how far that one line sits inside the cut; WAVE_AMP is how much the coast wanders.
 const BEACH = opt("beach", 2.6), WAVE_AMP = opt("wave", 0.35);   // his pick, 2026-08-30: option A — beach 2.6, calm coast
+const LINE_W = 0.6;   // the engraved beach/grass line's weight (his build weight, kept over the pen's 0.7)
 // (declared here, not with the island code, because the ingredient tile is derived from it below)
 const PIECE = CELL - 2 * CLR;           // a one-square piece
 const GAP  = 4;                         // spacing between nested parts on a sheet
@@ -394,7 +395,13 @@ const TOKEN_MM = 20; // artToken's default longest side; the ingredient TILE bel
 // -- so they may need to be shrunken a little." The grass begins BEACH inside the island's cut and
 // the cut is CLR inside the square, so the grass square is CELL - 2*(CLR + BEACH); the tile takes
 // that less 0.6 of daylight, and is derived so it follows if either line ever moves again.
-const TOKEN_TILE = CELL - 2 * (CLR + BEACH) - 0.6, TOKEN_R = 2.2, TOKEN_INK = TOKEN_TILE - 3.6;
+// CEO review, 2026-09-12: the first version of this subtracted only CLR + BEACH, which is the line's
+// CENTRELINE — so the tile sat ON the grass line for about two thirds of its run. The line is LINE_W
+// wide and waves by ±0.5 (see lineAt), and both have to come off as well.
+// ...and 1.4 of daylight rather than 0.6: measured against the real engraved line, the first
+// corrected tile still crossed it by up to 0.30 mm, because the line is an inset of the ROUNDED
+// island and pulls further in at the corners than a straight offset predicts. Measured again after.
+const TOKEN_TILE = CELL - 2 * (CLR + BEACH + LINE_W / 2 + 0.5) - 1.4, TOKEN_R = 3.4, TOKEN_INK = TOKEN_TILE - 3.2;
 function tokenTile(name, cx, cy) {
   const h = TOKEN_TILE / 2;
   return [item(CU, [roundCorners([[cx - h, cy - h], [cx + h, cy - h], [cx + h, cy + h], [cx - h, cy + h]], TOKEN_R)]),
@@ -786,23 +793,25 @@ function shipStanding(kind, captain) {
 // mw = 2.6, shoulder = 0 reproduces the sail as it has been since 2026-08-25. Pulled out of ship3d
 // on 2026-09-11 so the mast options could be drawn from the real thing — Wyatt: "the sails in your
 // image are not the actual shape of the current sailes, so I cannot trust them."
-function sailPiece(w, hgt, { mw = 2.6, shoulder = 0, sl = 7, pat = 0, topNotch = 0 } = {}) {
-  const mh = hgt + 8, y0 = 2, y1 = 2 + hgt, c = mw / 2, tab = tab_(sl), s2 = shoulder;
+// mw is the mast's width, `head` how far it stands proud above the sail, `spar` a CENTRED notch in
+// that masthead. No chamfers: a mast the width of its own tab needs none, and Wyatt, 2026-09-11:
+// "your thickers sails are jagged and wrong; your spar would look stupid because it's off center."
+function sailPiece(w, hgt, { mw = 2.6, sl = 7, pat = 0, head = 0, spar = 0 } = {}) {
+  const mh = hgt + 8 + head, y0 = 2 + head, y1 = y0 + hgt, c = mw / 2, tab = tab_(sl);
   const foot = y1 + 2.4;
-  const nx = c + 4, nw = MAT3 + .1, nd = 2;   // the spar notch, 4 mm right of the mast so it clears it
-  const top = topNotch ? [[c + w / 2, y0], [nx + nw / 2, y0], [nx + nw / 2, y0 + nd], [nx - nw / 2, y0 + nd], [nx - nw / 2, y0]] : [[c + w / 2, y0]];
-  const outline = [[0, 0], [mw, 0], [mw, y0], ...top.slice().reverse(), [c + w / 2, y1], [c + w / 2 - 2.8, y1 + 1.6],
-    ...(s2 ? [[mw + s2, foot], [mw, foot + s2]] : [[mw, foot]]), [mw, mh],
+  // the spar notch sits ON THE MAST'S CENTRELINE, in the masthead that `head` raises above the sail
+  const nw = MAT3 + .1, nd = Math.min(3, head - 2);
+  const mastTop = spar ? [[0, 0], [c - nw / 2, 0], [c - nw / 2, nd], [c + nw / 2, nd], [c + nw / 2, 0], [mw, 0]] : [[0, 0], [mw, 0]];
+  const outline = [...mastTop, [mw, y0], [c + w / 2, y0], [c + w / 2, y1], [c + w / 2 - 2.8, y1 + 1.6],
+    [mw, foot], [mw, mh],
     [c + tab / 2, mh], [c + tab / 2, mh + MAT], [c - tab / 2, mh + MAT], [c - tab / 2, mh], [0, mh],
-    ...(s2 ? [[0, foot + s2], [-s2, foot]] : [[0, foot]]),
-    [c - (w / 2 - 1.5), y1 + 1.6], [c - w / 2, y1], [c - w / 2, y0], [0, y0]];
-  void nd;
+    [0, foot], [c - (w / 2 - 1.5), y1 + 1.6], [c - w / 2, y1], [c - w / 2, y0], [0, y0]];
   const cx = c, cy = y0 + 1.4 + (hgt - 1.4) * .5, sk = Math.min(w - 4, hgt - 3.4);
   void pat;
   return [item(CU, [polyCmds(outline)]), rect(RA, c - w / 2, y0 + .6, w, .5), ...artToken("skullref", cx, cy, sk, { cut: false, solid: true })];
 }
 // a spar that braces the two mastheads: a bar half-lapped into a notch in each mast
-function sailSpar(gap = 8 * GRID_SCALE, len = 22, wdt = 4.2) {
+function sailSpar(gap = 8 * GRID_SCALE, len = 8 * GRID_SCALE + 14, wdt = 4.2) {
   const n = MAT3 + .1, d = wdt / 2, x0 = (len - gap) / 2;
   return [item(CU, [polyCmds([[0, 0], [len, 0], [len, wdt], [0, wdt]]),
     reverseSub(polyCmds([[x0 - n / 2, 0], [x0 + n / 2, 0], [x0 + n / 2, d], [x0 - n / 2, d]])),
@@ -1014,7 +1023,7 @@ const NOTCH = { tab: { hw: 4.5, depth: 2.5 }, socket: { hw: 4.525, depth: 2.6 } 
 // because he also ruled that the notch floor should bite a little INTO the shore line ("the dock is literally touching
 // the sand") while the dock's 2.5 mm tab stays as it is — so the shore line straddles the 2.6 mm notch floor. The beach
 // between the lines is the drawing's 2.4 mm.
-const SHORE_LINE = 2.6, GRASS_LINE = 5.6, LINE_W = 0.6;
+const SHORE_LINE = 2.6, GRASS_LINE = 5.6;   // (LINE_W moved up with BEACH — the tile derives from it)
 function dovetailPts(m, along, inward, { neck, head, depth }, dir) {
   const n = [inward[0] * dir, inward[1] * dir], t = along, P = (x, d) => [m[0] + t[0] * x + n[0] * d, m[1] + t[1] * x + n[1] * d];
   return [P(-neck / 2, 0), P(-head / 2, depth), P(head / 2, depth), P(neck / 2, 0)];
@@ -1691,11 +1700,14 @@ function nestedSpinner() {
   // at it." The ring's pointer aims outward, past the dial's own letters, so the letters it reads must
   // live out here on the base's lip. Upright like the dial's medallions, with a dot every 15° between.
   const backing = [circ(CU, 0, 0, RB), circ(CU, 0, 0, 1.65), ring(RA, 0, 0, RD + .2, RD - .3)];
-  const bLet = RB - 6.8, bDot = RB - 2.4;
+  // CEO review, 2026-09-12: the letters sat where the ring's point lands, so the point covered 39–51 %
+  // of the very letter it was aiming at. Letters and dots now share ONE ring further out, and the
+  // point stops short of it — it aims AT the marks instead of sitting on them.
+  const bMark = RB - 4.1, bTxt = 6.4;
   for (const [L, a] of [["N", -90], ["E", 0], ["S", 90], ["W", 180]])
-    backing.push(...ftext(RA, L, bLet * Math.cos(rad(a)), bLet * Math.sin(rad(a)), 7, { font: "avenir-next-demibold", align: "center", valign: "middle" }));
+    backing.push(...ftext(RA, L, bMark * Math.cos(rad(a)), bMark * Math.sin(rad(a)), bTxt, { font: "avenir-next-demibold", align: "center", valign: "middle" }));
   for (let i = 0; i < 24; i++) { const ang = i * 15; if (ang % 90 === 0) continue; const a = rad(ang);
-    backing.push(circ(RA, bDot * Math.cos(a), bDot * Math.sin(a), ang % 45 === 0 ? 1.1 : .7)); }
+    backing.push(circ(RA, bMark * Math.cos(a), bMark * Math.sin(a), ang % 45 === 0 ? 1.1 : .7)); }
   parts.push(part("spinner-backing", backing));
   const dial = [circ(CU, 0, 0, RD), circ(CU, 0, 0, 1.65), ring(RA, 0, 0, 4.2, 3.4)];
   // the two scroll bands, broken where the medallions sit so no line ever crosses a letter
@@ -1722,7 +1734,9 @@ function nestedSpinner() {
   // flat. instead, add a cut arrow below the WIND NOW part of the ring". So the standing vane and the slot
   // it stood in are both gone, and the ring's own edge comes to a point under its WIND NOW label, aimed
   // outward at the letters now on the base. Nothing stands up; the whole spinner packs flat.
-  const PT_HW = 8.6, PT_OUT = 6.4;                      // the point: half-width at the rim, and its reach past it
+  // the point stops 0.5 mm short of the letter ring's inner edge (RB - 4.1 - 6.4/2), so it never
+  // covers a letter — CEO review, 2026-09-12
+  const PT_HW = 8.6, PT_OUT = (RB - 4.1 - 6.4 / 2 - 0.5) - RR;
   const hw = Math.asin(PT_HW / RR) * 180 / Math.PI, edge = [];
   for (let a = 90 + hw; a <= 450 - hw + 1e-9; a += (360 - 2 * hw) / 200) edge.push([RR * Math.cos(rad(a)), RR * Math.sin(rad(a))]);
   edge.push([0, RR + PT_OUT]);                          // the tip, at the WIND NOW label (+y)
@@ -1828,7 +1842,7 @@ function buildVersion(V) {
   // 6 mm sheet is what lets the whole board fit one sheet of it.
   const islandPartsDesign = (v === "v3" ? ISLAND_LIVE : TET.map((_, i) => i)).map(i => part(`island-${i + 1}`, islandPiece(v, i)));
   const islandParts = islandPartsDesign.map(p => (v === "v3" ? { ...p, mat: MAT3, items: xf(p.items, { s: GRID_SCALE }) } : p)); cutParts.push(...islandParts);
-  docs.push(sheet("islands", v === "v3" ? "Island shapes (9)" : "Island shapes (7)", islandParts, { notes: v === "v3" ? "Every tetromino orientation: the seven footprints of the app plus the mirror images of the L and the S. Seven go out each voyage. Remade 2026-08-30: the CUT EDGE is the shoreline and waves on its own — no shore line is engraved any more — and ONE engraved line inside it divides bare-wood beach from grass. Each island carries its own T-dock, baked into the cut on a different edge per island, reaching 12.5 mm into the neighbouring square where a ship berths broadside. No palm, no stones, no tufts. 3 mm ply since 2026-09-10." : v === "v1" ? "Plain edges. Shoreline band and a palm engraved. 0.4 mm clearance per side so they sit inside the squares." : v === "v2" ? "A jigsaw socket is cut into the middle of EVERY outside edge, so a dock can click onto any side of any square." : "A 4.5 mm slot in the middle of every outside edge takes the mooring post of a dock." }));
+  docs.push(sheet("islands", `Island shapes (${islandParts.length})`, islandParts, { notes: v === "v3" ? `Seven shapes, one per ingredient since 2026-09-11 (he removed the three-in-a-row and the mirrored S), each engraved with the ingredient it sells and, on its three stocked squares, the price ladder 3 · 4 · 5 — take the lowest left and the number under the tile you lift is what you pay. Remade 2026-08-30: the CUT EDGE is the shoreline and waves on its own — no shore line is engraved any more — and ONE engraved line inside it divides bare-wood beach from grass. Each island carries its own T-dock, baked into the cut on a different edge per island, reaching 12.5 mm into the neighbouring square where a ship berths broadside. No palm, no stones, no tufts. 3 mm ply since 2026-09-10.` : v === "v1" ? "Plain edges. Shoreline band and a palm engraved. 0.4 mm clearance per side so they sit inside the squares." : v === "v2" ? "A jigsaw socket is cut into the middle of EVERY outside edge, so a dock can click onto any side of any square." : "A 4.5 mm slot in the middle of every outside edge takes the mooring post of a dock." }));
   // docks
   const dp = ING.map(ing => dockPiece(v, ing));
   // RETIRED 2026-08-30: the deck is part of the island now ("they are part of the islands now"),
@@ -1863,12 +1877,13 @@ function buildVersion(V) {
   // Mast options, drawn from the REAL sail so he can judge them (2026-09-11). Decision sheets, not
   // cut files — delete the three once he picks.
   if (v === "v3") {
-    docs.push(sheet("mast-a", "Mast option A — thicker masts", [part("A-main", sailPiece(15, 13, { mw: 5, shoulder: 2.5 })), part("A-fore", sailPiece(12, 11, { mw: 5, shoulder: 2.5 }))],
-      { notes: "Both sails stay, exactly as they are, with the mast 2.6 → 5.0 mm and a chamfer where it meets the sail's foot. Nothing else changes: same hull, same slots, same parts count." }));
-    docs.push(sheet("mast-b", "Mast option B — a spar across the sails", [part("B-main", sailPiece(15, 13, { topNotch: 1 })), part("B-fore", sailPiece(12, 11, { topNotch: 1 })), part("B-spar", sailSpar())],
-      { notes: "His suggestion. Only 2 mm of mast stands above the sail, too little to notch, so the spar half-laps into the SAIL tops instead, 4 mm right of each mast. Masts stay 2.6 mm — thin exactly while you are handling and assembling them." }));
-    docs.push(sheet("mast-c", "Mast option C — one sail", [part("C-main", sailPiece(20, 16, { mw: 7, shoulder: 3 }))],
-      { notes: "One larger sail on a 7 mm mast in the aft slot; the fore slot goes. Strongest, and 4 sails instead of 8." }));
+    const MW = tab_(7) + 1.1;   // the mast is its own tab's width plus a hair, so the tab's shoulders rest on the deck and there is no step to chamfer
+    docs.push(sheet("mast-a", "Mast option A — the mast becomes a post", [part("A-main", sailPiece(15, 13, { mw: MW })), part("A-fore", sailPiece(12, 11, { mw: MW }))],
+      { notes: `Both sails stay. The mast goes 2.6 → ${r3(MW)} mm: the width of its own tab plus a hair, so the tab's shoulders land on the deck and the outline stays straight — no chamfer, nothing jagged. Same hull, same slots, same parts.` }));
+    docs.push(sheet("mast-b", "Mast option B — a spar between the mastheads", [part("B-main", sailPiece(15, 13, { mw: MW, head: 7, spar: 1 })), part("B-fore", sailPiece(12, 11, { mw: MW, head: 9, spar: 1 })), part("B-spar", sailSpar())],
+      { notes: `Option A, plus his spar. The mast now stands 7 mm proud of the sail, which is what lets the notch sit ON the centreline instead of dodging to one side. The fore sail is 2 mm shorter, so its masthead is 2 mm taller (head 9 against 7) and BOTH notch floors land at the same height above the deck — a straight spar seats on both. A third part per ship.` }));
+    docs.push(sheet("mast-c", "Mast option C — one sail", [part("C-main", sailPiece(20, 16, { mw: MW }))],
+      { notes: `One larger sail on the same ${r3(MW)} mm post, in the aft slot; the fore slot goes. 4 sails instead of 8.` }));
   }
   docs.push(sheet("ships", "Ships (4)", shipParts, { count: 4, notes: "Four captains told apart in wood: CRUMBLE plain, BISCOTTI striped, GINGERSNAP dotted, SHORTBREAD checked (pink, teal, green, orange in the app — paint the sails if you like). " + (v === "v3" ? `An old pirate ship after the game's own sailboat art: a 6 mm hull seen from above (${r3(24 * GRID_SCALE)} × ${r3(12 * GRID_SCALE)} mm, deck planks, a tiller) with two slots ACROSS the beam; two 3 mm square sails on short masts whose tabs drop through the slots and sit flush underneath, the skull and crossbones (his reference, art/skull-ref.png) engraved big on each. About 24 mm tall. Paint the sails for the captain.` : "Standing profiles: the tab under the hull drops into the slot in the base.") }));
   // recipes
@@ -2030,8 +2045,14 @@ function mockups(five, P) {
   // the board on the table: quadrants, Tortuga on top, three islands with docks and tokens, two ships, a whirlpool
   const boardSlabs = (() => { const s = five.quadrants.map(q => flatAt(q.items, 0, 0, 0)); const C = CENTER;
     s.push(flatAt(xf(five.plugDesign.items, { tx: C, ty: C }), 0, 0, MAT3));
-    const place = (i, cx, cy, dockSide) => { const isl = P.islandParts[i].items, b = bbox(isl.filter(x => x.layer === CU)); s.push(flatAt(xf(isl, { tx: cx - b.x0, ty: cy - b.y0 }), 0, 0, MAT3));
-      const cells = ISLAND_SHAPES[i]; cells.forEach(([a, b2], k) => { const ing = ING[(i * 3 + k) % 7], tk = tokenTile(ing, cx + (a + .5) * CELL, cy + (b2 + .5) * CELL); if (k < 3) s.push(flatAt(tk, 0, 0, 2 * MAT)); });
+    // CEO review, 2026-09-12: this indexed the PARTS by their place among the seven survivors and the
+    // SHAPES by their place among the original nine, so it laid tiles on squares the drawn island does
+    // not have — and picked a different ingredient per square, contradicting the engraving. One index
+    // (into ISLAND_LIVE) now drives both, and every tile on an island is that island's own ingredient.
+    const place = (n, cx, cy, dockSide) => { const i = ISLAND_LIVE[n], isl = P.islandParts[n].items, b = bbox(isl.filter(x => x.layer === CU));
+      s.push(flatAt(xf(isl, { tx: cx - b.x0, ty: cy - b.y0 }), 0, 0, MAT3));
+      const cells = ISLAND_SHAPES[i], ing = ISLAND_ING[i];
+      cells.forEach(([a, b2], k) => { const tk = tokenTile(ing, cx + (a + .5) * CELL, cy + (b2 + .5) * CELL); if (k < 3) s.push(flatAt(tk, 0, 0, 2 * MAT)); });
       void dockSide; };   // no loose dock: every island carries its own
     place(0, 3 * CELL, 4 * CELL, { rot: 180, x: 3 * CELL - CLR, y: 4 * CELL + CELL - CLR });        // I3, dock on its left end
     place(4, 9 * CELL, 2 * CELL, { rot: 90, x: 10 * CELL + CELL - CLR, y: 4 * CELL + CLR });         // L4, dock below its foot
