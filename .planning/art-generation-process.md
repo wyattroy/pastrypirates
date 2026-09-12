@@ -322,14 +322,16 @@ one of. It is also scriptable, so a round of four variants is one loop instead o
 | **FLUX** (`api.bfl.ai`, or fal.ai / Replicate) | **any width × height**, multiples of 32 | ~$0.03–0.055 | the only one that can draw an exact 2.49:1. Reach for it when a slot's shape is not on the list above |
 | OpenAI `gpt-image-1` | three sizes only (1:1, 3:2, 2:3) | $0.005–0.04 | cannot do our shapes. Best in class at text in the picture, which we never want |
 
-**The catch, and it is the whole decision:** the captain's box wants **1.53 : 1 · 1.71 : 1 · 2.49 : 1**
-and none of those is one of Gemini's ten. Two ways out, and they are both fine:
+**The ten shapes are NOT a catch — Wyatt settled it the same hour:** *"you don't need gemini to
+create the image in a certain aspect ratio -- you can tell it to use a certain aspect ratio for its
+drawing, within its own canvas, and then you'll key and crop it anyway according to the art-review
+process."*
 
-- **Snap the box to the standard ratios** — 3:2 for the phone (390×260), 16:9 for the laptop column
-  (511×287), 21:9 for the tablet (749×321). Nothing is stretched, the look stays continuous with
-  round 4, and the tuner confirms the fit in one click. The tablet's box grows by about 20px.
-- **Use FLUX for the odd shapes** and keep Gemini for everything square-ish. Exact ratios, but a
-  different painter — so do not mix the two inside one set of art.
+**So the canvas and the art are two different things.** Ask the model for a square canvas and, in the
+prompt, for the plaque *drawn two and a half times wider than it is tall, centred on a flat near-black
+background with a margin all round*. Then key the background out and crop to the art's own edges: the
+ratio is exactly what was drawn, to the pixel. It also retires the hairline of pale pixels the model
+leaves outside the rope — keying takes it — and the trim pass that existed only to chase that hairline.
 
 ## The shape of the script when it is built
 
@@ -338,4 +340,32 @@ from an untracked file, the bytes written straight to `art-review/`, the same tr
 pass that already exists, and the aspect printed back so a wrong shape is caught before it is judged.
 **Never commit the key; never print it.**
 
-*(Researched 2026-09-12. Not built — it needs a key, which only Wyatt can create.)*
+## BUILT, 2026-09-12 — two scripts, no browser, no dependencies
+
+```bash
+node scripts/art/gen.mjs --prompt-file notes/plaque-prompt.txt --out art-review/captains-box/plaque-r5.png
+node scripts/art/key.mjs art-review/captains-box/plaque-r5.png
+#   -> plaque-r5-keyed.png  1024x1024 -> 1008x403  2.501:1  (key #0a0c10, tol 38, 39% kept)
+```
+
+- **`scripts/art/gen.mjs`** — one POST to `generativelanguage.googleapis.com/v1beta/interactions`,
+  bytes straight to the path ye name. `--n 4` draws four variants in a loop. It prints the drawn size
+  and ratio, read out of the file's own header, so a wrong shape is caught before it is judged. It
+  never prints the key, and strips it out of any error the API sends back.
+- **`scripts/art/key.mjs`** — decodes the PNG in pure node (`zlib` and about sixty lines of
+  un-filtering), reads the key colour off the picture's own four corners, drops those pixels to
+  transparent and crops to the bounding box of what is left. `--flat` keeps them opaque; `--tol` and
+  `--key #rrggbb` for stubborn backgrounds. **Red-proofed**: on a made-to-order 200×100 with a 160×60
+  subject inset 20px it crops to exactly 160×60, and a tolerance that would swallow the subject fails
+  loudly instead of writing an empty file.
+
+**THE KEY** goes in `.art-key` at the repo root — git-ignored — or `$GEMINI_API_KEY`. Free from
+<https://aistudio.google.com/apikey>, on his personal account. Never commit it, never print it.
+
+**What has to be in the prompt now**, since the canvas no longer carries the shape:
+
+> …the plaque drawn **two and a half times wider than it is tall**, centred on a **flat near-black
+> background (#0a0c10)** with a clear margin all round it, nothing touching the edges of the frame…
+
+*(Researched and built 2026-09-12. Untested against the live API until the key exists — the request
+shape is from Google's own REST documentation, not from memory.)*
