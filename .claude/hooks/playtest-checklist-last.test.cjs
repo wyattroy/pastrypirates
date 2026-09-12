@@ -97,13 +97,14 @@ function run(dir, base) {
   if (base) fs.writeFileSync(path.join(stateDir, "session-base"), base);
   let out = "";
   try {
-    out = execFileSync("node", [HOOK], {
+    const r = execFileSync("node", [HOOK], {
       cwd: dir, encoding: "utf8",
       env: { ...process.env, CLAUDE_PROJECT_DIR: dir },
       input: JSON.stringify({ session_id: session }),
       stdio: ["pipe", "pipe", "pipe"],
     });
-  } catch (e) { out = (e.stdout || "") + ""; }
+    out = r; run.lastErr = "";
+  } catch (e) { out = (e.stdout || "") + ""; run.lastErr = (e.stderr || "") + ""; }
   run.lastOut = out;                       // --verbose prints this; the harness used to drop it
   let blocked = false;
   try { blocked = JSON.parse(out.trim() || "{}").decision === "block"; } catch { blocked = false; }
@@ -117,6 +118,18 @@ function check(name, expectBlock, build) {
   const { dir, base } = ctx;
   const got = run(dir, base);
   ctx.hookSaid = run.lastOut;
+  ctx.hookShouted = run.lastErr || "";
+  /* ⛔ THE INSTRUMENT MUST BE ABLE TO REPORT ITS OWN FAILURE — 2026-09-12, Wy-Blade's lesson, and
+     the reason a dead reflog survived for weeks: a broken git call and a git call that legitimately
+     found nothing looked identical from here. A verdict reached with a dead command is not a pass,
+     however right the answer happens to be. Four rows on Windows were green for exactly that
+     reason. */
+  if (/GIT [A-Z ]*FAILED/.test(ctx.hookShouted)) {
+    failures++;
+    console.log(`  FAIL  instrument  ${name}\n        ${ctx.hookShouted.trim().split("\n")[0]}`);
+    fs.rmSync(dir, { recursive: true, force: true });
+    return;
+  }
   if (VERBOSE) {
     const g = (cmd) => { try { return execSync(`git ${cmd}`, { cwd: dir, encoding: "utf8" }).trim(); } catch (e) { return "(" + (e.message || "failed").split("\n")[0] + ")"; } };
     console.log(`\n  ── ${name}`);
@@ -127,7 +140,7 @@ function check(name, expectBlock, build) {
     console.log(`     remote refs    ${g("for-each-ref --format=\"%(refname)\" refs/remotes").replace(/\n/g, " ") || "(none)"}`);
     console.log(`     -r --contains  ${g(`branch -r --contains ${g("rev-parse HEAD")}`).replace(/\n/g, " ") || "(empty)"}`);
     console.log(`     status         ${g("status --porcelain").replace(/\n/g, " | ") || "(clean)"}`);
-    console.log(`     reflog         ${g('reflog --format=%h\\ %gs').split("\n").slice(0, 3).join(" | ") || "(none)"}`);
+    console.log(`     reflog         ${g('reflog --format=%h%x20%gs').split("\n").slice(0, 3).join(" | ") || "(none)"}`);
     console.log(`     HOOK SAID      ${(ctx.hookSaid || "").trim().slice(0, 600) || "(nothing)"}`);
   }
   const ok = got === expectBlock;

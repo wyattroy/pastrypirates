@@ -82,7 +82,7 @@
 
 const fs = require("node:fs");
 const path = require("node:path");
-const { execSync } = require("node:child_process");
+const { execSync, execFileSync } = require("node:child_process");
 const { isGameCode } = require(path.join(__dirname, "lib", "game-code.cjs"));
 
 function main() {
@@ -94,6 +94,28 @@ function main() {
   const repo = process.env.CLAUDE_PROJECT_DIR || path.resolve(__dirname, "..", "..");
   const session = String(input.session_id || "nosession").replace(/[^A-Za-z0-9_-]/g, "").slice(0, 64) || "nosession";
   const sh = (c) => { try { return execSync(c, { cwd: repo, encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] }); } catch { return ""; } };
+  /* ⭐ GIT WITHOUT A SHELL — and this is not tidiness, it is the fix for a fault that made this
+     entire hook inert on Wy-Blade while every test passed on the Mac (measured 2026-09-12 by the
+     Wy-Blade session, using this file's own --verbose).
+
+     TWO STRINGS IN HERE COULD NOT SURVIVE cmd.exe, and neither is visible from macOS:
+       · `--format="%H %gs"` — a literal space inside a format string. POSIX sh keeps it as one
+         argument; cmd.exe splits it, git reads `%gs` as a revision and aborts.
+       · `${base}^{commit}` — `^` IS cmd.exe's escape character, so the ref arrives as
+         `<sha>{commit}`, `cat-file` fails, and `range` silently falls back to `origin/main...HEAD`:
+         THE WHOLE BRANCH, every session that ever touched it. That is the precise bug the long
+         comment below says was already fixed twice.
+     Either one alone makes the hook answer BLOCK for work nobody in this session did.
+
+     execFileSync passes the arguments straight to git with no shell in between, so there is no
+     quoting to get right and no platform to get it wrong on. `failed` is out here so a command that
+     DIED can never be mistaken for one that legitimately found nothing — the mistake that hid this
+     for weeks. */
+  let gitFailed = null;
+  const git = (...args) => {
+    try { return execFileSync("git", args, { cwd: repo, encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] }); }
+    catch (e) { gitFailed = `git ${args.join(" ")} — ${(e && e.message || "failed").split("\n")[0]}`; return ""; }
+  };
 
   /* WHAT *THIS SESSION* CHANGED — not what the branch contains.
      ────────────────────────────────────────────────────────────────────────────────────────────
@@ -120,7 +142,10 @@ function main() {
     try { return fs.readFileSync(path.join(repo, ".claude", "hooks", ".read-state", session, "session-base"), "utf8").trim(); }
     catch { return ""; }
   })();
-  const range = /^[0-9a-f]{7,40}$/.test(base) && sh(`git cat-file -e ${base}^{commit} && echo ok`).trim()
+  /* `cat-file -t` rather than `-e ${base}^{commit}`: same question, no caret, and cmd.exe eats
+     carets. If the recorded base is not a commit we fall back to the whole branch, which is the
+     loud, over-asking answer — so this must not fail for a reason that is really a quoting bug. */
+  const range = /^[0-9a-f]{7,40}$/.test(base) && git("cat-file", "-t", base).trim() === "commit"
     ? `${base}..HEAD` : "origin/main...HEAD";
 
   const dirty = [
@@ -149,7 +174,17 @@ function main() {
      commits also read as born here — the ledger claim is the guard for that case; and a session
      RESUMED ON A FRESH CLONE loses authorship of the commits it pushed before the restart (they
      come back as clone:/pull entries), so such a session should write its sheet unprompted. */
-  const reflog = sh(`git reflog --format="%H %gs"`).split("\n").map((s) => s.trim()).filter(Boolean);
+  const reflogRaw = git("reflog", "--format=%H%x20%gs");
+  /* ⛔ A DEAD COMMAND MUST NEVER LOOK LIKE AN EMPTY ANSWER. When the reflog is unavailable the
+     `reflog.length &&` guard below switches the whole foreign-work test off, every file reads as
+     written here, and the hook demands a sheet from a session that authored nothing. That is what
+     was happening on Windows, invisibly, while the Mac's tests stayed green — so it says so now,
+     out loud, on stderr, where both a human and this file's own test suite can see it. */
+  if (gitFailed && /reflog/.test(gitFailed)) {
+    process.stderr.write(`playtest-checklist-last: GIT REFLOG FAILED — ownership cannot be judged, so `
+      + `everything reads as written here and this hook will over-ask. ${gitFailed}\n`);
+  }
+  const reflog = reflogRaw.split("\n").map((s) => s.trim()).filter(Boolean);
   const born = new Set(reflog
     .filter((l) => {
       const act = l.slice(41);                            // 40-char sha, one space, then %gs
@@ -160,7 +195,7 @@ function main() {
   const foreign = new Map();                              // file -> where that work actually lives
   for (const f of committed) {
     if (ours.has(f)) continue;
-    const sha = sh(`git log -1 --format=%H ${range} -- "${f}"`).trim();
+    const sha = git("log", "-1", "--format=%H", range, "--", f).trim();
     if (!sha) { ours.add(f); continue; }
     if (reflog.length && !born.has(sha)) {
       foreign.set(f, "history pulled into this checkout, not written here");
@@ -168,7 +203,7 @@ function main() {
     }
     /* Which OTHER published branches carry the commit that last touched this file? If any does,
        that work was pushed by somebody else and this session merely has it in its history. */
-    const owners = sh(`git branch -r --contains ${sha}`).split("\n")
+    const owners = git("branch", "-r", "--contains", sha).split("\n")
       .map((s) => s.trim().replace(/^\*\s*/, ""))
       .filter((b) => b && !b.includes("->") && b !== mine);
     if (owners.length) foreign.set(f, owners[0]); else ours.add(f);
@@ -209,7 +244,7 @@ function main() {
      Uncommitted work has no commit time, so it falls back to mtime, which is correct there: it
      really was just written. */
   const newestGame = Math.max(...game.map((f) => {
-    const t = sh(`git log -1 --format=%ct ${range} -- "${f}"`).trim();
+    const t = git("log", "-1", "--format=%ct", range, "--", f).trim();
     if (t && !dirty.includes(f)) return +t * 1000;
     try { return fs.statSync(path.join(repo, f)).mtimeMs; } catch { return 0; }
   }));
