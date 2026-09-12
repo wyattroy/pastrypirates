@@ -372,7 +372,21 @@ const KERF3 = opt("kerf3", 0.08);  // thin-ply kerf: his UNcompensated chest alr
 let KERF_FOR = () => KERF;         // set per version once the parts know their materials
 // the ingredient art itself, traced by art/trace.py: cut = silhouette loops, raster = the drawing's ink
 const ART = JSON.parse(fs.readFileSync(path.join(HERE, "art", "ingredients.json"), "utf8"));
-const TOKEN_MM = 20; // the longest side of a token; one sits on each island square of 25
+const TOKEN_MM = 20; // artToken's default longest side; the ingredient TILE below is what gets cut
+// ---- THE INGREDIENT TILE (Wyatt, 2026-09-11) ----
+// "put the ingredient icons all on squares, with rounded edges, that can fit within a board square.
+// this will allow us to simply flip them for the bakeoff without putting them in crates."
+// So the token stops being cut to its own silhouette and becomes a plain rounded square with the
+// icon engraved inside. IDENTICAL IS THE WHOLE POINT: every tile is the same square with the same
+// corners and nothing on its back, so a tile turned face down gives nothing away — which a
+// silhouette, readable by its outline alone, never could. Drawn in design units and scaled with the
+// squares, so it always sits inside one with room to lift it out.
+const TOKEN_TILE = CELL - 3, TOKEN_R = 2.6, TOKEN_INK = TOKEN_TILE - 4.2;
+function tokenTile(name, cx, cy) {
+  const h = TOKEN_TILE / 2;
+  return [item(CU, [roundCorners([[cx - h, cy - h], [cx + h, cy - h], [cx + h, cy + h], [cx - h, cy + h]], TOKEN_R)]),
+    ...artToken(name, cx, cy, TOKEN_INK, { cut: false })];
+}
 function artToken(name, cx, cy, size = TOKEN_MM, { cut = true, ink = true, solid = false, outline = 0, rot = 0, pad = "cut" } = {}) {
   const a = { ...ART[name], cut: ART[name][pad] || ART[name].cut }, [x0, y0, x1, y1] = ART[name].bbox, k = size / Math.max(x1 - x0, y1 - y0), mx = (x0 + x1) / 2, my = (y0 + y1) / 2;
   const co = Math.cos(rad(rot)), si = Math.sin(rad(rot));
@@ -1513,7 +1527,7 @@ const planks = (x, y, w, h, pitch, vertical = false) => { const out = []; if (ve
 // a slatted crate, like the classic wooden one (Wyatt's reference photo): three slats a side with real gaps cut
 // between them, solid corner posts engraved, a nail at each slat end
 // six tokens flat, 3 x 2, 1 mm apart and 1 mm from the walls, plus the walls: follows the token size
-function crateSize() { const tok = TOKEN_MM * GRID_SCALE, t = MAT3; return { Lo: r3(3 * tok + 4 + 2 * t), Wo: r3(2 * tok + 3 + 2 * t) }; }
+function crateSize() { const tok = TOKEN_TILE * GRID_SCALE, t = MAT3; return { Lo: r3(3 * tok + 4 + 2 * t), Wo: r3(2 * tok + 3 + 2 * t) }; }
 function cargoCrate(captain) {
   // Remade 2026-08-30. Wyatt: "the crate must be less tall, and more wide — it should fit 6
   // ingredients lying flat, and those should be easily visible over the top edge of the crate by
@@ -1726,12 +1740,11 @@ function buildVersion(V) {
   cutParts.push(...dockParts, ...dockExtras);
   if (v !== "v3") docs.push(sheet("docks", "Docks (7)", [...dockParts, ...dockExtras], { notes: "" }));
   // ingredient crates (4 per ingredient: 3 on the shelf + 1 black-market spare) and island markers
-  const TOKEN_PAD = "cutC";   // Wyatt, 2026-08-25: "This is the correct amount of padding (C)"
-  const crates = ING.flatMap(ing => [0, 1, 2, 3].map(n => part(`crate-${ing}-${n + 1}`, v === "v3" ? xf(artToken(ing, 0, 0, TOKEN_MM, { pad: TOKEN_PAD }), { s: GRID_SCALE }) : TOKEN[v].crate(ing, 0, 0))));
+  const crates = ING.flatMap(ing => [0, 1, 2, 3].map(n => part(`crate-${ing}-${n + 1}`, v === "v3" ? xf(tokenTile(ing, 0, 0), { s: GRID_SCALE }) : TOKEN[v].crate(ing, 0, 0))));
   cutParts.push(...crates);
-  if (v === "v3") for (const [pad, label, mm] of [["cutC", "C", "about 1.7 mm"]])   // A and B removed (Wyatt, 2026-08-25: "I like c best")
-    docs.push(sheet(`crates-${label.toLowerCase()}`, `Ingredient tokens — padding ${label}`, ING.map(ing => part(`token-${ing}`, artToken(ing, 0, 0, TOKEN_MM, { pad }))), { count: 7, notes: `Option ${label}: the cut line sits ${mm} outside the drawing's ink. Pick one; the cutting sheets currently carry option B.` }));
-  docs.push(sheet("crates", "Ingredient crates (28)", crates, { notes: "Four per ingredient: three to stock an island at 3–4 players, one spare for the black market. Wheat, milk, sugar, eggs, cocoa, cinnamon, vanilla — the app's own icons, redrawn as cuttable outlines." }));
+  // the A/B/C padding sheets are retired with the silhouette (2026-09-11): there is no longer a cut
+  // line hugging the drawing to set a distance from.
+  docs.push(sheet("crates", "Ingredient crates (28)", crates, { notes: `Four per ingredient: three to stock an island at 3–4 players, one spare for the black market. Wheat, milk, sugar, eggs, cocoa, cinnamon, vanilla — the app's own icons, engraved on identical ${r3(TOKEN_TILE * GRID_SCALE)} mm rounded squares that sit inside a ${r3(CELL_REAL)} mm board square. Every tile is the same and the backs are bare, so they can be turned face down for the bake-off.` }));
   const markerParts = v === "v3" ? [] : ING.map(ing => part(`marker-${ing}`, TOKEN[v].marker(ing, 0, 0))); cutParts.push(...markerParts);
   if (v !== "v3") docs.push(sheet("markers", "Island markers (7)", markerParts, { notes: "Sits on an island at setup to say which ingredient grows there — the shapes are dealt fresh each game, so the ingredient can't be engraved on the island." }));
   // the four whirlpool TILES are retired: they are engraved into the board itself now (2026-08-30).
@@ -1897,7 +1910,7 @@ function mockups(five, P) {
   const boardSlabs = (() => { const s = five.quadrants.map(q => flatAt(q.items, 0, 0, 0)); const C = CENTER;
     s.push(flatAt(xf(five.plugDesign.items, { tx: C, ty: C }), 0, 0, MAT3));
     const place = (i, cx, cy, dockSide) => { const isl = P.islandParts[i].items, b = bbox(isl.filter(x => x.layer === CU)); s.push(flatAt(xf(isl, { tx: cx - b.x0, ty: cy - b.y0 }), 0, 0, MAT3));
-      const cells = ISLAND_SHAPES[i]; cells.forEach(([a, b2], k) => { const ing = ING[(i * 3 + k) % 7], tk = artToken(ing, cx + (a + .5) * CELL, cy + (b2 + .5) * CELL); if (k < 3) s.push(flatAt(tk, 0, 0, 2 * MAT)); });
+      const cells = ISLAND_SHAPES[i]; cells.forEach(([a, b2], k) => { const ing = ING[(i * 3 + k) % 7], tk = tokenTile(ing, cx + (a + .5) * CELL, cy + (b2 + .5) * CELL); if (k < 3) s.push(flatAt(tk, 0, 0, 2 * MAT)); });
       void dockSide; };   // no loose dock: every island carries its own
     place(0, 3 * CELL, 4 * CELL, { rot: 180, x: 3 * CELL - CLR, y: 4 * CELL + CELL - CLR });        // I3, dock on its left end
     place(4, 9 * CELL, 2 * CELL, { rot: 90, x: 10 * CELL + CELL - CLR, y: 4 * CELL + CLR });         // L4, dock below its foot
