@@ -501,7 +501,7 @@ function boatUXY(i){
 // belongs here — BOARD-RENDERING §3 calls adding it "the step that gets forgotten", and #rimHost
 // was forgotten exactly this way: the current stayed parked on the full-board layout while the
 // water zoomed away beneath it. A LIST, not named consts, for the same reason.
-const CAM_HTML_LAYERS = ["rippleHost", "sailHost", "rimHost", "courseHost"];
+const CAM_HTML_LAYERS = ["rippleHost", "sailHost", "rimHost", "courseHost", "dockCoinHost"];
 let ribHCache = 48, ribHAt = -1e9, lastVB = "", lastRipT = "";
 /* THE TOP BAND — where the board's top edge goes: the bottom of the ribbon, or of the wind pill
    when that sits lower (playtest 17, Wyatt: "the wind/forecast pip covers the top of the trade
