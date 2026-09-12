@@ -376,6 +376,10 @@ const TOKEN_MM = 20; // artToken's default longest side; the ingredient TILE bel
 // ---- THE INGREDIENT TILE (Wyatt, 2026-09-11) ----
 // "put the ingredient icons all on squares, with rounded edges, that can fit within a board square.
 // this will allow us to simply flip them for the bakeoff without putting them in crates."
+// THE CRATE IS NOT WHAT THIS REPLACES — Wyatt, 2026-09-12, correcting me: "the crates are used 1 by
+// each player to hold all the ingredients they accumulate during the game; they were never supposed
+// to be used for the endgame." The crate stays. What the flip replaces is any other way of hiding a
+// token at the bake-off. Do not retire the crate on the strength of this change.
 // So the token stops being cut to its own silhouette and becomes a plain rounded square with the
 // icon engraved inside. IDENTICAL IS THE WHOLE POINT: every tile is the same square with the same
 // corners and nothing on its back, so a tile turned face down gives nothing away — which a
@@ -1526,6 +1530,9 @@ const planks = (x, y, w, h, pitch, vertical = false) => { const out = []; if (ve
 // an open cargo crate for a captain's hold: tokens stand on edge in it, icons showing (cargo is public in the game)
 // a slatted crate, like the classic wooden one (Wyatt's reference photo): three slats a side with real gaps cut
 // between them, solid corner posts engraved, a nail at each slat end
+// ONE CRATE PER PLAYER: it holds everything that captain accumulates over the game, in the open
+// ("cargo is public"). It is NOT an endgame device and never was (Wyatt, 2026-09-12) — the tiles
+// turn face down for the bake-off on their own.
 // six tokens flat, 3 x 2, 1 mm apart and 1 mm from the walls, plus the walls: follows the token size
 function crateSize() { const tok = TOKEN_TILE * GRID_SCALE, t = MAT3; return { Lo: r3(3 * tok + 4 + 2 * t), Wo: r3(2 * tok + 3 + 2 * t) }; }
 function cargoCrate(captain) {
@@ -1773,7 +1780,7 @@ function buildVersion(V) {
   if (v === "v3") {
     const crateParts = CAPTAINS.flatMap(c => cargoCrate(c)), chestParts = CAPTAINS.flatMap(c => treasureChest(c));
     cutParts.push(...crateParts, ...chestParts);
-    docs.push(sheet("crates-boxes", "Cargo crates (4)", crateParts, { count: 4, notes: `One open crate per captain, ${crateSize().Lo} × ${crateSize().Wo} × 10 mm in 3 mm ply — remade 2026-08-30: wide and shallow so six ingredient tokens lie FLAT in a 3 × 2 grid, face up, readable by everyone at the table. One cut gap per side, solid corner posts, box joints. Cargo is public, as in the game. Paint to mark whose it is.` }));
+    docs.push(sheet("crates-boxes", "Cargo crates (4)", crateParts, { count: 4, notes: `One crate per PLAYER — it holds every ingredient that captain accumulates during the game, in the open; it is not an endgame device. ${crateSize().Lo} × ${crateSize().Wo} × 10 mm in 3 mm ply — remade 2026-08-30: wide and shallow so six ingredient tokens lie FLAT in a 3 × 2 grid, face up, readable by everyone at the table. One cut gap per side, solid corner posts, box joints. Cargo is public, as in the game. Paint to mark whose it is.` }));
     docs.push(sheet("chests", "Treasure chests (4)", chestParts, { count: 4, notes: "One per captain, 80 × 27 × 32 mm in 2.6 mm ply — half as deep since 2026-08-25 (players hold under 10 coins). Box-jointed body (20 mm) and lid (12 mm). The hinge is a FRICTION fit, no dowel and no holes: the lid's two tongues wedge between the body's three and the lid stays where you put it; the hinge strip runs a ply-thickness further at each end so it fills the corners against the side walls' teeth. Both big plates carry the planks and straps, so either can face up. The recipe card (64 × 20) slides UNDER the hinge strip into rails on the lid's end walls; the rails cover only the front 60 %, so tipping the open chest lets the card fall out of the lid's back. Straps line up from the plates down the front and back. Blue labels are read-only, never engraved: corners 1–4 clockwise from front-left (L1, L2 on the lid), a wall's bottom names the plate edge it meets, H = the hinge strip; the two RAIL strips glue inside the lid's end walls under the engraved line." }));
 
   // one-offs for scrap-by-scrap test cuts (Wyatt, 2026-08-25: "i'm printing these test runs on scraps of wood
