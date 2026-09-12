@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Pastry Pirates — Tabletop Rules (English)</title>
+<style>
+  /* Print booklet: six US-Letter pages at 96dpi (816×1056). Backgrounds must print. */
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+  @page { size: letter; margin: 0; }
+  html { background:#e8e0d0; }
+  body { font-family:"Avenir Next","Segoe UI",Helvetica,Arial,sans-serif; color:#14323c; }
+  .page { width:816px; height:1056px; background:#fffdf4; padding:46px 52px; position:relative;
+          page-break-after:always; overflow:hidden; margin:0 auto; }
+  .page:last-child { page-break-after:auto; }
+
+  h1 { font-family:Georgia,"Times New Roman",serif; font-size:34px; color:#125a66; letter-spacing:.5px; }
+  h2 { font-family:Georgia,serif; font-size:19px; color:#125a66; margin:18px 0 8px;
+       border-bottom:2.5px solid #29a3b2; padding-bottom:3px; letter-spacing:.4px; }
+  h3 { font-size:13.5px; color:#0e3a44; margin:10px 0 3px; text-transform:uppercase; letter-spacing:.8px; }
+  p, li { font-size:12.8px; line-height:1.5; }
+  p { margin:5px 0; }
+  ul, ol { margin:4px 0 6px 18px; }
+  li { margin:3px 0; }
+  b { color:#0e3a44; }
+  .accent { color:#c94a72; }
+
+  .ico { height:15px; vertical-align:-3px; }
+  .ico-lg { height:22px; vertical-align:-6px; }
+  .coin { height:14px; vertical-align:-2px; }
+
+  .goal { background:#eaf6f7; border:2px solid #29a3b2; border-radius:12px; padding:12px 16px; margin:12px 0; }
+  .callout { background:#f8f1dd; border-left:4px solid #d9a23a; border-radius:0 8px 8px 0; padding:8px 13px; margin:8px 0; font-size:12.3px; }
+  .callout p { font-size:12.3px; }
+  .num { display:inline-block; background:#29a3b2; color:#fff; font-weight:700; width:21px; height:21px;
+         border-radius:50%; text-align:center; line-height:21px; font-size:12.5px; margin-right:7px; flex:none; }
+  .step { display:flex; margin:9px 0; }
+  .step > div { flex:1; }
+  .cols { display:flex; gap:22px; }
+  .cols > * { flex:1; min-width:0; }
+
+  figure { margin:8px 0; text-align:center; }
+  figcaption { font-size:10.8px; color:#5a7078; font-style:italic; margin-top:4px; line-height:1.35; }
+  .shot { border-radius:10px; border:1.5px solid #cfdadd; }
+  .crop { border-radius:10px; border:1.5px solid #cfdadd; background-repeat:no-repeat; margin:0 auto; }
+
+  table.rules { border-collapse:collapse; width:100%; margin:6px 0; }
+  table.rules th { background:#125a66; color:#fffdf4; font-size:11.5px; padding:5px 8px; text-align:left; }
+  table.rules td { border-bottom:1px solid #d8e2e4; font-size:12.2px; padding:5px 8px; vertical-align:top; }
+  table.rules tr:nth-child(even) td { background:#f3f8f8; }
+
+  .footer { position:absolute; bottom:20px; left:52px; right:52px; display:flex; justify-content:space-between;
+            font-size:10px; color:#8aa0a6; border-top:1px solid #d8e2e4; padding-top:6px; }
+  .pagetag { font-family:Georgia,serif; font-style:italic; }
+  .kicker { font-size:12px; text-transform:uppercase; letter-spacing:2.5px; color:#c94a72; font-weight:700; }
+</style>
+</head>
+<body>
+
+<!-- ======================= PAGE 1 — COVER + BUILD THE BOARD ======================= -->
+<section class="page">
+  <div style="display:flex; align-items:center; gap:22px;">
+    <img src="../../assets/logo.jpg" style="width:215px; border-radius:14px;" alt="Pastry Pirates logo">
+    <div>
+      <div class="kicker">The Boardgame</div>
+      <h1>PASTRY PIRATES</h1>
+      <p style="font-size:13.5px; margin-top:2px;">Rules of the Sugar Seas &nbsp;·&nbsp; 2–4 captains &nbsp;·&nbsp; about an hour</p>
+      <p style="font-size:11.5px; color:#5a7078;">For the wooden “Round Table” set. Bring your own gold coins — and one coin to flip.</p>
+    </div>
+  </div>
+
+  <div class="goal">
+    <p><b>The goal.</b> You came to Tortuga to open a bakery — but your pantry is empty. Choose a secret recipe of
+    <b>five ingredients</b>, sail out and gather them by <b>docking</b>, <b>trading</b>, and <b>plundering</b> —
+    then be the <b>first captain home to Tortuga</b> to fire the ovens and be crowned
+    <b>Best Baker in the Caribbean</b> <img class="ico" src="../../assets/icons/crown.png">.</p>
+  </div>
+
+  <h2>Build the board</h2>
+  <div class="cols">
+    <div>
+      <div class="step"><span class="num">1</span><div><b>Lock the board.</b> The four sea quadrants interlock —
+        any quadrant fits any corner. Drop the <b>Tortuga tile</b> into the centre hole last.</div></div>
+      <div class="step"><span class="num">2</span><div><b>Place the islands.</b> Put the 7 island tiles in the bag.
+        Going around the table, each captain draws one and places it, until all seven are down. Every island must
+        keep: <b>one full square of open water</b> between itself and the outer wind ring, <b>two squares clear of
+        Tortuga</b>, and a <b>sailing lane</b> (a square or two of water) from its neighbours.</div></div>
+      <div class="step"><span class="num">3</span><div><b>Name the islands.</b> Shuffle the 7 marker discs face-down
+        and set one on each island, then flip them — each island grows that ingredient for this voyage.</div></div>
+      <div class="step"><span class="num">4</span><div><b>Stock the shelves.</b> On each island, place crates of its
+        ingredient: <b>one fewer than the number of captains</b> — 3 crates each at 4 captains, 2 at 3, 1 at 2.
+        Spare crates stay in the bank.</div></div>
+      <div class="step"><span class="num">5</span><div><b>Set the docks.</b> Butt one dock against each island’s
+        shore and drop the mooring post through to lock it. A dock sits on open water — keep it off the wind ring
+        and clear of Tortuga’s own four berths.</div></div>
+      <div class="step"><span class="num">6</span><div><b>Drop the whirlpools.</b> Each captain places one whirlpool
+        tile on any square of the outer ring — one tile per captain.</div></div>
+    </div>
+    <div style="flex:0 0 320px;">
+      <figure>
+        <div class="crop" style="width:320px; height:395px; background-image:url(images/sail.jpg);
+             background-size:625px auto; background-position:-7px -14px;"></div>
+        <figcaption>The world you are building, as the app deals it: Tortuga and its four berths in the centre,
+        seven ingredient islands each with one dock, crates on their shores, and the trade-wind ring around
+        the rim. (The gold squares are one captain’s sailing reach — page 3.)</figcaption>
+      </figure>
+      <div class="callout"><b>Why the spacing rules?</b> Ships sail around islands, never over them. A lane of
+      water between everything keeps every dock reachable in every wind.</div>
+    </div>
+  </div>
+
+  <div class="footer"><span class="pagetag">Pastry Pirates · playpastrypirates.com</span><span>Page 1 · Build the board</span></div>
+</section>
+
+<!-- ======================= PAGE 2 — SET SAIL + YOUR TURN ======================= -->
+<section class="page">
+  <h2 style="margin-top:0;">Set sail</h2>
+  <div class="cols">
+    <div>
+      <div class="step"><span class="num">7</span><div><b>Draw your recipe.</b> Shuffle the 21 recipe maps and deal
+        <b>two to each captain</b>. Keep one — that is your secret recipe of five ingredients — and return the other
+        to the box unseen. <b>Your recipe stays hidden all game; the crates in your hold are public.</b></div></div>
+      <div class="step"><span class="num">8</span><div><b>Draw lots for sailing order.</b> The captain who most
+        recently ate a pastry spins the first-player wheel; whoever it points to sails first, then play goes
+        clockwise. <b>This order never changes.</b></div></div>
+      <div class="step"><span class="num">9</span><div><b>Take your coins — patience pays.</b> The first captain
+        takes <b>3</b> <img class="coin" src="../../assets/icons/coin-emoji.png">, and each later captain takes one
+        more than the captain before them: 4, then 5, then 6. Going first is worth exactly that much.</div></div>
+      <div class="step"><span class="num">10</span><div><b>Moor the ships.</b> Every ship starts in one of
+        Tortuga’s four berths.</div></div>
+      <div class="step"><span class="num">11</span><div><b>Wake the weather.</b> Spin the compass’s <b>NOW</b>
+        needle — that is day one’s wind — then set tomorrow’s sky (page 3, one forecast spin and one storm spin).
+        You’re ready. First captain, sail!</div></div>
+    </div>
+    <div style="flex:0 0 330px;">
+      <figure>
+        <div class="crop" style="width:330px; height:136px; background-image:url(images/draft-bakethis.jpg);
+             background-size:528px auto; background-position:-12px -168px;"></div>
+        <figcaption>Choosing a recipe in the app: two maps are offered, one is kept. Every recipe is five
+        of the seven ingredients, and every map has a name worth baking for.</figcaption>
+      </figure>
+      <figure style="margin-top:10px;">
+        <img class="shot" src="images/captains.jpg" style="width:330px;" alt="Captains panel">
+        <figcaption>What the table knows: everyone’s coins and cargo sit in the open. Only the recipe
+        maps are secret.</figcaption>
+      </figure>
+    </div>
+  </div>
+
+  <h2>Your turn — sail, then act</h2>
+  <p>On your turn you may <b>sail</b>, and then take <b>one action</b>. Both are optional; the actions are:</p>
+  <table class="rules">
+    <tr><th style="width:130px;">Action</th><th>In one line</th><th style="width:78px;">Detail</th></tr>
+    <tr><td><img class="ico" src="../../assets/icons/sailboat.png"> <b>Sail</b> (free)</td>
+        <td>Move up to <b>4 squares</b> — but if any step of the route bites <b>into the wind</b>, the whole move is capped at <b>2</b>.</td><td>page 3</td></tr>
+    <tr><td><img class="ico" src="../../assets/icons/anchor.png"> <b>Dock</b></td>
+        <td>In an island’s berth: flip a coin for treasure (<b>3</b> <img class="coin" src="../../assets/icons/coin-emoji.png">) or dock wages (<b>1</b> <img class="coin" src="../../assets/icons/coin-emoji.png">), then you may <b>buy a crate</b>.</td><td>page 4</td></tr>
+    <tr><td><img class="ico" src="../../assets/icons/handshake.png"> <b>Trade</b></td>
+        <td>Hail the whole table: say what you want and what you offer, hear every answer, strike one deal.</td><td>page 4</td></tr>
+    <tr><td><img class="ico" src="../../assets/icons/battle.png"> <b>Attack</b></td>
+        <td>Fight a ship on an adjacent square: pay 2 <img class="coin" src="../../assets/icons/coin-emoji.png"> powder, one broadside each. Winner takes a crate.</td><td>page 4</td></tr>
+    <tr><td><img class="ico" src="../../assets/icons/flame.png"> <b>Start your bakery!</b></td>
+        <td>At Tortuga with every recipe ingredient aboard — the winning move.</td><td>page 5</td></tr>
+    <tr><td><img class="ico" src="../../assets/icons/wave.png"> <b>Pass</b></td>
+        <td>Take <b>1</b> <img class="coin" src="../../assets/icons/coin-emoji.png"> from the bank and watch the sea.</td><td>—</td></tr>
+  </table>
+  <p style="font-size:12px; color:#5a7078;">That’s the whole game. Everything from here on is detail on these six lines —
+  read it as it comes up, not before.</p>
+
+  <div class="footer"><span class="pagetag">Pastry Pirates · playpastrypirates.com</span><span>Page 2 · Set sail &amp; your turn</span></div>
+</section>
+
+<!-- ======================= PAGE 3 — WIND & WEATHER ======================= -->
+<section class="page">
+  <h2 style="margin-top:0;">Wind &amp; weather — the start of every day</h2>
+  <p>A <b>day</b> is one full lap of the table. Each morning, before anyone sails, the day’s first captain tends
+  the compass:</p>
+  <div class="step"><span class="num">1</span><div><b>Set today’s wind.</b> Is the storm cloud sitting on the
+    compass? Then a <b>storm breaks</b> — see below. Otherwise, turn the <b>NOW</b> needle to where the
+    <b>forecast arrow</b> points. The forecast is never wrong.</div></div>
+  <div class="step"><span class="num">2</span><div><b>Spin the forecast arrow.</b> That is tomorrow’s wind,
+    committed now, for all to see and plan around.</div></div>
+  <div class="step"><span class="num">3</span><div><b>Spin the storm spinner.</b> If it lands on the storm sector,
+    set the <b>cloud</b> <img class="ico" src="../../assets/icons/storm-cloud.png"> on top of the forecast arrow:
+    a storm arrives tomorrow, and <b>nobody knows which way it will blow</b>. If the last two days both stormed,
+    skip this spin — the sky is spent.</div></div>
+
+  <figure>
+    <img class="shot" src="images/windpill.jpg" style="width:340px;" alt="Wind pill">
+    <img class="shot" src="images/windpill-storm.jpg" style="width:340px;" alt="Storm forecast">
+    <figcaption>The app’s compass bar on a fair day — wind now, and tomorrow’s forecast — and on the eve of a
+    storm: the forecast becomes a cloud, and the direction is nobody’s to know.</figcaption>
+  </figure>
+
+  <div class="cols">
+    <div>
+      <h3><img class="ico" src="../../assets/icons/sailboat.png"> Sailing the wind</h3>
+      <p>Sailing is <b>free</b>. Move up to <b>4 squares</b>, one at a time, north, south, east or west, mixing
+      directions as you please. But if <b>even one step</b> of your route goes <b>directly against the NOW
+      needle</b>, your whole move that turn is capped at <b>2 squares</b>. Across the wind costs nothing extra.</p>
+      <ul>
+        <li>You may sail <b>past</b> other ships, but never <b>end</b> on one.</li>
+        <li>Islands and Tortuga are land — sail around, never over.</li>
+        <li>Only one ship fits a berth. An occupied berth is closed to you.</li>
+        <li>You may always stay put.</li>
+      </ul>
+      <h3><img class="ico" src="../../assets/icons/storm-cloud.png"> When the storm breaks</h3>
+      <p>Spin the <b>NOW needle itself</b> — that is the storm’s direction. <b>Every ship</b> is blown
+      <b>3 squares</b> downwind <b>before anyone acts</b>, starting with the ship furthest downwind.
+      <b>Land and other ships stop you short — that’s the whole rule.</b> Nobody loses a turn; a dock is just
+      water the storm can push you onto or off. Then take the cloud off and set tomorrow’s sky as usual
+      (steps 2 and 3).</p>
+      <p>Anchoring with land at your back so the storm cannot move you is not cowardice — it is seamanship.</p>
+    </div>
+    <div>
+      <figure>
+        <div class="crop" style="width:335px; height:330px; background-image:url(images/sail.jpg);
+             background-size:655px auto; background-position:-8px -14px;"></div>
+        <figcaption>Sailing in the app, wind blowing north: four squares’ reach with or across the wind,
+        but the routes that bite south into it stop at two.</figcaption>
+      </figure>
+      <h3><img class="ico" src="../../assets/icons/current-swirl.png"> The trade winds &amp; whirlpools</h3>
+      <p>The outer ring of sea flows in one mighty <b>clockwise current</b>. Enter any ring square — by sail or by
+      storm — and you are <b>swept clockwise to the next whirlpool</b>, where your movement ends. A daring
+      shortcut for a captain in a hurry, and a hazard for one who isn’t.</p>
+      <figure>
+        <div class="crop" style="width:335px; height:52px; background-image:url(images/sail.jpg);
+             background-size:660px auto; background-position:-18px -28px;"></div>
+        <figcaption>The ring’s chevrons point the way the current runs.</figcaption>
+      </figure>
+    </div>
+  </div>
+
+  <div class="footer"><span class="pagetag">Pastry Pirates · playpastrypirates.com</span><span>Page 3 · Wind &amp; weather</span></div>
+</section>
+
+<!-- ======================= PAGE 4 — THE ACTIONS ======================= -->
+<section class="page">
+  <h2 style="margin-top:0;"><img class="ico-lg" src="../../assets/icons/anchor.png"> Dock — treasure, wages, and the market</h2>
+  <div class="cols">
+    <div style="flex:1.35;">
+      <p>Sitting in an island’s berth, flip a coin: <b>heads</b>
+      <img class="ico" src="../../assets/icons/flip-heads.png"> you strike buried treasure and take
+      <b>3</b> <img class="coin" src="../../assets/icons/coin-emoji.png"> from the bank; <b>tails</b>
+      <img class="ico" src="../../assets/icons/flip-tails.png"> you spend the turn working the docks for
+      <b>1</b> <img class="coin" src="../../assets/icons/coin-emoji.png">. <b>Either way</b>, you may then
+      <b>buy one crate</b> from that island — with the coins you just earned, if you like.</p>
+      <p><b>Prices climb as shelves empty.</b> The first crate an island sells costs
+      <b>3</b> <img class="coin" src="../../assets/icons/coin-emoji.png">; each later crate costs
+      <b>one more than the last</b> — 3, then 4, then 5. Get there first, or pay for dawdling. You may buy crates
+      that are not on your recipe: they make excellent trade bait.</p>
+      <p><b>The black market.</b> When an island’s shelf is bare, the bank will sell <b>one last crate</b> of that
+      ingredient for a flat <b>10</b> <img class="coin" src="../../assets/icons/coin-emoji.png"> — and you must
+      still sail to that island’s berth to collect it. Dear, but no recipe is ever dead.</p>
+      <p>You may stay moored and flip again next turn, as long as you please.</p>
+    </div>
+    <div style="flex:1;">
+      <figure>
+        <div class="crop" style="width:290px; height:270px; background-image:url(images/actmenu-full.jpg);
+             background-size:1365px auto; background-position:-630px -375px;"></div>
+        <figcaption>An island with all three crates still on the shelf — the next one sold here costs 3.</figcaption>
+      </figure>
+    </div>
+  </div>
+
+  <h2><img class="ico-lg" src="../../assets/icons/handshake.png"> Trade — hail the whole table</h2>
+  <p>Announce <b>what you want</b> and <b>what you offer</b> — crates, coins, or both. Every captain holding what
+  you asked for answers, in sailing order: <b>accept</b>, <b>refuse</b>, or <b>name their own price</b>. Hear
+  every answer, then <b>strike one deal or walk away</b>. One round of haggling only — no countering a counter.
+  Anyone may trade any crates; cargo is public, so the table always knows who holds what.</p>
+
+  <h2><img class="ico-lg" src="../../assets/icons/battle.png"> Attack — one broadside each</h2>
+  <div class="cols">
+    <div style="flex:1.5;">
+      <p>Fight a ship on an <b>orthogonally adjacent</b> square. You cannot attack an <b>empty hold</b> — there is
+      nothing to take. Pay <b>2</b> <img class="coin" src="../../assets/icons/coin-emoji.png"> to the bank for
+      powder, then attacker and defender <b>each flip a coin at once</b>:</p>
+      <table class="rules">
+        <tr><th>The flips</th><th>What happens</th></tr>
+        <tr><td><img class="ico" src="../../assets/icons/flip-heads.png"> vs <img class="ico" src="../../assets/icons/flip-tails.png"></td>
+            <td><b>Heads beats tails</b> — the heads ship wins.</td></tr>
+        <tr><td><img class="ico" src="../../assets/icons/flip-heads.png"> + <img class="ico" src="../../assets/icons/flip-heads.png"></td>
+            <td>If one ship lies <b>downwind</b> of the other — on the side the NOW needle points toward — the
+            <b>downwind ship wins</b>. Crosswind, the cannonballs collide: no result yet.</td></tr>
+        <tr><td><img class="ico" src="../../assets/icons/flip-tails.png"> + <img class="ico" src="../../assets/icons/flip-tails.png"></td>
+            <td>The defender may <b>flee, free</b>: sail away at once under the normal sailing rules, and the
+            battle ends with nothing gained. Or they stand: no result yet.</td></tr>
+      </table>
+      <p><b>No result?</b> The attacker may pay <b>2</b> <img class="coin" src="../../assets/icons/coin-emoji.png">
+      for a fresh broadside and flip <b>alone</b> — heads and it lands, tails and they may pay again, as often as
+      they can afford. Break off instead, and the battle ends with <b>nobody gaining a thing</b> (the powder stays
+      spent).</p>
+      <p><b>The spoils:</b> the winner takes <b>one crate of their choosing</b> from the loser’s hold.
+      <b>Nobody changes squares.</b></p>
+    </div>
+    <div style="flex:1;">
+      <div class="callout" style="margin-top:0;"><b><img class="ico" src="../../assets/icons/spyglass.png">
+      Calling the fight — the side bet.</b> Before the first coins fly, every captain <b>not</b> in the battle may
+      call the winner aloud, free. A correct call pays <b>2</b> <img class="coin" src="../../assets/icons/coin-emoji.png">
+      from the bank when the battle ends. A battle with no winner pays no caller.</div>
+      <div class="callout"><b>Wind wins ties.</b> Downwind means the side the NOW needle points toward: if the wind
+      blows east, the easternmost of the two ships is downwind — the wind is at the other’s back, spoiling their
+      aim. Pick your moment, and your square, before you pick your fight.</div>
+      <div class="callout"><b><img class="ico" src="../../assets/icons/wave.png"> Pass.</b> Any turn may simply
+      end: take <b>1</b> <img class="coin" src="../../assets/icons/coin-emoji.png"> from the bank, lean on the
+      rail, and tell the table what strange creature you saw in the water.</div>
+    </div>
+  </div>
+
+  <div class="footer"><span class="pagetag">Pastry Pirates · playpastrypirates.com</span><span>Page 4 · The actions</span></div>
+</section>
+
+<!-- ======================= PAGE 5 — RAIDS, WINNING, FINER POINTS ======================= -->
+<section class="page">
+  <h2 style="margin-top:0;"><img class="ico-lg" src="../../assets/icons/skull.png"> Raids — no berth is safe</h2>
+  <p><b>Every dock is raidable.</b> Attacking a moored ship follows the battle rules exactly — a berth protects
+  nobody, <b>not even a captain who has already fired up the ovens</b>. Steal a crate a finished captain’s recipe
+  needs, and their bakery goes cold: they are back in the game, and must sail out and replace what was taken.
+  Steal a spare crate, and their bake stands.</p>
+
+  <h2><img class="ico-lg" src="../../assets/icons/finish-flag.png"> Winning — first baker home</h2>
+  <div class="cols">
+    <div style="flex:1.4;">
+      <p>When you are moored at <b>Tortuga</b> holding <b>every ingredient on your recipe map</b>, declare
+      <b>“Start your bakery!”</b> as your action. Then <b>every other captain gets exactly one last turn</b>,
+      continuing around the table from your seat — one final chance to reach home with a full recipe, or to raid
+      yours.</p>
+      <p>Then the ovens are lit:</p>
+      <ul>
+        <li><b>One captain home with a full recipe</b> — they are the Best Baker in the Caribbean.
+            <img class="ico" src="../../assets/icons/crown.png"></li>
+        <li><b>Several captains home</b> — there is no contest: they bake together, and <b>Best Baker</b> goes to
+            whoever brought the most to the bench — most <b>crates</b> in the hold (all crates, recipe or not),
+            then most <b>coins</b>, then whoever got home <b>first</b>.</li>
+        <li><b>Nobody home</b> (the raid landed) — the voyage simply continues, day after day, until somebody is.</li>
+      </ul>
+    </div>
+    <div style="flex:1;">
+      <figure>
+        <div class="crop" style="width:290px; height:255px; background-image:url(images/actmenu-full.jpg);
+             background-size:1238px auto; background-position:-309px -416px;"></div>
+        <figcaption>Tortuga: home port, four berths, and the finish line — with the act buttons a captain
+        chooses from in the app.</figcaption>
+      </figure>
+    </div>
+  </div>
+
+  <h2><img class="ico-lg" src="../../assets/icons/scroll.png"> The finer points</h2>
+  <ul>
+    <li><b>Recipes are secret; everything else is public.</b> Coins, cargo, prices, the wind and its forecast —
+        all open. Watch what a rival buys and asks for, and you’ll guess their recipe soon enough.</li>
+    <li><b>Coins come from</b> docking (3 or 1), correct battle calls (+2), passing (+1), trades, and the staggered
+        start. The bank never runs dry.</li>
+    <li><b>Crates come from</b> buying at docks, winning battles, and trades — never from the flip alone.</li>
+    <li><b>The storm and the ring:</b> blown into the trade winds, you are swept to the next whirlpool as usual —
+        the sweep ends that ship’s storm push.</li>
+    <li><b>Storms never strike three days running.</b> After two in a row, skip the storm spin.</li>
+    <li><b>An occupied berth</b> cannot be entered — by sail or by storm; you stop short. Evict nobody: fights take
+        cargo, not squares.</li>
+    <li><b>Hemmed in?</b> If a route rule ever leaves you unable to move, you may always stay put — and always Pass.</li>
+    <li><b>Two captains:</b> each island stocks a single crate (it costs 3), you place two whirlpools in total, and
+        coins start 3 and 4. Expect a knife-fight for the black market.</li>
+    <li><b>The app is the tie-breaker.</b> If a situation is not covered here, play it as
+        <b>playpastrypirates.com</b> plays it — the boardgame and the app are one game.</li>
+  </ul>
+
+  <div class="footer"><span class="pagetag">Pastry Pirates · playpastrypirates.com</span><span>Page 5 · Raids, winning &amp; finer points</span></div>
+</section>
+
+<!-- ======================= PAGE 6 — EXPANSION + QUICK REFERENCE ======================= -->
+<section class="page">
+  <h2 style="margin-top:0;"><img class="ico-lg" src="../../assets/icons/pirate-chef.png"> Optional expansion — the Ovens Bake-off</h2>
+  <p style="font-size:12px; color:#5a7078;">A memory duel at the finish line, straight from the app. Agree to it
+  before the voyage starts; it replaces “Winning” on page 5.</p>
+  <ul>
+    <li>Reaching Tortuga with a full recipe no longer wins — it <b>lights your ovens</b>. The voyage sails on
+        around you, and you may still be raided.</li>
+    <li><b>At the end of each day</b>, every captain at the ovens attempts the bake. Lay your five recipe crates
+        in a row in <b>your recipe map’s order</b> while all watch. The captain to your left turns them face-down
+        and makes <b>three slow swaps</b>, one pair at a time, in plain view.</li>
+    <li>Now name them back: point to the crates in recipe order, flipping each as you call it. A correct call
+        stays face-up — and stays solved for every later attempt. Your first miss ends the attempt (turn it back
+        over).</li>
+    <li><b>All five face-up — you baked it!</b> The voyage ends with that day; if two captains bake the same
+        day, Best Baker (page 5) settles it. Otherwise: tomorrow evening the hider re-hides <b>only your unsolved
+        crates</b>, three fresh swaps, and you try again.</li>
+    <li>Pay <b>1</b> <img class="coin" src="../../assets/icons/coin-emoji.png"> before guessing to have the swaps
+        shown again, slowly — as many times as you can afford. Gold’s last, best use.</li>
+  </ul>
+
+  <h2>A day of Pastry Pirates — quick reference</h2>
+  <div class="cols">
+    <div>
+      <ol>
+        <li><b>Weather:</b> cloud up? Storm — spin NOW, blow every ship 3 downwind, remove cloud. Else NOW ←
+            forecast. Then spin forecast; spin storm spinner (cloud over the forecast arrow on a storm).</li>
+        <li><b>Each captain, in order:</b> Sail (up to 4; any upwind step caps it at 2), then one act:
+            Dock · Trade · Attack · Start your bakery · Pass.</li>
+        <li><b>First bakery declared:</b> everyone else gets one last turn — then crown the Best Baker.</li>
+      </ol>
+      <table class="rules">
+        <tr><th>The numbers</th><th></th></tr>
+        <tr><td>Start coins, by sailing order</td><td>3 · 4 · 5 · 6</td></tr>
+        <tr><td>Sail / sail against the wind</td><td>4 / 2 squares</td></tr>
+        <tr><td>Dock flip: heads / tails</td><td>3 / 1 <img class="coin" src="../../assets/icons/coin-emoji.png"></td></tr>
+        <tr><td>Crates, per island</td><td>captains − 1</td></tr>
+        <tr><td>Crate price: 1st · 2nd · 3rd sold</td><td>3 · 4 · 5 <img class="coin" src="../../assets/icons/coin-emoji.png"></td></tr>
+        <tr><td>Black market (shelf empty)</td><td>10 <img class="coin" src="../../assets/icons/coin-emoji.png"></td></tr>
+        <tr><td>Powder / fresh broadside</td><td>2 / 2 <img class="coin" src="../../assets/icons/coin-emoji.png"></td></tr>
+        <tr><td>Correct battle call</td><td>+2 <img class="coin" src="../../assets/icons/coin-emoji.png"></td></tr>
+        <tr><td>Pass</td><td>+1 <img class="coin" src="../../assets/icons/coin-emoji.png"></td></tr>
+        <tr><td>Storm push</td><td>3 squares, everyone</td></tr>
+      </table>
+    </div>
+    <div>
+      <h3>In the box</h3>
+      <ul style="font-size:12.2px;">
+        <li>The sea, in five pieces — four quadrants and Tortuga</li>
+        <li>7 island tiles · 7 docks with mooring posts · 7 marker discs</li>
+        <li>28 ingredient crates (four of each ingredient)</li>
+        <li>4 whirlpool tiles · 4 ships</li>
+        <li>The wind compass — dial, NOW needle, forecast arrow</li>
+        <li>Storm spinner and storm cloud</li>
+        <li>21 recipe maps · the first-player wheel · a bag for the islands</li>
+        <li><i>From your own chest: gold coins, and one coin to flip.</i></li>
+      </ul>
+      <h3>The seven ingredients</h3>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:4px 10px; font-size:13.5px; margin:6px 0;">
+        <span style="white-space:nowrap;"><img class="ico-lg" src="../../assets/ingredients/wheat.png"> Toasty Wheat</span>
+        <span style="white-space:nowrap;"><img class="ico-lg" src="../../assets/ingredients/eggs.png"> Speckled Eggs</span>
+        <span style="white-space:nowrap;"><img class="ico-lg" src="../../assets/ingredients/dairy.png"> Fresh Milk</span>
+        <span style="white-space:nowrap;"><img class="ico-lg" src="../../assets/ingredients/sugar.png"> Rock Sugar</span>
+        <span style="white-space:nowrap;"><img class="ico-lg" src="../../assets/ingredients/cocoa.png"> Cacao Pods</span>
+        <span style="white-space:nowrap;"><img class="ico-lg" src="../../assets/ingredients/vanilla.png"> Vanilla Beans</span>
+        <span style="white-space:nowrap;"><img class="ico-lg" src="../../assets/ingredients/spice.png"> Hot Cinnamon</span>
+      </div>
+      <p style="font-size:12px; color:#5a7078; margin-top:14px;">Every recipe map is five of these seven.
+      Rules edition 1.0 — matched to the game at <b>playpastrypirates.com</b>.</p>
+      <p style="font-family:Georgia,serif; font-style:italic; font-size:13px; margin-top:12px;">May your flips
+      be heads and your rivals be broke.</p>
+    </div>
+  </div>
+
+  <div class="footer"><span class="pagetag">Pastry Pirates · playpastrypirates.com</span><span>Page 6 · Bake-off, reference &amp; box</span></div>
+</section>
+
+</body>
+</html>
