@@ -2620,3 +2620,21 @@ lost its `gap` when the preview was rewritten and the code only set margins in t
 - **A pinned preview must be SMALL.** *"most of my screen is unusable and i can barely access the
   sliders."* One compact line above the box, one below — not a title, a sentence, a ruler caption and
   three lines of readout. The notes box moved below the dials. Preview 433px → ~310px.
+
+**Three more, the same evening:**
+
+- **The ring on whoever's turn it is goes OUTSIDE their row.** *"The outline for active player's turn
+  should be on the OUTSIDE of their row, not the inside."* The game draws it inside today — a 2px
+  inset shadow plus a border, `index.html:256` — so this is a change to make when the plaque ships.
+  The "as it is on dev today" mode keeps the inset one, so the two can be compared.
+- **⛔ NO CRATE IS EVER SLICED BY THE COINS COLUMN — MEASURE THE HOLD, NEVER ESTIMATE IT.** *"no
+  ingredient should ever be cut off by the money row (like the wheat in Wyargh and Flaky Jack) -- the
+  compression and overlap should be triggered before that."* The room left for a hold had been worked
+  out on paper — box width minus the name column minus a guess at the coins — and the guess was about
+  28px short, so the squeeze started too late and the leftmost crate was cut in half. **The hold now
+  takes the leftover space as a flex child, its real width is read off the laid-out page, and the
+  crates are fitted into THAT** — the same order the game itself works in (`fitHold` in
+  `src/ui/util.js` measures `el.clientWidth`). Verified at 390, 511 and 749 and with a 16-crate hold:
+  the leftmost crate's offset inside its hold is never negative.
+- **Cream, not white, for the money and "empty hold"** — *"'empty hold' and the money can use cream
+  instead of white"* — `#f7edd2`, the recipe card's own paper, so the box stays on one warm palette.
