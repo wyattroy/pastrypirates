@@ -781,6 +781,34 @@ function shipStanding(kind, captain) {
 // Wyatt, 2026-08-22: "Make the ships 3d by slotting two vertical sails into a horizontal ship bottom. The sails in
 // 3mm, bottom in 6mm." The hull is the boat seen from above — pointed bow, round stern, deck planks — with two
 // slots along its centreline; the main sail and the jib each carry a tab that drops through a slot.
+// The sail, drawn exactly as it is cut — mast, square sail hung both sides, bellied foot, tab, and
+// the skull. mw is the MAST width and `shoulder` a chamfer where the mast meets the sail's foot;
+// mw = 2.6, shoulder = 0 reproduces the sail as it has been since 2026-08-25. Pulled out of ship3d
+// on 2026-09-11 so the mast options could be drawn from the real thing — Wyatt: "the sails in your
+// image are not the actual shape of the current sailes, so I cannot trust them."
+function sailPiece(w, hgt, { mw = 2.6, shoulder = 0, sl = 7, pat = 0, topNotch = 0 } = {}) {
+  const mh = hgt + 8, y0 = 2, y1 = 2 + hgt, c = mw / 2, tab = tab_(sl), s2 = shoulder;
+  const foot = y1 + 2.4;
+  const nx = c + 4, nw = MAT3 + .1, nd = 2;   // the spar notch, 4 mm right of the mast so it clears it
+  const top = topNotch ? [[c + w / 2, y0], [nx + nw / 2, y0], [nx + nw / 2, y0 + nd], [nx - nw / 2, y0 + nd], [nx - nw / 2, y0]] : [[c + w / 2, y0]];
+  const outline = [[0, 0], [mw, 0], [mw, y0], ...top.slice().reverse(), [c + w / 2, y1], [c + w / 2 - 2.8, y1 + 1.6],
+    ...(s2 ? [[mw + s2, foot], [mw, foot + s2]] : [[mw, foot]]), [mw, mh],
+    [c + tab / 2, mh], [c + tab / 2, mh + MAT], [c - tab / 2, mh + MAT], [c - tab / 2, mh], [0, mh],
+    ...(s2 ? [[0, foot + s2], [-s2, foot]] : [[0, foot]]),
+    [c - (w / 2 - 1.5), y1 + 1.6], [c - w / 2, y1], [c - w / 2, y0], [0, y0]];
+  void nd;
+  const cx = c, cy = y0 + 1.4 + (hgt - 1.4) * .5, sk = Math.min(w - 4, hgt - 3.4);
+  void pat;
+  return [item(CU, [polyCmds(outline)]), rect(RA, c - w / 2, y0 + .6, w, .5), ...artToken("skullref", cx, cy, sk, { cut: false, solid: true })];
+}
+// a spar that braces the two mastheads: a bar half-lapped into a notch in each mast
+function sailSpar(gap = 8 * GRID_SCALE, len = 22, wdt = 4.2) {
+  const n = MAT3 + .1, d = wdt / 2, x0 = (len - gap) / 2;
+  return [item(CU, [polyCmds([[0, 0], [len, 0], [len, wdt], [0, wdt]]),
+    reverseSub(polyCmds([[x0 - n / 2, 0], [x0 + n / 2, 0], [x0 + n / 2, d], [x0 - n / 2, d]])),
+    reverseSub(polyCmds([[x0 + gap - n / 2, 0], [x0 + gap + n / 2, 0], [x0 + gap + n / 2, d], [x0 + gap - n / 2, d]]))])];
+}
+
 function ship3d(c) {
   // Wyatt: "model the ship off an old pirate ship, not a modern yacht ... rotate the hull notches 90 degrees so that the
   // sails can be perpendicular to the direction of the ship; make the sails square-ish; draw the game art skull and
@@ -793,18 +821,7 @@ function ship3d(c) {
   shape.push(rect(RA, 1.6, B / 2 - .3, 1.6, .6));                                                                  // tiller
   hull.push(...xf(shape, { s: S }));
   hull.push(rect(CU, 7.5 * S - sw / 2, B * S / 2 - sl / 2, sw, sl), rect(CU, 15.5 * S - sw / 2, B * S / 2 - sl / 2, sw, sl));   // slots athwartships, full size
-  const sail = (w, hgt, pat) => { const mh = hgt + 8, y0 = 2, y1 = 2 + hgt; const pts = [[0, 0], [2.6, 0], [2.6, mh], [tab_(sl) / 2 + 1.3, mh], [tab_(sl) / 2 + 1.3, mh + MAT], [-tab_(sl) / 2 + 1.3, mh + MAT], [-tab_(sl) / 2 + 1.3, mh], [0, mh], [0, y1 + 1.2], [-(w / 2 - 1.3), y1 + 2.2], [-(w / 2 - 1.3), y0], [-(w / 2 - 1.3) + 0, y0], [0, y0]];
-    // one outline: mast, a square sail hung left AND right of the mast, its foot bellying down
-    const sq = [[0, 0], [2.6, 0], [2.6, y0], [w / 2 + 1.3, y0], [w / 2 + 1.3, y1], [w / 2 - 1.5, y1 + 1.6], [1.3, y1 + 2.4], [-(w / 2 - 2.8), y1 + 1.6], [-(w / 2 - 1.3), y1], [-(w / 2 - 1.3), y0], [0, y0]];
-    const foot = sq.findIndex(p => p[0] === 0 && p[1] === y0 && sq.indexOf(p) > 0);
-    const outline = [[0, 0], [2.6, 0], [2.6, y0], [w / 2 + 1.3, y0], [w / 2 + 1.3, y1], [w / 2 - 1.5, y1 + 1.6], [2.6, y1 + 2.4], [2.6, mh], [tab_(sl) / 2 + 1.3, mh], [tab_(sl) / 2 + 1.3, mh + MAT], [-tab_(sl) / 2 + 1.3, mh + MAT], [-tab_(sl) / 2 + 1.3, mh], [0, mh], [0, y1 + 2.4], [-(w / 2 - 2.8), y1 + 1.6], [-(w / 2 - 1.3), y1], [-(w / 2 - 1.3), y0], [0, y0]];
-    // Wyatt, 2026-08-25: skull BIG on both sail faces (the question UI settled sails over his word "masts";
-    // overrules "plain sails", 2026-08-22). Same day, on seeing the traced ☠️: "the emoji raster doesn't look
-    // right -- use notes/skull-ref.png instead" — his reference, traced black-on-white (art/skull-ref.png).
-    const cx = 1.3, cy = y0 + 1.4 + (hgt - 1.4) * .5, sk = Math.min(w - 4, hgt - 3.4);
-    void pat;
-    return [item(CU, [polyCmds(outline)]), rect(RA, -(w / 2 - 1.3), y0 + .6, w, .5), ...artToken("skullref", cx, cy, sk, { cut: false, solid: true })];
-  };
+  const sail = (w, hgt, pat) => sailPiece(w, hgt, { sl, pat });
   const main = sail(15, 13, c), fore = sail(12, 11, c);
   return [{ ...part(`ship-${CAPTAINS[c]}-hull`, hull), mat: MAT }, { ...part(`ship-${CAPTAINS[c]}-main`, main), mat: MAT3 }, { ...part(`ship-${CAPTAINS[c]}-fore`, fore), mat: MAT3 }];
 }
@@ -1843,6 +1860,16 @@ function buildVersion(V) {
     else { const s = shipStanding(v === "v1" ? "sloop" : "galleon", c); shipParts.push(part(`ship-${CAPTAINS[c]}`, s.profile), part(`ship-base-${CAPTAINS[c]}`, s.base)); }
   }
   cutParts.push(...shipParts);
+  // Mast options, drawn from the REAL sail so he can judge them (2026-09-11). Decision sheets, not
+  // cut files — delete the three once he picks.
+  if (v === "v3") {
+    docs.push(sheet("mast-a", "Mast option A — thicker masts", [part("A-main", sailPiece(15, 13, { mw: 5, shoulder: 2.5 })), part("A-fore", sailPiece(12, 11, { mw: 5, shoulder: 2.5 }))],
+      { notes: "Both sails stay, exactly as they are, with the mast 2.6 → 5.0 mm and a chamfer where it meets the sail's foot. Nothing else changes: same hull, same slots, same parts count." }));
+    docs.push(sheet("mast-b", "Mast option B — a spar across the sails", [part("B-main", sailPiece(15, 13, { topNotch: 1 })), part("B-fore", sailPiece(12, 11, { topNotch: 1 })), part("B-spar", sailSpar())],
+      { notes: "His suggestion. Only 2 mm of mast stands above the sail, too little to notch, so the spar half-laps into the SAIL tops instead, 4 mm right of each mast. Masts stay 2.6 mm — thin exactly while you are handling and assembling them." }));
+    docs.push(sheet("mast-c", "Mast option C — one sail", [part("C-main", sailPiece(20, 16, { mw: 7, shoulder: 3 }))],
+      { notes: "One larger sail on a 7 mm mast in the aft slot; the fore slot goes. Strongest, and 4 sails instead of 8." }));
+  }
   docs.push(sheet("ships", "Ships (4)", shipParts, { count: 4, notes: "Four captains told apart in wood: CRUMBLE plain, BISCOTTI striped, GINGERSNAP dotted, SHORTBREAD checked (pink, teal, green, orange in the app — paint the sails if you like). " + (v === "v3" ? `An old pirate ship after the game's own sailboat art: a 6 mm hull seen from above (${r3(24 * GRID_SCALE)} × ${r3(12 * GRID_SCALE)} mm, deck planks, a tiller) with two slots ACROSS the beam; two 3 mm square sails on short masts whose tabs drop through the slots and sit flush underneath, the skull and crossbones (his reference, art/skull-ref.png) engraved big on each. About 24 mm tall. Paint the sails for the captain.` : "Standing profiles: the tab under the hull drops into the slot in the base.") }));
   // recipes
   const recipeParts = recipeCards(v).map((c, i) => ({ ...part(`recipe-${i + 1}`, c), mat: MAT3 })); cutParts.push(...recipeParts);
