@@ -6,6 +6,204 @@ say whether a fault is *recurring* — which is the check this file exists to ma
 
 ---
 
+## 2026-09-12 · `086beee8`..`5eff19e4` · eleven commits · **THE PAPERWORK IS EXCELLENT AND THE GAME DID NOT MOVE**
+
+**Reviewed:** his ten asks in the captain's-box stream, oldest first, ending with *"This process is
+not working."* Repo-read-only by instruction: no browser, no server. **`npm test` deliberately NOT
+run** — this repo's own record (`b684271a`) says one gate in it starts a browser, and I was told not
+to. Everything below is read off the files, off the committed art's pixels, and off the session's own
+transcript. `git fetch` run before any statement about git.
+
+**My one sentence for Wyatt, verbatim:**
+
+> **Everything you ruled on yesterday got written down properly for the first time — but from 6pm to
+> 11:37pm not one line of the game changed, the plaque still cannot fit four captains because the
+> picture was ordered at 2:1 when a division anyone could have done that morning says it needs 1.6:1,
+> and the crates-on-one-line you called "awesome" is still not on staging for you to play.**
+
+**Verdicts**
+
+| ask | verdict |
+|---|---|
+| #1 — the pill covers the card, write it somewhere durable | **DONE** — and done properly, in the one place a machine reads |
+| #2 — crates on one line, his settings | **DONE in code · NOT ON STAGING**, so he still has not played it |
+| #3 — sugar cane art review | **DONE** — four shapes, shown at play size, he picked one; the winner is not in the game yet |
+| #3 — the new plaque art review | **DONE** — both round-1 rejected, round 3 produced |
+| #4 — previews at the real game size, not squares | **DONE** |
+| #5 — more weathered, a little darker | **DONE** |
+| #6 — the new art not showing in the mockup | **DONE** |
+| #7 — four captains only · card gradient · 25% fill · a real tuner | **DONE** |
+| #8 — "did you even QA this?" | **PARTIAL** — that fault fixed; the replacement shipped with a row cut off |
+| #9 — "the center area is messed up" | superseded by #10 |
+| #10 — two source pictures at the box's size | **PARTIAL** — model adopted, tuner rebuilt, **no art generated** |
+| this turn — the handoff prompt | **DONE, and it is good** — three cited corrections below |
+
+---
+
+### The one number that cost the whole evening
+
+**Nine of his messages went to one picture. Only ONE of them (#5, "more weathered and a little
+darker") was him judging the art.** The other six — #4, #6, #7, #8, #9, #10 — were him reporting that
+the *preview* was broken: squares instead of the real box, art that did not appear, an impossible
+two-captain table, a double rope, a wrecked centre, and finally the whole mechanism.
+
+**The fault was visible before a single image was generated.** `.claude/memory/DECISIONS.md` records
+the round-2 prompt asking for **"2:1 (the box's real shape)"**. It is not the box's real shape. The
+row rulings written down that same day give the arithmetic: band 31 + four 32px rows + 3px gaps +
+padding = **204px of content in a 390px-wide box**. Allow for a rope and the picture has to be about
+**1.6:1**. At 2:1 — and at the 2.11:1 that was actually drawn — the fourth captain does not fit, and
+no amount of slicing, knotting or tuning can make it fit.
+
+**The decision that should have been made differently, and when:** on 2026-09-11, at the round-2
+prompt, before any art was ordered. Divide 390 by 204 first. Everything after it — the CSS nine-slice,
+the four masked knots, the wood crop, three complete tuner rebuilds, and his *"your system is
+completely failing"* — is downstream of one division that was skipped. **Three of the tuner's rebuilds
+were machinery, not the thing he asked for. He deleted all three himself in #10.**
+
+**And the arithmetic that proves it is printed inside the tuner he was sent.** The tuner computes
+`SHORT by 41px: the picture wants to be 1.61:1` and draws the box with `overflow:hidden`, so the
+fourth captain is clipped. I re-derived it: at 390 wide, 2.11:1 gives 185px of picture, 14% inset top
+and bottom leaves 133px of board, the rows need 174px. **The page told the CTO it did not fit, and it
+was published to him anyway.** That is the moment to have stopped — not after he replied.
+
+---
+
+### What is actually in the repo after all of it
+
+```
+git diff --stat 34168a43..HEAD   →  15 files, 100 insertions
+```
+
+**Not one of them is a game file.** Six of the seven art-stream commits touch only
+`DECISIONS.md`, `BACKLOG.md` and `CURRENT-SHEET.md`; the seventh commits eight source JPEGs into
+`art-review/`. The last time the game itself changed was **16:15 local on 09-11**. The captain's box a
+player opens today has no plaque, no rope and no wood.
+
+**And three game commits are stranded before staging.** `.planning/CURRENT-SHEET.md` names staging as
+`dd56bb96`; `dev` is `5eff19e4`. Between them sit `2791099e` (his whole phone playtest, eleven game
+files), `301725e8` (crates on one line — the thing he called *"awesome... Implement it"*) and
+`34168a43`. **He has not been able to play a single fix he asked for on 09-11.** Production
+(`origin/main` = `a473be4b`) is from 2026-09-06; that part is normal and not a fault.
+
+**Housekeeping is clean**, and it should be said: `dev` is pushed and matches `origin/dev` exactly
+(nothing stranded on the Air), and `node scripts/qa/stray_probe_check.mjs` passes — no abandoned
+browsers on this machine.
+
+---
+
+### #1 — the pill. DONE, and it is the best-executed item here.
+
+The ruling is in the **single** ```accepted fence (`docs/INTENDED-BEHAVIOUR.md:368-382`), which is the
+one `scripts/lib/vision.mjs:38-47` reads at runtime and **throws** rather than run without. There is
+no second fence to drift out of step with. It is also at `.claude/memory/DECISIONS.md:2330`, in a
+comment above the rule itself (`index.html:3160-3162`, which explicitly retires the two older comments
+that worried about what the pill covers), and the probe that flagged it is deleted. I opened
+`sea-trial-shots/judge-results.json`: **exactly 8 entries flipped to PASS, each carrying the reason.**
+This is what "write it somewhere durable" should look like every time.
+
+### #2 — the crates. His numbers, faithfully. One claim in the record is wrong.
+
+`src/ui/util.js:193` — `HOLD_GAP_PX=3, HOLD_MAX_OVERLAP=0.35`. His settings exactly. The tuner's model
+matches the real game rather than approximating it (`--rowH1` 32/40 and `--rowGap` 3/4 at
+`index.html:3377` and `index.html:3437`). The rebuild is guarded against churn by comparing the string
+it wrote (`src/ui/board.js:1808-1813`), which is the right guard.
+
+**But "the newest crate on top" is written in three places and the code does not do it.** Other
+captains' crates are `hold.slice().sort()` (`src/ui/board.js:1798`) and the viewer's own are in recipe
+order (`src/ui/board.js:1784`), so the crate that sits on top is the last one *alphabetically* or the
+last in the recipe — never the newest. Invisible to a player; wrong in `src/ui/util.js:188`, in the
+tuner's footer, and now in the new handoff's §5.
+
+### The handoff written this morning — good, with three corrections
+
+It is measured, specific, honest about A and B being nearly the same shape, and it names the real
+constraint. I checked its arithmetic end to end and **every number reconciles**: 204px and 255px of
+content match the stylesheet's own row and padding rules; 1.55 / 1.69 / 2.47 follow from those plus the
+rope; the canvas sizes, rope thicknesses and twist counts all follow from 2048px wide. Three things to
+fix before a cleared session acts on it:
+
+1. **§6 names the wrong cause, and a session sent to fix it will edit a rule that never runs.** It
+   cites `index.html:1765` for the fourth captain being cut off at 390×664. That line lives inside
+   `body.pp4Stage.pp4Side #pp4Col` — the side-by-side column. At 390 wide the layout takes the stacked
+   branch and **removes** `pp4Side` (`src/ui/stage.js:3121`). The clamp that actually applies on a
+   phone is set inline at **`src/ui/stage.js:3158`**. The bug may well be real — it is a probe reading
+   I cannot re-run without a browser — but the cause is misattributed.
+2. **"Rope thickness is fixed at 24 screen pixels" is a choice, not a measurement**, and it sits in a
+   section headed *"read off the running game, not guessed"*. It is the one number that decides how
+   much edge the rope eats — which is exactly what he complained about. On a phone it takes 19% of the
+   box's height. Mark it as the CTO's pick and put it to him.
+3. **The §6 bug is on no list** — the handoff says so itself. That is the previous verdict's finding
+   (I) starting over in a new file.
+
+---
+
+### 2. Delivered that he did NOT ask for — and it did not displace anything
+
+- **Eight source images committed to `art-review/`** (~18 MB). Not asked for, correct anyway: they
+  cannot be regenerated, and the commit message says so.
+- **`DECISIONS.md` grew 352 lines.** Not asked for. It is the single biggest improvement in this set.
+- **Nothing displaced work he asked for.** The evening's cost was three tuner rebuilds on mechanisms
+  he later deleted — that is a wrong-turn cost, not a substitution.
+
+### 3. Claims the repo does not support
+
+| claim | where | what I measured |
+|---|---|---|
+| "the board starts **13.6%** in from the top and bottom and about **9%** from the sides", stated as measured off the round-3 art | `.claude/memory/DECISIONS.md:2470`, and the same sentence in the tuner | Scanning `plaque-r3-keyed.png` myself: **top 12.2%, bottom 12.1–12.9%, right 5.0–6.0%, left 5.0–9.1%** (unstable — the border is hand-painted and uneven). **The 9% side figure is roughly 1.6× the rope's real thickness**, i.e. ~13px per side of good wood thrown away on a 390px box. Method: variance-threshold scan; I name its wobble rather than hide it. Part of the "gratuitous space on the edges" he complained about is this number, not the picture. |
+| "the newest on top" | `src/ui/util.js:188`, tuner footer, handoff §5 | `src/ui/board.js:1798` sorts; `:1784` uses recipe order |
+| "the three sugar-cane variants he asked for are not generated" | the CTO's own brief to me | **Four were generated and he picked the tied bundle** (`DECISIONS.md:2413`; four JPEGs in `88078de4`). The three un-generated ones are the *follow-ups* he asked for after picking, correctly parked with a real reason. The account understates its own work — rarer than flattery, and still inaccurate. |
+| "the rope eats roughly 13.6% of the height at top and bottom" in his screenshot | the CTO's own brief | that is the tuner's **setting** (`insetY` 14), not a measurement of what he saw |
+
+### 4. Is the last verdict's fault fixed, or recurring?
+
+**Split, and the split matters.**
+
+- **Finding (I) — "his rulings exist nowhere but this conversation": FIXED, decisively.** Every ruling
+  I spot-checked is in `DECISIONS.md` in his own words, and the pill ruling went further and reached
+  the code path that reads it. Two verdicts in a row named this; it has been answered.
+- **"Stale facts written into the source": RECURRED.** The 13.6%/9% pair and "newest on top" are now
+  baked into a durable file as measurements, and the 9% is the evidence the layout rests on.
+- **A NEW fault, and it is larger than either:** an evening's work that **cannot reach a player**, and
+  three approved fixes stalled before staging. The previous two verdicts judged fixes that were at
+  least in the game. This one judges a day that produced rulings, art files and an excellent handoff —
+  and moved nothing a player can see.
+
+### 5. Did the CTO spend its own head on reading it could have delegated?
+
+**I measured this rather than guessed it**, by streaming the session's own transcript without reading
+it into my context. Since 2026-09-11:
+
+- **597 Bash calls in the main thread, ~945,000 characters (~236k tokens) of tool output — and ZERO
+  subagents.** Not one delegation all day. The only `Agent` call in the window is the CEO audit itself,
+  this morning. `sed -n` ranges alone poured **392,615 characters** (~98k tokens) of source into the
+  main thread; `grep -n` another ~102,000.
+- **The per-call discipline is genuinely good and I want to say so**: no single result exceeded 20,000
+  characters, `| cut -c1-200` appears repeatedly, the megabytes of base64 art were written to
+  `*_uris.json` by scripts and spliced into pages by scripts so they **never** entered context, and the
+  probes return summaries rather than dumps. The fault is the aggregate, not any one read.
+- **The exceptions hold and I am NOT counting them:** the 15:40–15:57 UTC reading run across
+  `flow.js`, `orchestrator.js`, `engine/index.js`, `panel.js`, `pilot.js` and `stage.js` (~80k chars)
+  landed **34 minutes before `2791099e`, which edited exactly those files** — a file under active edit,
+  main-thread by design. The 88 `browser_batch` calls are the rendered game and the art rounds
+  (rule 19). Wyatt's own words and screenshots are his.
+- **The clearly delegatable reads I can name:** `.planning/art-generation-process.md` read **three
+  times** in the main thread (02:05, 02:06 and 04:08 UTC, ~30,000 characters total) — a runbook, read
+  to follow, re-read twice; and `scripts/qa/_crew_motion_check.mjs` read whole (200 lines, 6,980 chars)
+  to check one behaviour, on a day it was never edited. Small on their own.
+
+**The honest conclusion: bulk reading is not what broke this day.** Zero delegation across ~236k
+tokens of tool output on the day he said the process is not working is a real signal — but the thing
+that actually cost the evening was one skipped division, not a full context window.
+
+### 6. One sentence Wyatt should read first
+
+> **Everything you ruled on yesterday got written down properly for the first time — but from 6pm to
+> 11:37pm not one line of the game changed, the plaque still cannot fit four captains because the
+> picture was ordered at 2:1 when a division anyone could have done that morning says it needs 1.6:1,
+> and the crates-on-one-line you called "awesome" is still not on staging for you to play.**
+
+---
+
 ## 2026-09-10 · `c61bdddb` + `3c54758f` · two commits · **MIXED — #1 is half-fixed, #2's "too big" is not answered**
 
 **Reviewed:** his #1 (the cards jump after the swap), his #2 (the sizes were for desktop; the cards

@@ -2473,3 +2473,44 @@ why the fourth captain fell off the bottom in the tuner. **So the next art round
 
 **THE WIDER LESSON, and it is the one to keep:** when a mechanism needs three fixes in a row, the
 mechanism is wrong, not the fixes. He saw that from outside; I was still patching from inside.
+
+## 2026-09-12 — ⛔ "THIS PROCESS IS NOT WORKING": THE SHAPE OF THE BOX IS MEASURED BEFORE THE ART IS ORDERED
+
+Wyatt, sending a picture of the mock-up with the fourth captain sliced off the bottom:
+
+> *"This process is not working. get the CEO to audit all of your work for this project before showing
+> me -- look how messy your design is. you're missing a full row of the captain's box, your design
+> wastes a gratuitous amount of space on the edges, and it doesn't make sense. write a handoff prompt
+> to a cleared session that details what we need: a background for the new captain's box that
+> incorporates a rope border with distressed wood background and looks consistent at three different
+> screen size aspect ratios; then generate those three according to the actual aspect ratios required
+> and show me in the captain's box tuner."*
+
+**THE THREE BOXES, MEASURED IN A REAL FOUR-CAPTAIN VOYAGE** (`scripts/qa/_capbox_shape.mjs`, which
+poses a solo game and reads the rendered panel — no arithmetic on paper):
+
+| screen | box width | height the rows need | rows |
+|---|---|---|---|
+| phone 390×844 | **390**, full bleed | **204px** | 4 × 32, gaps 3, band 31+4, padding 12+20 |
+| laptop column 1280×800 | **482** (540 at 1920) | **255px** | 4 × 40, gaps 4, band 37+6, padding 20+20 |
+| tablet 768×1024 | **749**, wall to wall | **255px** | same as the column |
+
+So the three shapes are about **1.55 : 1 · 1.70 : 1 · 2.47 : 1** — and the round-3 art at 2.11:1 could
+never have held four captains at a phone's width. **That division — 390 ÷ 204 — is the whole of the
+evening that was lost.** A CEO audit of the day put it exactly there: *"The decision to have made
+differently: divide 390 by 204 before ordering the art."*
+
+**THE RULE, and it outranks any art brief: the slot is measured in the running game BEFORE the picture
+is asked for, and the measurement is a script that poses the state, never a number read off a comment
+or remembered from a previous round.** A picture whose shape is wrong cannot be rescued by slicing,
+tiling, insetting or tuning — three rounds of exactly that proved it in front of him.
+
+**What "gratuitous space on the edges" was, specifically:** the round-3 plaque spent **12.2% of its
+height at the top and 12.0% at the bottom** on rope and corner knots — a quarter of the box — plus a
+painted band outside the rope. Round 4 removes the corner knots (they are what forced the border to
+be thick enough to hold them), takes the rope flush to the picture's edge with nothing outside it, and
+comes back at about **13px of rope at a 390px box**.
+
+**Also corrected today, from the same audit:** the holds are **not** "newest on top". Another captain's
+hold is sorted alphabetically (`src/ui/board.js:1798`) and your own runs in recipe order (`:1784`);
+when they overlap, the crate further RIGHT sits on top. Earlier notes said "newest" in three places.
