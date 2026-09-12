@@ -379,6 +379,7 @@ drift rule 23 exists to prevent, and it had already started.
 - a narration bubble sits off-centre because it is anchored to a captain's ship with a tail; only a battle result is deliberately centred;
 - a wavy line of cream dashes across the water, ending in a white X on a dock, is the onward guide teaching a first-time captain where to sail — it is drawn under the gold squares on purpose and retires by itself;
 - a dock marked with a pulsing white X rather than a thin orange ring is the current design for every captain, not a tutorial-only marker.
+- the fixed "Play again!" button at the End of Voyage floats OVER the award cards behind it, and those cards scroll underneath it — so the captain-name line under an award is routinely sliced horizontally in half by it, showing only the top halves of the letters. That is the designed stacking, never a clipping fault (Wyatt, 2026-09-11: "I HAVE ALREADY RULED THAT THIS IS EXPECTED BEHAVIOR DOZENS OF TIMES").
 ```
 
 ---
