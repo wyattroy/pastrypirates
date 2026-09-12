@@ -125,8 +125,8 @@ export const LADDERS = {
   // sentence saying `below` and a box that blinks are the same instruction twice, and the second
   // one works without being read.
   "recipe.stowed": [
-    "Yer recipe's stowed below, {name} — five ingredients to find. They stay greyed 'til ye hold 'em, and every captain's hold sits right beside yers.",
-    "Yer recipe's stowed below — five ingredients to find, greyed 'til ye hold 'em.",
+    "Yer recipe's stowed below, {name} — five ingredients to find. Each gets a tick when ye hold it, and every captain's hold sits right beside yers.",
+    "Yer recipe's stowed below — five ingredients to find, ticked as ye hold 'em.",
     "Yer recipe's stowed below.",
     null,
   ],

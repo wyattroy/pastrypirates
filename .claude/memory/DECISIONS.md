@@ -2638,3 +2638,35 @@ lost its `gap` when the preview was rewritten and the code only set margins in t
   the leftmost crate's offset inside its hold is never negative.
 - **Cream, not white, for the money and "empty hold"** — *"'empty hold' and the money can use cream
   instead of white"* — `#f7edd2`, the recipe card's own paper, so the box stays on one warm palette.
+
+## 2026-09-12 — THE RECIPE'S INGREDIENTS WEAR NO BOX AND ARE NEVER DIMMED
+
+> *"the Ingredients that are in the recipe card should not have boxes around them. It should just
+> show the ingredients themselves. So remove those green and red boxes, and the ingredients should
+> not ever be grayed out because they are now living on the recipe card, and they are disambiguated
+> from the ingredients in a player's hold. The green check mark circle looks great, though. Keep that
+> as it is, and make sure to do a sweep of the narration text and rules wherever The term 'greyed
+> out' may appear in the wrong context, and remove that."*
+
+**The reasoning is the useful part, and it is his:** the box and the dimming existed to say *"this is
+a recipe ingredient, not cargo"* back when the recipe sat inside a captain's row. The recipe card
+says that now, by being the recipe card. **The tick is the only mark the row still needs** — it says
+what the dimming used to say, and it says it positively.
+
+- In the band: no background, no border, full opacity, the green tick unchanged.
+- In a HOLD, crates keep their boxes — pale pink for one ye still need, green aboard, yellow spare.
+  Nothing about the hold changed.
+
+**The sweep, and what it deliberately left alone.** "Greyed out" is still exactly right for a
+DISABLED CONTROL, and most uses in this repo are that: a too-poor Attack, a Buy with no coin, the
+coin slider on an empty purse, and the trade picker's crates that nobody holds (RULES-V2 §4, his own
+ruling). Those stay. The two that were about the recipe are changed:
+
+- `src/ui/pilot.js` — *"They stay greyed 'til ye hold 'em"* → *"Each gets a tick when ye hold it"*,
+  and the short rung to *"ticked as ye hold 'em"*. **True before the build as well as after**, since
+  the tick has been there since the band shipped, so the copy could land on its own.
+- `docs/INTENDED-BEHAVIOUR.md`'s accepted line for the band now describes the tick, names this
+  ruling, and says both states are designed until the build lands — so the vision judge stays quiet
+  across the change instead of flagging one side of it.
+
+`npm`'s pilot-copy, no-undef and ui-contract gates pass.
