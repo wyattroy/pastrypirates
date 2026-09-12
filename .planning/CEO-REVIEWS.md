@@ -6,6 +6,107 @@ say whether a fault is *recurring* — which is the check this file exists to ma
 
 ---
 
+## 2026-09-12 · `be8a5208` · AUDIT: is the board drawn as a square? · **HE IS RIGHT — THE FRAME IS NOT SQUARE, THE BOARD INSIDE IT IS**
+
+**Reviewed:** Wyatt's *"the board is always supposed to be viewed in a square, and it looks like that
+square is slightly rectangular now, at least on mobile. I would like you to have the CEO check that
+and audit that."* Measured, not read: a real solo game posed in headless Chrome (mobile emulation,
+deviceScaleFactor 2) at nine viewports across three builds, via `scripts/mp_rig.mjs`
+(serve/launch/attach/killAll). Every number below is off `getBoundingClientRect` and
+`getScreenCTM` in the live page. Probes lived in the CEO's scratchpad; the repo was not edited.
+
+**Its one sentence for Wyatt, verbatim:**
+
+> **You are right and your eye is calibrated: the white rounded frame around the sea is 375 wide by
+> 421 tall on your iPhone — 46 px taller than a square — but the board *inside* it is drawn perfectly
+> square and nothing is stretched, so this is a frame that is too tall, not a board that is squashed;
+> and it has been exactly this shape since before tonight, so nothing tonight broke it.**
+
+### What is square, measured
+
+| viewport | the framed board window | verdict |
+|---|---|---|
+| 375×635 (iPhone, older Safari bars) | **375 × 375** | square |
+| 375×670 | **375 × 375** | square — the exact boundary |
+| 375×690 | 375 × 395 | 1 : 1.05 |
+| **375×716 (his iPhone, Safari bars showing)** | **375 × 421** | **1 : 1.12 — 46 px too tall** |
+| 375×812 (full screen) | 375 × 517 | 1 : 1.38 |
+| 390×664 | **390 × 390** | square |
+| 390×844 | 390 × 549 | 1 : 1.41 |
+| 1280×800 laptop | **756 × 756** | square |
+| 1920×1080 | **1036 × 1036** | square |
+
+**The board itself is square everywhere, at every zoom.** The SVG's own screen matrix has identical
+x and y scale to five decimal places at every size measured (e.g. 1.10734 / 1.10734), and a grid
+square — 42.667 board units — renders **47.247 × 47.247 px**. Nothing on the board is stretched, and
+no cell is a rectangle. `preserveAspectRatio` is `xMidYMin meet` throughout, which makes that true by
+construction. The board art is a square asset (`assets/board.webp`, 2132 × 2132).
+
+### Where the squareness is lost — three lines, and the third is the one he can see
+
+1. **`src/ui/stage.js:894-896`** — the square rule is a **floor, not an equality**.
+   `squareRoom = Math.max(64, vhPx() - ribH - vwPx() - phoneFootReserve)` then
+   `CAP_BASE = Math.min(250, S.capNeed || …, squareRoom)` then
+   `availH = Math.max(200, vhPx() - ribH - CAP_BASE - phoneFootReserve)`.
+   `Math.min(…, squareRoom)` stops the strip being **shorter** than a square (the 2026-08-23 fix,
+   "the board's square outranks the captains card"). Nothing stops it being **taller**. The strip is
+   simply whatever is left after the captain's box takes what it measures — 209 px — so it is
+   `vh − 86 − 209` where a square would be `vw`.
+   **The derived rule, verified at four heights and correct at all four:** the window is square only
+   while the page's visible height is at most **board width + 295** (295 = 86 px top band + 209 px
+   captain's box). Above that it is exactly `height − width − 295` px taller than a square.
+2. **`src/ui/stage.js:901-903`** — `aspect = availH / vwPx(); h = c.w * aspect; if (h > 640) h = 640`.
+   While the camera is fully zoomed out, `h` clamps at 640, the square board letterboxes inside the
+   tall strip, and `boardBottom` (`:916`) pulls the captain's box up to meet it — so at the recipe
+   screen the visible sea still *reads* square. The instant the director zooms in, `h` drops below
+   640, the viewBox takes the **strip's** shape, the sea fills the whole strip and the card drops
+   away. Measured at 375×812: captain's box top **461 at the opening, 599 after 14 s of play**.
+3. **`index.html:153`** — `#board { … border-radius:10px; border:1.5px solid var(--line); }` with
+   **`index.html:1851`** — `body.pp4Stage #board { width:100%; height:100%; }`. **That white rounded
+   outline is the thing he is calling "the square", and it traces the element box — the whole strip —
+   not the square board inside it.** On a short phone the two coincide and the frame is square; on a
+   tall phone the frame is the rectangle and the board floats inside it.
+
+### Is it tonight's regression? No — posed before and after
+
+Same phone, same solo game, three builds:
+
+| build | board window at 375×812 | captain's box |
+|---|---|---|
+| `dd56bb96` (before tonight) | 375 × **517** | 209 px |
+| `be8a5208` (what he is playing) | 375 × **517** | 209 px |
+| `dev` HEAD now | 375 × **513** | 213 px |
+
+**The CTO's claim that tonight did not touch the board's geometry is upheld on substance — and its
+mechanism is wrong.** The board's height is *derived from* the captain's box's measured height
+(`S.capNeed`), and tonight's work rebuilt that box. It grew 209 → 213 px, which moved the board
+window by 4 px — *towards* square, not away. The claim was reasoned rather than measured, and "a
+comment is not a measurement" cuts both ways: it happened to land, but the arithmetic it denied is
+real and the next such change could move it the other way.
+
+### Answers in order
+
+1. **His one question — DONE.** Board square? Cells and drawn board: **yes, everywhere, exactly.**
+   Board *window* on a tall phone: **no — 375 × 421 on his iPhone, 46 px out.** Both measured.
+2. **Not asked for:** nothing. This was an audit with no code to displace.
+3. **Unsupported claim:** one — the brief's *"Nothing in tonight's work touched the board's
+   geometry"*, corrected above (`src/ui/stage.js:895` makes the board's height a function of the
+   captain's box).
+4. **Last verdict's fault — "an exemption/answer pinned to one name" — RECURRED IN NEW CLOTHES.**
+   The 2026-08-23 square fix is pinned to one direction: it guarantees the board is never *shorter*
+   than a square and says nothing about *taller*. Same shape of mistake, one axis over.
+5. **Bulk reading in the main thread: none found.** There is no CTO account to audit here. The CEO
+   itself delegated the doc archaeology (BOARD-RENDERING.md, INTENDED-BEHAVIOUR.md, the git
+   `--grep="square"` history) to a subagent and read only the rendered game, the screenshots and the
+   ~40 lines of geometry code it cited — which is where the reading belonged.
+6. **One sentence:** at the top of this entry.
+
+**Housekeeping, observed not acted on:** 44 dead `.tmp-*` Chrome profile directories from earlier
+probes are sitting in this worktree. They are gitignored and hold no live process
+(`stray_probe_check` green), but they are real disk. Not this CEO's to delete.
+
+---
+
 ## 2026-09-12 · `claude/sfx-background-sound-tuner-ef949a` · the stranded one-commit branch · **LEAVE IT**
 
 **Reviewed:** Wyatt's *"also get ceo to verify that claude/sfx-background-sound-tuner-ef949a needs to
