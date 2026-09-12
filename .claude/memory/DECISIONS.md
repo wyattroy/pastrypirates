@@ -2670,3 +2670,19 @@ ruling). Those stay. The two that were about the recipe are changed:
   across the change instead of flagging one side of it.
 
 `npm`'s pilot-copy, no-undef and ui-contract gates pass.
+
+**Two on the recipe card, the same hour:**
+
+- **The green ticks stay INSIDE the card.** They had been pinned a flat 5px past the crate's corner
+  whatever size the crate was, so as soon as the card was only a few pixels taller than its own
+  ingredients the tick hung out of the bottom edge. Both the tick's size and its overhang are shares
+  of a crate now, the overhang is capped by the room the card actually has beneath the chips, and the
+  card is never allowed to be shorter than its ingredients plus that room. Measured at 390, 511 and
+  749 and at the extreme dial settings: the tick's bottom never passes the card's.
+- **The recipe's name wears the RECIPE PICKER's lettering** — *"the styling matches the recipe picker
+  (brown text, different font) -- but with an underline, because it is a link that opens the
+  recipe."* That is `#5b3a1f`, Georgia at weight 800 with `.3px` letter-spacing and the picker's own
+  `0 1px 0 rgba(255,250,235,.5)` text shadow (`index.html:1630`), plus the underline. It had been the
+  teal of a web link. *(Georgia is wider than the sans it replaced, so a long recipe name now
+  ellipses sooner at phone width — that is the band's own designed behaviour, since a name that wraps
+  to two lines steals height from the board, but it is worth his eye.)*
