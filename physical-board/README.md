@@ -15,8 +15,10 @@ without showing me any of the renders. expectation: your artifacts must always g
 context i need to make the decisions they ask me to make."* A choice between shapes shows the
 shapes — inside the page, at one scale, with what is being replaced drawn beside them. A link back
 to chat, or a sentence describing a drawing, is not context; it is a round trip. This belongs in
-`docs/ARTIFACT-GUIDELINES.md` with the rest, but that file is currently DELETED from the working
-tree, so it is written here where the laser work can see it.
+`docs/ARTIFACT-GUIDELINES.md` §11, where it now lives; it is repeated here so the laser work can see
+it without leaving this folder. *(An earlier note here said that file had been DELETED. It had not —
+it was created on `dev` on 2026-09-10, after this working folder's last pull, so it merely looked
+missing. See `HANDOFF.md` §1.)*
 
 The tuner is fed by `tuner-data.json`, which `generate.mjs` writes on every run: each island's real
 cut outline and its real engraved grass line at thirteen beach settings, plus the ingredient icons
