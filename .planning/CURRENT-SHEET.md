@@ -17,4 +17,5 @@ BUILD: 2026.09.07.3-staging@dd56bb96
 - Two Axes, Seven Channels (architecture) — https://claude.ai/code/artifact/7b34c094-6012-4b04-bbdd-1a9882047f1f
 - The Plaque Art Brief (captain's box art) — https://claude.ai/code/artifact/7a51b394-c56b-455d-bc5e-858bf8cde072
 - Sugar Cane, in purple (the v3 round + his pick) — https://claude.ai/code/artifact/082a0907-8946-463d-ba18-a91fe559042b
+- Captain's Box Tuner (row fill, band parchment, crate squeeze) — https://claude.ai/code/artifact/219b5862-3265-4432-b9a8-f28457ba7d48
 - Recipe Card Tuner (his numbers, 20 sliders) — https://claude.ai/code/artifact/6e1c84b1-cfc0-45ef-b33e-7d76e9eecc6e

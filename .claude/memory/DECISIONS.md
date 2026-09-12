@@ -2428,3 +2428,28 @@ drawn into a 360px-wide phone box is a ~6× reduction, and round 1 put ~40 rope 
 each twist landed at ~4px. Round 2 states the numbers in the prompt: 2:1 (the box's real shape), rope
 diameter = 1/8 of the plaque's height, one twist per rope-thickness → ~12 twists an edge → a 23px rope in
 ~30px twists at phone size. **And the rope IS the edge: no teal band, nothing outside the rope.**
+
+## 2026-09-11 — ⛔ THE TABLE IS ALWAYS FOUR CAPTAINS. NEVER MOCK A STATE THE GAME CANNOT PRODUCE.
+
+Wyatt, seeing a "two captains" box in my own mock-up: *"this is bizarre -- you know a 2-captain game is
+impossible, why even show me? are you just hallucinating?"*
+
+**He is right, and the code says so plainly.** `startSinglePlayer` (src/ui/flow.js) seats one human and
+three bots; `startPassAndPlay` takes 2–4 human names and fills the rest to four; a crew room's empty
+seats are played by bots (`renderSeatList`, `appState.numSeats: 4` in src/state/index.js). **Four rows,
+always.** I had invented a smaller table to illustrate a point, and in doing so put a picture of an
+impossible game in front of him.
+
+**THE RULE: a mock-up may only show states the game can actually reach, and the reachable set is read
+from the code before the mock is drawn — not assumed.** A mock that shows an impossible state is worse
+than no mock: it asks him to judge a thing that will never exist.
+
+**It also corrects something I told him twice:** the box's height does NOT vary with the captain count.
+It is one height per screen class, which makes the plaque's job simpler still.
+
+**Two changes he asked for in the same breath, now in a tuner:** the recipe band wears the RECIPE CARD's
+own stained-parchment gradient (the real one from index.html, three radial stains over
+`linear-gradient(160deg,#f7edd2,#ecd9ac)`), and the fill behind the captains drops to about **25%**
+opaque so the wood reads through. Tuner: https://claude.ai/code/artifact/219b5862-3265-4432-b9a8-f28457ba7d48
+— and its crate spacing runs HIS rule (22/26px, 3px gap, ≤35% overlap, then scroll), not a look-alike,
+because he asked for "the actual ingredient crate buffering from my rulings (not whatever you've guessed)".
