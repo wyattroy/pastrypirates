@@ -359,8 +359,17 @@ node scripts/art/key.mjs art-review/captains-box/plaque-r5.png
   subject inset 20px it crops to exactly 160×60, and a tolerance that would swallow the subject fails
   loudly instead of writing an empty file.
 
-**THE KEY** goes in `.art-key` at the repo root — git-ignored — or `$GEMINI_API_KEY`. Free from
-<https://aistudio.google.com/apikey>, on his personal account. Never commit it, never print it.
+**THE KEY** goes in **`~/.pastrypirates-art-key`** — outside the repo on purpose, so it survives
+every worktree and cannot be committed by any hand, mine included. `$GEMINI_API_KEY` and a git-ignored
+`.art-key` at the repo root also work. Free from <https://aistudio.google.com/apikey> on his personal
+Google account; **no billing needed** for the flash image models the script defaults to (about 500
+pictures a day). Only `gemini-3-pro-image` demands a billing account, so reach for it deliberately.
+
+Write it without it ever appearing in a transcript or a shell history:
+
+```bash
+read -rs -p "paste the key, then Return: " K && printf '%s' "$K" > ~/.pastrypirates-art-key && chmod 600 ~/.pastrypirates-art-key && unset K && echo && echo "saved, $(wc -c < ~/.pastrypirates-art-key | tr -d ' ') characters"
+```
 
 **What has to be in the prompt now**, since the canvas no longer carries the shape:
 

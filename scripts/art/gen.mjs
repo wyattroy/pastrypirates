@@ -10,8 +10,11 @@
  * a round was lost to being signed in on the work Google account, which renders in different
  * colours. None of that can happen here. Wyatt, 2026-09-12: "come up with a better pipeline".
  *
- * THE KEY lives in `.art-key` at the repo root (git-ignored) or in $GEMINI_API_KEY. It is never
- * printed and never committed. Get one at https://aistudio.google.com/apikey.
+ * THE KEY lives in ~/.pastrypirates-art-key — OUTSIDE the repo on purpose, so it survives every
+ * worktree and cannot be committed by any hand, mine included. $GEMINI_API_KEY and a git-ignored
+ * .art-key at the repo root also work. It is never printed, and it is stripped out of any error the
+ * API hands back. Get one free at https://aistudio.google.com/apikey — the flash image models this
+ * defaults to need no billing (about 500 pictures a day); only gemini-3-pro-image does.
  *
  *   node scripts/art/gen.mjs --prompt-file notes/plaque-prompt.txt --ratio 21:9 --out art-review/captains-box/plaque-r5-C.jpeg
  *   node scripts/art/gen.mjs --prompt "a weathered pirate plaque…" --ratio 3:2 --size 2K --n 3 --out art-review/crate.jpeg
@@ -27,6 +30,7 @@
  *   node scripts/art/gen.mjs --prompt-file p.txt --out art-review/x.png && node scripts/art/key.mjs art-review/x.png
  */
 import fs from "node:fs";
+import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -50,9 +54,10 @@ if (!prompt) die("give --prompt \"…\" or --prompt-file <file>");
 if (!RATIOS.includes(ratio)) die(`--ratio (the CANVAS) must be one of ${RATIOS.join(" ")} — the art's own shape is asked for in the prompt and settled by key.mjs`);
 if (!SIZES.includes(size))   die(`--size must be one of ${SIZES.join(" ")}`);
 
+const KEY_FILES = [path.join(os.homedir(), ".pastrypirates-art-key"), path.join(REPO, ".art-key")];
 const key = (process.env.GEMINI_API_KEY || "").trim() ||
-  (fs.existsSync(path.join(REPO, ".art-key")) ? fs.readFileSync(path.join(REPO, ".art-key"), "utf8").trim() : "");
-if (!key) die("no key. Put one in .art-key at the repo root (git-ignored) or set $GEMINI_API_KEY —\n     get one at https://aistudio.google.com/apikey");
+  (KEY_FILES.filter(f => fs.existsSync(f)).map(f => fs.readFileSync(f, "utf8").trim()).find(Boolean) || "");
+if (!key) die("no key found. Put one in ~/.pastrypirates-art-key (outside the repo, so it can never be\n     committed), or .art-key at the repo root, or \$GEMINI_API_KEY.\n     Free from https://aistudio.google.com/apikey.");
 
 /* the drawn size, read out of the file's own header, so a wrong shape is caught before it is judged */
 function dims(buf) {
