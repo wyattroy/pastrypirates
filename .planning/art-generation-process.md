@@ -435,4 +435,32 @@ table above), which bills the same way.
 | *"Your prepayment credits are depleted"* | the project IS on billing, and the balance is zero. Top it up |
 | *"Quota exceeded … limit: 0"* | the project is on the free tier, which does not do images at all. Enable billing |
 
-*(Built and verified 2026-09-12. Proven end to end except that it cannot draw until billing is on.)*
+## ✅ PROVEN END TO END, 2026-09-12, with $5 of credit on the project
+
+```
+node scripts/art/gen.mjs --prompt-file p.txt --ratio 16:9 --out x.jpeg
+  -> x.jpeg  669 KB  1376x768  1.792:1  (canvas 16:9)  1706 tokens
+node scripts/art/key.mjs x.jpeg --out x-keyed.png
+  -> x-keyed.png  1376x768 -> 1240x668  1.856:1  (key #090f14, tol 38, 74% kept)
+```
+
+Four things measured on the way, each of which would have cost the next session an hour:
+
+- **⚠ THE DOCS ARE WRONG ABOUT WHERE THE PICTURE IS.** Google's REST page says `output_image.data`.
+  A real reply has neither. It is an *interaction* made of STEPS: a `thought` step carrying a
+  half-megabyte signature, then a `model_output` step whose `content[]` holds
+  `{type:"image", mime_type:"image/jpeg", data:"<base64>"}`. `gen.mjs` walks the steps for the first
+  image, so a reshuffle of that list will not break it.
+- **⚠ JPEG ONLY.** `image/png` is refused with a 400.
+- **⚠ NEVER HAND A BIG CANVAS BACK THROUGH THE DEBUGGING CHANNEL.** The first JPEG decoder returned
+  the PNG as base64: at 2752×1536 that is fourteen megabytes of text and it **never returned** —
+  killed after nine minutes. It saves a FILE now: Chrome is told where downloads go, the page clicks
+  its own blob, node reads it off disk. Instant.
+- **⚠ THE MODEL APPROXIMATES THE DRAWN RATIO.** Asked for a plaque "two and a half times wider than
+  it is tall", it drew 1.86:1. **This is why the crop prints the ratio it got**: look at that number
+  and generate again if it matters. It is a dial to converge, not a promise.
+
+`--size` defaults to **1K** (~1376 across), which is already about twice the widest box we draw and a
+fifth of the bytes of 2K. A 1K picture costs roughly 1,700 tokens.
+
+*(Built and proven 2026-09-12.)*

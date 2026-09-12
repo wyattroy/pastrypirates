@@ -18,11 +18,17 @@
  *   node scripts/art/key.mjs in.png --out plaque.png --tol 40 --flat
  *
  * --flat keeps the background opaque-cropped instead of transparent (for art that sits on wood).
- * PNG in, PNG out. Ask gen.mjs for a .png and the whole round never leaves node.
+ * PNG in, PNG out, and PNG is decoded in pure node. A JPEG — which is all the image models return —
+ * is turned into one first by a headless Chrome that this script launches and kills itself, because
+ * node has no JPEG decoder and a hand-rolled one is three hundred lines of Huffman and IDCT. That is
+ * a LOCAL DECODER, not the old browser pipeline: no extension, no downloads folder, no content
+ * policy, no tab to jam. Everything else stays pure node.
  */
 import fs from "node:fs";
 import zlib from "node:zlib";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
+const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "..");
 
 const argv = process.argv.slice(2);
 const src = argv.find(a => !a.startsWith("--")) || die("give an input .png");
@@ -31,7 +37,7 @@ const has = k => argv.includes("--"+k);
 function die(m){ console.error("key: "+m); process.exit(1); }
 
 const tol  = +arg("tol", "38");
-const out  = arg("out", src.replace(/\.png$/i, "") + "-keyed.png");
+const out  = arg("out", src.replace(/\.(png|jpe?g)$/i, "") + "-keyed.png");
 const flat = has("flat");
 
 /* ── decode: IHDR + inflate(IDAT) + un-filter. 8-bit RGB or RGBA, no interlace — what a model returns. */
@@ -91,8 +97,49 @@ const CRCT = (()=>{ const t=new Int32Array(256);
   for(let n=0;n<256;n++){ let c=n; for(let k=0;k<8;k++) c = c&1 ? 0xEDB88320 ^ (c>>>1) : c>>>1; t[n]=c; } return t; })();
 function crc(b){ let c = -1; for (let i=0;i<b.length;i++) c = CRCT[(c ^ b[i]) & 255] ^ (c>>>8); return c ^ -1; }
 
+/* node cannot read a JPEG, so borrow a decoder: draw it once in a headless Chrome and take the PNG.
+   ⚠ THE PNG COMES BACK AS A FILE, NOT AS A STRING. Handing a 2752x1536 canvas back through the
+   debugging channel as base64 is fourteen megabytes of text and it simply never returned — measured
+   2026-09-12, killed after nine minutes. So the page saves it instead: Chrome is told where its
+   downloads go, the page clicks its own blob, and node reads the file off disk. */
+async function toPNG(file){
+  const buf = fs.readFileSync(file);
+  if (buf.length > 8 && buf.toString("ascii",1,4) === "PNG") return buf;
+  if (!(buf[0] === 0xFF && buf[1] === 0xD8)) die("not a PNG or a JPEG");
+  const rig = await import(path.join(REPO, "scripts", "mp_rig.mjs"));
+  const PORT = 8940 + (process.pid % 25), DBG = 9640 + (process.pid % 25);
+  const dir = path.join(REPO, ".tmp-key-" + process.pid);
+  fs.mkdirSync(dir, { recursive: true });
+  const url = rig.serve(PORT);
+  rig.launch(DBG, path.join(dir, "profile"));
+  const C = await rig.attach(DBG);
+  try {
+    await C.send("Page.setDownloadBehavior", { behavior: "allow", downloadPath: dir });
+    await C.ev("location.href=" + JSON.stringify(url)).catch(()=>{});
+    await rig.sleep(1200);
+    await C.ev("window.__j=" + JSON.stringify("data:image/jpeg;base64," + buf.toString("base64")) + ";1");
+    const ok = await C.ev("(async()=>{ const im=new Image(); im.src=window.__j; await im.decode();"
+      + " const c=document.createElement('canvas'); c.width=im.naturalWidth; c.height=im.naturalHeight;"
+      + " c.getContext('2d').drawImage(im,0,0);"
+      + " const b=await new Promise(r=>c.toBlob(r,'image/png'));"
+      + " const a=document.createElement('a'); a.href=URL.createObjectURL(b); a.download='decoded.png';"
+      + " document.body.appendChild(a); a.click();"
+      + " return im.naturalWidth+'x'+im.naturalHeight; })()");
+    if (!ok) die("the decoder returned nothing");
+    const out = path.join(dir, "decoded.png");
+    for (let t = 0; t < 240; t++) {                       // it arrives as a file, so wait for the file
+      if (fs.existsSync(out) && fs.statSync(out).size > 1000 && !fs.existsSync(out + ".crdownload")) {
+        await rig.sleep(250);
+        return fs.readFileSync(out);
+      }
+      await rig.sleep(250);
+    }
+    die("the decoder never wrote " + out);
+  } finally { await rig.killAll(); try { fs.rmSync(dir, { recursive: true, force: true }); } catch {} }
+}
+
 /* ── the work ── */
-const { w, h, px } = decodePNG(fs.readFileSync(src));
+const { w, h, px } = decodePNG(await toPNG(src));
 const at = (x,y) => (y*w+x)*4;
 let kr, kg, kb;
 const over = arg("key");

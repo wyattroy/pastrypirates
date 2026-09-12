@@ -44,7 +44,7 @@ const die = m => { console.error("gen: " + m); process.exit(1); };
 
 const out    = arg("out")    || die("--out <file> is required");
 const ratio  = arg("ratio",  "1:1");   // the canvas; the art's own shape is asked for in the prompt
-const size   = arg("size",   "2K");
+const size   = arg("size",   "1K");   // 1K is ~1024 across — already 2x the widest box we draw
 const model  = arg("model",  "gemini-3.1-flash-image");
 const n      = Math.max(1, Math.min(8, +arg("n", "1") || 1));
 const promptFile = arg("prompt-file");
@@ -104,11 +104,21 @@ for (let k = 0; k < n; k++) {
     die(`HTTP ${res.status} — ${t.slice(0, 400).replace(key, "<key>")}`);   // never echo the key back
   }
   const j = await res.json();
-  const b64 = j?.output_image?.data || j?.interaction?.output_image?.data;
-  if (!b64) die("the reply carried no image. Keys seen: " + Object.keys(j || {}).join(", "));
+  /* WHERE THE PICTURE ACTUALLY IS, read off a real reply on 2026-09-12 rather than from the docs,
+     which say `output_image.data` and are wrong for this endpoint. An interaction comes back as a
+     list of STEPS — a "thought" step carrying a half-megabyte signature, then a "model_output" step
+     whose content holds the image. Walk the steps for the first image and take that. */
+  const b64 = (j?.steps || [])
+    .flatMap(s => s?.content || [])
+    .filter(c => c && (c.type === "image" || /^image\//.test(c.mime_type || "")))
+    .map(c => c.data).find(Boolean)
+    || j?.output_image?.data;
+  if (!b64) die("the reply carried no image (status " + (j?.status || "?") + "). Top-level keys: " + Object.keys(j || {}).join(", "));
   const buf = Buffer.from(b64, "base64");
   fs.writeFileSync(file, buf);
   const d = dims(buf);
+  const t = j?.usage?.total_tokens;
   console.log(`${file}  ${(buf.length/1024).toFixed(0)} KB` +
-    (d ? `  ${d.w}x${d.h}  ${(d.w/d.h).toFixed(3)}:1  (asked ${ratio})` : ""));
+    (d ? `  ${d.w}x${d.h}  ${(d.w/d.h).toFixed(3)}:1  (canvas ${ratio})` : "") +
+    (t ? `  ${t} tokens` : ""));
 }
