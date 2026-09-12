@@ -2702,3 +2702,24 @@ in the artifact so i can see how they look"*):
 - **The one lever, and it is a dial rather than a decision I made:** the ingredients on the recipe
   card do not have to be as big as the crates in a hold. At **80% of a crate, all 21 fit on a phone**
   with nothing smaller than 11px. Default is 100% — his call.
+
+**⛔ NEVER SIZE TEXT BY COMPARING `scrollWidth` WITH `clientWidth` — 2026-09-12, and he caught it.**
+
+*"there's a glitch in your logic -- set the ingredients on the card size to 88%; but fix the glitch so
+that the recipe names use the maximum size they can (see screenshot where Spiced Fudge Brownies is
+smaller than it needs to be)."* A 21-character name was sitting at the 10px floor with half the card
+empty.
+
+**The cause, and it will bite anything that measures text this way: `scrollWidth` and `clientWidth`
+are both rounded to whole pixels, and on a page the viewer is scaling — which every artifact is —
+they round INDEPENDENTLY.** `scrollWidth` can read one pixel larger than `clientWidth` for text that
+genuinely fits, so "does it overflow?" answers yes at every size and a shrink loop walks all the way
+to its floor. It cannot be reproduced at 1:1, which is why it shipped.
+
+**The fix is a measurement, not a loop:** put a hidden copy of the text INSIDE the same element — so
+it carries the same scaling — read both widths with `getBoundingClientRect()` (fractional, no
+rounding), and divide once. Verified across all 21 names at 100% and at 137% zoom: identical results,
+nothing cut, and for every name a font one pixel larger would overflow — the size is provably the
+largest that fits.
+
+**And his number: the ingredients on the recipe card are 88% of a hold's crate.**
