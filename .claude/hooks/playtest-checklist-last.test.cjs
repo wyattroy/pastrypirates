@@ -28,7 +28,7 @@
  *
  * Run: node .claude/hooks/playtest-checklist-last.test.cjs
  */
-const { execSync, execFileSync } = require("child_process");
+const { execSync, execFileSync, spawnSync } = require("child_process");
 const fs = require("fs");
 const os = require("os");
 const path = require("path");
@@ -97,13 +97,19 @@ function run(dir, base) {
   if (base) fs.writeFileSync(path.join(stateDir, "session-base"), base);
   let out = "";
   try {
-    const r = execFileSync("node", [HOOK], {
+    /* ⛔ spawnSync, NOT execFileSync — 2026-09-12, and this is why the instrument guard below could
+       never fire on EITHER machine. execFileSync returns stdout and hands you stderr only on the
+       ERROR object: when the child exits 0 its stderr is thrown away. The hook writes its
+       "ownership cannot be judged" warning to stderr and then exits 0 like every other run, so the
+       one channel the guard reads was empty by construction. Wy-Blade proved it the hard way on
+       Windows — it injected a marker into a sabotaged copy and the marker never appeared either.
+       spawnSync returns both streams whatever the exit code. */
+    const r = spawnSync("node", [HOOK], {
       cwd: dir, encoding: "utf8",
       env: { ...process.env, CLAUDE_PROJECT_DIR: dir },
       input: JSON.stringify({ session_id: session }),
-      stdio: ["pipe", "pipe", "pipe"],
     });
-    out = r; run.lastErr = "";
+    out = r.stdout || ""; run.lastErr = r.stderr || "";
   } catch (e) { out = (e.stdout || "") + ""; run.lastErr = (e.stderr || "") + ""; }
   run.lastOut = out;                       // --verbose prints this; the harness used to drop it
   let blocked = false;
@@ -140,8 +146,12 @@ function check(name, expectBlock, build) {
     console.log(`     remote refs    ${g("for-each-ref --format=\"%(refname)\" refs/remotes").replace(/\n/g, " ") || "(none)"}`);
     console.log(`     -r --contains  ${g(`branch -r --contains ${g("rev-parse HEAD")}`).replace(/\n/g, " ") || "(empty)"}`);
     console.log(`     status         ${g("status --porcelain").replace(/\n/g, " | ") || "(clean)"}`);
-    console.log(`     reflog         ${g('reflog --format=%h%x20%gs').split("\n").slice(0, 3).join(" | ") || "(none)"}`);
-    console.log(`     HOOK SAID      ${(ctx.hookSaid || "").trim().slice(0, 600) || "(nothing)"}`);
+    /* ⚠ THIS IS THE FIXTURE'S REFLOG, NOT THE HOOK'S — Wy-Blade, 2026-09-12: with the hook's own
+       reflog sabotaged and dying, this line still printed three healthy entries, so it cannot be
+       read as evidence about the hook. The hook's own health is on the HOOK STDERR line below. */
+    console.log(`     fixture reflog ${g('reflog --format=%h%x20%gs').split("\n").slice(0, 3).join(" | ") || "(none)"}`);
+    console.log(`     HOOK SAID      ${(ctx.hookSaid || "").trim().slice(0, 400) || "(nothing)"}`);
+    console.log(`     HOOK STDERR    ${(ctx.hookShouted || "").trim().slice(0, 300) || "(silent)"}`);
   }
   const ok = got === expectBlock;
   if (!ok) failures++;
