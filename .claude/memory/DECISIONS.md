@@ -2590,3 +2590,33 @@ captain names (teal, green, amber) lose most of their contrast. The fill slider 
   every screen — the exact opposite of the plan. **The plan is one picture PER BOX SHAPE — three —
   and the reason is that nothing is ever stretched.** Say it that way everywhere: headings, labels,
   briefs and commit messages.
+
+## 2026-09-12 — EVERY DIAL IS A RATIO, AND THE ROWS FILL THE BOX
+
+> *"your artifact's 'gap between crates' slider is not working. you also have so much chrome/junk in
+> the preview panel that most of my screen is unusable and i can barely access the sliders. Also, all
+> of your sliders are using absolute pixel numbers -- instead, they should use ratios. I want the
+> ingredients to be 20% of their width gap from each other. I want the row heights to be the maximum
+> they can be while fitting in the captain's box limits. I want the text that is black to be white so
+> it's legible. use a 50% fill behind the rows."*
+
+**The bug he caught:** the gap dial only ever did anything when the hold was too full to fit. With
+room to spare the crates were laid out with no spacing at all, because the flex row that holds them
+lost its `gap` when the preview was rewritten and the code only set margins in the squeeze branch.
+**A dial that does nothing in the common case is worse than no dial.**
+
+**THE RULES, and they are general:**
+
+- **A tuner's dials are RATIOS, never pixels.** A pixel is meaningless across three box widths; a
+  proportion holds. Now: crate = % of a row's height · gap = **20% of a crate's width** (his number) ·
+  between rows = % of a row · band = % of a row · name column = % of the box's width · corner
+  rounding = % of a row. Only the crate COUNT and the picture's shape are not percentages.
+- **⭐ THE ROW HEIGHT IS SOLVED, NOT DIALLED.** *"the maximum they can be while fitting in the
+  captain's box limits."* The board gives a height, the band and gaps are shares of a row, so the row
+  is what is left — stepped down until the rounded pieces genuinely fit. The box now fills the plaque
+  instead of leaving 37px of dead wood, and a phone row grows from 32px to **39px**.
+- **Ink follows the fill.** 50% black behind the captains, so the coin count and "empty hold" are
+  **white**. The captain's colour stays on the name and the ring.
+- **A pinned preview must be SMALL.** *"most of my screen is unusable and i can barely access the
+  sliders."* One compact line above the box, one below — not a title, a sentence, a ruler caption and
+  three lines of readout. The notes box moved below the dials. Preview 433px → ~310px.
