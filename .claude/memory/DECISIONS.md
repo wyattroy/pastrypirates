@@ -2514,3 +2514,36 @@ comes back at about **13px of rope at a 390px box**.
 **Also corrected today, from the same audit:** the holds are **not** "newest on top". Another captain's
 hold is sorted alphabetically (`src/ui/board.js:1798`) and your own runs in recipe order (`:1784`);
 when they overlap, the crate further RIGHT sits on top. Earlier notes said "newest" in three places.
+
+## 2026-09-12 — A PREVIEW COPIES THE GAME'S OWN RULES, AND IT SAYS HOW BIG IT IS
+
+> *"your latest artifact still looks different than the design i approved in the other artifact
+> (crates on one line) and what is literally already up on dev/staging right now. also, your artifact
+> does not show absolute size or scale of The captain's box so I cannot make judgment calls very
+> effectively because of the way you've coded your artifact. For example, on my screen, the captain's
+> box is huge."*
+
+**Both faults were mine and both are mechanical.** The tuner had drifted into a look-alike: cream rows
+instead of each captain's own colour, wooden crates instead of the game's chips, no ring on the
+captain whose turn it is, a filled band instead of a bare one with a rule under it.
+
+**THE RULE: a preview COPIES the game's rules, line by line, with the file and line number in a
+comment — it never approximates them.** What the live game actually does, for the record:
+
+| piece | what the game does | where |
+|---|---|---|
+| row fill | the captain's own colour at hex alpha **18** — about **9%**, not 25% | `src/ui/util.js:163` |
+| row shape | radius **7px**, a **2px transparent border**, 4px apart | `index.html:255` |
+| whose turn | that border turns solid in the captain's colour + a 2px inset ring | `index.html:256` |
+| the band | **no fill at all** — a 2px rule underneath, `rgba(91,58,31,.16)` | `index.html:3409` |
+| a crate | the game's chip: pale pink `#fbe1e0` when still needed, green `#dcfaee` aboard, yellow `#fff6c0` spare — 22px phone, 26px elsewhere | `index.html:309-313, 3398` |
+
+His two approved-but-unshipped changes — the recipe-card parchment behind the band, and a heavier
+fill behind the captains — are now a tick-box and a slider, and **the page opens on what is live**, so
+"is this what I already have?" is answered by looking rather than by trusting the caption.
+
+**AND EVERY PREVIEW OF A SIZED THING STATES ITS SIZE.** The page now draws the box at its true pixel
+width with a **ruler** over it, measures how much the viewer is scaling the page (comparing the drawn
+rectangle against its own CSS width) and says so, offers **"Show at true size"** which cancels that
+scaling, and can draw **the whole screen around the box** — 390×844, 1280×800, 768×1024 — so the box
+is seen as the share of a screen it really is. A preview that cannot be measured cannot be judged.
