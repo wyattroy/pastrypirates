@@ -157,11 +157,59 @@ function main() {
     })
     .map((l) => l.slice(0, 40)));
 
+  /* Which OTHER published branches already carry this file's exact current content? Asked of the
+     object store, not of a list somebody typed: one cat-file batch per file, every remote branch at
+     once. `mine` is excluded — this branch's own upstream is where we just pushed, so of course it
+     matches. */
+  const remotes = sh("git for-each-ref --format=%(refname:short) refs/remotes").split("\n")
+    .map((s) => s.trim()).filter((b) => b && !b.endsWith("/HEAD") && b !== mine);
+  const publishedElsewhere = (f) => {
+    const here = sh(`git rev-parse HEAD:"${f}"`).trim();
+    if (!/^[0-9a-f]{40}$/.test(here) || !remotes.length) return [];
+    let out = "";
+    try {
+      out = execSync('git cat-file --batch-check="%(objectname)"', {
+        cwd: repo, encoding: "utf8", stdio: ["pipe", "pipe", "ignore"],
+        input: remotes.map((b) => `${b}:${f}`).join("\n") + "\n",
+      });
+    } catch { return []; }
+    const lines = out.split("\n");
+    return remotes.filter((_, i) => (lines[i] || "").trim() === here);
+  };
+
   const foreign = new Map();                              // file -> where that work actually lives
   for (const f of committed) {
     if (ours.has(f)) continue;
     const sha = sh(`git log -1 --format=%H ${range} -- "${f}"`).trim();
-    if (!sha) { ours.add(f); continue; }
+    /* NO COMMIT IN RANGE TOUCHED IT — AND THAT USED TO READ AS "MINE". It is the opposite.
+       ────────────────────────────────────────────────────────────────────────────────────────
+       2026-09-12, the third time this hook billed a session for another session's work. A session
+       working the laser-cut set branched off `physical-board`, which had been cut off from `dev`
+       since 21 August, and merged `dev` underneath it — 1821 commits, and not one line of game
+       code written. The hook demanded a staging sheet for `index.html`, `src/engine/index.js`,
+       `src/net/*` and seventeen more.
+
+       Why both existing tests missed it. `git diff --name-only base..HEAD` compares two TREES, so
+       a merge that brings a file in shows it as changed. `git log base..HEAD -- <file>` walks
+       HISTORY, and its default simplification drops a merge whose version of the file is identical
+       to one parent's — which is exactly what an uncontested merge is. So the range diff said
+       "changed", the range log said "by nobody", and the empty answer fell through to
+       `ours.add(f)`. The two commands disagreed and the fallback believed the wrong one.
+
+       An empty answer means: git cannot attribute this file's current content to any commit this
+       session made. That is the definition of somebody else's work.
+
+       But an empty answer is NOT on its own allowed to silence the hook — this file's standing
+       warning is that a test which goes quiet by accident is worse than one that nags. So it must
+       show its evidence: the file's blob at HEAD must be BYTE-IDENTICAL to that file on another
+       published branch. Then the claim is not "I could not find an author", it is "that exact
+       content is already published over there, by them". No match, no excuse: it stays ours. */
+    if (!sha) {
+      const elsewhere = publishedElsewhere(f);
+      if (elsewhere.length) foreign.set(f, `${elsewhere[0]} — identical there; arrived by merge, not authored here`);
+      else ours.add(f);
+      continue;
+    }
     if (reflog.length && !born.has(sha)) {
       foreign.set(f, "history pulled into this checkout, not written here");
       continue;
