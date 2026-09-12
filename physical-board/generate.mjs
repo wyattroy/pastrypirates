@@ -804,7 +804,8 @@ function shipStanding(kind, captain) {
 // Now the whole piece is built about x = 0 and is symmetric BY CONSTRUCTION: a square sail on a yard,
 // a foot that bellies on a parabola, a centred post, a centred tab. mw is the post's width, `head`
 // how far it stands proud for a spar, `spar` a centred notch in that masthead.
-function sailPiece(w, hgt, { mw = 2.6, sl = 7, pat = 0, head = 0, spar = 0 } = {}) {
+const MAST_W = opt("mast", 4.0), MAST_NUB = opt("nub", 2.0);   // his numbers, 2026-09-12
+function sailPiece(w, hgt, { mw = MAST_W, sl = 7, pat = 0, head = MAST_NUB, spar = 0 } = {}) {
   const W = w, H = hgt, belly = 2.2, post = 5.0, tab = tab_(sl);
   const hw = W / 2, hm = mw / 2, ht = tab / 2;
   const footY = x => H + belly * (1 - (2 * x / W) ** 2);      // the foot, deepest on the centreline
@@ -845,7 +846,11 @@ function ship3d(c) {
   shape.push(rect(RA, 1.6, B / 2 - .3, 1.6, .6));                                                                  // tiller
   hull.push(...xf(shape, { s: S }));
   hull.push(rect(CU, 7.5 * S - sw / 2, B * S / 2 - sl / 2, sw, sl), rect(CU, 15.5 * S - sw / 2, B * S / 2 - sl / 2, sw, sl));   // slots athwartships, full size
-  const sail = (w, hgt, pat) => sailPiece(w, hgt, { sl, pat });
+  // Wyatt, 2026-09-12: "I only want to do mast design A but your new mast post is too stocky -- in
+  // fact, it's literally stockier (wider) than its tab ... i want the mast post to be 4mm wide. And i
+  // want the original 2mm mast-top-nub returned." So: post 4.0, tab 6.9 (wider, so its shoulders take
+  // the load on the deck), and MAST_NUB of mast above the sail as the early sails had.
+  const sail = (w, hgt, pat) => sailPiece(w, hgt, { sl, pat, mw: MAST_W, head: MAST_NUB });
   const main = sail(15, 13, c), fore = sail(12, 11, c);
   return [{ ...part(`ship-${CAPTAINS[c]}-hull`, hull), mat: MAT }, { ...part(`ship-${CAPTAINS[c]}-main`, main), mat: MAT3 }, { ...part(`ship-${CAPTAINS[c]}-fore`, fore), mat: MAT3 }];
 }
@@ -1911,17 +1916,7 @@ function buildVersion(V) {
     else { const s = shipStanding(v === "v1" ? "sloop" : "galleon", c); shipParts.push(part(`ship-${CAPTAINS[c]}`, s.profile), part(`ship-base-${CAPTAINS[c]}`, s.base)); }
   }
   cutParts.push(...shipParts);
-  // Mast options, drawn from the REAL sail so he can judge them (2026-09-11). Decision sheets, not
-  // cut files — delete the three once he picks.
-  if (v === "v3") {
-    const MW = tab_(7) + 1.1;   // the mast is its own tab's width plus a hair, so the tab's shoulders rest on the deck and there is no step to chamfer
-    docs.push(sheet("mast-a", "Mast option A — the mast becomes a post", [part("A-main", sailPiece(15, 13, { mw: MW })), part("A-fore", sailPiece(12, 11, { mw: MW }))],
-      { notes: `Both sails stay. The mast goes 2.6 → ${r3(MW)} mm: the width of its own tab plus a hair, so the tab's shoulders land on the deck and the outline stays straight — no chamfer, nothing jagged. Same hull, same slots, same parts.` }));
-    docs.push(sheet("mast-b", "Mast option B — a spar between the mastheads", [part("B-main", sailPiece(15, 13, { mw: MW, head: 7, spar: 1 })), part("B-fore", sailPiece(12, 11, { mw: MW, head: 9, spar: 1 })), part("B-spar", sailSpar())],
-      { notes: `Option A, plus his spar. The mast now stands 7 mm proud of the sail, which is what lets the notch sit ON the centreline instead of dodging to one side. The fore sail is 2 mm shorter, so its masthead is 2 mm taller (head 9 against 7) and BOTH notch floors land at the same height above the deck — a straight spar seats on both. A third part per ship.` }));
-    docs.push(sheet("mast-c", "Mast option C — one sail", [part("C-main", sailPiece(20, 16, { mw: MW }))],
-      { notes: `One larger sail on the same ${r3(MW)} mm post, in the aft slot; the fore slot goes. 4 sails instead of 8.` }));
-  }
+  // (the mast option sheets are retired — he chose A on 2026-09-12, and it is in the sails above)
   docs.push(sheet("ships", "Ships (4)", shipParts, { count: 4, notes: "Four captains told apart in wood: CRUMBLE plain, BISCOTTI striped, GINGERSNAP dotted, SHORTBREAD checked (pink, teal, green, orange in the app — paint the sails if you like). " + (v === "v3" ? `An old pirate ship after the game's own sailboat art: a 6 mm hull seen from above (${r3(24 * GRID_SCALE)} × ${r3(12 * GRID_SCALE)} mm, deck planks, a tiller) with two slots ACROSS the beam; two 3 mm square sails on short masts whose tabs drop through the slots and sit flush underneath, the skull and crossbones (his reference, art/skull-ref.png) engraved big on each. About 24 mm tall. Paint the sails for the captain.` : "Standing profiles: the tab under the hull drops into the slot in the base.") }));
   // recipes
   const recipeParts = recipeCards(v).map((c, i) => ({ ...part(`recipe-${i + 1}`, c), mat: MAT3 })); cutParts.push(...recipeParts);
