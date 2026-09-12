@@ -362,8 +362,8 @@ node scripts/art/key.mjs art-review/captains-box/plaque-r5.png
 **THE KEY** goes in **`~/.pastrypirates-art-key`** — outside the repo on purpose, so it survives
 every worktree and cannot be committed by any hand, mine included. `$GEMINI_API_KEY` and a git-ignored
 `.art-key` at the repo root also work. Free from <https://aistudio.google.com/apikey> on his personal
-Google account; **no billing needed** for the flash image models the script defaults to (about 500
-pictures a day). Only `gemini-3-pro-image` demands a billing account, so reach for it deliberately.
+Google account. **⛔ BUT THE KEY ALONE IS NOT ENOUGH — see the quota section below: image generation
+has NO free tier at all.**
 
 Write it without it ever appearing in a transcript or a shell history:
 
@@ -404,4 +404,35 @@ With his key in place, measured rather than assumed:
 - **Also worth knowing:** `models/gemini-2.5-flash` is retired for new users; the current text model
   is `gemini-3.6-flash`. Only relevant for diagnostics — the art path never calls a text model.
 
-*(Built and verified 2026-09-12. Everything but the quota is proven end to end.)*
+## ⛔ IMAGE GENERATION HAS NO FREE TIER. THE API SAID SO ITSELF.
+
+**I passed on a wrong number and the API corrected it.** Research from a third-party page said the
+flash image models give about 500 pictures a day free. They do not. On a brand-new project, with a
+brand-new key, every image model answers 429 — and the reason, in full:
+
+```
+Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_input_token_count,
+limit: 0, model: gemini-2.5-flash-preview-image
+```
+
+**`limit: 0`.** Not "used up" — zero, by design. Measured on two different projects and four models
+(`gemini-2.5-flash-image`, `gemini-3.1-flash-image`, `gemini-3.1-flash-lite-image`,
+`gemini-3-pro-image`), all the same.
+
+**And it is images specifically, not the project.** The same key on the same project runs a
+`gemini-3.6-flash` TEXT call and gets a clean 200 back. So the free tier is real and working; it
+simply does not include drawing.
+
+**THEREFORE: a billing account is the price of admission for API art, on any model.** It is small —
+a flash picture is about 2-4 cents, so an art round of a dozen variants is well under a dollar — but
+it is not optional, and no amount of project-hopping avoids it. The alternative is FLUX (see the
+table above), which bills the same way.
+
+**The two error messages, so the next session can tell them apart at a glance:**
+
+| message | what it means |
+|---|---|
+| *"Your prepayment credits are depleted"* | the project IS on billing, and the balance is zero. Top it up |
+| *"Quota exceeded … limit: 0"* | the project is on the free tier, which does not do images at all. Enable billing |
+
+*(Built and verified 2026-09-12. Proven end to end except that it cannot draw until billing is on.)*
