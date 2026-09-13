@@ -8,7 +8,7 @@ fifteen that already exist.
 here is the one that is wrong.
 
 SHEET: https://claude.ai/code/artifact/a1623d69-328c-417e-920f-8a99782ebce2
-BUILD: 2026.09.07.3-staging@b74d1da3
+BUILD: 2026.09.13.2-staging@8fea1e02
 
 ## The others, so nobody re-makes them
 

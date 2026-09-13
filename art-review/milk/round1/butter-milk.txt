@@ -1,0 +1,13 @@
+The attached picture is this game's current milk icon: a glass milk bottle. Redraw it as a new game icon in exactly the same storybook style and palette, keeping the bottle recognisably the same bottle.
+
+SUBJECT: the glass bottle of fresh milk, standing upright, with a STICK OF YELLOW BUTTER lying in front of it — a classic rectangular block of butter, soft butter-yellow with lighter top face and slightly rounded edges, partly unwrapped from a little paper wrapper, overlapping the lower part of the bottle. Milk and butter read as one "dairy" ingredient.
+
+THE OUTLINE: every shape carries a THICK, EVEN, dark outline like a bold marker line, about 3% of the whole icon's width (on a 1000-pixel-wide icon, a line about 30 pixels thick) — the same weight round the outside silhouette, the bottle, the cap, the butter and its wrapper. It must stay clearly visible when the icon is shrunk to 20 pixels across.
+
+COLOUR: white milk behind clear glass with soft blue-grey glass edges, a little blue or red cap as in the reference; the butter a warm, saturated butter yellow so it stands out against both a pale cream card and green grass.
+
+COMPOSITION RULES:
+- ONE object group, centred, filling about 85% of the frame, roughly as wide as it is tall.
+- The background is a completely FLAT, EVEN, PURE near-black (#050505) edge to edge: no gradient, no vignette, no cast shadow, no table, and NO white or cream sticker border or die-cut outline around the object.
+- Nothing else in the picture: no cow, no glass, no text.
+- Big simple shapes, no fine detail.

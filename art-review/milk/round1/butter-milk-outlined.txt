@@ -1,0 +1,13 @@
+The attached picture is this game's current milk icon. Keep ONLY its idea and shape — a stout glass milk bottle — and redraw it as a new, BOLDER game icon in the style of the other ingredient icons in this set (a bundle of cinnamon sticks, a wheat sheaf, a cacao pod beside a chocolate bar), which all have a heavy dark-brown outline.
+
+SUBJECT: a stout glass bottle of fresh white milk, standing upright, with a STICK OF YELLOW BUTTER lying in front of it — a rectangular block of butter, warm butter-yellow with a paler top face, sitting on a folded paper wrapper, overlapping the lower part of the bottle.
+
+⭐ THE OUTLINE IS THE POINT OF THIS VERSION, AND IT IS NOT THE REFERENCE'S OUTLINE. Do NOT copy the reference's soft, pale blue-grey edge. Every shape carries a THICK, EVEN, DARK CHOCOLATE-BROWN outline like a bold marker line, about 3% of the whole icon's width (on a 1000-pixel-wide icon, a line about 30 pixels thick): round the outside silhouette, the bottle, its neck and lip, the milk line, the butter and the wrapper. It must stay clearly visible when the icon is shrunk to 20 pixels across.
+
+COLOUR: creamy white milk seen through pale blue glass; the butter a warm, saturated butter yellow so it stands out on a pale cream card and on green grass.
+
+COMPOSITION RULES:
+- ONE object group, centred, filling about 85% of the frame, roughly as wide as it is tall.
+- The background is a completely FLAT, EVEN, PURE near-black (#050505) edge to edge: no gradient, no vignette, no cast shadow, no table, and NO white or cream sticker border or die-cut outline around the object.
+- Nothing else in the picture: no cow, no glass, no text.
+- Big simple shapes, no fine detail.

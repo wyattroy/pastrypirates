@@ -2885,3 +2885,8 @@ died on the Blade. Rooted off `fileURLToPath(import.meta.url)`.
 - **THE BUTTER-AND-MILK PICTURE, BY THE SAME PROCESS.** *"now do the butter milk replacement with the same process for
   generating art and getting my approval"* — BACKLOG W4-11: generated with the matched outline, photographed in the game,
   and shown on a page for his approval; nothing installed until he picks.
+- **⚠ A CORRECTION TO TONIGHT'S OUTLINE NUMBERS — the keyer, not the drawings.** `scripts/art/key.mjs` at its default
+  tolerance (38) eats a dark chocolate-brown outline when the model drew on a flat near-black ground: the keyed edge starts
+  at the light fill. So sugar rolls 2 and 4 ("measured 0.5%, set aside") and round 3's three canes had their outlines
+  removed by the cut-out, not by the artist. Rolls drawn on WHITE kept theirs — his installed sugar (roll 1) is one, and
+  its 2.5% stands. At `--tol 12` all four butter-and-milk rolls keep theirs (3.0-3.5%). Written into key.mjs's header.
