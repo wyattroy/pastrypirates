@@ -1,0 +1,463 @@
+{
+ "material": 2.8,
+ "kerf": 0.08,
+ "left": [],
+ "used": 3,
+ "total": 111,
+ "sheets": [
+  {
+   "id": "thin-left",
+   "label": "Big sheet, with the holes",
+   "w": 454,
+   "h": 304,
+   "notch": 0,
+   "holes": [
+    {
+     "x": 51,
+     "y": 127,
+     "r": 7.7
+    },
+    {
+     "x": 123,
+     "y": 134,
+     "r": 7.7
+    },
+    {
+     "x": 243,
+     "y": 162,
+     "r": 7.7
+    },
+    {
+     "x": 127,
+     "y": 196,
+     "r": 7.7
+    },
+    {
+     "x": 275,
+     "y": 202,
+     "r": 7.7
+    },
+    {
+     "x": 237,
+     "y": 18,
+     "r": 4,
+     "knot": true
+    }
+   ],
+   "oldCut": [
+    [
+     24.6,
+     148
+    ],
+    [
+     24.6,
+     208
+    ],
+    [
+     37.8,
+     208
+    ],
+    [
+     37.8,
+     230
+    ],
+    [
+     24.6,
+     230
+    ],
+    [
+     24.6,
+     256
+    ],
+    [
+     16,
+     262
+    ]
+   ],
+   "outline": [
+    [
+     0,
+     0
+    ],
+    [
+     454,
+     0
+    ],
+    [
+     454,
+     304
+    ],
+    [
+     0,
+     304
+    ]
+   ],
+   "count": 67,
+   "parts": [
+    "chest-CRUMBLE-lid-top",
+    "chest-BISCOTTI-front",
+    "chest-BISCOTTI-back",
+    "chest-BISCOTTI-base",
+    "chest-BISCOTTI-lid-hinge",
+    "chest-BISCOTTI-lid-top",
+    "chest-GINGERSNAP-front",
+    "chest-GINGERSNAP-back",
+    "chest-GINGERSNAP-base",
+    "chest-GINGERSNAP-lid-front",
+    "chest-GINGERSNAP-lid-hinge",
+    "chest-GINGERSNAP-lid-top",
+    "chest-SHORTBREAD-front",
+    "chest-SHORTBREAD-back",
+    "chest-SHORTBREAD-base",
+    "chest-SHORTBREAD-lid-front",
+    "chest-SHORTBREAD-lid-hinge",
+    "chest-SHORTBREAD-lid-top",
+    "spinner-dial",
+    "island-6",
+    "island-8",
+    "island-7",
+    "crate-CRUMBLE-base",
+    "crate-BISCOTTI-front",
+    "crate-BISCOTTI-back",
+    "crate-BISCOTTI-base",
+    "crate-GINGERSNAP-front",
+    "crate-GINGERSNAP-back",
+    "crate-GINGERSNAP-base",
+    "crate-SHORTBREAD-front",
+    "crate-SHORTBREAD-back",
+    "crate-SHORTBREAD-base",
+    "recipe-1",
+    "recipe-2",
+    "recipe-3",
+    "recipe-4",
+    "recipe-5",
+    "recipe-6",
+    "recipe-7",
+    "recipe-8",
+    "recipe-9",
+    "recipe-10",
+    "recipe-11",
+    "recipe-12",
+    "recipe-13",
+    "recipe-14",
+    "recipe-15",
+    "recipe-16",
+    "recipe-17",
+    "crate-CRUMBLE-side-1",
+    "crate-CRUMBLE-side-2",
+    "crate-BISCOTTI-side-1",
+    "crate-BISCOTTI-side-2",
+    "crate-GINGERSNAP-side-1",
+    "crate-GINGERSNAP-side-2",
+    "crate-SHORTBREAD-side-1",
+    "crate-SHORTBREAD-side-2",
+    "ship-CRUMBLE-main",
+    "ship-BISCOTTI-main",
+    "ship-GINGERSNAP-main",
+    "ship-SHORTBREAD-main",
+    "chest-CRUMBLE-side-1",
+    "chest-CRUMBLE-side-2",
+    "chest-CRUMBLE-lid-side-1",
+    "chest-CRUMBLE-lid-side-2",
+    "chest-BISCOTTI-lid-side-1",
+    "chest-BISCOTTI-lid-side-2"
+   ]
+  },
+  {
+   "id": "thin-middle",
+   "label": "Narrow strip",
+   "w": 132,
+   "h": 358,
+   "notch": 0,
+   "holes": [],
+   "oldCut": null,
+   "outline": [
+    [
+     0,
+     0
+    ],
+    [
+     132,
+     0
+    ],
+    [
+     132,
+     358
+    ],
+    [
+     0,
+     358
+    ]
+   ],
+   "count": 22,
+   "parts": [
+    "recipe-18",
+    "recipe-19",
+    "recipe-20",
+    "recipe-21",
+    "reference-card",
+    "island-4",
+    "island-2",
+    "tortuga",
+    "chest-BISCOTTI-side-1",
+    "chest-BISCOTTI-side-2",
+    "chest-GINGERSNAP-side-1",
+    "chest-GINGERSNAP-side-2",
+    "chest-GINGERSNAP-lid-side-1",
+    "chest-GINGERSNAP-lid-side-2",
+    "chest-SHORTBREAD-side-1",
+    "chest-SHORTBREAD-side-2",
+    "chest-SHORTBREAD-lid-side-1",
+    "chest-SHORTBREAD-lid-side-2",
+    "ship-CRUMBLE-fore",
+    "ship-BISCOTTI-fore",
+    "ship-GINGERSNAP-fore",
+    "ship-SHORTBREAD-fore"
+   ]
+  },
+  {
+   "id": "thin-right",
+   "label": "Sheet with the scooped corners",
+   "w": 189,
+   "h": 300,
+   "notch": 20,
+   "holes": [],
+   "oldCut": null,
+   "outline": [
+    [
+     0,
+     20
+    ],
+    [
+     2.611,
+     19.829
+    ],
+    [
+     5.176,
+     19.319
+    ],
+    [
+     7.654,
+     18.478
+    ],
+    [
+     10,
+     17.321
+    ],
+    [
+     12.175,
+     15.867
+    ],
+    [
+     14.142,
+     14.142
+    ],
+    [
+     15.867,
+     12.175
+    ],
+    [
+     17.321,
+     10
+    ],
+    [
+     18.478,
+     7.654
+    ],
+    [
+     19.319,
+     5.176
+    ],
+    [
+     19.829,
+     2.611
+    ],
+    [
+     20,
+     0
+    ],
+    [
+     169,
+     0
+    ],
+    [
+     169.171,
+     2.611
+    ],
+    [
+     169.681,
+     5.176
+    ],
+    [
+     170.522,
+     7.654
+    ],
+    [
+     171.679,
+     10
+    ],
+    [
+     173.133,
+     12.175
+    ],
+    [
+     174.858,
+     14.142
+    ],
+    [
+     176.825,
+     15.867
+    ],
+    [
+     179,
+     17.321
+    ],
+    [
+     181.346,
+     18.478
+    ],
+    [
+     183.824,
+     19.319
+    ],
+    [
+     186.389,
+     19.829
+    ],
+    [
+     189,
+     20
+    ],
+    [
+     189,
+     280
+    ],
+    [
+     186.389,
+     280.171
+    ],
+    [
+     183.824,
+     280.681
+    ],
+    [
+     181.346,
+     281.522
+    ],
+    [
+     179,
+     282.679
+    ],
+    [
+     176.825,
+     284.133
+    ],
+    [
+     174.858,
+     285.858
+    ],
+    [
+     173.133,
+     287.825
+    ],
+    [
+     171.679,
+     290
+    ],
+    [
+     170.522,
+     292.346
+    ],
+    [
+     169.681,
+     294.824
+    ],
+    [
+     169.171,
+     297.389
+    ],
+    [
+     169,
+     300
+    ],
+    [
+     20,
+     300
+    ],
+    [
+     19.829,
+     297.389
+    ],
+    [
+     19.319,
+     294.824
+    ],
+    [
+     18.478,
+     292.346
+    ],
+    [
+     17.321,
+     290
+    ],
+    [
+     15.867,
+     287.825
+    ],
+    [
+     14.142,
+     285.858
+    ],
+    [
+     12.175,
+     284.133
+    ],
+    [
+     10,
+     282.679
+    ],
+    [
+     7.654,
+     281.522
+    ],
+    [
+     5.176,
+     280.681
+    ],
+    [
+     2.611,
+     280.171
+    ],
+    [
+     0,
+     280
+    ]
+   ],
+   "count": 22,
+   "parts": [
+    "spinner-backing",
+    "island-3",
+    "spinner-ring",
+    "island-5",
+    "chest-CRUMBLE-front",
+    "chest-CRUMBLE-back",
+    "chest-CRUMBLE-base",
+    "chest-CRUMBLE-lid-front",
+    "chest-CRUMBLE-lid-hinge",
+    "chest-BISCOTTI-lid-front",
+    "crate-CRUMBLE-front",
+    "crate-CRUMBLE-back",
+    "spinner-needle",
+    "chest-CRUMBLE-card-rail-1",
+    "chest-CRUMBLE-card-rail-2",
+    "chest-BISCOTTI-card-rail-1",
+    "chest-BISCOTTI-card-rail-2",
+    "chest-GINGERSNAP-card-rail-1",
+    "chest-GINGERSNAP-card-rail-2",
+    "chest-SHORTBREAD-card-rail-1",
+    "chest-SHORTBREAD-card-rail-2",
+    "spinner-washer"
+   ]
+  }
+ ]
+}

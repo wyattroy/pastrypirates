@@ -136,6 +136,25 @@ the halves (measured on the cut file, not the search). It writes nothing else �
 https://claude.ai/code/artifact/63336eb9-819c-497d-b509-9864becf77a7 — update it in place (a separate
 page from the two above, because the Cutting sheets page is 4.4 MB and cannot be safely rebuilt in place).
 
+## The thin offcuts — `v3-thin-offcuts/` (2026-09-13)
+
+One game's 2.8 mm parts (111: islands, Tortuga, crates, chests, spinner, sails, recipe and rules cards)
+on three odd 2.8 mm pieces from his photo IMG_6879, around five drilled holes, a knot and an old cut
+line on the big one. The sheet sizes, holes and the old cut are in `THIN_SHEETS` in `generate.mjs`,
+read off the steel rule in the photo (±3 mm) — if he measures with a tape, change them there.
+
+```bash
+node physical-board/generate.mjs --thin-offcuts    # writes ONLY v3-thin-offcuts/ (3 sheets + thin-offcuts.json)
+```
+
+A 1 mm occupancy map per sheet (edge margin 6 mm, 7 on the charred scooped-corner sheet; 9 mm past each
+hole's edge; a box 10 mm round the old cut), bounding boxes placed highest-then-leftmost, either way
+round, twelve orderings, best kept. At 2026-09-13's numbers: 111/111 on 3 sheets (67 / 22 / 22),
+measured afterwards from the cut files: nothing outside the wood, holes 9.0 mm clear, old cut 10.2 mm,
+parts 2.9 mm apart. The holes and old cut are GUIDE shapes: drawn on the page, never in a laser file.
+Same page as the offcut board; `build-page` lived in the session scratchpad — the page's source is the
+published artifact itself.
+
 ## Opening in Rhino
 
 - **SVG**: `Import`; millimetres; `CUT` and `RASTER` are layer-named groups.

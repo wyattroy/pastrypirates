@@ -44,6 +44,21 @@ const BED_MARGIN = 6;
 // bottom ends. `--offcut` writes ONLY v3-offcut/ (one board in two halves + one game's 6 mm small
 // parts) and touches nothing else, so the v3-round pack and the pages' data stay exactly as they were.
 const OFFCUT = argv.includes("--offcut");
+// THE THIN OFFCUTS (Wyatt, 2026-09-13, photo IMG_6879: "my 2.8mm cutting boards are all weird sizes and
+// shapes too -- and the left one has holes to avoid, as well as a cut line on the left to avoid").
+// `--thin-offcuts` packs ONE game's 2.8 mm parts onto those three pieces and writes only v3-thin-offcuts/.
+const THIN_OC = argv.includes("--thin-offcuts");
+const MODE = OFFCUT ? "v3-offcut" : THIN_OC ? "v3-thin-offcuts" : null;   // a mode writes its own folder and nothing else
+// Read off the steel rule in his photo (±3 mm), in mm, each sheet's top-left as it lies in the photo with
+// the rule along its top edge. Holes are the five drilled ones plus a knot on the big sheet's top edge.
+const THIN_SHEETS = [
+  { id: "thin-left", label: "Big sheet, with the holes", w: 454, h: 304, m: 6, notch: 0,
+    holes: [[51, 127], [123, 134], [243, 162], [127, 196], [275, 202]].map(([x, y]) => ({ x, y, r: 7.7 })).concat([{ x: 237, y: 18, r: 4, knot: true }]),
+    keep: [{ x0: 0, y0: 138, x1: 48, y1: 272 }],   // the old cut line, 16–38 mm in from the left edge, 148–262 mm down, plus 10 mm
+    oldCut: [[24.6, 148], [24.6, 208], [37.8, 208], [37.8, 230], [24.6, 230], [24.6, 256], [16, 262]] },
+  { id: "thin-middle", label: "Narrow strip", w: 132, h: 358, m: 6, notch: 0, holes: [], keep: [] },
+  { id: "thin-right", label: "Sheet with the scooped corners", w: 189, h: 300, m: 7, notch: 20, holes: [], keep: [] },   // charred, wavy edges: 7 mm
+];
 const WOOD = { w: opt("woodw", 740), hl: opt("woodl", 430), hr: opt("woodr", 200), M: opt("woodm", 5), G: 3 };
 const BED  = { w: opt("bedw",  420), h: opt("bedh",  800), m: 5 };   // 6 mm
 const BED3 = { w: opt("bedw3", 304.8), h: opt("bedh3", 457.2), m: BED_MARGIN };    // 3 mm  — 12" x 18" = 304.8 x 457.2 mm
@@ -1999,6 +2014,77 @@ function offcutLayout(five, small) {
     items: [woodGuide, ...[...halfA, ...halfB].filter(it => !isOutline(it)), ...placed, ...[...halfA, ...halfB].filter(isOutline)], names };
 }
 
+/* =========================================================================================
+   9d. THE THIN OFFCUTS — one game's 2.8 mm parts on three odd pieces, around their holes
+   ========================================================================================= */
+// A 1 mm occupancy map per sheet: the edge margin, scooped corners, a clearance ring round every hole and
+// a box round the old cut are blocked before anything is placed. Each part's bounding box then takes the
+// highest, then leftmost, free spot, either way round, on the first sheet that has one. Twelve orderings
+// (four part orders × three sheet orders); the winner places the most parts, then uses the fewest
+// sheets, then leaves its last sheet emptiest.
+function thinOffcutOutline(sh) {
+  const { w: W, h: H, notch: r } = sh; if (!r) return [[0, 0], [W, 0], [W, H], [0, H]];
+  const arc = (cx, cy, a0, a1) => [...Array(13)].map((_, i) => { const a = rad(a0 + (a1 - a0) * i / 12); return [cx + r * Math.cos(a), cy + r * Math.sin(a)]; });
+  return [...arc(0, 0, 90, 0), ...arc(W, 0, 180, 90), ...arc(W, H, 270, 180), ...arc(0, H, 0, -90)];
+}
+function thinOffcuts(parts) {
+  const G = 3, HOLE_CLR = 9;
+  const base = THIN_SHEETS.map(sh => { const { w: W, h: H, m, notch } = sh, blocked = new Uint8Array(W * H), corners = [[0, 0], [W, 0], [0, H], [W, H]];
+    for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+      const near = (px, py) => Math.hypot(Math.max(x - px, 0, px - (x + 1)), Math.max(y - py, 0, py - (y + 1)));   // nearest point of this 1 mm square
+      const b = x < m || y < m || x + 1 > W - m || y + 1 > H - m
+        || (notch && corners.some(([cx, cy]) => near(cx, cy) < notch + m))
+        || sh.holes.some(hl => near(hl.x, hl.y) < hl.r + HOLE_CLR)
+        || sh.keep.some(k => x + 1 > k.x0 && x < k.x1 && y + 1 > k.y0 && y < k.y1);
+      if (b) blocked[y * W + x] = 1; }
+    return { sh, W, H, blocked }; });
+  const prefix = g => { const { W, H, blocked } = g, S = new Int32Array((W + 1) * (H + 1));
+    for (let y = 0; y < H; y++) { let row = 0; for (let x = 0; x < W; x++) { row += blocked[y * W + x]; S[(y + 1) * (W + 1) + x + 1] = S[y * (W + 1) + x + 1] + row; } } g.S = S; };
+  const free = (g, x, y, w, h) => { const S = g.S, W1 = g.W + 1; return S[(y + h) * W1 + x + w] - S[y * W1 + x + w] - S[(y + h) * W1 + x] + S[y * W1 + x] === 0; };
+  const sized = parts.map(p => ({ p, b: bbox(p.items) }));
+  const keys = { area: b => b.w * b.h, height: b => b.h, maxdim: b => Math.max(b.w, b.h), width: b => b.w };
+  const attempt = (order, sheetOrder) => {
+    const grids = sheetOrder.map(i => { const g = { ...base[i], idx: i, blocked: base[i].blocked.slice(), items: [], n: 0, maxY: 0 }; prefix(g); return g; });
+    const left = [];
+    for (const { p, b } of [...sized].sort((a, z) => keys[order](z.b) - keys[order](a.b))) {
+      let placed = false;
+      for (const g of grids) {
+        let best = null;
+        for (const rot of [0, 90]) { const w = Math.ceil(rot ? b.h : b.w), h = Math.ceil(rot ? b.w : b.h);
+          outer: for (let y = 0; y + h <= g.H; y++) for (let x = 0; x + w <= g.W; x++) if (free(g, x, y, w, h)) { if (!best || y < best.y || (y === best.y && x < best.x)) best = { x, y, w, h, rot }; break outer; } }
+        if (!best) continue;
+        const items = best.rot ? xf(p.items, { rot: best.rot }) : p.items, bb = bbox(items);
+        g.items.push(...tag(xf(items, { tx: best.x - bb.x0, ty: best.y - bb.y0 }), p.name)); g.n++; g.maxY = Math.max(g.maxY, best.y + best.h);
+        for (let y = Math.max(0, best.y - G); y < Math.min(g.H, best.y + best.h + G); y++) for (let x = Math.max(0, best.x - G); x < Math.min(g.W, best.x + best.w + G); x++) g.blocked[y * g.W + x] = 1;
+        prefix(g); placed = true; break;
+      }
+      if (!placed) left.push(p.name);
+    }
+    const used = grids.filter(g => g.n), last = used[used.length - 1];
+    return { order, sheetOrder, grids, left, used: used.length, lastFill: last ? last.maxY / last.H : 0 };
+  };
+  let win = null;
+  for (const order of Object.keys(keys)) for (const sheetOrder of [[0, 2, 1], [0, 1, 2], [2, 0, 1]]) {
+    const a = attempt(order, sheetOrder);
+    if (!win || a.left.length < win.left.length || (a.left.length === win.left.length && (a.used < win.used || (a.used === win.used && a.lastFill < win.lastFill)))) win = a;
+  }
+  console.log(`thin-offcuts: ${parts.length - win.left.length}/${parts.length} parts placed on ${win.used} of 3 sheets (order ${win.order}, sheets ${win.sheetOrder.map(i => THIN_SHEETS[i].id).join(" > ")})` + (win.left.length ? `; DID NOT FIT: ${win.left.join(", ")}` : ""));
+  // guides: never cut — the page draws them so he can check the holes and the old cut sit where they really are
+  const docs = THIN_SHEETS.map((sh, i) => {
+    const g = win.grids.find(q => q.idx === i), outline = thinOffcutOutline(sh);
+    const guides = [item(GU, [polyCmds(offsetPoly(outline, 0.001)), reverseSub(polyCmds(offsetPoly(outline, -1)))], "guide-edge"),
+      ...sh.holes.map(hl => ({ ...ring(GU, hl.x, hl.y, hl.r, hl.r - 0.8), piece: hl.knot ? "guide-knot" : "guide-hole" })),
+      ...(sh.oldCut || []).slice(1).map((b, k) => { const a = sh.oldCut[k], L = Math.hypot(b[0] - a[0], b[1] - a[1]), nx = -(b[1] - a[1]) / L * 0.4, ny = (b[0] - a[0]) / L * 0.4;
+        return { ...poly(GU, [[a[0] + nx, a[1] + ny], [b[0] + nx, b[1] + ny], [b[0] - nx, b[1] - ny], [a[0] - nx, a[1] - ny]]), piece: "guide-old-cut" }; })];
+    const names = g.items.map(it => it.piece).filter((v, k, arr) => arr.indexOf(v) === k);
+    return { id: sh.id, dir: "v3-thin-offcuts", title: `${sh.label} — ${MAT3} mm, ${g.n} parts`, kind: "cut", mat: MAT3, kerf: KERF3,
+      kerfNote: `KERF-COMPENSATED: every cut line pushed ${KERF3 / 2} mm off the kept wood (kerf ${KERF3} mm) — cut on the line.`,
+      items: [...guides, ...g.items], w: sh.w, h: sh.h, count: g.n, parts: names, outline, sheet: sh,
+      notes: `${sh.label}: about ${sh.w} × ${sh.h} mm${sh.notch ? ` with ${sh.notch} mm scooped corners` : ""}, ${MAT3} mm ply, read off the steel rule in his photo. The file's top-left is the sheet's top-left as it lay in the photo, rule along the top. ${sh.m} mm from every edge${sh.holes.length ? `, ${HOLE_CLR} mm clear of every hole's edge, 10 mm clear of the old cut line` : ""}, ${G} mm between parts. ${g.n} parts.` };
+  });
+  return { docs, left: win.left, used: win.used };
+}
+
 function buildVersion(V) {
   const v = V.id, docs = [], cutParts = [];
   let five = null;
@@ -2140,6 +2226,13 @@ function buildVersion(V) {
         items: oc.items, w: W, h: HL, count: 2 + oc.placedCount,
         notes: `The file's top-left corner is the offcut's square corner: ${W} mm along the top, ${HL} mm down the left side, ${HR} mm down the right, a straight diagonal between. ${MAT} mm ply. The whole ${r3(2 * five.Rb)} mm board does not fit, so it is cut as two halves, each half two quadrants cut together and split in place so the grain runs across that seam: the ${oc.names[0]} and the ${oc.names[1]}. At least ${WOOD.M} mm from every edge of the wood and ${WOOD.G} mm between pieces, with ${r3(oc.layout.score)} mm more to spare. ${oc.layout.grain ? "Both halves keep the grain running the same way across the assembled board." : "The two halves are turned a quarter-turn to each other, so the grain changes direction at the seam between them — no layout with matching grain fits this wood."} Around them: one set of the 6 mm small parts (${oc.placedCount} of ${small.length} — ingredient tokens and ship hulls).` + (oc.left.length ? ` Did not fit: ${oc.left.join(", ")}.` : "") + ` CUT ORDER: engrave, then the small parts, then the seam inside each half, then each half's outline LAST.` });
     }
+    if (THIN_OC) {
+      const t = thinOffcuts(oneGame);
+      docs.push(...t.docs);
+      fs.mkdirSync(path.join(HERE, "v3-thin-offcuts"), { recursive: true });
+      fs.writeFileSync(path.join(HERE, "v3-thin-offcuts", "thin-offcuts.json"), JSON.stringify({ material: MAT3, kerf: KERF3, left: t.left, used: t.used, total: oneGame.length,
+        sheets: t.docs.map(d => ({ id: d.id, label: d.sheet.label, w: d.w, h: d.h, notch: d.sheet.notch, holes: d.sheet.holes, oldCut: d.sheet.oldCut || null, outline: d.outline.map(p => p.map(r3)), count: d.count, parts: d.parts })) }, null, 1));
+    }
     const all = thin.map(sh => ({ sh, m: MAT3 })), N = all.length;
   const matByPart = new Map(cutParts.map(p => [p.name, p.mat || MAT]));
   KERF_FOR = name => (matByPart.get(String(name).replace(/-b$/, "")) === MAT3 ? KERF3 : KERF);   // thin parts get the thin kerf; -b is the second game's copy
@@ -2167,7 +2260,7 @@ function buildVersion(V) {
           grass: Object.fromEntries([...Array(13)].map((_, k) => { const b = r3(1.4 + k * 0.2);
             return [b.toFixed(1), grassPts(loop, b, i).map(([x, y]) => [r3(x * S), r3(y * S)])]; })) };
       }) };
-    if (!OFFCUT) fs.writeFileSync(path.join(HERE, "tuner-data.json"), JSON.stringify(tuner));
+    if (!MODE) fs.writeFileSync(path.join(HERE, "tuner-data.json"), JSON.stringify(tuner));
   }
   return { ...V, docs };
 }
@@ -2313,14 +2406,14 @@ for (const V of VERSIONS.filter(V => ONLY.includes(V.id))) {
   // survive and look like live cut files — on 2026-09-10 a stale "sheet 4 of 4" sat beside a fresh
   // "3 of 3" and would have been cut twice. Clear every sheet-N file before writing this run's.
   // (Narrow on purpose: only generated sheet-N.svg/.dxf, never anything else in the folder.)
-  if (!OFFCUT) for (const f of fs.readdirSync(dir)) if (/^sheet-\d+\.(svg|dxf)$/.test(f)) fs.unlinkSync(path.join(dir, f));
+  if (!MODE) for (const f of fs.readdirSync(dir)) if (/^sheet-\d+\.(svg|dxf)$/.test(f)) fs.unlinkSync(path.join(dir, f));
   const groups = [];
   for (const doc0 of built.docs) {
     // --offcut writes its own folder and nothing else; a normal run never builds the offcut doc at all
-    if (OFFCUT !== (doc0.dir === "v3-offcut")) continue;
+    if ((doc0.dir || null) !== MODE) continue;
     const outDir = doc0.dir ? path.join(HERE, doc0.dir) : dir; fs.mkdirSync(outDir, { recursive: true });
     const doc = doc0;
-    if (OFFCUT) { const svgOut = emitSVG({ ...doc, kerf: KERF, items: kerfCompensate(doc.items, KERF_FOR) }, V);
+    if (MODE) { const svgOut = emitSVG({ ...doc, kerf: KERF, items: kerfCompensate(doc.items, KERF_FOR) }, V);
       fs.writeFileSync(path.join(outDir, `${doc.id}.svg`), svgOut); fs.writeFileSync(path.join(outDir, `${doc.id}-preview.svg`), emitSVG(doc, V, true));
       dxfDocs.push({ path: path.join(outDir, `${doc.id}.dxf`), w: doc.w, h: doc.h, entities: dxfEntities({ ...doc, items: kerfCompensate(doc.items, KERF_FOR) }) }); continue; }
     if (doc.kind === "mockup") { fs.writeFileSync(path.join(dir, `${doc.id}.svg`), doc.svg); groups.push({ id: doc.id, title: doc.title, kind: "mockup", mat: null, notes: doc.notes, w: 0, h: 0, count: 0, svg: doc.svg }); continue; }
@@ -2340,5 +2433,5 @@ for (const V of VERSIONS.filter(V => ONLY.includes(V.id))) {
   writeDXFs(dxfDocs);
   console.log(`${V.dir}: ${built.docs.length} files x2 (svg+dxf)`);
 }
-if (!OFFCUT) fs.writeFileSync(path.join(HERE, "site-data.js"), "window.PB_DATA = " + JSON.stringify(siteData) + ";\n");
+if (!MODE) fs.writeFileSync(path.join(HERE, "site-data.js"), "window.PB_DATA = " + JSON.stringify(siteData) + ";\n");
 console.log(`squares ${r3(CELL_REAL)} mm (design ${CELL} × scale ${GRID_SCALE}), material ${MAT} mm — site-data.js written`);
