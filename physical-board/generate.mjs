@@ -39,6 +39,12 @@ const BED_MARGIN = 6;
 // put in will be likely 42-44cm wide". Packed to 420, the NARROW end, so any sheet he loads works.
 // The one-piece circle burned 409.8 mm at 25 mm squares — ~5 mm each side at 42 cm, hence this margin; since the 2026-09-10 scale it is ~383, so this
 // sheet's margin is 5, not 6.
+// THE OFFCUT (Wyatt, 2026-09-13, photo IMG_6878): a 6 mm piece with a square top-left corner — 740 mm
+// along the top, 430 mm down the left side, 200 mm down the right, a straight diagonal between the
+// bottom ends. `--offcut` writes ONLY v3-offcut/ (one board in two halves + one game's 6 mm small
+// parts) and touches nothing else, so the v3-round pack and the pages' data stay exactly as they were.
+const OFFCUT = argv.includes("--offcut");
+const WOOD = { w: opt("woodw", 740), hl: opt("woodl", 430), hr: opt("woodr", 200), M: opt("woodm", 5), G: 3 };
 const BED  = { w: opt("bedw",  420), h: opt("bedh",  800), m: 5 };   // 6 mm
 const BED3 = { w: opt("bedw3", 304.8), h: opt("bedh3", 457.2), m: BED_MARGIN };    // 3 mm  — 12" x 18" = 304.8 x 457.2 mm
 const bedFor = m => (m === MAT3 ? BED3 : BED);
@@ -1516,6 +1522,36 @@ function boardFivePiece() {
   // the SAME items, as the part the 6 mm cutting sheet carries (Wyatt, 2026-09-10: "I want the entire
   // board cut out of one circle on the 6mm board")
   const boardPart = { name: "board", mat: MAT, items: oneItems };
+  // ---- THE BOARD IN TWO HALVES (Wyatt, 2026-09-13, for an offcut too small for the circle: "try to
+  // get 2 sets of 2 board quadrants touching, so at least some of the woodgrain matches up") ----
+  // Each half is two quadrants cut TOGETHER and split in place — one uncompensated seam, as the
+  // one-piece board does — so the grain runs across that seam. The seam BETWEEN the halves is cut twice
+  // (once on each half), so it carries the nub/socket pair and kerf compensation, as separate
+  // quadrants always did. The outline of each half is walked from the canonical quadrant's own pieces
+  // (rim arc, seam A, seam B) rotated into place, so its knobs are exactly the ones the quadrants have.
+  const halves = (() => {
+    const rp = (p, k) => { const r = rot90([p[0] - C, p[1] - C], k); return [C + r[0], C + r[1]]; };
+    const a0 = Math.atan2(-h, -sr), a1 = Math.atan2(-sr, h), arc0 = [];
+    for (let i = 0; i <= 90; i++) { const a = a0 + (a1 - a0) * i / 90; arc0.push([C + Rb * Math.cos(a), C + Rb * Math.sin(a)]); }
+    const A0 = EDGE_A.flatMap(([d, s]) => mushroomPts([C + h, C - d], [0, 1], [-1, 0], s === "out" ? JIGB.nub : JIGB.socket, s === "out" ? -1 : 1));
+    const B0 = EDGE_B.flatMap(([d, s]) => mushroomPts([C - d, C - h], [-1, 0], [0, -1], s === "out" ? JIGB.nub : JIGB.socket, s === "out" ? -1 : 1));
+    const arc = k => arc0.map(p => rp(p, k)), A = k => A0.map(p => rp(p, k)), B = k => B0.map(p => rp(p, k));
+    const TL = [C - h, C - h], TR = [C + h, C - h], BR = [C + h, C + h], BL = [C - h, C + h];
+    // the in-place seam: the one-piece ray (single nub profile), nudged 0.4 past each end into waste so the
+    // beam is sure to part the two quadrants where it meets the outline cut
+    const ray = k => [[C + h, C - sr], ...EDGE_A.flatMap(([d, s]) => mushroomPts([C + h, C - d], [0, 1], [-1, 0], JIGB.nub, s === "out" ? -1 : 1)), TR].map(p => rp(p, k));
+    const ext = (pts, dirEnd) => { const e = 0.4, p0 = pts[0], u = [p0[0] - C, p0[1] - C], L = Math.hypot(...u), q = pts[pts.length - 1];
+      return [[p0[0] + u[0] / L * e, p0[1] + u[1] / L * e], ...pts, [q[0] + dirEnd[0] * e, q[1] + dirEnd[1] * e]]; };
+    const s2 = Math.SQRT1_2;
+    const mk = (id, ks, outline, seam) => ({ name: `half-${id}`, quads: ks.map(k => QUAD[k].id), outline,
+      items: [...ks.flatMap(k => quadrants[k].items.filter(it => it.layer !== CU)).map(it => ({ ...it, piece: `half-${id}` })),
+        { ...openPoly(CU, seam), noKerf: true, piece: `half-${id}-seam` }, { ...poly(CU, outline), piece: `half-${id}` }] });
+    return {
+      tb: [mk("top", [0, 1], [...arc(0), ...arc(1), ...A(1), BR, BL, TL, ...B(0)], ext([...ray(0), BR], [0, 1])),
+           mk("bottom", [2, 3], [...arc(2), ...arc(3), ...A(3), TL, BL, ...B(2)], ext(ray(2), [s2, -s2]))],
+      lr: [mk("left", [3, 0], [...arc(3), ...arc(0), ...A(0), TR, BR, BL, ...B(3)], ext([...ray(3), BL], [s2, s2])),
+           mk("right", [1, 2], [...arc(1), ...arc(2), ...A(2), BL, BR, ...B(1)], ext(ray(1), [-s2, -s2]))] };
+  })();
   // everything above is in DESIGN units; what is cut is scaled. The quadrants and plugDesign stay in
   // design units because the mockup places them on a 25 mm grid — and a uniformly scaled scene draws
   // identically, so the picture is still honest.
@@ -1523,7 +1559,9 @@ function boardFivePiece() {
   const scaledDoc = d => ({ ...d, items: xf(d.items, { s: GRID_SCALE }), w: r3(d.w * GRID_SCALE), h: r3(d.h * GRID_SCALE), notes: d.notes.split(dOld).join(dNew) });
   return { assembled: scaledDoc(assembled), onePiece: scaledDoc(onePiece), quadrants, plugDesign: plug, Rb: rb,
     plug: { ...plug, items: xf(plug.items, { s: GRID_SCALE }) },
-    boardPart: { ...boardPart, items: scaleAbout(boardPart.items, C, C) } };
+    boardPart: { ...boardPart, items: scaleAbout(boardPart.items, C, C) },
+    halves: Object.fromEntries(Object.entries(halves).map(([k, hs]) => [k, hs.map(hf => ({ ...hf, items: scaleAbout(hf.items, C, C),
+      outline: hf.outline.map(([x, y]) => [C + (x - C) * GRID_SCALE, C + (y - C) * GRID_SCALE]) }))])) };
 }
 // ---- kerf: push every cut line half a beam away from the wood that stays ----
 function pointInPoly(p, pts) { let c = false; for (let i = 0, j = pts.length - 1; i < pts.length; j = i++) { const [xi, yi] = pts[i], [xj, yj] = pts[j]; if ((yi > p[1]) !== (yj > p[1]) && p[0] < (xj - xi) * (p[1] - yi) / (yj - yi) + xi) c = !c; } return c; }
@@ -1872,6 +1910,94 @@ const VERSIONS = [
   { id: "v3", dir: "v3-round", name: "V3 · The Round Table", blurb: "A true circle with a double ring at the water's edge, cut in five: four identical jigsaw quadrants whose seams follow the grid lines around Tortuga, and Tortuga itself as the centre plug. Rim marks are the app's own wind chevron. T-shaped cut-out docks snap into a notch on any island edge; Tortuga is a one-square island with its four docks baked in. Hexagonal crates, a plain wind dial plus a separate 5-sector storm spinner, flat disc ships." },
 ];
 
+/* =========================================================================================
+   9c. THE OFFCUT PACK — one board, in two halves, laid on an odd-shaped piece of 6 mm
+   ========================================================================================= */
+// Tries both ways of halving the board (top/bottom, left/right) with each half turned 0/90/180/270,
+// every position on a 2 mm step, and keeps the layout with the MOST room to spare — the smallest of:
+// each half's distance inside the wood's safety margin, and the gap between the halves beyond G. That
+// spare room is what absorbs a tape measure that was a few mm off. A layout where both halves keep the
+// grain running the same way across the assembled board wins over any that does not, if one exists.
+function offcutLayout(five, small) {
+  const { w: W, hl: HL, hr: HR, M, G } = WOOD, C = CENTER;
+  const wood = [[0, 0], [W, 0], [W, HR], [0, HL]], cen = [W / 2, (HL + HR) / 4];
+  const lines = wood.map((a, i) => { const b = wood[(i + 1) % 4], dx = b[0] - a[0], dy = b[1] - a[1], L = Math.hypot(dx, dy);
+    let n = [dy / L, -dx / L]; if (n[0] * (cen[0] - a[0]) + n[1] * (cen[1] - a[1]) < 0) n = [-n[0], -n[1]]; return { n, c: n[0] * a[0] + n[1] * a[1] }; });
+  const rotP = ([x, y], r) => { const co = Math.cos(rad(r)), si = Math.sin(rad(r)); return [x * co - y * si, x * si + y * co]; };
+  const densify = (pts, step) => { const out = []; for (let i = 0; i < pts.length; i++) { const a = pts[i], b = pts[(i + 1) % pts.length], n = Math.max(1, Math.ceil(Math.hypot(b[0] - a[0], b[1] - a[1]) / step));
+    for (let k = 0; k < n; k++) out.push([a[0] + (b[0] - a[0]) * k / n, a[1] + (b[1] - a[1]) * k / n]); } return out; };
+  const D = 40, ROTS = [0, 90, 180, 270];
+  // a half at a rotation, in a frame whose origin is the board's centre: its cut edge as the beam leaves it
+  const shape = (hf, r) => {
+    const loop = offsetPoly(hf.outline, KERF).map(p => rotP([p[0] - C, p[1] - C], r)), pts = densify(loop, 1.5);
+    const minDot = lines.map(({ n }) => Math.min(...pts.map(p => n[0] * p[0] + n[1] * p[1])));
+    let field = null;
+    const getField = () => { if (field) return field;
+      let R = 0; for (const p of loop) R = Math.max(R, Math.hypot(p[0], p[1]));
+      const o = -Math.ceil(R + D), N = 2 * -o + 1, f = new Float32Array(N * N).fill(D);
+      for (const [px, py] of densify(loop, 0.7)) { const ix = Math.round(px - o), iy = Math.round(py - o);
+        for (let y = Math.max(0, iy - D); y <= Math.min(N - 1, iy + D); y++) for (let x = Math.max(0, ix - D); x <= Math.min(N - 1, ix + D); x++) {
+          const d = Math.hypot(x + o - px, y + o - py); if (d < f[y * N + x]) f[y * N + x] = d; } }
+      for (let y = 0; y < N; y++) { const Y = y + o, xs = [];   // inside is distance 0
+        for (let i = 0; i < loop.length; i++) { const a = loop[i], b = loop[(i + 1) % loop.length]; if ((a[1] > Y) !== (b[1] > Y)) xs.push(a[0] + (Y - a[1]) * (b[0] - a[0]) / (b[1] - a[1])); }
+        xs.sort((p, q) => p - q); for (let j = 0; j + 1 < xs.length; j += 2) for (let x = Math.max(0, Math.ceil(xs[j] - o)); x <= Math.min(N - 1, Math.floor(xs[j + 1] - o)); x++) f[y * N + x] = 0; }
+      return (field = { f, o, N, R }); };
+    return { hf, r, loop, pts, minDot, getField };
+  };
+  const at = (fl, px, py) => { const ix = Math.round(px - fl.o), iy = Math.round(py - fl.o); return ix < 0 || iy < 0 || ix >= fl.N || iy >= fl.N ? D : fl.f[iy * fl.N + ix]; };
+  const poses = s => { const out = [];
+    for (let ty = 0; ty <= HL; ty += 2) for (let tx = 0; tx <= W; tx += 2) {
+      let slack = Infinity; lines.forEach(({ n, c }, i) => { slack = Math.min(slack, n[0] * tx + n[1] * ty + s.minDot[i] - c - M); });
+      if (slack >= 0) out.push({ tx, ty, slack }); }
+    return out.sort((a, b) => b.slack - a.slack); };
+  const clearance = (sA, pA, sB, pB) => { const fl = sA.getField(); if (Math.hypot(pA.tx - pB.tx, pA.ty - pB.ty) >= 2 * fl.R + D) return D;
+    let m = D; for (const p of sB.pts) { const v = at(fl, p[0] + pB.tx - pA.tx, p[1] + pB.ty - pA.ty); if (v < m) { m = v; if (m < G + 0.75) return m; } } return m; };
+  const tried = [];
+  for (const split of ["tb", "lr"]) {
+    const [hA, hB] = five.halves[split];
+    const SA = ROTS.map(r => shape(hA, r)), SB = ROTS.map(r => shape(hB, r)), PA = SA.map(poses), PB = SB.map(poses);
+    for (let i = 0; i < 4; i++) for (let j = 0; j < 4; j++) {
+      let best = null, bestScore = -Infinity;
+      for (const pA of PA[i]) { if (pA.slack <= bestScore) break;
+        for (const pB of PB[j]) { if (Math.min(pA.slack, pB.slack) <= bestScore) break;
+          const clr = clearance(SA[i], pA, SB[j], pB); if (clr < G + 0.75) continue;
+          const score = Math.min(pA.slack, pB.slack, clr - G - 0.75); if (score > bestScore) { bestScore = score; best = { pA, pB }; } } }
+      if (best) tried.push({ split, sA: SA[i], sB: SB[j], ...best, score: bestScore, grain: (ROTS[i] - ROTS[j]) % 180 === 0 });
+    }
+  }
+  if (!tried.length) throw new Error(`offcut: the board does not fit a ${W} × ${HL}/${HR} mm offcut even in halves`);
+  const sameGrain = tried.filter(t => t.grain), pick = (sameGrain.length ? sameGrain : tried).reduce((a, b) => (b.score > a.score ? b : a));
+  console.log(`offcut: ${tried.length} layouts fit (${sameGrain.length} with the grain the same way on both halves); best: ${pick.split}, turned ${pick.sA.r}° / ${pick.sB.r}°, ${r3(pick.score)} mm to spare` +
+    (sameGrain.length ? "" : `; best if the grain had to match: none fits`));
+  const place = (s, p) => xf(xf(s.hf.items, { tx: -C, ty: -C }), { rot: s.r, tx: p.tx, ty: p.ty });
+  const halfA = place(pick.sA, pick.pA), halfB = place(pick.sB, pick.pB);
+  // ---- the small 6 mm parts, first fit from the top-left, into whatever the halves leave ----
+  const fB = pick.sB.getField(), fA = pick.sA.getField(), blocked = new Uint8Array(W * HL);
+  for (let y = 0; y < HL; y++) for (let x = 0; x < W; x++) {
+    const out = [[x, y], [x + 1, y], [x, y + 1], [x + 1, y + 1]].some(([px, py]) => lines.some(({ n, c }) => n[0] * px + n[1] * py - c < M));
+    const near = at(fA, x + .5 - pick.pA.tx, y + .5 - pick.pA.ty) < G + 0.75 || at(fB, x + .5 - pick.pB.tx, y + .5 - pick.pB.ty) < G + 0.75;
+    if (out || near) blocked[y * W + x] = 1; }
+  let S = null; const prefix = () => { S = new Int32Array((W + 1) * (HL + 1)); for (let y = 0; y < HL; y++) { let row = 0; for (let x = 0; x < W; x++) { row += blocked[y * W + x]; S[(y + 1) * (W + 1) + x + 1] = S[y * (W + 1) + x + 1] + row; } } };
+  const free = (x, y, w, h) => S[(y + h) * (W + 1) + x + w] - S[y * (W + 1) + x + w] - S[(y + h) * (W + 1) + x] + S[y * (W + 1) + x] === 0;
+  prefix();
+  const placed = [], left = [];
+  for (const p of [...small].sort((a, b) => { const A = bbox(a.items), B = bbox(b.items); return B.w * B.h - A.w * A.h; })) {
+    let best = null;
+    for (const rot of [0, 90]) { const items = rot ? xf(p.items, { rot }) : p.items, b = bbox(items), w = Math.ceil(b.w), h = Math.ceil(b.h);
+      outer: for (let y = 0; y + h <= HL; y++) for (let x = 0; x + w <= W; x++) if (free(x, y, w, h)) { if (!best || y < best.y || (y === best.y && x < best.x)) best = { x, y, w, h, items, b }; break outer; } }
+    if (!best) { left.push(p.name); continue; }
+    for (let y = Math.max(0, best.y - G); y < Math.min(HL, best.y + best.h + G); y++) for (let x = Math.max(0, best.x - G); x < Math.min(W, best.x + best.w + G); x++) blocked[y * W + x] = 1;
+    prefix();
+    placed.push(...tag(xf(best.items, { tx: best.x - best.b.x0, ty: best.y - best.b.y0 }), p.name));
+  }
+  console.log(`offcut: ${small.length - left.length}/${small.length} small parts placed` + (left.length ? `; DID NOT FIT: ${left.join(", ")}` : ""));
+  const isOutline = it => it.layer === CU && !it.noKerf && /^half-/.test(it.piece);
+  const woodGuide = item(GU, [polyCmds(offsetPoly(wood, 0.001)), reverseSub(polyCmds(offsetPoly(wood, -1.2)))], "the-offcut");
+  const names = [pick.sA.hf, pick.sB.hf].map(hf => `${hf.name.slice(5)} half (${hf.quads.join(" + ")})`);
+  return { layout: pick, left, placedCount: small.length - left.length,
+    items: [woodGuide, ...[...halfA, ...halfB].filter(it => !isOutline(it)), ...placed, ...[...halfA, ...halfB].filter(isOutline)], names };
+}
+
 function buildVersion(V) {
   const v = V.id, docs = [], cutParts = [];
   let five = null;
@@ -2005,6 +2131,14 @@ function buildVersion(V) {
         items: [...boards, ...placed], w: SW, h: SH, count: 2 + parts.length - left.length,
         notes: `${SW} × ${SH} mm, ${MAT} mm ply. Two whole boards, each one circle split in place, stacked — ${r3(4 * R + G)} mm of length. Around them, in the corners and the waist: two full sets of the 6 mm small parts (${small.length} each — 28 ingredient tokens and 4 ship hulls), ${G} mm apart.` + (left.length ? ` ${left.length} did not fit: ${left.join(", ")}.` : "") });
     }
+    if (OFFCUT) {
+      const small = cutParts.filter(p => (p.mat || MAT) === MAT && p.name !== "board").map(noGuide);
+      const oc = offcutLayout(five, small), { w: W, hl: HL, hr: HR } = WOOD;
+      docs.push({ id: "offcut-board", dir: "v3-offcut", title: `One board on the ${W / 10} × ${HL / 10} / ${HR / 10} cm offcut — ${MAT} mm`, kind: "cut", mat: MAT, kerf: KERF,
+        kerfNote: `KERF-COMPENSATED (every cut pushed ${KERF / 2} mm off the kept wood) EXCEPT the one seam INSIDE each half, cut on its nominal line on purpose: one cut makes both faces. The seam BETWEEN the halves is cut twice, once on each half, with the usual knob and socket play.`,
+        items: oc.items, w: W, h: HL, count: 2 + oc.placedCount,
+        notes: `The file's top-left corner is the offcut's square corner: ${W} mm along the top, ${HL} mm down the left side, ${HR} mm down the right, a straight diagonal between. ${MAT} mm ply. The whole ${r3(2 * five.Rb)} mm board does not fit, so it is cut as two halves, each half two quadrants cut together and split in place so the grain runs across that seam: the ${oc.names[0]} and the ${oc.names[1]}. At least ${WOOD.M} mm from every edge of the wood and ${WOOD.G} mm between pieces, with ${r3(oc.layout.score)} mm more to spare. ${oc.layout.grain ? "Both halves keep the grain running the same way across the assembled board." : "The two halves are turned a quarter-turn to each other, so the grain changes direction at the seam between them — no layout with matching grain fits this wood."} Around them: one set of the 6 mm small parts (${oc.placedCount} of ${small.length} — ingredient tokens and ship hulls).` + (oc.left.length ? ` Did not fit: ${oc.left.join(", ")}.` : "") + ` CUT ORDER: engrave, then the small parts, then the seam inside each half, then each half's outline LAST.` });
+    }
     const all = thin.map(sh => ({ sh, m: MAT3 })), N = all.length;
   const matByPart = new Map(cutParts.map(p => [p.name, p.mat || MAT]));
   KERF_FOR = name => (matByPart.get(String(name).replace(/-b$/, "")) === MAT3 ? KERF3 : KERF);   // thin parts get the thin kerf; -b is the second game's copy
@@ -2032,7 +2166,7 @@ function buildVersion(V) {
           grass: Object.fromEntries([...Array(13)].map((_, k) => { const b = r3(1.4 + k * 0.2);
             return [b.toFixed(1), grassPts(loop, b, i).map(([x, y]) => [r3(x * S), r3(y * S)])]; })) };
       }) };
-    fs.writeFileSync(path.join(HERE, "tuner-data.json"), JSON.stringify(tuner));
+    if (!OFFCUT) fs.writeFileSync(path.join(HERE, "tuner-data.json"), JSON.stringify(tuner));
   }
   return { ...V, docs };
 }
@@ -2178,9 +2312,16 @@ for (const V of VERSIONS.filter(V => ONLY.includes(V.id))) {
   // survive and look like live cut files — on 2026-09-10 a stale "sheet 4 of 4" sat beside a fresh
   // "3 of 3" and would have been cut twice. Clear every sheet-N file before writing this run's.
   // (Narrow on purpose: only generated sheet-N.svg/.dxf, never anything else in the folder.)
-  for (const f of fs.readdirSync(dir)) if (/^sheet-\d+\.(svg|dxf)$/.test(f)) fs.unlinkSync(path.join(dir, f));
+  if (!OFFCUT) for (const f of fs.readdirSync(dir)) if (/^sheet-\d+\.(svg|dxf)$/.test(f)) fs.unlinkSync(path.join(dir, f));
   const groups = [];
-  for (const doc of built.docs) {
+  for (const doc0 of built.docs) {
+    // --offcut writes its own folder and nothing else; a normal run never builds the offcut doc at all
+    if (OFFCUT !== (doc0.dir === "v3-offcut")) continue;
+    const outDir = doc0.dir ? path.join(HERE, doc0.dir) : dir; fs.mkdirSync(outDir, { recursive: true });
+    const doc = doc0;
+    if (OFFCUT) { const svgOut = emitSVG({ ...doc, kerf: KERF, items: kerfCompensate(doc.items, KERF_FOR) }, V);
+      fs.writeFileSync(path.join(outDir, `${doc.id}.svg`), svgOut); fs.writeFileSync(path.join(outDir, `${doc.id}-preview.svg`), emitSVG(doc, V, true));
+      dxfDocs.push({ path: path.join(outDir, `${doc.id}.dxf`), w: doc.w, h: doc.h, entities: dxfEntities({ ...doc, items: kerfCompensate(doc.items, KERF_FOR) }) }); continue; }
     if (doc.kind === "mockup") { fs.writeFileSync(path.join(dir, `${doc.id}.svg`), doc.svg); groups.push({ id: doc.id, title: doc.title, kind: "mockup", mat: null, notes: doc.notes, w: 0, h: 0, count: 0, svg: doc.svg }); continue; }
     // Wyatt's first test cut (2026-08-25) was from the GROUP files, which carried no kerf compensation — the only
     // warning lived in an SVG <desc> his Rhino flow never shows, and the docks wiggled ~0.5 mm. Now EVERY cut file
@@ -2198,5 +2339,5 @@ for (const V of VERSIONS.filter(V => ONLY.includes(V.id))) {
   writeDXFs(dxfDocs);
   console.log(`${V.dir}: ${built.docs.length} files x2 (svg+dxf)`);
 }
-fs.writeFileSync(path.join(HERE, "site-data.js"), "window.PB_DATA = " + JSON.stringify(siteData) + ";\n");
+if (!OFFCUT) fs.writeFileSync(path.join(HERE, "site-data.js"), "window.PB_DATA = " + JSON.stringify(siteData) + ";\n");
 console.log(`squares ${r3(CELL_REAL)} mm (design ${CELL} × scale ${GRID_SCALE}), material ${MAT} mm — site-data.js written`);

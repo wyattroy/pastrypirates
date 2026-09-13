@@ -114,6 +114,28 @@ python3 physical-board/art/trace.py physical-board/art/ingredients.json   # re-t
 python3 physical-board/fonts/extract.py physical-board/fonts/glyphs.json  # re-extract the fonts
 ```
 
+## The offcut pack — `v3-offcut/` (2026-09-13)
+
+One board plus one game's 6 mm small parts, for Wyatt's odd-shaped 6 mm offcut: square top-left
+corner, 740 mm along the top, 430 mm down the left side, 200 mm down the right, a straight diagonal
+between. The 382 mm circle is ~9 mm too big for any circle that shape can hold, so the board is cut
+as **two halves**, each two quadrants cut together and split in place (one uncompensated seam inside
+each half, so that grain matches — his ask: *"try to get 2 sets of 2 board quadrants touching"*). The
+seam between the halves is cut twice with the nub/socket pair, as the separate quadrants were.
+
+```bash
+node physical-board/generate.mjs --offcut                       # writes ONLY v3-offcut/
+node physical-board/generate.mjs --offcut --woodw 740 --woodl 430 --woodr 200 --woodm 5
+```
+
+`--offcut` searches both splits (top/bottom, left/right) × four turns × every 2 mm position and keeps
+the layout with the most room to spare, preferring one where both halves keep the grain the same
+way. At 740/430/200 it picks top/bottom, both unturned: 17 mm off every wood edge and 17 mm between
+the halves (measured on the cut file, not the search). It writes nothing else — `v3-round/`,
+`site-data.js` and `tuner-data.json` were checksummed before and after and are unchanged. Its page:
+https://claude.ai/code/artifact/63336eb9-819c-497d-b509-9864becf77a7 — update it in place (a separate
+page from the two above, because the Cutting sheets page is 4.4 MB and cannot be safely rebuilt in place).
+
 ## Opening in Rhino
 
 - **SVG**: `Import`; millimetres; `CUT` and `RASTER` are layer-named groups.
