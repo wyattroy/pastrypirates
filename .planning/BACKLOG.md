@@ -435,6 +435,12 @@ first to win!"* line and then a board with no explanation of how anything works.
 
 ## 🟠 Known bugs, deferred as not game-stopping
 
+- [ ] **A BATTLE AT THE BOARD'S RIGHT EDGE PILES ONE CALL CIRCLE ON THE OTHER.** Found by Wy-Blade's crate trial
+      (sep13-trial-crates @ f0017432, screen crew-desktop-guest-025, day 18): two battling ships share a square on the board's
+      RIGHT edge, both call circles are pushed to the left, and "Call Dough Hook" covers almost all of "Call test1" — the trial's
+      not-occluded and no-pile checks both fail on it. PRE-EXISTING: the only stage.js change in that build was the build stamp.
+      The anchored placement is in src/ui/stage.js (~4402-4610; the xMin/xMax band ~4553). Not yet posed; a battle posed on
+      the rightmost column at desktop size would show it directly.
 - [ ] **THE DIM BEHIND A MODAL OR A STAGE CARD COVERS ONLY THE GAME COLUMN, NOT THE PAGE.** His words, 2026-09-13:
       *"the "stage"/modal background coloring is computed wrong -- see screenshots. it seems like it's living in the wrong
       component, leaving much of the page uncovered."* (His "Expectation:" sentence arrived cut off; the evident one is a dim
