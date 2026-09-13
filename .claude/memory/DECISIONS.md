@@ -2874,3 +2874,6 @@ died on the Blade. Rooted off `fileURLToPath(import.meta.url)`.
   bake-off's ghost crate and lid are the same picture. An empty hold is the crate's own silhouette at the islands' 30% (his Q6),
   keeping "empty hold" as its tooltip. ⚠ On the dark row wood that silhouette reads as a faint dark square — shown to him, not
   changed on my own.
+- **THE CRATES GO TO STAGING NOW; WY-BLADE SAILS THE TRIAL.** The gear check rated the crate change FULL (a sea trial
+  before staging). Asked how to sail it: *"Staging now, Wy-Blade trials (Recommended)"* — staging for him to play at once,
+  the full trial on Wy-Blade on its own branch so his Mac is not choked, and nothing to main until it is green.
