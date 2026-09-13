@@ -2890,3 +2890,17 @@ died on the Blade. Rooted off `fileURLToPath(import.meta.url)`.
   at the light fill. So sugar rolls 2 and 4 ("measured 0.5%, set aside") and round 3's three canes had their outlines
   removed by the cut-out, not by the artist. Rolls drawn on WHITE kept theirs — his installed sugar (roll 1) is one, and
   its 2.5% stands. At `--tol 12` all four butter-and-milk rolls keep theirs (3.0-3.5%). Written into key.mjs's header.
+
+**2026-09-13, night (latest) — three asks while the crates sailed:**
+
+- **A NARRATION AUDIT HE CAN REWRITE IN, APPLIED BY HAND.** *"spin up an artifact i can use to audit the narration and
+  shorten it. i want to see all the narration in the game, write a re-written version, and have you by-hand apply it to the
+  actual narration engine (i don't want to actually write out every single for of "ye" vs "Player")... if it's not [called
+  from its own engine], then tell me and we can more efficiently design a way to do that for future so all in-game
+  player-facing text is in one place."* He writes ONE version per line; the addressed ("ye") and third-party forms are derived
+  by hand when applied. Measured the same night: it is NOT one engine — see the reply of that turn and BACKLOG W7-2.
+- **BACKLOG: the modal / stage-card dim covers only the game column.** Logged under Known bugs with his screenshots' findings.
+- **THE CRATES IN THE HOLD: "look awesome", a few pixels bigger, the ingredient a pixel or two bigger on the crate, box padding
+  may shrink to make room — and "create an artifact that lets me dial this in, showing the real captains box at real size."**
+  Game today, measured: crate 22px phone / 26px laptop, ingredient 76% of it (16.7 / 19.8px), row padding 3px / 5px top and
+  bottom, the plaque's padding 19x20px phone / 24x30px laptop. Nothing changes in the game until he sets the dials.

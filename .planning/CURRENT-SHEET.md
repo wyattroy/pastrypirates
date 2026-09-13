@@ -19,3 +19,6 @@ BUILD: 2026.09.13.2-staging@8fea1e02
 - Sugar Cane, in purple (the v3 round + his pick; since 2026-09-13 night, ROUND 4 — drawn from his own sketch with a matched outline, photographed in the game; his marks in `cane/wyatt-r4` (round 3's in `cane/wyatt-r3`)) — https://claude.ai/code/artifact/082a0907-8946-463d-ba18-a91fe559042b
 - Captain's Box Tuner (row fill, band parchment, crate squeeze) — https://claude.ai/code/artifact/219b5862-3265-4432-b9a8-f28457ba7d48
 - Recipe Card Tuner (his numbers, 20 sliders) — https://claude.ai/code/artifact/6e1c84b1-cfc0-45ef-b33e-7d76e9eecc6e
+- Butter & Milk (W4-11, round 1 — three rolls in the game; his marks in `milk/wyatt-r1`) — https://claude.ai/code/artifact/3588cebc-c443-4894-9b16-ced75318799c
+- Crate Size Tuner (the real captain's box at real size; his dials in `crates/wyatt`) — https://claude.ai/code/artifact/7695863a-e429-40a1-89b2-55e8c379aa4e
+- The Narration Pass (W7-2 — every line, his rewrites in `narration/wyatt`) — https://claude.ai/code/artifact/f5369931-f83e-46f5-8a3b-624508069437
