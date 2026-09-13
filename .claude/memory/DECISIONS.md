@@ -2843,3 +2843,18 @@ died on the Blade. Rooted off `fileURLToPath(import.meta.url)`.
 - **THE PHONE'S OPENING SCREENS HAVE NO CAPTAIN'S BOX, BY DESIGN.** *"Right by design"* — on Ahoy and the recipe picker
   the band under the board is empty; the plaque appears once a recipe is picked. Added to docs/INTENDED-BEHAVIOUR.md's
   accepted list so the trial's judge stops flagging it.
+
+**2026-09-13, night — the pill's floor, and sugar cane that cannot be seen:**
+
+- **THE FORECAST PILL'S FLOOR STAYS AT 80%.** *"keep 80"* — the pill joins the top bar's line whenever the whole bar
+  fits at 80% or larger; below that it keeps its own row. Closes the one open question on the merge sheet.
+- **THE GREEN SUGAR CANE IS HARD TO SEE — ON THE ISLANDS AND ON THE RECIPE CARD.** *"The new sugarcane is very hard to
+  see in the game; it blends in with the islands, and disappears into the recipe card. come up with 3 solutions that make
+  the sugarcane easier to see, then generate 3 new icons (including 1 that's purple) then create an artifact that shows
+  each of the the sugarcane icons in context -- on the recipe card picker, in the recipe of the captain's box, and on the
+  island."* Measured on the shipped file: the lowest saturation of the seven ingredients (0.37 against 0.44–0.82), the
+  only green one, and almost no dark outline (7.5% dark pixels against 36% cinnamon, 45% cacao). Round 3 lives in
+  `art-review/sugar/round3/`; nothing is installed until he picks.
+- **ONE OPTION: THE CANE COMING OUT OF A PILE OF WHITE SUGAR.** *"one of your options could have the cane coming out of a
+  pile of white sugar"* — given to the green option (a white heap under green stalks is what green-on-grass lacks), so
+  round 3 is purple · rising from a sugar pile · striped ribbon cane. The deep-green-only roll it replaced read as bamboo.

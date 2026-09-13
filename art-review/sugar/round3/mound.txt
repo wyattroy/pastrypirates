@@ -1,0 +1,13 @@
+A single game icon for a pastry-pirate board game, painted in the same storybook style as the other ingredient icons in its set (a bundle of cinnamon sticks, a wheat sheaf, a cacao pod beside a chocolate bar): a THICK dark chocolate-brown outline around every shape, rich saturated mid-tone colour, soft cel shading with one warm highlight, no photographic grain, no text.
+
+SUBJECT: sugar cane RISING OUT OF A PILE OF WHITE SUGAR. A big, generous mound of chunky white sugar crystals forms the base of the icon and fills its lower half. Three or four cut stalks of sugar cane stand upright out of the top of the mound, fanned slightly apart and leaning a little, as if pushed into the heap; their cut tops face up and show cream-white pith, and a few long narrow cane leaves sprout between them. The crystals glitter, with a few small four-point sparkles on the crystals themselves.
+
+WHY THIS ICON IS BEING REDRAWN, so every choice serves it: the current icon disappears in the game. It is drawn between 26 and 90 pixels across over two backgrounds: bright green island grass, and a pale cream parchment recipe card. Its pale green stalks vanish into the grass and its pale crystals vanish into the cream. The new icon must stand out clearly against BOTH a bright green background AND a pale cream background. Every crystal carries the same dark outline and has clearly shaded darker faces, so the heap never reads as a white blob.
+
+COMPOSITION RULES:
+- ONE object group, centred, filling about 85% of the frame, roughly as wide as it is tall (the mound wide at the bottom, the stalks narrower above).
+- The background is a completely FLAT, EVEN, PURE near-black (#050505) edge to edge: no gradient, no vignette, no cast shadow, no paper, and NO white or cream sticker border or die-cut outline around the object.
+- Nothing else in the picture: no barrels, bowls, sacks, twine, hands or text.
+- It must read at 26 pixels across: big simple shapes, strong outline, no fine detail.
+
+COLOUR (the point of this version, keep it green but give it the weight of its neighbours): the cane rind is a DEEP, saturated jade-to-forest green, much darker and richer than a pale bamboo green, with near-black green rings at each node and one warm yellow-green highlight running along each stalk. The leaves are the same deep green. The crystals are bright white with steel-blue shadow faces. The cane is clearly darker than bright grass and far darker than cream.

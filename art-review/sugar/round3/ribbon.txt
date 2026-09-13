@@ -1,0 +1,13 @@
+A single game icon for a pastry-pirate board game, painted in the same storybook style as the other ingredient icons in its set (a bundle of cinnamon sticks, a wheat sheaf, a cacao pod beside a chocolate bar): a THICK dark chocolate-brown outline around every shape, rich saturated mid-tone colour, soft cel shading with one warm highlight, no photographic grain, no text.
+
+SUBJECT: sugar cane. Two or three cut stalks of sugar cane lying at a diagonal from lower-left to upper-right, their cut ends facing the viewer showing cream-white fibrous pith, a few long narrow cane leaves sprouting from the top. A generous heap of BIG, chunky, faceted sugar crystals is piled IN FRONT of the lower-right of the stalks, glittering, with a few small four-point sparkles on the crystals themselves.
+
+WHY THIS ICON IS BEING REDRAWN, so every choice serves it: the current icon disappears in the game. It is drawn between 26 and 90 pixels across over two backgrounds: bright green island grass, and a pale cream parchment recipe card. Its pale green stalks vanish into the grass and its pale crystals vanish into the cream. The new icon must stand out clearly against BOTH a bright green background AND a pale cream background. Every crystal carries the same dark outline and has clearly shaded darker faces, so the heap never reads as a white blob.
+
+COMPOSITION RULES:
+- ONE object group, centred, filling about 85% of the frame, roughly as wide as it is tall.
+- The background is a completely FLAT, EVEN, PURE near-black (#050505) edge to edge: no gradient, no vignette, no cast shadow, no paper, and NO white or cream sticker border or die-cut outline around the object.
+- Nothing else in the picture: no barrels, bowls, sacks, twine, hands or text.
+- It must read at 26 pixels across: big simple shapes, strong outline, no fine detail.
+
+COLOUR (the point of this version, a pattern that stands out on any background): the cane is RIBBON CANE, a real striped Caribbean variety. Each stalk has bold stripes running along its length, alternating deep burgundy-maroon and warm golden yellow, broad enough that three stripes are clearly visible across each stalk even at small size. The nodes are dark maroon rings. The leaves are green. The crystals are bright white with warm grey shadow faces.
