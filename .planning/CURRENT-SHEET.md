@@ -16,6 +16,6 @@ BUILD: 2026.09.07.3-staging@b74d1da3
 - The Plaque (captains box plan) — https://claude.ai/code/artifact/8e2e8de9-0782-4124-979a-6e88f6fe8400
 - Two Axes, Seven Channels (architecture) — https://claude.ai/code/artifact/7b34c094-6012-4b04-bbdd-1a9882047f1f
 - The Plaque Art Brief (captain's box art) — https://claude.ai/code/artifact/7a51b394-c56b-455d-bc5e-858bf8cde072
-- Sugar Cane, in purple (the v3 round + his pick; since 2026-09-13 night, ROUND 3 — three canes you can see, photographed in the game; his marks in `cane/wyatt-r3`) — https://claude.ai/code/artifact/082a0907-8946-463d-ba18-a91fe559042b
+- Sugar Cane, in purple (the v3 round + his pick; since 2026-09-13 night, ROUND 4 — drawn from his own sketch with a matched outline, photographed in the game; his marks in `cane/wyatt-r4` (round 3's in `cane/wyatt-r3`)) — https://claude.ai/code/artifact/082a0907-8946-463d-ba18-a91fe559042b
 - Captain's Box Tuner (row fill, band parchment, crate squeeze) — https://claude.ai/code/artifact/219b5862-3265-4432-b9a8-f28457ba7d48
 - Recipe Card Tuner (his numbers, 20 sliders) — https://claude.ai/code/artifact/6e1c84b1-cfc0-45ef-b33e-7d76e9eecc6e

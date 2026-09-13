@@ -2858,3 +2858,19 @@ died on the Blade. Rooted off `fileURLToPath(import.meta.url)`.
 - **ONE OPTION: THE CANE COMING OUT OF A PILE OF WHITE SUGAR.** *"one of your options could have the cane coming out of a
   pile of white sugar"* — given to the green option (a white heap under green stalks is what green-on-grass lacks), so
   round 3 is purple · rising from a sugar pile · striped ribbon cane. The deep-green-only roll it replaced read as bamboo.
+
+**2026-09-13, night (later) — sugar from his own drawing, and the crates go in:**
+
+- **SUGAR CANE ROUND 4 IS DRAWN FROM HIS SKETCH.** *"use this drawing as a reference -- green sugar cane standing IN a
+  pile of glittering sugar cubes. and it needs an outline -- like the rest of them have. the same ratio weight of outline
+  as the others, so it looks consistent at the same size as the others."* His drawing is `art-review/sugar/round4/his-drawing.jpeg`
+  and was sent to the model itself (`scripts/art/gen.mjs --ref`), not described in words. OUTLINE WEIGHT, MEASURED as the most
+  common dark-line thickness at the silhouette's edge over the icon's frame: wheat 2.0%, cinnamon 3.0%, eggs 3.0%, cacao 3.9%;
+  the shipped sugar 1.0%, round 3's canes 0.5%. Rolls 1 (2.5%) and 3 (3.5%) are on the sugar page; rolls 2 and 4 measured 0.5%
+  and were set aside. Nothing is installed until he picks.
+- **WIRE THE NEW CRATE INTO THE CAPTAIN'S BOX AND THE BAKE-OFF.** *"while you're doing this, can you wire in the new crate into
+  the captains box and bakeoff?"* — BACKLOG W4-10 and his Q5 ruling. The approved crate (crate-1) is keyed and cut to 256
+  (`assets/plaque/crate.webp`); every crate in a hold wears it with the ingredient at 76% of it (the bake-off's own share), and the
+  bake-off's ghost crate and lid are the same picture. An empty hold is the crate's own silhouette at the islands' 30% (his Q6),
+  keeping "empty hold" as its tooltip. ⚠ On the dark row wood that silhouette reads as a faint dark square — shown to him, not
+  changed on my own.

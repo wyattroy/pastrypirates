@@ -1,0 +1,13 @@
+The attached pencil sketch is the game designer's own drawing. Paint it as a finished game icon: keep its composition exactly, and render it in the storybook style of the other ingredient icons in this set (a bundle of cinnamon sticks, a wheat sheaf, a speckled egg).
+
+SUBJECT, from the sketch: four cut stalks of GREEN sugar cane standing UPRIGHT, of slightly different heights, each with one or two darker node rings and a flat cut top showing cream-white pith. Their feet stand IN a low, wide heap of glittering white sugar, with a few small sugar cubes visible in the heap. One big four-point sparkle glints on the front of the heap, as in the sketch, and a couple of smaller glints on the cubes.
+
+COLOUR: a fresh, saturated mid green cane (not pale, not bamboo-yellow), a slightly darker green on the shaded side; bright white sugar with cool pale-blue shadow faces.
+
+⭐ THE OUTLINE IS THE POINT OF THIS VERSION. Every shape carries a THICK, EVEN, dark chocolate-brown outline, like a bold marker line, about 3% of the whole icon's width (on a 1000-pixel-wide icon, a line about 30 pixels thick). The same weight goes round the outside silhouette, each stalk, each node ring, the heap and every sugar cube. The outline must stay clearly visible when the icon is shrunk to 20 pixels across.
+
+COMPOSITION RULES:
+- ONE object group, centred, filling about 85% of the frame, a little taller than it is wide, as in the sketch.
+- The background is a completely FLAT, EVEN, PURE near-black (#050505) edge to edge: no gradient, no vignette, no cast shadow, no paper texture, and NO white or cream sticker border or die-cut outline around the object.
+- Nothing else: no leaves unless tiny, no text, no pencil lines, no paper.
+- Big simple shapes, no fine detail.
