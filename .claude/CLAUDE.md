@@ -143,10 +143,10 @@ a drawing he had made by hand, which existed nowhere else on Earth.
 
 ## The workflow
 
-**One branch: `dev`.** All work happens there. No branch per bug, no branch per session.
+**`dev` is the source of truth; short branches off it are fine.** Wyatt, 2026-09-13: *"there can be as many branches off dev as are helpful to you. dev should be the source of truth for all in-development work, and branches can break off then merge with it again."* What the old one-branch rule was protecting still holds: **branch from `origin/dev`, push on the first commit, merge back into `dev` (rebased) as soon as the piece works, delete after.** Staging deploys only from `dev`, and `main` only ever merges from `dev`. A branch nobody has merged is work the game does not have — that, not branching, is what went wrong before (see GIT-AND-DEPLOY.md).
 
 ```bash
-git checkout dev && git pull origin dev     # always start here
+git checkout dev && git pull origin dev     # always start here (a branch: git checkout -b sepDD-topic origin/dev)
 npm test                                    # the gates — exit 0
 node scripts/sea_trial.mjs                  # sail it; writes .planning/SEA-TRIAL.md
 npm run deploy:staging -- "what changed"    # -> staging.playpastrypirates.com

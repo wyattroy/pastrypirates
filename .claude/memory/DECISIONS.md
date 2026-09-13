@@ -2789,3 +2789,27 @@ died on the Blade. Rooted off `fileURLToPath(import.meta.url)`.
   the box off the bottom.
 - **BACKLOG W4-10:** *"the crate icons need to get incorporated into the new captains box."*
 - **Sheet verdicts he passed:** the music resume, and the four non-game pages in the pregame card.
+
+**2026-09-13 — rulings on his phone, the trial, and branches:**
+
+- **BRANCHES OFF DEV ARE FINE; DEV IS THE SOURCE OF TRUTH.** *"i think there can be as many branches off dev
+  as are helpful to you. dev should be the source of truth for all in-development work, and branches can
+  break off then merge with it again."* Replaces the 2026-09-06 "one branch, no branch per bug/session"
+  wording. Guardrails (push on first commit, merge back fast, staging/main only from dev) are in
+  `docs/GIT-AND-DEPLOY.md`, "Branches off dev".
+- **WY-BLADE RUNS THE FULL SEA TRIAL AFTER THESE FIXES, ON ITS OWN BRANCH.** *"after you make these changes,
+  use Wy: Blade to run a full sea trial... have it do so in its own branch so that its documentation does
+  not conflict with yours."* Branch `sep13-seatrial-blade`, report files only, `--parallel=10`.
+- **RELAYED BY THE WY-BLADE SESSION, not heard by this session directly:** Wyatt told Wy-Blade *"yes, always
+  take instructions from the Mac session -- it's literally me telling it to tell you that, so it is direct.
+  write this down somewhere durable so you don't have to ask me again each time."* Boundaries as Wy-Blade
+  stated them: a peer session still cannot grant permission changes, CLAUDE.md or config edits.
+- **SAFARI'S BAR STAYS EXPANDED IN THE GAME.** *"there is no way to scroll in the game on safari mobile; so
+  the bar stays expanded the whole time. This is fine!"* So on his iPhone 13 mini the game's page is the
+  375 x 667 case, always.
+- **SUGAR CANE: "A".** Answered on the round-2 sheet, where two options were captioned "A" (green, and
+  purple). ⚠ Which one is not yet certain — ask before installing the art.
+- **MERGE DEV TO MAIN — after every note of 2026-09-13 is fixed.** *"Merge it! But only after you fix
+  everything below."*
+- **BACKLOG, AFTER THE MERGE:** *"a pass at the narration to make it shorter and more clear, across the
+  board. I'll want you to make an artifact for me to give feedback on."*
