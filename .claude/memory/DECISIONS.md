@@ -2843,3 +2843,123 @@ died on the Blade. Rooted off `fileURLToPath(import.meta.url)`.
 - **THE PHONE'S OPENING SCREENS HAVE NO CAPTAIN'S BOX, BY DESIGN.** *"Right by design"* — on Ahoy and the recipe picker
   the band under the board is empty; the plaque appears once a recipe is picked. Added to docs/INTENDED-BEHAVIOUR.md's
   accepted list so the trial's judge stops flagging it.
+
+**2026-09-13, night — the pill's floor, and sugar cane that cannot be seen:**
+
+- **THE FORECAST PILL'S FLOOR STAYS AT 80%.** *"keep 80"* — the pill joins the top bar's line whenever the whole bar
+  fits at 80% or larger; below that it keeps its own row. Closes the one open question on the merge sheet.
+- **THE GREEN SUGAR CANE IS HARD TO SEE — ON THE ISLANDS AND ON THE RECIPE CARD.** *"The new sugarcane is very hard to
+  see in the game; it blends in with the islands, and disappears into the recipe card. come up with 3 solutions that make
+  the sugarcane easier to see, then generate 3 new icons (including 1 that's purple) then create an artifact that shows
+  each of the the sugarcane icons in context -- on the recipe card picker, in the recipe of the captain's box, and on the
+  island."* Measured on the shipped file: the lowest saturation of the seven ingredients (0.37 against 0.44–0.82), the
+  only green one, and almost no dark outline (7.5% dark pixels against 36% cinnamon, 45% cacao). Round 3 lives in
+  `art-review/sugar/round3/`; nothing is installed until he picks.
+- **ONE OPTION: THE CANE COMING OUT OF A PILE OF WHITE SUGAR.** *"one of your options could have the cane coming out of a
+  pile of white sugar"* — given to the green option (a white heap under green stalks is what green-on-grass lacks), so
+  round 3 is purple · rising from a sugar pile · striped ribbon cane. The deep-green-only roll it replaced read as bamboo.
+
+**2026-09-13, night (later) — sugar from his own drawing, and the crates go in:**
+
+- **SUGAR CANE ROUND 4 IS DRAWN FROM HIS SKETCH.** *"use this drawing as a reference -- green sugar cane standing IN a
+  pile of glittering sugar cubes. and it needs an outline -- like the rest of them have. the same ratio weight of outline
+  as the others, so it looks consistent at the same size as the others."* His drawing is `art-review/sugar/round4/his-drawing.jpeg`
+  and was sent to the model itself (`scripts/art/gen.mjs --ref`), not described in words. OUTLINE WEIGHT, MEASURED as the most
+  common dark-line thickness at the silhouette's edge over the icon's frame: wheat 2.0%, cinnamon 3.0%, eggs 3.0%, cacao 3.9%;
+  the shipped sugar 1.0%, round 3's canes 0.5%. Rolls 1 (2.5%) and 3 (3.5%) are on the sugar page; rolls 2 and 4 measured 0.5%
+  and were set aside. Nothing is installed until he picks.
+- **WIRE THE NEW CRATE INTO THE CAPTAIN'S BOX AND THE BAKE-OFF.** *"while you're doing this, can you wire in the new crate into
+  the captains box and bakeoff?"* — BACKLOG W4-10 and his Q5 ruling. The approved crate (crate-1) is keyed and cut to 256
+  (`assets/plaque/crate.webp`); every crate in a hold wears it with the ingredient at 76% of it (the bake-off's own share), and the
+  bake-off's ghost crate and lid are the same picture. An empty hold is the crate's own silhouette at the islands' 30% (his Q6),
+  keeping "empty hold" as its tooltip. ⚠ On the dark row wood that silhouette reads as a faint dark square — shown to him, not
+  changed on my own.
+- **THE CRATES GO TO STAGING NOW; WY-BLADE SAILS THE TRIAL.** The gear check rated the crate change FULL (a sea trial
+  before staging). Asked how to sail it: *"Staging now, Wy-Blade trials (Recommended)"* — staging for him to play at once,
+  the full trial on Wy-Blade on its own branch so his Mac is not choked, and nothing to main until it is green.
+- **SUGAR CANE IS ROLL 1 OF HIS OWN DRAWING — EVERYWHERE.** *"i approve my drawing -- use that everywhere"*, then, asked
+  which of the two finished rolls: *"yes, -- roll1"*. `art-review/sugar/round4/standing-1-200.png`, quantized (50 KB -> 18 KB,
+  mean error 1.3) as `assets/ingredients/sugar.png` — so the picker, the captain's box, the island crates, the bake-off, the
+  narration and About all draw it — and the island's taken-crate silhouette `holes/sugar.webp` is cut from its own outline
+  (the old one was still the cubes).
+- **THE BUTTER-AND-MILK PICTURE, BY THE SAME PROCESS.** *"now do the butter milk replacement with the same process for
+  generating art and getting my approval"* — BACKLOG W4-11: generated with the matched outline, photographed in the game,
+  and shown on a page for his approval; nothing installed until he picks.
+- **⚠ A CORRECTION TO TONIGHT'S OUTLINE NUMBERS — the keyer, not the drawings.** `scripts/art/key.mjs` at its default
+  tolerance (38) eats a dark chocolate-brown outline when the model drew on a flat near-black ground: the keyed edge starts
+  at the light fill. So sugar rolls 2 and 4 ("measured 0.5%, set aside") and round 3's three canes had their outlines
+  removed by the cut-out, not by the artist. Rolls drawn on WHITE kept theirs — his installed sugar (roll 1) is one, and
+  its 2.5% stands. At `--tol 12` all four butter-and-milk rolls keep theirs (3.0-3.5%). Written into key.mjs's header.
+
+**2026-09-13, night (latest) — three asks while the crates sailed:**
+
+- **A NARRATION AUDIT HE CAN REWRITE IN, APPLIED BY HAND.** *"spin up an artifact i can use to audit the narration and
+  shorten it. i want to see all the narration in the game, write a re-written version, and have you by-hand apply it to the
+  actual narration engine (i don't want to actually write out every single for of "ye" vs "Player")... if it's not [called
+  from its own engine], then tell me and we can more efficiently design a way to do that for future so all in-game
+  player-facing text is in one place."* He writes ONE version per line; the addressed ("ye") and third-party forms are derived
+  by hand when applied. Measured the same night: it is NOT one engine — see the reply of that turn and BACKLOG W7-2.
+- **BACKLOG: the modal / stage-card dim covers only the game column.** Logged under Known bugs with his screenshots' findings.
+- **THE CRATES IN THE HOLD: "look awesome", a few pixels bigger, the ingredient a pixel or two bigger on the crate, box padding
+  may shrink to make room — and "create an artifact that lets me dial this in, showing the real captains box at real size."**
+  Game today, measured: crate 22px phone / 26px laptop, ingredient 76% of it (16.7 / 19.8px), row padding 3px / 5px top and
+  bottom, the plaque's padding 19x20px phone / 24x30px laptop. Nothing changes in the game until he sets the dials.
+
+**2026-09-13, late — milk, and the picker tap:**
+
+- **BUTTER & MILK IS ROLL 1.** *"I like butter & Milk roll 1"* — `art-review/milk/round1/outlined-1-200.png` becomes
+  `assets/ingredients/dairy.png` (the bottle with a heavy brown outline and a stick of butter on its paper in front), and the
+  island's taken-crate silhouette `holes/dairy.png` is cut from its outline. BACKLOG W4-11 done.
+- **THE LOST PICKER TAP — HIS HUNCH, AND WHAT WAS KEPT.** *"i haven't noticed the crate tap problem. my hunch is that it's a
+  problem caused by the tooling, not the game"* (he means the recipe picker's lost first tap). Half right, measured: the trial
+  found it because the robot taps the instant a screen settles and ten browsers moved that into the cards' 0.38s self-swap; but
+  the same real tap on the live game lost the pick 5 of 5 times inside that window. The fix (a tap during the swap stops it) was
+  kept on staging with the offer to back it out; he has not asked for that.
+
+**2026-09-13, late — HIS CRATE TUNER NUMBERS (Crate Size Tuner, on the real captain's box at real size):**
+
+    Your iPhone 13 mini · 375 wide: crate 22→28px, ing 76→85%, rowPad 3→2px, padV 19→12px, padH 20→17px
+    Laptop window · 711 wide: crate 26→33px, ing 76→84%, rowPad 5→3px, padV 24→18px, padH 30→22px
+
+- **THE HOLD:** crates 28px phone / 33px everywhere else, the ingredient 85% / 84% of its crate, row padding 2px / 3px top and
+  bottom, the plaque's padding 12×17px phone / 18×22px elsewhere. "Laptop" is every non-phone layout — one system (his Q9).
+- **THE RECIPE'S INGREDIENTS ARE THE SAME SIZE AS AN INGREDIENT ON A CRATE.** *"I also want the ingredients in the recipe itself
+  to be increased to this same size as the ingredients on the crates."* Supersedes 2026-09-12's "88% of a hold's crate".
+- **THE GAP BETWEEN CRATES EQUALS THE ROW'S TOP/BOTTOM PADDING.** *"Adjust the between-crate padding to match the row padding
+  top/bottom for both modes."* 2px phone, 3px elsewhere. Supersedes 2026-09-12's "20% of a crate's width". The 35% most-overlap
+  limit is unchanged.
+- **THE PICKER TAP FIX STAYS.** *"Lost first taps on the recipe picker. --> your fix sounds fine. thank you!"* A tap during the
+  cards' self-swap stops the swap and keeps the tapped card (d05187bc).
+- **THE RIGHT-EDGE CALL CIRCLES: ON THE BACKLOG, AS LOGGED.** *"great, thanks."*
+- **THE EMPTY HOLD'S CRATE: DARK, BUT SHOWING THE CRATE'S TEXTURE — NOT A SOLID BLACK SILHOUETTE. LAST ON THE BACKLOG.** *"can you
+  create a different silhouette of the crate that is not fully black, but is dark while showing the texture of the crate? that
+  would work better than the current solution. not urgent; put it last on the backlog."* Prompted by the trial's judge calling
+  the solid silhouette "an unrendered box". Amends his Q6 look (2026-09-10) for the crate only; the islands' silhouettes are
+  untouched.
+
+**2026-09-13, late — the dim's boundary, and two new backlog asks:**
+
+- **WHAT DIMS: THE BOARD FOR THE GAME WORLD, THE WHOLE SCREEN FOR WHAT IS OUTSIDE IT.** *"expectation: the game board
+  rounded-rectangle area goes dark; everything else stays lit. For the "are you sure you want to leave the game" screen, the
+  entire screen should go dark -- my logic is that that screen is outside of the game worrld, so the entire screen is affected.
+  for events that draw your focus using the stage that are INSIDE the game world, we want the game board to go dark."* Completes
+  the backlog's dim bug: in-world stage moments dim the board's rounded rectangle only; out-of-world modals (leave the game)
+  dim the entire window.
+- **BACKLOG: THE INGREDIENTS POP ONTO THE ISLANDS BEFORE THE RECIPE CARDS ARRIVE.** *"at the beginning of the game, "pop in" the
+  ingredients on each of the islands in an animation that lasts until the recipe picker cards appear. Don't draw the dotted line
+  UNTIL the recipe cards appear. this will draw user's attention to the most important thing about the game -- the ingredients --
+  on a crowded board. it'll also solve the problem that the recipe picker cards feel laggy only because i intentionally asked
+  them to appear after a few seconds... this should feel juicy and fun and bouncy and "candy crush" like -- make me a tuner
+  artifact to dial in my ideal settings."* The tuner is built now; the game waits for his dials.
+- **BACKLOG: A GAME FEEL AUDIT.** *"a "game feel" audit that looks for all the areas where we can increase game feel
+  satisfaction, eg during the coin flip by making the coin sink down before flipping, and lots of other moments where we can give
+  the game more oomph, juice, and gloss."*
+- **SAIL THE TRIAL ON THE DIALS BUILD — WY-BLADE.** *"yes, have Wy-Blade run the sea trial."* Asked of Wy-Blade on dev tip 69a71556
+  (game code = staging 2026.09.13.5-staging@21c13ef9), on its own branch.
+- **BACKLOG: EVERY BOAT A DIFFERENT KIND OF PIRATE SHIP.** *"change the aesthetic style of each of the boats so that they're all
+  different kinds of pirate ships, like a... [galleon], uh, Viking ship, uh, like, Phoenician Greek ship, uh, British ship. A Chinese
+  junk."* (Dictated; "gallium" read as galleon.) Five named styles for four boats — which four, and whether a fifth waits for a
+  larger crew, is his call when it is built.
+- **MERGE DEV INTO MAIN — THE CRATES, HIS SUGAR AND MILK, HIS CRATE DIALS, THE PICKER FIX.** Asked after Wy-Blade's dials trial
+  (10 of 10 sailed, 0 structural, 0 dead taps, npm test green; FAILED only on untested actions, the empty-hold judge wording — fixed —
+  and one unconfirmed missing battle word, on the backlog): *"Merge now (Recommended)"*.

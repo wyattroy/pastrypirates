@@ -224,8 +224,8 @@ and every prompt promise** (`docs/DISPLAY-RULES.md` Rule C) — which is where t
 | ~~W4-8~~ | ✅ **CLOSED 2026-09-12 BY THE SQUARE-BOARD WORK — measured, 4 of 4 captains fully on screen at every size.** He called it: *"w four eight isn't relevant anymore. It's already been solved."* The clamp that cut the fourth captain (`cap.style.bottom`, pinning the box to the viewport's floor so it stretched or squeezed to whatever was left) is gone: the box is its own height now and the slack falls below it. `scripts/qa/_square_leftover_check.mjs`, six viewports: **375×716, 375×812, 390×844, 390×664, 768×1024 and 1280×800 all report 4/4 captains inside `#players`, and the list does not scroll at any of them.** 390×664 — the size the fault was filed at — gives a 390×390 board and a 213px box where the rows need 204. **Original:** at 390×664 the box was clamped to 188px while its four rows and the recipe band needed 197px, so the bottom row was clipped in the real game. |
 
 | **W4-9** | ✅ **CLOSED 2026-09-12 — the board window is a square at every size he can hold, and the whole plaque is on screen.** His report: *"the board is always supposed to be viewed in a square, and it looks like that square is slightly rectangular now, at least on mobile"* and *"You also need to ensure the entire plaque is visible within the screen area."* **Three faults, each measured before and after** (`scripts/qa/_square_leftover_check.mjs`, six viewports): **(1)** the strip took every pixel of its column's width while its height was capped, so a tablet drew 739 x 708 — ten rows against ten and a half columns. The strip now carries a `max-width` equal to its own height (`!important`, because `#game.layoutWide` sets `max-width:none !important`) and the leftover goes to the margins. **(2)** the SVG's viewBox was cut from the VIEWPORT's width rather than the STRIP's — the same number on a phone, 768 against 739 on a tablet — so the board was drawn 4% wider than the window holding it. It reads the strip now. **(3)** the reservation under the board was `min(250, capNeed)`, a ceiling over the box rather than a floor under the board: four captains want 271px, 250 was booked, and the last 21px of rope hung off the bottom of a 1024-tall tablet. The box now books what it really needs (the bigger of the pre-mount measurement and its own rendered height — they disagreed by 3px, and 3px is 3px of rope off the screen), and the board is protected by a 200px floor instead. **Measured after: 375x716, 375x812, 390x844, 390x664, 768x1024 and 1280x800 all read 1:1, and the captains are fully on screen at all six.** |
-| **W4-10** | 🔴 **THE CRATE ICONS GO INTO THE NEW CAPTAIN'S BOX.** His words, 2026-09-12: *"the crate icons need to get incorporated into the new captains box."* Today a captain's hold is the ingredient art in a coloured rounded square (pink/green/yellow edge) — his phone screenshot the same night shows exactly that on Crustbeard's and Dough Hook's rows. **The crate is already chosen:** `art-review/captains-box/crate-1.jpeg`, approved 2026-09-11 ("Round 1 — crate 1 from Gemini [LOOKS RIGHT]" — pale sanded timber, plank top and bottom, a post each side, three planks in the middle, drawn from his own reference; `.claude/memory/DECISIONS.md`). **His recorded next steps for it:** key it, crop to 256, and make the EMPTY crate from its own outline. ⚠ Three rules it has to keep, all already ruled: crates sit 20% of a crate apart and overlap by at most 35% before the hold scrolls; **no crate is ever sliced by the coins column** (measure the hold, never estimate it); and the recipe card's own ingredients stay box-less with only the green tick. Judge it at the slot's size (26px desktop, 22px phone, on HIS iPhone 13 mini) — never at the source square. |
-| **W4-11** | 🟡 **A NEW MILK PICTURE — WITH A STICK OF YELLOW BUTTER IN FRONT OF THE BOTTLE.** His words, 2026-09-13: *"add to the backlog -- create a new milk graphic that adds a stick of yellow butter in front of the bottle."* The dairy ingredient icon (`assets/ingredients/dairy.png`) redrawn with the existing bottle kept and a stick of yellow butter set in front of it. Run it through the art pipeline the sugar cane used (`scripts/art/gen.mjs` then `scripts/art/key.mjs`, which now floods only the background reachable from the edge), show him candidates at the slot's real size (26px desktop, 22px phone, on his iPhone 13 mini) before anything is installed, and match the sugar round's style so the ingredients read as one set. |
+| **W4-10** | 🟢 **BUILT 2026-09-13, AWAITING HIS VERDICT ON STAGING — every crate in a hold and in the bake-off is the approved crate (`assets/plaque/crate.webp`), the ingredient at 76% of it; an empty hold is the crate's silhouette at 30%. Measured: two real crew windows (laptop host, 375x667 guest) showed the same 5 crates; a posed 14-crate hold overlaps within the 35% cap and scrolls on a phone, and no crate is ever sliced by the coins column.** THE CRATE ICONS GO INTO THE NEW CAPTAIN'S BOX. His words, 2026-09-12: *"the crate icons need to get incorporated into the new captains box."* Today a captain's hold is the ingredient art in a coloured rounded square (pink/green/yellow edge) — his phone screenshot the same night shows exactly that on Crustbeard's and Dough Hook's rows. **The crate is already chosen:** `art-review/captains-box/crate-1.jpeg`, approved 2026-09-11 ("Round 1 — crate 1 from Gemini [LOOKS RIGHT]" — pale sanded timber, plank top and bottom, a post each side, three planks in the middle, drawn from his own reference; `.claude/memory/DECISIONS.md`). **His recorded next steps for it:** key it, crop to 256, and make the EMPTY crate from its own outline. ⚠ Three rules it has to keep, all already ruled: crates sit 20% of a crate apart and overlap by at most 35% before the hold scrolls; **no crate is ever sliced by the coins column** (measure the hold, never estimate it); and the recipe card's own ingredients stay box-less with only the green tick. Judge it at the slot's size (26px desktop, 22px phone, on HIS iPhone 13 mini) — never at the source square. |
+| **W4-11** | ✅ **DONE 2026-09-13 — his pick, "I like butter & Milk roll 1": assets/ingredients/dairy.png is the bottle with a stick of butter, outline 3.5% of the frame; holes/dairy.png cut from its outline.** 🟢 ROUND 1 ON HIS PAGE, 2026-09-13 night — three rolls with the matched outline (3.0-3.5%), photographed in the game; "Butter & Milk" (link in `.planning/CURRENT-SHEET.md`), marks in `milk/wyatt-r1`. Nothing installed until he picks.** 🟡 A NEW MILK PICTURE — WITH A STICK OF YELLOW BUTTER IN FRONT OF THE BOTTLE. His words, 2026-09-13: *"add to the backlog -- create a new milk graphic that adds a stick of yellow butter in front of the bottle."* The dairy ingredient icon (`assets/ingredients/dairy.png`) redrawn with the existing bottle kept and a stick of yellow butter set in front of it. Run it through the art pipeline the sugar cane used (`scripts/art/gen.mjs` then `scripts/art/key.mjs`, which now floods only the background reachable from the edge), show him candidates at the slot's real size (26px desktop, 22px phone, on his iPhone 13 mini) before anything is installed, and match the sugar round's style so the ingredients read as one set. |
 
 ## Wave 5 — art and asset (3)
 
@@ -246,7 +246,7 @@ and every prompt promise** (`docs/DISPLAY-RULES.md` Rule C) — which is where t
 | # | Item |
 |---|---|
 | **W7-1** | ✅ **DONE 2026-09-12 — all four non-game pages now sit in the pregame screen's own cream card, floating over the blurred board.** His words: *"I want all of the non game pages to follow the same format as the index pregame page where the content sits in a cream rounded corner box floating over a blurry background of the game board itself."* `about.html`, `credits.html`, `privacy.html`, `rules.html`. The backdrop is the GAME'S own picture — `assets/welcome-backdrop.jpg`, a capture of a real board — blurred exactly as `#welcomeBackdrop` blurs it, down to the `scale(1.06)` that hides a blur's soft edge; the card is `.modalCard`'s own values. ⚠ **Two of the four are GENERATED** (`scripts/lib/rules_page.mjs`, `scripts/lib/credits_page.mjs`) and a gate fails the build if the file drifts from its generator by one byte — so those two were edited in the generator and rebuilt, not by hand. **The voice is untouched:** credits and About are outside the game world and stay out of pirate speak. Posed at phone and desktop in `.planning/posed/pages/`. |
-| **W7-2** | 🟡 **AFTER THE 2026-09-13 MERGE: A PASS AT THE NARRATION — SHORTER AND CLEARER, EVERYWHERE.** His words: *"Add to backlog: a pass at the narration to make it shorter and more clear, across the board. I'll want you to make an artifact for me to give feedback on. this is after we merge dev to main."* So: every narration line the game can say, gathered into ONE artifact per docs/ARTIFACT-GUIDELINES.md (commentable per line, Passed/Problem), each shown as it is today beside a proposed shorter version, with the event that triggers it. Nothing changes in the game until he has marked the sheet. ⚠ Credits and About are NOT narration and are not in pirate speak — out of scope. |
+| **W7-2** | 🟢 **THE PAGE IS UP, 2026-09-13 night — "The Narration Pass" (link in `.planning/CURRENT-SHEET.md`), his rewrites stored in `narration/wyatt`; applied by hand when he hands them back.** ⚠ MEASURED THE SAME NIGHT: the game's words are NOT in one engine. Of 224 places it can speak, 68 live in shared tables (the event table `EVENT_NARRATION` in src/ui/util.js, the awards, the dock flavour) and 156 are written inline where they are used — 99 in src/ui/flow.js, 31 in src/orchestrator.js, 8 in src/ui/board.js, the rest in lobby.js and panel.js. The "ye" twin of a line is a hand-written second branch at most sites, not derived. And the review tool itself has drifted: `npm run audit:extract` refuses to write (89 checks fail), `audit:check` fails 3 of 23 groups, and 17 lines cannot be drawn by it (the page shows their code instead). A one-place design for all player-facing text is his call — proposed in that night's reply. 🟡 AFTER THE 2026-09-13 MERGE: A PASS AT THE NARRATION — SHORTER AND CLEARER, EVERYWHERE. His words: *"Add to backlog: a pass at the narration to make it shorter and more clear, across the board. I'll want you to make an artifact for me to give feedback on. this is after we merge dev to main."* So: every narration line the game can say, gathered into ONE artifact per docs/ARTIFACT-GUIDELINES.md (commentable per line, Passed/Problem), each shown as it is today beside a proposed shorter version, with the event that triggers it. Nothing changes in the game until he has marked the sheet. ⚠ Credits and About are NOT narration and are not in pirate speak — out of scope. |
 
 ## ⛔ PARKED — needs Wyatt's ruling, the CTO may NOT default these
 
@@ -435,6 +435,37 @@ first to win!"* line and then a board with no explanation of how anything works.
 
 ## 🟠 Known bugs, deferred as not game-stopping
 
+- [ ] **A BATTLE LINE ON A PHONE MAY LOSE ITS LAST WORD — "Flaky Jack must" with no "answer…".** Found by Wy-Blade's dials trial
+      (sep13-trial-dials @ bbe69f2f, screen passplay-phone-013): the template is "… must answer…" (src/orchestrator.js ~713).
+      UNRESOLVED. Ruled out on the screens, by Wy-Blade: not a CSS clip on the line (.btl-result sets only min-height), not the card
+      cut off (its bottom border is intact and the line ends on a whole word), not the typewriter (wired to narration bubbles only,
+      and it keeps hidden text's space), not stage.js's captains-box max-height, not the crate dials (the phone box got shorter).
+      Next step: pose a phone battle at the "must answer…" moment and read the line's text and box. Mild if real — one word.
+- [ ] **A BATTLE AT THE BOARD'S RIGHT EDGE PILES ONE CALL CIRCLE ON THE OTHER.** Found by Wy-Blade's crate trial
+      (sep13-trial-crates @ f0017432, screen crew-desktop-guest-025, day 18): two battling ships share a square on the board's
+      RIGHT edge, both call circles are pushed to the left, and "Call Dough Hook" covers almost all of "Call test1" — the trial's
+      not-occluded and no-pile checks both fail on it. PRE-EXISTING: the only stage.js change in that build was the build stamp.
+      The anchored placement is in src/ui/stage.js (~4402-4610; the xMin/xMax band ~4553). Not yet posed; a battle posed on
+      the rightmost column at desktop size would show it directly.
+- [ ] **THE DIM BEHIND A MODAL OR A STAGE CARD COVERS ONLY THE GAME COLUMN, NOT THE PAGE.** His words, 2026-09-13:
+      *"the "stage"/modal background coloring is computed wrong -- see screenshots. it seems like it's living in the wrong
+      component, leaving much of the page uncovered."* (His "Expectation:" sentence arrived cut off; the evident one is a dim
+      over the WHOLE window.) Seen on staging 2026.09.13.2 in three screenshots: the menu's "Abandon ship?" modal on a narrow
+      window, day one's "Ahoy!" stage card on a narrow window, and the same card on a wide window where the menu sits in the
+      right-hand column — every time the dim stops at the game column's edges, and the page margins (and the wide window's
+      menu column) stay bright. ⚠ NOT YET MEASURED. Two candidates, both about where the dim lives: (a) what dims behind a
+      modal is a filter on `#game` itself (`#game.bg-blurred`, index.html ~1373: blur + brightness), which by construction
+      cannot reach outside the column; (b) any `position:fixed; inset:0` scrim that is a DESCENDANT of an element carrying a
+      filter or transform is positioned against that element, not the window — so a full-screen scrim inside `#game` becomes
+      column-sized the moment `bg-blurred` is on.
+      ⭐ HIS EXPECTATION, 2026-09-13 (it completes the report): *"the game board rounded-rectangle area goes dark; everything else
+      stays lit. For the "are you sure you want to leave the game" screen, the entire screen should go dark -- my logic is that
+      that screen is outside of the game worrld... for events that draw your focus using the stage that are INSIDE the game world,
+      we want the game board to go dark."* So TWO dims, chosen by which world the moment belongs to: an in-world stage card or
+      ceremony dims ONLY the board's rounded rectangle (the top bar, the captain's box, the menu column and the page margins stay
+      lit); an out-of-world modal (leave the game) dims the WHOLE window. Fix direction: one board-shaped scrim owned by the stage,
+      one window scrim (a direct child of `<body>`) owned by out-of-world modals — and a list of which moment is which, shown to
+      him before it is built.
 - [ ] **"Play again!" covers the award cards** at end of voyage — flagged **6 times** across two sea
       trials, every phone leg and Safari. **It is the DOCUMENTED design** (sticky was chosen because
       a button below the fold was worse). A third option exists and is unbuilt: pin it as a FOOTER
@@ -1492,3 +1523,48 @@ replaced with his explicit width, not just mirrored.
       2026-09-09 ruling put it "locked underneath the recipe cards so it moves with them").
       ⚠ His new numbers make the card TALLER, so this gets worse before it gets better — it is best
       settled in the same breath as wiring them, not before. On the checklist sheet.
+
+## 🍬 GAME FEEL — his asks of 2026-09-13
+
+- [ ] **THE INGREDIENTS POP ONTO THE ISLANDS, AND THE RECIPE CARDS ARRIVE AS THE LAST BEAT OF IT.** His words: *"at the beginning of
+      the game, "pop in" the ingredients on each of the islands in an animation that lasts until the recipe picker cards appear.
+      Don't draw the dotted line UNTIL the recipe cards appear. this will draw user's attention to the most important thing about
+      the game -- the ingredients -- on a crowded board. it'll also solve the problem that the recipe picker cards feel laggy only
+      because i intentionally asked them to appear after a few seconds. we want users to see the board first to get acquainted
+      with it; but the problem is the recipe pickers come in rather suddenly, and for no discernable reason. we can solve that with
+      our popping in animation of the ingredients. this should feel juicy and fun and bouncy and "candy crush" like -- make me a
+      tuner artifact to dial in my ideal settings."* THE TUNER IS BUILT (link in `.planning/CURRENT-SHEET.md`); build the game
+      side from HIS dials, not defaults. Known constraints: the picker's arrival is RC_DELAY_MS (2000) + RC_FADE_MS (1160) in
+      src/ui/stage.js, so the pop's length and the cards' start must be one timeline, not two clocks; the crate icons are SVG
+      `<image id="crate_<ing>_<n>">` on the board, and anything that animates continuously must be HTML, not SVG (CLAUDE.md:
+      Chrome cannot composite an SVG transform), so the pop is drawn as an HTML layer in CAM_HTML_LAYERS and hands over to the
+      SVG crate when it lands; the dotted course line is drawn by the picker's chartFrontRecipe — it must wait for the cards.
+      Both screens (host and guest, one at his iPhone 13 mini size) must pop in step.
+- [ ] **A GAME FEEL AUDIT — EVERY MOMENT THAT COULD HAVE MORE OOMPH, JUICE AND GLOSS.** His words: *"a "game feel" audit that looks
+      for all the areas where we can increase game feel satisfaction, eg during the coin flip by making the coin sink down before
+      flipping, and lots of other moments where we can give the game more oomph, juice, and gloss."* Deliverable: an artifact that
+      walks the voyage moment by moment (the picker, sailing, docking and the coin, buying, trade, battle, storms, the bake-off,
+      the end card), each with what it does today, the juice it could have (anticipation, squash and stretch, overshoot, a
+      settle, particles, a sound beat, a camera nudge), and a Passed/Problem per suggestion so he picks what gets built.
+
+## ⛵ THE BOATS — his ask of 2026-09-13
+
+- [ ] **EVERY BOAT A DIFFERENT KIND OF PIRATE SHIP.** His words (dictated): *"change the aesthetic style of each of the boats so that
+      they're all different kinds of pirate ships, like a... [galleon], uh, Viking ship, uh, like, Phoenician Greek ship, uh, British
+      ship. A Chinese junk."* So: a galleon, a Viking longship, a Phoenician/Greek galley, a British man-o'-war, a Chinese junk —
+      five for four seats. Today the four boats are one design in four captain colours (`assets/boats/`); the captain's colour must
+      still read on each new hull (sails or pennant), since the colour is how a boat is found on the board. Process when built:
+      the art pipeline (scripts/art/gen.mjs, today's boat as the reference so the style matches), keyed, shown to him on the real
+      board at his phone size and the laptop window before anything ships — and his call on which four, and on whether a ship's
+      style follows the seat or the captain.
+
+## ⬇ LAST, BY HIS WORD — not urgent
+
+- [ ] **THE EMPTY HOLD'S CRATE: DARK, WITH THE CRATE'S TEXTURE SHOWING — NOT A SOLID BLACK SHAPE.** His words, 2026-09-13:
+      *"can you create a different silhouette of the crate that is not fully black, but is dark while showing the texture of the
+      crate? that would work better than the current solution. not urgent; put it last on the backlog."* Why: the crate trial's
+      picture judge called today's silhouette (`assets/plaque/crate-hollow.webp`, the crate's outline filled black, drawn at 30%)
+      "a dark solid unrendered box", and a crate's outline is only a square. Direction when built: made from the approved crate
+      itself (`assets/plaque/crate.webp`), darkened so the planks and posts still read, never regenerated; shown to him in the
+      captain's box at his phone's size and the laptop window beside today's before it ships. The islands' ingredient
+      silhouettes are not part of this.
