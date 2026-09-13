@@ -8,70 +8,70 @@
   {
    "id": "thin-left",
    "label": "Big sheet, with the holes",
-   "w": 454,
-   "h": 304,
+   "w": 450,
+   "h": 305,
    "notch": 0,
    "holes": [
     {
-     "x": 51,
-     "y": 127,
+     "x": 50.6,
+     "y": 127.4,
      "r": 7.7
     },
     {
-     "x": 123,
-     "y": 134,
+     "x": 121.9,
+     "y": 134.4,
      "r": 7.7
     },
     {
-     "x": 243,
-     "y": 162,
+     "x": 240.9,
+     "y": 162.5,
      "r": 7.7
     },
     {
-     "x": 127,
-     "y": 196,
+     "x": 125.9,
+     "y": 196.6,
      "r": 7.7
     },
     {
-     "x": 275,
-     "y": 202,
+     "x": 272.6,
+     "y": 202.7,
      "r": 7.7
     },
     {
-     "x": 237,
-     "y": 18,
+     "x": 234.9,
+     "y": 18.1,
      "r": 4,
      "knot": true
     }
    ],
    "oldCut": [
     [
-     24.6,
-     148
+     24.4,
+     148.5
     ],
     [
-     24.6,
-     208
+     24.4,
+     208.7
     ],
     [
-     37.8,
-     208
+     37.5,
+     208.7
     ],
     [
-     37.8,
-     230
+     37.5,
+     230.8
     ],
     [
-     24.6,
-     230
+     24.4,
+     230.8
     ],
     [
-     24.6,
-     256
+     24.4,
+     256.8
     ],
     [
-     16,
-     262
+     15.9,
+     262.9
     ]
    ],
    "outline": [
@@ -80,24 +80,25 @@
      0
     ],
     [
-     454,
+     450,
      0
     ],
     [
-     454,
-     304
+     450,
+     305
     ],
     [
      0,
-     304
+     305
     ]
    ],
-   "count": 67,
+   "count": 71,
    "parts": [
     "chest-CRUMBLE-lid-top",
     "chest-BISCOTTI-front",
     "chest-BISCOTTI-back",
     "chest-BISCOTTI-base",
+    "chest-BISCOTTI-lid-front",
     "chest-BISCOTTI-lid-hinge",
     "chest-BISCOTTI-lid-top",
     "chest-GINGERSNAP-front",
@@ -117,7 +118,6 @@
     "island-8",
     "island-7",
     "crate-CRUMBLE-base",
-    "crate-BISCOTTI-front",
     "crate-BISCOTTI-back",
     "crate-BISCOTTI-base",
     "crate-GINGERSNAP-front",
@@ -141,8 +141,6 @@
     "recipe-13",
     "recipe-14",
     "recipe-15",
-    "recipe-16",
-    "recipe-17",
     "crate-CRUMBLE-side-1",
     "crate-CRUMBLE-side-2",
     "crate-BISCOTTI-side-1",
@@ -151,23 +149,29 @@
     "crate-GINGERSNAP-side-2",
     "crate-SHORTBREAD-side-1",
     "crate-SHORTBREAD-side-2",
-    "ship-CRUMBLE-main",
-    "ship-BISCOTTI-main",
-    "ship-GINGERSNAP-main",
-    "ship-SHORTBREAD-main",
     "chest-CRUMBLE-side-1",
     "chest-CRUMBLE-side-2",
     "chest-CRUMBLE-lid-side-1",
     "chest-CRUMBLE-lid-side-2",
+    "chest-BISCOTTI-side-1",
+    "chest-BISCOTTI-side-2",
     "chest-BISCOTTI-lid-side-1",
-    "chest-BISCOTTI-lid-side-2"
+    "chest-BISCOTTI-lid-side-2",
+    "chest-GINGERSNAP-side-1",
+    "chest-GINGERSNAP-lid-side-1",
+    "chest-GINGERSNAP-lid-side-2",
+    "chest-SHORTBREAD-lid-side-1",
+    "chest-SHORTBREAD-lid-side-2",
+    "ship-CRUMBLE-fore",
+    "ship-BISCOTTI-fore",
+    "ship-GINGERSNAP-fore"
    ]
   },
   {
    "id": "thin-middle",
    "label": "Narrow strip",
    "w": 132,
-   "h": 358,
+   "h": 357,
    "notch": 0,
    "holes": [],
    "oldCut": null,
@@ -182,15 +186,17 @@
     ],
     [
      132,
-     358
+     357
     ],
     [
      0,
-     358
+     357
     ]
    ],
-   "count": 22,
+   "count": 18,
    "parts": [
+    "recipe-16",
+    "recipe-17",
     "recipe-18",
     "recipe-19",
     "recipe-20",
@@ -199,27 +205,21 @@
     "island-4",
     "island-2",
     "tortuga",
-    "chest-BISCOTTI-side-1",
-    "chest-BISCOTTI-side-2",
-    "chest-GINGERSNAP-side-1",
     "chest-GINGERSNAP-side-2",
-    "chest-GINGERSNAP-lid-side-1",
-    "chest-GINGERSNAP-lid-side-2",
     "chest-SHORTBREAD-side-1",
     "chest-SHORTBREAD-side-2",
-    "chest-SHORTBREAD-lid-side-1",
-    "chest-SHORTBREAD-lid-side-2",
-    "ship-CRUMBLE-fore",
-    "ship-BISCOTTI-fore",
-    "ship-GINGERSNAP-fore",
+    "ship-CRUMBLE-main",
+    "ship-BISCOTTI-main",
+    "ship-GINGERSNAP-main",
+    "ship-SHORTBREAD-main",
     "ship-SHORTBREAD-fore"
    ]
   },
   {
    "id": "thin-right",
    "label": "Sheet with the scooped corners",
-   "w": 189,
-   "h": 300,
+   "w": 188,
+   "h": 298,
    "notch": 20,
    "holes": [],
    "oldCut": null,
@@ -277,160 +277,160 @@
      0
     ],
     [
-     169,
+     168,
      0
     ],
     [
-     169.171,
+     168.171,
      2.611
     ],
     [
-     169.681,
+     168.681,
      5.176
     ],
     [
-     170.522,
+     169.522,
      7.654
     ],
     [
-     171.679,
+     170.679,
      10
     ],
     [
-     173.133,
+     172.133,
      12.175
     ],
     [
-     174.858,
+     173.858,
      14.142
     ],
     [
-     176.825,
+     175.825,
      15.867
     ],
     [
-     179,
+     178,
      17.321
     ],
     [
-     181.346,
+     180.346,
      18.478
     ],
     [
-     183.824,
+     182.824,
      19.319
     ],
     [
-     186.389,
+     185.389,
      19.829
     ],
     [
-     189,
+     188,
      20
     ],
     [
-     189,
-     280
+     188,
+     278
     ],
     [
-     186.389,
-     280.171
+     185.389,
+     278.171
     ],
     [
-     183.824,
-     280.681
+     182.824,
+     278.681
     ],
     [
-     181.346,
-     281.522
+     180.346,
+     279.522
     ],
     [
-     179,
-     282.679
+     178,
+     280.679
     ],
     [
-     176.825,
-     284.133
+     175.825,
+     282.133
     ],
     [
-     174.858,
-     285.858
+     173.858,
+     283.858
     ],
     [
-     173.133,
-     287.825
+     172.133,
+     285.825
     ],
     [
-     171.679,
-     290
+     170.679,
+     288
     ],
     [
-     170.522,
-     292.346
+     169.522,
+     290.346
     ],
     [
-     169.681,
-     294.824
+     168.681,
+     292.824
     ],
     [
-     169.171,
-     297.389
+     168.171,
+     295.389
     ],
     [
-     169,
-     300
+     168,
+     298
     ],
     [
      20,
-     300
+     298
     ],
     [
      19.829,
-     297.389
+     295.389
     ],
     [
      19.319,
-     294.824
+     292.824
     ],
     [
      18.478,
-     292.346
+     290.346
     ],
     [
      17.321,
-     290
+     288
     ],
     [
      15.867,
-     287.825
+     285.825
     ],
     [
      14.142,
-     285.858
+     283.858
     ],
     [
      12.175,
-     284.133
+     282.133
     ],
     [
      10,
-     282.679
+     280.679
     ],
     [
      7.654,
-     281.522
+     279.522
     ],
     [
      5.176,
-     280.681
+     278.681
     ],
     [
      2.611,
-     280.171
+     278.171
     ],
     [
      0,
-     280
+     278
     ]
    ],
    "count": 22,
@@ -444,9 +444,9 @@
     "chest-CRUMBLE-base",
     "chest-CRUMBLE-lid-front",
     "chest-CRUMBLE-lid-hinge",
-    "chest-BISCOTTI-lid-front",
     "crate-CRUMBLE-front",
     "crate-CRUMBLE-back",
+    "crate-BISCOTTI-front",
     "spinner-needle",
     "chest-CRUMBLE-card-rail-1",
     "chest-CRUMBLE-card-rail-2",

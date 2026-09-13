@@ -49,15 +49,17 @@ const OFFCUT = argv.includes("--offcut");
 // `--thin-offcuts` packs ONE game's 2.8 mm parts onto those three pieces and writes only v3-thin-offcuts/.
 const THIN_OC = argv.includes("--thin-offcuts");
 const MODE = OFFCUT ? "v3-offcut" : THIN_OC ? "v3-thin-offcuts" : null;   // a mode writes its own folder and nothing else
-// Read off the steel rule in his photo (±3 mm), in mm, each sheet's top-left as it lies in the photo with
-// the rule along its top edge. Holes are the five drilled ones plus a knot on the big sheet's top edge.
+// SIZES: Wyatt's tape, 2026-09-13 — "thin-left: 450 x 305, thin-middle: 357 x 132, thin-right: 298 x 188".
+// HOLES, KNOT AND OLD CUT: read off the steel rule in his photo (IMG_6879), then scaled by tape ÷ photo (450/454 across,
+// 305/304 down) so they sit where the photo put them relative to the real edges — still ±3 mm, hence the 9 mm clearance.
+// Each sheet's top-left is its top-left as it lay in the photo, the rule along its top edge.
 const THIN_SHEETS = [
-  { id: "thin-left", label: "Big sheet, with the holes", w: 454, h: 304, m: 6, notch: 0,
-    holes: [[51, 127], [123, 134], [243, 162], [127, 196], [275, 202]].map(([x, y]) => ({ x, y, r: 7.7 })).concat([{ x: 237, y: 18, r: 4, knot: true }]),
-    keep: [{ x0: 0, y0: 138, x1: 48, y1: 272 }],   // the old cut line, 16–38 mm in from the left edge, 148–262 mm down, plus 10 mm
-    oldCut: [[24.6, 148], [24.6, 208], [37.8, 208], [37.8, 230], [24.6, 230], [24.6, 256], [16, 262]] },
-  { id: "thin-middle", label: "Narrow strip", w: 132, h: 358, m: 6, notch: 0, holes: [], keep: [] },
-  { id: "thin-right", label: "Sheet with the scooped corners", w: 189, h: 300, m: 7, notch: 20, holes: [], keep: [] },   // charred, wavy edges: 7 mm
+  { id: "thin-left", label: "Big sheet, with the holes", w: 450, h: 305, m: 6, notch: 0,
+    holes: [[50.6, 127.4], [121.9, 134.4], [240.9, 162.5], [125.9, 196.6], [272.6, 202.7]].map(([x, y]) => ({ x, y, r: 7.7 })).concat([{ x: 234.9, y: 18.1, r: 4, knot: true }]),
+    keep: [{ x0: 0, y0: 138.5, x1: 47.6, y1: 272.9 }],   // the old cut line plus 10 mm
+    oldCut: [[24.4, 148.5], [24.4, 208.7], [37.5, 208.7], [37.5, 230.8], [24.4, 230.8], [24.4, 256.8], [15.9, 262.9]] },
+  { id: "thin-middle", label: "Narrow strip", w: 132, h: 357, m: 6, notch: 0, holes: [], keep: [] },
+  { id: "thin-right", label: "Sheet with the scooped corners", w: 188, h: 298, m: 7, notch: 20, holes: [], keep: [] },   // charred, wavy edges: 7 mm
 ];
 const WOOD = { w: opt("woodw", 740), hl: opt("woodl", 430), hr: opt("woodr", 200), M: opt("woodm", 5), G: 3 };
 const BED  = { w: opt("bedw",  420), h: opt("bedh",  800), m: 5 };   // 6 mm
