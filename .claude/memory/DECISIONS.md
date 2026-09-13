@@ -2960,3 +2960,6 @@ died on the Blade. Rooted off `fileURLToPath(import.meta.url)`.
   different kinds of pirate ships, like a... [galleon], uh, Viking ship, uh, like, Phoenician Greek ship, uh, British ship. A Chinese
   junk."* (Dictated; "gallium" read as galleon.) Five named styles for four boats — which four, and whether a fifth waits for a
   larger crew, is his call when it is built.
+- **MERGE DEV INTO MAIN — THE CRATES, HIS SUGAR AND MILK, HIS CRATE DIALS, THE PICKER FIX.** Asked after Wy-Blade's dials trial
+  (10 of 10 sailed, 0 structural, 0 dead taps, npm test green; FAILED only on untested actions, the empty-hold judge wording — fixed —
+  and one unconfirmed missing battle word, on the backlog): *"Merge now (Recommended)"*.
