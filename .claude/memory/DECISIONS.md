@@ -2963,3 +2963,18 @@ died on the Blade. Rooted off `fileURLToPath(import.meta.url)`.
 - **MERGE DEV INTO MAIN — THE CRATES, HIS SUGAR AND MILK, HIS CRATE DIALS, THE PICKER FIX.** Asked after Wy-Blade's dials trial
   (10 of 10 sailed, 0 structural, 0 dead taps, npm test green; FAILED only on untested actions, the empty-hold judge wording — fixed —
   and one unconfirmed missing battle word, on the backlog): *"Merge now (Recommended)"*.
+
+**2026-09-13, late — HIS POP-IN SETTINGS, and a new pop sound:**
+
+    INGREDIENT POP-IN TUNER
+    order: Island by island, clockwise round the board
+    board alone 300ms, gap between islands 130ms, gap between crates 75ms, pop length 770ms, cards after last pop 300ms,
+    start size 17%, overshoot 160%, bounces 3, squash 34%, wobble 8°, drop 4%, sparkles 6
+    sparkle burst on, rising pitch on
+    cards arrive at 3.20s (today 2.00s)
+
+- **THESE ARE THE POP-IN'S SETTINGS** — *"I'm liking these"*. The recipe cards arrive at 3.20s instead of today's 2.00s.
+- **A NEW POP SOUND: HIGHER, CUTER, JUICIER.** *"we need a new sound -- it sounded cuter when it was higher pitch, more like juicy
+  popping in -- can you do that?"* The tuner gets a choice of pop sounds and pitch dials; his pick is rendered to a file for the game.
+- **THEN THE GAME FEEL AUDIT.** *"then do the game feel audit"* — after the pop sound; the BACKLOG GAME FEEL item's deliverable
+  (every moment, what it does today, the juice it could have, Passed/Problem per suggestion).

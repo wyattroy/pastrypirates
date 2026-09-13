@@ -1533,8 +1533,10 @@ replaced with his explicit width, not just mirrored.
       because i intentionally asked them to appear after a few seconds. we want users to see the board first to get acquainted
       with it; but the problem is the recipe pickers come in rather suddenly, and for no discernable reason. we can solve that with
       our popping in animation of the ingredients. this should feel juicy and fun and bouncy and "candy crush" like -- make me a
-      tuner artifact to dial in my ideal settings."* THE TUNER IS BUILT (link in `.planning/CURRENT-SHEET.md`); build the game
-      side from HIS dials, not defaults. Known constraints: the picker's arrival is RC_DELAY_MS (2000) + RC_FADE_MS (1160) in
+      tuner artifact to dial in my ideal settings."* THE TUNER IS BUILT (link in `.planning/CURRENT-SHEET.md`). ⭐ HIS SETTINGS, 2026-09-13 (DECISIONS.md, verbatim):
+      clockwise island by island · board alone 300ms · islands 130ms apart · crates 75ms apart · pop 770ms · cards 300ms after the last
+      pop (3.20s) · start 17% · overshoot 160% · 3 bounces · squash 34% · wobble 8° · drop 4% · 6 sparkles · rising pitch. The SOUND is
+      being re-picked ("higher pitch, more like juicy popping in") and gets rendered to a file in sfx/ for the game. Known constraints: the picker's arrival is RC_DELAY_MS (2000) + RC_FADE_MS (1160) in
       src/ui/stage.js, so the pop's length and the cards' start must be one timeline, not two clocks; the crate icons are SVG
       `<image id="crate_<ing>_<n>">` on the board, and anything that animates continuously must be HTML, not SVG (CLAUDE.md:
       Chrome cannot composite an SVG transform), so the pop is drawn as an HTML layer in CAM_HTML_LAYERS and hands over to the
