@@ -435,6 +435,18 @@ first to win!"* line and then a board with no explanation of how anything works.
 
 ## 🟠 Known bugs, deferred as not game-stopping
 
+- [ ] **THE DIM BEHIND A MODAL OR A STAGE CARD COVERS ONLY THE GAME COLUMN, NOT THE PAGE.** His words, 2026-09-13:
+      *"the "stage"/modal background coloring is computed wrong -- see screenshots. it seems like it's living in the wrong
+      component, leaving much of the page uncovered."* (His "Expectation:" sentence arrived cut off; the evident one is a dim
+      over the WHOLE window.) Seen on staging 2026.09.13.2 in three screenshots: the menu's "Abandon ship?" modal on a narrow
+      window, day one's "Ahoy!" stage card on a narrow window, and the same card on a wide window where the menu sits in the
+      right-hand column — every time the dim stops at the game column's edges, and the page margins (and the wide window's
+      menu column) stay bright. ⚠ NOT YET MEASURED. Two candidates, both about where the dim lives: (a) what dims behind a
+      modal is a filter on `#game` itself (`#game.bg-blurred`, index.html ~1373: blur + brightness), which by construction
+      cannot reach outside the column; (b) any `position:fixed; inset:0` scrim that is a DESCENDANT of an element carrying a
+      filter or transform is positioned against that element, not the window — so a full-screen scrim inside `#game` becomes
+      column-sized the moment `bg-blurred` is on. Fix direction when it is built: one scrim, a direct child of `<body>`, owned
+      by whatever opens the modal or stage card.
 - [ ] **"Play again!" covers the award cards** at end of voyage — flagged **6 times** across two sea
       trials, every phone leg and Safari. **It is the DOCUMENTED design** (sticky was chosen because
       a button below the fold was worse). A third option exists and is unbuilt: pin it as a FOOTER
