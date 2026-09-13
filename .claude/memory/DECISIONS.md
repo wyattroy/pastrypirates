@@ -2877,3 +2877,11 @@ died on the Blade. Rooted off `fileURLToPath(import.meta.url)`.
 - **THE CRATES GO TO STAGING NOW; WY-BLADE SAILS THE TRIAL.** The gear check rated the crate change FULL (a sea trial
   before staging). Asked how to sail it: *"Staging now, Wy-Blade trials (Recommended)"* — staging for him to play at once,
   the full trial on Wy-Blade on its own branch so his Mac is not choked, and nothing to main until it is green.
+- **SUGAR CANE IS ROLL 1 OF HIS OWN DRAWING — EVERYWHERE.** *"i approve my drawing -- use that everywhere"*, then, asked
+  which of the two finished rolls: *"yes, -- roll1"*. `art-review/sugar/round4/standing-1-200.png`, quantized (50 KB -> 18 KB,
+  mean error 1.3) as `assets/ingredients/sugar.png` — so the picker, the captain's box, the island crates, the bake-off, the
+  narration and About all draw it — and the island's taken-crate silhouette `holes/sugar.webp` is cut from its own outline
+  (the old one was still the cubes).
+- **THE BUTTER-AND-MILK PICTURE, BY THE SAME PROCESS.** *"now do the butter milk replacement with the same process for
+  generating art and getting my approval"* — BACKLOG W4-11: generated with the matched outline, photographed in the game,
+  and shown on a page for his approval; nothing installed until he picks.
