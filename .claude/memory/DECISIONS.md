@@ -2831,3 +2831,15 @@ died on the Blade. Rooted off `fileURLToPath(import.meta.url)`.
 - **BACKLOG W4-11:** *"create a new milk graphic that adds a stick of yellow butter in front of the bottle."*
 - Verdicts passed: the architecture write-up, why the mistake kept happening, the guest camera, decorations on the board,
   pass-and-play never passing to a bot, nothing behind the plaque, the top bar fitting.
+
+**2026-09-13, evening — the merge, and two rulings from the sea trial (build 98c3dce5):**
+
+- **MERGE DEV INTO MAIN NOW.** The trial sailed all ten voyages with 0 structural failures, 0 game faults and npm test
+  green; its verdict word read FAILED only on untested actions (walk away, deny, vanilla beans) and a vision judge that
+  photographed recipe cards before their art had loaded. Asked whether that counts: *"Merge now (Recommended)"*.
+- **ON A SLOW LOAD, THE RECIPE PICKER WAITS FOR ITS ART.** *"Yes, wait for the art (Recommended)"* — a player must never
+  be able to choose a recipe from a blank card (seen in the trial under ten concurrent loads: name and divider only, and no
+  island art behind it). BACKLOG W3-8.
+- **THE PHONE'S OPENING SCREENS HAVE NO CAPTAIN'S BOX, BY DESIGN.** *"Right by design"* — on Ahoy and the recipe picker
+  the band under the board is empty; the plaque appears once a recipe is picked. Added to docs/INTENDED-BEHAVIOUR.md's
+  accepted list so the trial's judge stops flagging it.
