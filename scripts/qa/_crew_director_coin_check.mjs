@@ -71,6 +71,13 @@ try {
   await startVoyage(H); await sleep(2000);
   console.log(`  room ${code} — host: ${await H.ev(WATCH)}  guest: ${await G.ev(WATCH)}`);
   console.log(`  host driver: ${await driver(H, url)}   guest driver: ${await driver(G, url)}`);
+  /* MAKE THE HUMANS DOCK. Three runs (5, 7, 14 minutes) produced 0, 4 and 0 human docks — the autoplayer
+     rarely chooses one — so the one thing this probe exists to time (a person's flip seen on the other
+     screen) went unmeasured. Both windows now take any Dock button the moment it is offered. */
+  const PREFER_DOCK = `(()=>{if(window.__pd)return 'already';window.__pd=setInterval(()=>{
+    const b=[...document.querySelectorAll('button')].find(x=>x.offsetParent&&/\\bDock\\b/.test(x.textContent||'')&&!/Nah|Buy/.test(x.textContent||''));
+    if(b)b.click();},350);return 'taking every dock offered';})()`;
+  console.log(`  host: ${await H.ev(PREFER_DOCK)}   guest: ${await G.ev(PREFER_DOCK)}`);
   const until = Date.now() + MINUTES * 60000;
   while (Date.now() < until) { await sleep(20000); const h = JSON.parse(await H.ev(READ) || "null"), g = JSON.parse(await G.ev(READ) || "null");
     console.log(`  … host ${h ? h.turns.length + " turns/" + h.docks.length + " docks" : "-"}   guest ${g ? g.turns.length + " turns/" + g.docks.length + " docks" : "-"}`); }
