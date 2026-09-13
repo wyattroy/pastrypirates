@@ -1542,7 +1542,7 @@ replaced with his explicit width, not just mirrored.
       Chrome cannot composite an SVG transform), so the pop is drawn as an HTML layer in CAM_HTML_LAYERS and hands over to the
       SVG crate when it lands; the dotted course line is drawn by the picker's chartFrontRecipe — it must wait for the cards.
       Both screens (host and guest, one at his iPhone 13 mini size) must pop in step.
-- [ ] **A GAME FEEL AUDIT — EVERY MOMENT THAT COULD HAVE MORE OOMPH, JUICE AND GLOSS.** His words: *"a "game feel" audit that looks
+- [ ] **A GAME FEEL AUDIT — EVERY MOMENT THAT COULD HAVE MORE OOMPH, JUICE AND GLOSS.** 🟢 THE PAGE IS UP, 2026-09-13 ("Game Feel Audit", link in `.planning/CURRENT-SHEET.md`): 16 moments, what each does and sounds like today (read from the code), 39 sized ideas with Passed/Problem, photographed in a real phone-size voyage; 8 moments the voyage never reached (coin, dock, buy, storm, winds, fishing, home, the boat sailing) say so rather than show a wrong screen. Build only what he passes. His words: *"a "game feel" audit that looks
       for all the areas where we can increase game feel satisfaction, eg during the coin flip by making the coin sink down before
       flipping, and lots of other moments where we can give the game more oomph, juice, and gloss."* Deliverable: an artifact that
       walks the voyage moment by moment (the picker, sailing, docking and the coin, buying, trade, battle, storms, the bake-off,
