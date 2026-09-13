@@ -2904,3 +2904,14 @@ died on the Blade. Rooted off `fileURLToPath(import.meta.url)`.
   may shrink to make room — and "create an artifact that lets me dial this in, showing the real captains box at real size."**
   Game today, measured: crate 22px phone / 26px laptop, ingredient 76% of it (16.7 / 19.8px), row padding 3px / 5px top and
   bottom, the plaque's padding 19x20px phone / 24x30px laptop. Nothing changes in the game until he sets the dials.
+
+**2026-09-13, late — milk, and the picker tap:**
+
+- **BUTTER & MILK IS ROLL 1.** *"I like butter & Milk roll 1"* — `art-review/milk/round1/outlined-1-200.png` becomes
+  `assets/ingredients/dairy.png` (the bottle with a heavy brown outline and a stick of butter on its paper in front), and the
+  island's taken-crate silhouette `holes/dairy.png` is cut from its outline. BACKLOG W4-11 done.
+- **THE LOST PICKER TAP — HIS HUNCH, AND WHAT WAS KEPT.** *"i haven't noticed the crate tap problem. my hunch is that it's a
+  problem caused by the tooling, not the game"* (he means the recipe picker's lost first tap). Half right, measured: the trial
+  found it because the robot taps the instant a screen settles and ten browsers moved that into the cards' 0.38s self-swap; but
+  the same real tap on the live game lost the pick 5 of 5 times inside that window. The fix (a tap during the swap stops it) was
+  kept on staging with the offer to back it out; he has not asked for that.
