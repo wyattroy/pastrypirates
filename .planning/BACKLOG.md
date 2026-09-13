@@ -1510,3 +1510,14 @@ replaced with his explicit width, not just mirrored.
       2026-09-09 ruling put it "locked underneath the recipe cards so it moves with them").
       ⚠ His new numbers make the card TALLER, so this gets worse before it gets better — it is best
       settled in the same breath as wiring them, not before. On the checklist sheet.
+
+## ⬇ LAST, BY HIS WORD — not urgent
+
+- [ ] **THE EMPTY HOLD'S CRATE: DARK, WITH THE CRATE'S TEXTURE SHOWING — NOT A SOLID BLACK SHAPE.** His words, 2026-09-13:
+      *"can you create a different silhouette of the crate that is not fully black, but is dark while showing the texture of the
+      crate? that would work better than the current solution. not urgent; put it last on the backlog."* Why: the crate trial's
+      picture judge called today's silhouette (`assets/plaque/crate-hollow.webp`, the crate's outline filled black, drawn at 30%)
+      "a dark solid unrendered box", and a crate's outline is only a square. Direction when built: made from the approved crate
+      itself (`assets/plaque/crate.webp`), darkened so the planks and posts still read, never regenerated; shown to him in the
+      captain's box at his phone's size and the laptop window beside today's before it ships. The islands' ingredient
+      silhouettes are not part of this.

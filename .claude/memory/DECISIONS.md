@@ -2915,3 +2915,24 @@ died on the Blade. Rooted off `fileURLToPath(import.meta.url)`.
   found it because the robot taps the instant a screen settles and ten browsers moved that into the cards' 0.38s self-swap; but
   the same real tap on the live game lost the pick 5 of 5 times inside that window. The fix (a tap during the swap stops it) was
   kept on staging with the offer to back it out; he has not asked for that.
+
+**2026-09-13, late — HIS CRATE TUNER NUMBERS (Crate Size Tuner, on the real captain's box at real size):**
+
+    Your iPhone 13 mini · 375 wide: crate 22→28px, ing 76→85%, rowPad 3→2px, padV 19→12px, padH 20→17px
+    Laptop window · 711 wide: crate 26→33px, ing 76→84%, rowPad 5→3px, padV 24→18px, padH 30→22px
+
+- **THE HOLD:** crates 28px phone / 33px everywhere else, the ingredient 85% / 84% of its crate, row padding 2px / 3px top and
+  bottom, the plaque's padding 12×17px phone / 18×22px elsewhere. "Laptop" is every non-phone layout — one system (his Q9).
+- **THE RECIPE'S INGREDIENTS ARE THE SAME SIZE AS AN INGREDIENT ON A CRATE.** *"I also want the ingredients in the recipe itself
+  to be increased to this same size as the ingredients on the crates."* Supersedes 2026-09-12's "88% of a hold's crate".
+- **THE GAP BETWEEN CRATES EQUALS THE ROW'S TOP/BOTTOM PADDING.** *"Adjust the between-crate padding to match the row padding
+  top/bottom for both modes."* 2px phone, 3px elsewhere. Supersedes 2026-09-12's "20% of a crate's width". The 35% most-overlap
+  limit is unchanged.
+- **THE PICKER TAP FIX STAYS.** *"Lost first taps on the recipe picker. --> your fix sounds fine. thank you!"* A tap during the
+  cards' self-swap stops the swap and keeps the tapped card (d05187bc).
+- **THE RIGHT-EDGE CALL CIRCLES: ON THE BACKLOG, AS LOGGED.** *"great, thanks."*
+- **THE EMPTY HOLD'S CRATE: DARK, BUT SHOWING THE CRATE'S TEXTURE — NOT A SOLID BLACK SILHOUETTE. LAST ON THE BACKLOG.** *"can you
+  create a different silhouette of the crate that is not fully black, but is dark while showing the texture of the crate? that
+  would work better than the current solution. not urgent; put it last on the backlog."* Prompted by the trial's judge calling
+  the solid silhouette "an unrendered box". Amends his Q6 look (2026-09-10) for the crate only; the islands' silhouettes are
+  untouched.
