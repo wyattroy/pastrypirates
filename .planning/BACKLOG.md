@@ -451,8 +451,15 @@ first to win!"* line and then a board with no explanation of how anything works.
       modal is a filter on `#game` itself (`#game.bg-blurred`, index.html ~1373: blur + brightness), which by construction
       cannot reach outside the column; (b) any `position:fixed; inset:0` scrim that is a DESCENDANT of an element carrying a
       filter or transform is positioned against that element, not the window — so a full-screen scrim inside `#game` becomes
-      column-sized the moment `bg-blurred` is on. Fix direction when it is built: one scrim, a direct child of `<body>`, owned
-      by whatever opens the modal or stage card.
+      column-sized the moment `bg-blurred` is on.
+      ⭐ HIS EXPECTATION, 2026-09-13 (it completes the report): *"the game board rounded-rectangle area goes dark; everything else
+      stays lit. For the "are you sure you want to leave the game" screen, the entire screen should go dark -- my logic is that
+      that screen is outside of the game worrld... for events that draw your focus using the stage that are INSIDE the game world,
+      we want the game board to go dark."* So TWO dims, chosen by which world the moment belongs to: an in-world stage card or
+      ceremony dims ONLY the board's rounded rectangle (the top bar, the captain's box, the menu column and the page margins stay
+      lit); an out-of-world modal (leave the game) dims the WHOLE window. Fix direction: one board-shaped scrim owned by the stage,
+      one window scrim (a direct child of `<body>`) owned by out-of-world modals — and a list of which moment is which, shown to
+      him before it is built.
 - [ ] **"Play again!" covers the award cards** at end of voyage — flagged **6 times** across two sea
       trials, every phone leg and Safari. **It is the DOCUMENTED design** (sticky was chosen because
       a button below the fold was worse). A third option exists and is unbuilt: pin it as a FOOTER
@@ -1510,6 +1517,29 @@ replaced with his explicit width, not just mirrored.
       2026-09-09 ruling put it "locked underneath the recipe cards so it moves with them").
       ⚠ His new numbers make the card TALLER, so this gets worse before it gets better — it is best
       settled in the same breath as wiring them, not before. On the checklist sheet.
+
+## 🍬 GAME FEEL — his asks of 2026-09-13
+
+- [ ] **THE INGREDIENTS POP ONTO THE ISLANDS, AND THE RECIPE CARDS ARRIVE AS THE LAST BEAT OF IT.** His words: *"at the beginning of
+      the game, "pop in" the ingredients on each of the islands in an animation that lasts until the recipe picker cards appear.
+      Don't draw the dotted line UNTIL the recipe cards appear. this will draw user's attention to the most important thing about
+      the game -- the ingredients -- on a crowded board. it'll also solve the problem that the recipe picker cards feel laggy only
+      because i intentionally asked them to appear after a few seconds. we want users to see the board first to get acquainted
+      with it; but the problem is the recipe pickers come in rather suddenly, and for no discernable reason. we can solve that with
+      our popping in animation of the ingredients. this should feel juicy and fun and bouncy and "candy crush" like -- make me a
+      tuner artifact to dial in my ideal settings."* THE TUNER IS BUILT (link in `.planning/CURRENT-SHEET.md`); build the game
+      side from HIS dials, not defaults. Known constraints: the picker's arrival is RC_DELAY_MS (2000) + RC_FADE_MS (1160) in
+      src/ui/stage.js, so the pop's length and the cards' start must be one timeline, not two clocks; the crate icons are SVG
+      `<image id="crate_<ing>_<n>">` on the board, and anything that animates continuously must be HTML, not SVG (CLAUDE.md:
+      Chrome cannot composite an SVG transform), so the pop is drawn as an HTML layer in CAM_HTML_LAYERS and hands over to the
+      SVG crate when it lands; the dotted course line is drawn by the picker's chartFrontRecipe — it must wait for the cards.
+      Both screens (host and guest, one at his iPhone 13 mini size) must pop in step.
+- [ ] **A GAME FEEL AUDIT — EVERY MOMENT THAT COULD HAVE MORE OOMPH, JUICE AND GLOSS.** His words: *"a "game feel" audit that looks
+      for all the areas where we can increase game feel satisfaction, eg during the coin flip by making the coin sink down before
+      flipping, and lots of other moments where we can give the game more oomph, juice, and gloss."* Deliverable: an artifact that
+      walks the voyage moment by moment (the picker, sailing, docking and the coin, buying, trade, battle, storms, the bake-off,
+      the end card), each with what it does today, the juice it could have (anticipation, squash and stretch, overshoot, a
+      settle, particles, a sound beat, a camera nudge), and a Passed/Problem per suggestion so he picks what gets built.
 
 ## ⬇ LAST, BY HIS WORD — not urgent
 

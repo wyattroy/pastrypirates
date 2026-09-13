@@ -2936,3 +2936,21 @@ died on the Blade. Rooted off `fileURLToPath(import.meta.url)`.
   would work better than the current solution. not urgent; put it last on the backlog."* Prompted by the trial's judge calling
   the solid silhouette "an unrendered box". Amends his Q6 look (2026-09-10) for the crate only; the islands' silhouettes are
   untouched.
+
+**2026-09-13, late — the dim's boundary, and two new backlog asks:**
+
+- **WHAT DIMS: THE BOARD FOR THE GAME WORLD, THE WHOLE SCREEN FOR WHAT IS OUTSIDE IT.** *"expectation: the game board
+  rounded-rectangle area goes dark; everything else stays lit. For the "are you sure you want to leave the game" screen, the
+  entire screen should go dark -- my logic is that that screen is outside of the game worrld, so the entire screen is affected.
+  for events that draw your focus using the stage that are INSIDE the game world, we want the game board to go dark."* Completes
+  the backlog's dim bug: in-world stage moments dim the board's rounded rectangle only; out-of-world modals (leave the game)
+  dim the entire window.
+- **BACKLOG: THE INGREDIENTS POP ONTO THE ISLANDS BEFORE THE RECIPE CARDS ARRIVE.** *"at the beginning of the game, "pop in" the
+  ingredients on each of the islands in an animation that lasts until the recipe picker cards appear. Don't draw the dotted line
+  UNTIL the recipe cards appear. this will draw user's attention to the most important thing about the game -- the ingredients --
+  on a crowded board. it'll also solve the problem that the recipe picker cards feel laggy only because i intentionally asked
+  them to appear after a few seconds... this should feel juicy and fun and bouncy and "candy crush" like -- make me a tuner
+  artifact to dial in my ideal settings."* The tuner is built now; the game waits for his dials.
+- **BACKLOG: A GAME FEEL AUDIT.** *"a "game feel" audit that looks for all the areas where we can increase game feel
+  satisfaction, eg during the coin flip by making the coin sink down before flipping, and lots of other moments where we can give
+  the game more oomph, juice, and gloss."*
