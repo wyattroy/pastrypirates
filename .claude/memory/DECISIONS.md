@@ -2954,3 +2954,9 @@ died on the Blade. Rooted off `fileURLToPath(import.meta.url)`.
 - **BACKLOG: A GAME FEEL AUDIT.** *"a "game feel" audit that looks for all the areas where we can increase game feel
   satisfaction, eg during the coin flip by making the coin sink down before flipping, and lots of other moments where we can give
   the game more oomph, juice, and gloss."*
+- **SAIL THE TRIAL ON THE DIALS BUILD — WY-BLADE.** *"yes, have Wy-Blade run the sea trial."* Asked of Wy-Blade on dev tip 69a71556
+  (game code = staging 2026.09.13.5-staging@21c13ef9), on its own branch.
+- **BACKLOG: EVERY BOAT A DIFFERENT KIND OF PIRATE SHIP.** *"change the aesthetic style of each of the boats so that they're all
+  different kinds of pirate ships, like a... [galleon], uh, Viking ship, uh, like, Phoenician Greek ship, uh, British ship. A Chinese
+  junk."* (Dictated; "gallium" read as galleon.) Five named styles for four boats — which four, and whether a fifth waits for a
+  larger crew, is his call when it is built.

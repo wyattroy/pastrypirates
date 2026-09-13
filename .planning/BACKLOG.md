@@ -1541,6 +1541,17 @@ replaced with his explicit width, not just mirrored.
       the end card), each with what it does today, the juice it could have (anticipation, squash and stretch, overshoot, a
       settle, particles, a sound beat, a camera nudge), and a Passed/Problem per suggestion so he picks what gets built.
 
+## ⛵ THE BOATS — his ask of 2026-09-13
+
+- [ ] **EVERY BOAT A DIFFERENT KIND OF PIRATE SHIP.** His words (dictated): *"change the aesthetic style of each of the boats so that
+      they're all different kinds of pirate ships, like a... [galleon], uh, Viking ship, uh, like, Phoenician Greek ship, uh, British
+      ship. A Chinese junk."* So: a galleon, a Viking longship, a Phoenician/Greek galley, a British man-o'-war, a Chinese junk —
+      five for four seats. Today the four boats are one design in four captain colours (`assets/boats/`); the captain's colour must
+      still read on each new hull (sails or pennant), since the colour is how a boat is found on the board. Process when built:
+      the art pipeline (scripts/art/gen.mjs, today's boat as the reference so the style matches), keyed, shown to him on the real
+      board at his phone size and the laptop window before anything ships — and his call on which four, and on whether a ship's
+      style follows the seat or the captain.
+
 ## ⬇ LAST, BY HIS WORD — not urgent
 
 - [ ] **THE EMPTY HOLD'S CRATE: DARK, WITH THE CRATE'S TEXTURE SHOWING — NOT A SOLID BLACK SHAPE.** His words, 2026-09-13:
