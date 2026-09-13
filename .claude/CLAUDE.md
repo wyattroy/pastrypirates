@@ -86,6 +86,8 @@ makes these two agree?* If the answer is "nothing — we keep them in step", tha
 before a line is written. **When a second consumer of the same thing appears, converge: make the
 first one go through the new path too.** Never run two side by side.
 
+**Every reaction goes through the ONE door.** Wyatt approved this rule on 2026-09-13, after the hundredth host-only fix: anything the board or the camera does because of a game fact is decided in the one event consumer (`consumeEvent`), from two inputs — the engine's event and whether this screen is where that choice was made (`decisionIsLocal`). Never in a turn loop, a pick, or a host branch. Anything that speaks about an event waits for that consumer to finish drawing it (`eventDrawn`). A visual feature is not done until a host window and a guest window — one at his iPhone 13 mini size — have been compared. `scripts/qa/one_display_door_check.mjs` holds the doors; `docs/HARD-WON-LESSONS.md` has why the mistake kept happening.
+
 **Consistency is a core value.** An interaction that behaves differently in two places is a bug
 unless Wyatt chose the exception. When you change any interactive behaviour, sweep every other
 surface it touches and say in your reply which ones you checked.

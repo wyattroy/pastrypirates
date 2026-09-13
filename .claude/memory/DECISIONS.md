@@ -2813,3 +2813,21 @@ died on the Blade. Rooted off `fileURLToPath(import.meta.url)`.
   everything below."*
 - **BACKLOG, AFTER THE MERGE:** *"a pass at the narration to make it shorter and more clear, across the
   board. I'll want you to make an artifact for me to give feedback on."*
+
+**2026-09-13, later — his answers on the merge sheet (build 6d4b721d):**
+
+- **SUGAR CANE IS GREEN "A"** — *"A. green stalks"*: `art-review/sugar/round2/sug-green.png` (cut stalks at a
+  diagonal, big glittering crystals heaped in front). Install it as the sugar ingredient icon.
+- **THE ONE-DOOR RULE GOES INTO CLAUDE.md** — *"Yes. Do it. Thank you."* Written under "How the game is designed".
+- **MERGE WHEN WY-BLADE'S TRIAL IS GREEN** — *"yes"*.
+- **THE TINY COIN MUST FLIP AT THE MOMENT OF THE FLIP.** *"the tiny coin should flip WHEN the host's coin is flipping.
+  instead, the coin appears to flip AFTER the player has already ended their turn (by buying an ingredient)... create a
+  legible, durable design for your code that links the event that is being displayed TO THE ACTUAL EVENT... change the
+  engine if you need to in order to clean this up; we're pre-determinism corpus."*
+- **BOTS MUST NOT START DOCKING BEFORE THEY ARRIVE** — *"I can see the coin flip moving with their boat as it animates
+  through the water."*
+- **THE FORECAST PILL SHOULD STAY ON THE TOP BAR'S LINE** where it can — *"Ideally it should be on the same line... what's
+  the reasoning?"* (asked about the breakpoint).
+- **BACKLOG W4-11:** *"create a new milk graphic that adds a stick of yellow butter in front of the bottle."*
+- Verdicts passed: the architecture write-up, why the mistake kept happening, the guest camera, decorations on the board,
+  pass-and-play never passing to a bot, nothing behind the plaque, the top bar fitting.
