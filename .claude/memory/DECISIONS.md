@@ -2756,3 +2756,36 @@ every navigation with "Could not verify this site's safety category" since mid-e
 **A gate caught a real fault of mine in the same commit** (`scripts/qa/machine path` check):
 `scripts/qa/_capbox_shape.mjs` had this Mac's absolute path baked in from debugging, which would have
 died on the Blade. Rooted off `fileURLToPath(import.meta.url)`.
+
+**2026-09-12, late — his notes on the merge sheet (build 2026.09.07.3-staging@fba2e14e), ruled:**
+
+- **EVERY VOYAGE IS FOUR CAPTAINS.** *"There is no such thing as a 2-captain voyage; all are 4-captain."*
+  Bots fill every empty seat. So the captain's box has ONE height per screen width, never one per
+  head-count. A note and a sheet item of mine claimed "about 110px with two captains" — withdrawn.
+- **HIS TEST PHONE IS AN iPHONE 13 MINI** — 375×812 @3×; Safari hands the page 667px (bar expanded)
+  or 684px (bar compact). Recorded in `docs/QA-PROCESS.md`, "HIS PHONE". Any "fits on his phone"
+  claim is measured at those, not at 390.
+- **BOTS NEVER SHOWED A COIN WHEN THEY DOCKED.** *"The big coin never appeared for bots... there was
+  simply never coin when bots docked. Now at least we see a coin."* He AGREED to the tiny coin over
+  their boat. My claim that bots had "borrowed the flippenator" is withdrawn — his eyes on the real
+  game are the evidence. And the coin is ONE throw: *"the coin appears to rise and fall 3 times
+  instead of once"* — his tuner's 21px toss is a single throw across the 795ms flip.
+- **THE LAPTOP PLAQUE STAYS.** *"I actually like the wooden boards outside the rope."* The CEO's
+  "not cut to the rope" finding against `assets/plaque/column.png` is closed BY HIS TASTE — the band
+  of plank outside the rope is wanted. The redrawn candidate (`plaque-r5-column-keyed.png`) is dead.
+- **THE RECIPE CARD'S X IS RED — the art's own red.** *"The X is not red, it's pure white."*
+  `assets/icons/close-x.png` is a painted red cross; every filter on it was wrong, and the first
+  "cyan" he photographed was that red inverted. No filter.
+- **PRINT AND EMAIL ARE DRAWN, NOT EMOJI.** *"generate SVGs of the print and email graphics so you
+  don't rely on native emojis (which are uncentered)."*
+- **SUGAR CANE: A's composition, bigger crystals, more glitter — and show a PURPLE stalk.** *"The
+  sugar cane i asked for was purple, with a pile of glittering sugar in front of it. The version of
+  these that I like best is A -- but i want bigger crystals and more glittery; and i want to see a
+  purple-stalk version."* (The earlier round's tied bundle was the vertical winner; A — cut stalks
+  lying at a diagonal with the sugar heaped in front — is now his favourite composition.)
+- **THE WHOLE PLAQUE ON SCREEN OUTRANKS A FULL-WIDTH BOARD.** *"the bottom of the captain's box is cut
+  off -- the board has to shrink by about 15 pixels, i'd guess. measure it."* The board stays a
+  square and shrinks (centred) until the entire plaque fits; it does not stay full-width and push
+  the box off the bottom.
+- **BACKLOG W4-10:** *"the crate icons need to get incorporated into the new captains box."*
+- **Sheet verdicts he passed:** the music resume, and the four non-game pages in the pregame card.
