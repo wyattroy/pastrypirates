@@ -435,6 +435,12 @@ first to win!"* line and then a board with no explanation of how anything works.
 
 ## 🟠 Known bugs, deferred as not game-stopping
 
+- [ ] **A BATTLE LINE ON A PHONE MAY LOSE ITS LAST WORD — "Flaky Jack must" with no "answer…".** Found by Wy-Blade's dials trial
+      (sep13-trial-dials @ bbe69f2f, screen passplay-phone-013): the template is "… must answer…" (src/orchestrator.js ~713).
+      UNRESOLVED. Ruled out on the screens, by Wy-Blade: not a CSS clip on the line (.btl-result sets only min-height), not the card
+      cut off (its bottom border is intact and the line ends on a whole word), not the typewriter (wired to narration bubbles only,
+      and it keeps hidden text's space), not stage.js's captains-box max-height, not the crate dials (the phone box got shorter).
+      Next step: pose a phone battle at the "must answer…" moment and read the line's text and box. Mild if real — one word.
 - [ ] **A BATTLE AT THE BOARD'S RIGHT EDGE PILES ONE CALL CIRCLE ON THE OTHER.** Found by Wy-Blade's crate trial
       (sep13-trial-crates @ f0017432, screen crew-desktop-guest-025, day 18): two battling ships share a square on the board's
       RIGHT edge, both call circles are pushed to the left, and "Call Dough Hook" covers almost all of "Call test1" — the trial's
