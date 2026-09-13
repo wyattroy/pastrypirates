@@ -38,7 +38,11 @@ const WATCH = `(()=>{
     while(S.seen<evs.length){ const e=evs[S.seen++];
       if(!e||typeof e.p!=='number')continue;
       if(e.t==='turn') S.live.push({kind:'turn',p:e.p,t0:now,vb0:vb(),moved:false});
-      if(e.t==='dock') S.live.push({kind:'dock',p:e.p,t0:now,mine:(a.mySeat===e.p),coin:false});
+      /* ⚠ JUDGED AGAINST THE FLIP, NOT THE DOCK. Since b74d1da3 the tiny coin hangs off the engine's 'coinflip'
+         event, recorded at the tap. A person's 'dock' event arrives only after their buy decision — by then
+         the coin has long landed and faded — so a probe still watching the 3s after 'dock' reported a guest's
+         dock as "0/1 drew a coin" in the very run whose timing pair showed that coin 49ms after the tap. */
+      if(e.t==='coinflip'&&e.why==='dock') S.live.push({kind:'dock',p:e.p,t0:now,mine:(a.mySeat===e.p),coin:false});
     }
     /* 2026-09-13 later — "the tiny coin should flip WHEN the host's coin is flipping": when THIS screen's big coin
        starts spinning (its own captain's flip), and when a tiny coin appears here for somebody else, both on the
