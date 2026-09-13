@@ -139,7 +139,7 @@ async function waitUntil(c, js, what, { card = false, deadlineMs = BOOT_DEADLINE
   while (Date.now() - t0 < deadlineMs) {
     last = await c.ev(js);
     if (last && last.ok) {
-      (c.bootWaits ||= []).push({ what, ms: Date.now() - t0, card, sinceOpen: c.openedAt ? Date.now() - c.openedAt : null });
+      (c.bootWaits ||= []).push({ what, ms: Date.now() - t0, card, sinceOpen: c.navReturnedAt ? Date.now() - c.navReturnedAt : null });
       return last;
     }
     // a page that is still arriving has no __gate yet, and an evaluation can die with the old
@@ -159,6 +159,13 @@ const waitGate = (c, id, what, opts) => waitUntil(c, gateJS(id), what, opts);
 async function navFresh(c, url) {
   await c.ev("window.__ppLeaving = true; 1");
   await c.nav(url);
+  /* THE CLOCK STARTS WHEN nav RETURNS, because that is when the old rig's fixed pause began -- and
+     the two engines return at different moments. cdp.mjs's nav is Page.navigate, which returns at
+     once; wk.mjs's is page.goto(url, {waitUntil: "load"}), which returns after the page has
+     loaded. Timed from before the call, every WebKit leg in the 2026-09-13 trial was logged "would
+     have thrown this voyage away" at 11.7-30.3 s, counting a load the old rig had already waited
+     out. The second navFresh overwrites this, and the second one is what the old pause followed. */
+  c.navReturnedAt = Date.now();
   const origin = new URL(url).origin;
   await waitUntil(c, `(() => { if (window.__ppLeaving) return {ok:false, why:'the previous page is still up'};
     if (location.origin !== ${JSON.stringify(origin)}) return {ok:false, why:'still on ' + location.href};
@@ -169,7 +176,7 @@ function bootWaitSummary(c) {
   const w = c.bootWaits || [];
   const card = w.find(x => x.card);
   const lost = card && card.sinceOpen > OLD_FIXED_WAIT_MS ? ` — the old rig looked once at ${OLD_FIXED_WAIT_MS}ms and would have thrown this voyage away` : "";
-  return w.map(x => `${x.what} ${x.ms}ms`).join(", ") + (card ? ` · mode card ready ${card.sinceOpen}ms after the page was opened${lost}` : "");
+  return w.map(x => `${x.what} ${x.ms}ms`).join(", ") + (card ? ` · mode card ready ${card.sinceOpen}ms after the page-open call returned${lost}` : "");
 }
 
 async function freshPage(c, idSuffix = "a") {
@@ -178,7 +185,6 @@ async function freshPage(c, idSuffix = "a") {
   // each browser needs its OWN id or the second one rejoins as the first's seat (§5c) — the shared
   // prefix is what makes both filterable, the suffix is what keeps them distinct captains.
   await c.ev(`localStorage.clear(); localStorage.setItem('pp_id', ${JSON.stringify(QA_PLAYER_ID)} + '-' + ${JSON.stringify(idSuffix)}); 1`);
-  c.openedAt = Date.now();
   await navFresh(c, url);
   await c.ev(GATE_SRC);
 }
