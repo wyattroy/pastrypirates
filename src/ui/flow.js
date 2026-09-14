@@ -69,6 +69,7 @@ import {
   vwPx, fixedRect,
   clearSoloState, clearSession,   // ?pilot=new starts a NEW voyage; these own the two saved blobs
   buildPlayerRows,                // endReplay: the captains' rows, rebuilt once in sailing order
+  say, sayAll, seat,              // the one door to src/shared/words.js
 } from "./util.js";
 import { passGate, requireName, showStep, openNameModal, confirmName, wireNameModal, setNameWarning } from "./lobby.js";
 import { playBakeoffLive } from "./bakeoff.js";
@@ -315,7 +316,7 @@ export async function humanFlip(player,label,allowBack,sub,why){
   // `sub` is the italic helper line beneath the buttons — used by the dock flip to explain what
   // the two faces of the coin actually pay (Wyatt, 2026-08-05).
   // @copy prompt.flip.fallback
-  const v=await ask(label||"Flip the dubloon!",opts,null,sub);
+  const v=await ask(label||say("flip.ask",{}),opts,null,sub);
   if(v==="back")return "back";
   /* THE RESULT IS DECIDED AT THE TAP, AND EVERY OTHER SCREEN HEARS OF IT AT ONCE. It used to be decided 795ms
      later, after this device's spin, and a dock's result reached nobody until the whole dock — buy included —
@@ -335,10 +336,12 @@ export async function humanFlip(player,label,allowBack,sub,why){
      `sleep`, so fast-forward, pause and reload-replay behave exactly as before. */
   await sleep(flipSpinLeftMs());
   netHandlers().onBroadcastFlip(h?"H":"T");
-  // same fixed-3000ms leftover as narrateLastEvent() had — flash() scales the hold to this
-  // (short) message's own length instead of a flat timer unrelated to how long it takes to read
-  // @copy adhoc.flip.announce
-  await flash(`${pn(player.idx)} flips ${h?"⚪ HEADS!":"⚫ TAILS"}`,undefined,undefined,[{seat:player.idx,html:`${pn(player.idx)} — ye flip ${h?"⚪ HEADS!":"⚫ TAILS"}`}]);
+  /* NO "Crustbeard flips HEADS!" LINE ANY MORE — his pass, 2026-09-13: "We can all now see what the coin flips to --
+     i think we can cut this". Checked: this captain sees the big coin land, and every other screen draws the small
+     coin over the boat (dockcoin.js) from the coinflip event published at the tap. The face HOLDS for
+     FLIP_LAND_HOLD_MS — the one hold every other flip already waits out (a battle's, a bot's dock coin) — where it
+     used to hold for however long a sentence nobody needed took to read. */
+  await sleep(FLIP_LAND_HOLD_MS);
   netHandlers().onBroadcastFlip("wait");
   return h;
 }
@@ -2888,6 +2891,11 @@ export async function takeTurn(player){
      It used to sit undrawn until the next drain, which is why the host needed its own private camera
      call in pickCell. The same pair every other turn-level event in this file already uses. */
   publishNow();await liveRender();
+  /* THE TURN'S OPENING LINE, SPOKEN HERE FOR EVERY CAPTAIN — Wyatt, 2026-09-13: "make sure your change is
+     architectural -- not changing the bot line AND the human line". A bot's turn opened with "takes the wheel…" and a
+     human's with "Ahoy, yer turn!", from two different functions. Now the `turn` event is narrated once, at the door
+     both pass through, from one entry in words.js. */
+  await narrateLastEvent();
   return (player.strategy==="human"?humanTurn:botTurn)(player);
 }
 export async function humanTurn(player){
@@ -2918,15 +2926,8 @@ export async function humanTurn(player){
   // turn is genuinely live (see render()) — any reveal from a prior turn is already gone.
   appState.activeTurnSeat=player.idx;appState.recipeRevealed=false;
   liveRender();   // draws the `turn` event takeTurn just emitted, now that the seat flags are set
-  // NARR-03/D-25: the round header already announced the wind moments ago, so the neutral banner
-  // does not restate it; only the captain whose turn it is gets the reminder.
-  // v2 rule 7: the storm has ALREADY happened by the time a turn begins — it blew the whole table
-  // at the top of the round. So the turn banner no longer pre-announces a push that is about to
-  // land on this one captain; there is nothing left for it to warn about.
-  const neutralBanner=`⛵ Ahoy, ${poss(player.idx)} turn!`;
-  const addressedBanner=`⛵ Ahoy, ${pn(player.idx)} — yer turn! The wind blows <b>${DIRNAME[appState.game.windNow]}</b> this round.`;
-  // @copy adhoc.turn.banner
-  await flash(neutralBanner,1500,undefined,[{seat:player.idx,html:addressedBanner}]);
+  /* (The human-only "Ahoy, yer turn!" banner stood here. The start of every captain's turn now says ONE line, from
+     takeTurn — the one door — through the one narrator: "turn.start" in src/shared/words.js, silent by his word.) */
   // the clock only starts once the player actually reaches a decision (wind response, sail
   // pick, action choice, ...) — not from the raw top of the turn, since the wind step itself
   // eats no time. (Each ask()/pickCell() call re-armed it fresh while the clock lived.)
@@ -3123,9 +3124,9 @@ export async function botOpenTradeLive(player){
    unchanged, and the narration still waits for it — through eventDrawn(), on every device. */
 
 export async function botTurn(player){
-  // (applyActiveSeat and the `turn` event now happen in takeTurn — the one door)
+  // (applyActiveSeat, the `turn` event and its one opening line now happen in takeTurn — the one door. A bot's
+  // turn used to open with its own botBeat() here, which narrated that event a second time.)
   const g=appState.game;
-  await botBeat();
   // v2.1: no turn is ever lost to weather, so a bot has no forfeit branch either.
   if(!g.adjPort(player))player.dockedNow.clear();
   // PRINCIPLE 1: the WHOLE turn is decided here, before a square is crossed — the square to finish

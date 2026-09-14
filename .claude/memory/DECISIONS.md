@@ -3017,3 +3017,21 @@ died on the Blade. Rooted off `fileURLToPath(import.meta.url)`.
   the bot's hail, leeward, too-broke-to-sail, the dock's tails choice, and *"Final round — set sail!"* — *"players keep playing
   until someone wins the bakeoff. clean this up from the game."* And the drumroll line is cut.
 - **BACKLOG: ORIGINAL ART FOR EVERY END-OF-VOYAGE TROPHY.** *"we need original art as trophies for each of the endgame trophies"*.
+
+**2026-09-13, night — HIS POP-IN SETTINGS, SECOND ROUND (supersede the first round above):**
+
+    INGREDIENT POP-IN TUNER
+    order: Island by island, clockwise round the board
+    board alone 300ms, gap between islands 0ms, gap between crates 105ms, pop length 550ms, cards after last pop 300ms,
+    start size 17%, overshoot 160%, bounces 3, squash 34%, wobble 8°, drop 4%, sparkles 6
+    sparkle burst on, rising pitch on
+    sound: Cork pop, starting pitch 1 st, climb 1 st per pop, stops after 18 pops, volume 55%
+    cards arrive at 2.62s (today 2.00s)
+
+- **EVERY INGREDIENT POPS IN ON ITS OWN, ONE AFTER ANOTHER, EACH WITH ITS OWN SOUND.** *"it looks like some of these ingredients
+  come in concurrently with each other; and that i don't hear one sound for each ingredient. can you verify that each ingredient
+  appears sequentially?"* Measured in the tuner's own schedule: they did NOT — at every island change the next island's first crate
+  started on the same millisecond as the last island's last crate. Fixed in the tuner (the next island now waits one crate gap plus
+  the island gap), which moves the cards' arrival later than the 2.62s his readout showed; the game must build the fixed timeline.
+- **THE POP SOUND PLAYS WHEN THE INGREDIENT APPEARS, NOT WHEN THE SPARKLE DOES.** *"Also make the sound play when the ingredient
+  appears -- not when the sparkle appears"*.

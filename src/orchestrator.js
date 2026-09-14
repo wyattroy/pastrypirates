@@ -680,7 +680,8 @@ async function asyncBattleRun(att,def){
     await sleep(flipSpinLeftMs());
     const h=appState.game.flip(player);
     broadcastFlip(h?"H":"T");
-    netBroadcast(`${pn(player.idx)} flips ${h?"⚪ HEADS!":"⚫ TAILS"}`);
+    // (no "flips HEADS!" line — his pass, 2026-09-13; the battle card's own coin shows the face on every screen,
+    // and a bot's flip, bFlip below, never had the line at all)
     battlePublish(base(Object.assign({live:side,[key]:h?"H":"T"},extra)));
     // playtest 13 (Wyatt: "hold the finished coin heads/tails for longer — .8 seconds maybe").
     // T-34: the number is FLIP_LAND_HOLD_MS now, shared with the other flips (board.js).
