@@ -1,0 +1,41 @@
+SEA TRIAL 2026.09.14.2 (dev 2dad6006, tree 6be6748b97a2) — leg solo-phone-wk (WebKit, phone), sailed on Wy-Blade 2026-09-14
+Report commit: e16a0d85 on branch sep14-sea-trial-popin (.planning/SEA-TRIAL.md)
+
+HOW THE PICTURE AND THE FAILURE LINE UP (scripts/playtest_gate.mjs settleAndCheck, lines 286-300):
+  1. <screen>.png is shot, and measured (motionFails)
+  2. the page is waited on until it stops moving, then <screen>-settled.png is shot (line 292)
+  3. the page is measured again IMMEDIATELY after that shot (line 294); THOSE checks are the recorded fails
+  So solo-phone-wk-005-settled.png is the picture at the failure. motionOnly is empty: the earlier
+  measurement found nothing the settled one did not.
+
+THE SCREEN RECORDS (sea-trial-shots/report.json), screens 003-006:
+  solo-phone-wk-003-settled.png  settle={"settled":true,"ms":754,"samples":4}
+    screen text: pp4Recipes pp4Stage ~ Pound CakeBa|Dark Chocola ~ sail:0 ~ ~ ~ sel:apBtn recipeCard pp4Focus:Pound Ca,pp4Bake:Bake thi
+    fails: none
+    motionOnly: none
+  solo-phone-wk-004-settled.png  settle={"settled":true,"ms":410,"samples":4}
+    screen text: pp4Center pp4Stage ~ Start ~ sail:0 ~ ~ ~ sel: ~ Davy Scones — ye go first! The rest o' t
+    fails: none
+    motionOnly: none
+  solo-phone-wk-005-settled.png  settle={"settled":true,"ms":397,"samples":4}
+    screen text: pp4Stage ~ ~ sail:0 ~ ~ ~ sel: ~ 
+    fails: 
+      [not-occluded] clickable covered by something else: sailCell <- covered by .pp4BubIn <div>, sailCell <- covered by .pp4BubIn <div>
+      [sail-clickable] 2 sail square(s) covered: a sail square <- .pp4BubIn <div>
+    motionOnly: none
+  solo-phone-wk-006-settled.png  settle={"settled":true,"ms":1961,"samples":16}
+    screen text: radial pp4Stage ~ ~ sail:0 ~ ~ ~ sel: ~ Davy Scones, what'll ye do:
+    fails: none
+    motionOnly: none
+
+THIS RUN'S LOG LINES FOR THE LEG, from its start through day 2 (sea-trial-shots/log.txt; the file appends every run, this is the last one):
+  8663: [61s]   [solo-phone-wk] STRUCT FAIL not-occluded: clickable covered by something else: sailCell <- covered by .pp4BubIn <div>, sailCell <- covered by .pp4BubIn <div>  -- SEE solo-phone-wk-005-settled.png
+  8664: [61s]   [solo-phone-wk] STRUCT FAIL sail-clickable: 2 sail square(s) covered: a sail square <- .pp4BubIn <div>  -- SEE solo-phone-wk-005-settled.png
+  8665: [61s]   [solo-phone-wk] DAY 1
+  8685: [94s]   [solo-phone-wk] note: still moving at the cap (2675ms) — checked anyway
+  8692: [110s]   [solo-phone-wk] DAY 2
+  8720: [160s]   [solo-phone-wk] DAY 3
+  (the log itself names the picture on its failure lines: "SEE solo-phone-wk-005-settled.png".
+   Screen order: 004 "Davy Scones — ye go first!" + Start  ->  005 THE FAILURE, the day-1 wind bubble  ->  006 "Davy Scones, what'll ye do:")
+
+Per-leg record file (not copied): sea-trial-shots/legs/solo-phone-wk--2026.09.14.2--6be6748b97a2.json
