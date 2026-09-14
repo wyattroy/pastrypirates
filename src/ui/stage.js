@@ -113,6 +113,9 @@ const S = {
   lastPill: "",
   geomAt: 0,                // D-31: Date.now() of the last computeStageGeometry() measurement pass
   geomBound: false,         // …and whether the resize listener has been registered yet
+  settleUntil: 0,           // the board's arrival (settleBoardIn): until this moment camFrame reads the board's width from before it
+  stripW: 0,                // …the board window's last untransformed width, which is what it reads instead
+  bandWatch: null,          // the ResizeObserver on the ribbon and the wind pill (see buildStage)
 };
 
 /* ================= camera ================= */
@@ -522,6 +525,15 @@ let ribHCache = 48, ribHAt = -1e9, lastVB = "", lastRipT = "";
    (playtest 11, a hot phone). Read by camFrame() every frame AND by computeStageGeometry() when it
    sizes the desktop board — one measurement, so the square it derives and the strip the camera
    paints cannot drift apart (rule 23). */
+/* Something in the header changed size or row. Re-read the band NOW and, if the board's top edge moved, re-size and
+   re-frame the board in this same frame — so a change reaches the screen as one layout, never as the old board for half
+   a second followed by a jump. */
+function bandChanged(){
+  const before = ribHCache;
+  ribHAt = -1e9;
+  if (!S.active) return;
+  if (topBandPx() !== before){ lastVB = ""; computeStageGeometry(); camFrame(); }
+}
 function topBandPx(){
   if (performance.now() - ribHAt > 500){
     const rib = $("pp4Ribbon");
@@ -992,7 +1004,9 @@ function camFrame(){
      the viewBox was cut 4% wider than the window it was drawn into and the board came out
      739 x 708 — ten rows tall against ten and a half columns wide. Read off the element that
      actually holds it, after the square cap above has been applied to it. */
-  const stripW = wrap ? (wrap.getBoundingClientRect().width || vwPx()) : vwPx();
+  const settling = S.settleUntil && performance.now() < S.settleUntil && S.stripW;   // see settleBoardIn
+  const stripW = settling ? S.stripW : (wrap ? (wrap.getBoundingClientRect().width || vwPx()) : vwPx());
+  if (!settling) S.stripW = stripW;
   const aspect = availH / stripW;
   let h = c.w * aspect;
   if (h > 640) h = 640;                       // whole board fits vertically; width stays filled
@@ -1062,7 +1076,7 @@ function camFrame(){
          pan by viewBox, and toScreen() already reads the SVG's own rect. This is that same
          measurement, for the HTML layers. */
       const bw = $("boardwrap");
-      const W = (bw && bw.getBoundingClientRect().width) || vwPx(), s2 = 640 / c.w;
+      const W = (settling ? S.stripW : (bw && bw.getBoundingClientRect().width)) || vwPx(), s2 = 640 / c.w;
       const t = `scale(${s2}) translate(${-(c.x / 640) * W}px, ${-(vy / 640) * W}px)`;
       if (t !== lastRipT){
         lastRipT = t;
@@ -1457,12 +1471,21 @@ function pillTick(){
      left group, wind, right group. Guarded on the current parent, so this is a no-op on all but
      the one tick a window actually crosses the boundary; the phone keeps its own fixed pill below
      the ribbon (D-18/D-31, the phone stays as it is). */
+  /* ⭐ THE WORDS GO IN BEFORE THE ROW IS CHOSEN — the board jitter Wyatt passed on the game feel audit: "The board
+     currently jitters when it comes in, and seems to choose a few differnt sizes before settling. It may be caused by
+     the navbar row/other elements fighting/jostling". Measured 2026-09-14, first five seconds of a solo voyage: the
+     pill was placed while still EMPTY (24px wide), so it fitted the header row, then filled to 217px and no longer
+     did — it hopped rows on the phone, and the board under it moved 18px at 663ms (phone) and 24px at 537ms, then
+     grew 24px at 936ms (laptop), each time the band under the header was next re-read. So: fill it, THEN place it,
+     and when either changes, the board is re-measured on the spot rather than on the half-second cache. */
   const rib = $("pp4Ribbon");
-  const wantRibbon = !!rib && pillFitsRibbon(rib, p);
-  if (wantRibbon && p.parentNode !== rib) rib.insertBefore(p, $("pp4FF") || rib.lastElementChild);
-  else if (!wantRibbon && p.parentNode !== document.body) document.body.appendChild(p);
   const h = pillHTML();
-  if (h !== S.lastPill){ p.innerHTML = h; S.lastPill = h; }
+  let moved = false;
+  if (h !== S.lastPill){ p.innerHTML = h; S.lastPill = h; moved = true; }
+  const wantRibbon = !!rib && pillFitsRibbon(rib, p);
+  if (wantRibbon && p.parentNode !== rib){ rib.insertBefore(p, $("pp4FF") || rib.lastElementChild); moved = true; }
+  else if (!wantRibbon && p.parentNode !== document.body){ document.body.appendChild(p); moved = true; }
+  if (moved) bandChanged();
   // statsWrap's visibility is toggled via its inline style — read that, never getComputedStyle
   // (which forces style recalc and was running every frame; see the HOT-PHONE note above)
   const sw = $("statsWrap");
@@ -3181,7 +3204,25 @@ function buildStage(){
   camFull();
   S.active = true;
   S.recipePicked = false;      // a new voyage starts with an empty captains box again (capEmptyTick)
+  /* ⭐ ONE LAYOUT BEFORE THE FIRST PAINT. The pill's words and row, then the board measured under them, then the pill
+     once more in case the ribbon's fit moved it, then the camera — all before the browser paints, so the board's
+     first frame is its final one. Before this the stage painted a frame at the full window height (732x800 on a
+     laptop) before camFrame had run at all. */
+  pillTick();
   computeStageGeometry();   // D-31: size the stage before the first paint, not after
+  pillTick();
+  camFrame();
+  /* A late change to the header — a font arriving, a name growing, the ribbon's fit — re-measures the board in the
+     frame it happens (a ResizeObserver runs before paint), instead of on the next half-second read. */
+  /* ⚠ ONE FRAME LATER, NOT INSIDE THE CALLBACK: re-measuring re-fits the ribbon, which resizes the very element being
+     observed, and a resize caused inside a ResizeObserver callback is reported by the browser as a console error.
+     Re-observed on every build, because a new voyage builds a new ribbon and pill. */
+  if (typeof ResizeObserver === "function"){
+    if (!S.bandWatch) S.bandWatch = new ResizeObserver(() => requestAnimationFrame(bandChanged));
+    S.bandWatch.disconnect();
+    for (const id of ["pp4Ribbon", "pp4Pill"]){ const el = $(id); if (el) S.bandWatch.observe(el); }
+  }
+  settleBoardIn(wrap);
   if (!S.geomBound){
     S.geomBound = true;
     let t = 0;
@@ -3193,6 +3234,26 @@ function buildStage(){
     /* and when Safari's bottom bar expands or collapses on his phone, which moves the visual viewport */
     if (window.visualViewport) window.visualViewport.addEventListener("resize", again);
   }
+}
+
+/* ⭐ THE BOARD SETTLES IN — PASSED on his game feel audit, 2026-09-13, as proposed there: "The whole board arrives a touch
+   large (about 104%) and settles to size in half a second, so the first frame feels like arriving somewhere rather than
+   a page loading." A quick fade over the first third, so the first frame is not a hard cut.
+   ⚠ camFrame MEASURES THIS ELEMENT, and a scale changes what getBoundingClientRect reports — a 104% width would cut the
+   viewBox 4% short and the board would crop and then snap at the end. So for the arrival camFrame reads the board
+   window's width from before it (S.stripW), and the layout underneath never moves. */
+const BOARD_SETTLE_FROM = 1.04;
+const BOARD_SETTLE_MS = 500;
+function settleBoardIn(wrap){
+  if (!wrap || typeof wrap.animate !== "function") return;
+  if (typeof matchMedia === "function" && matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  S.settleUntil = performance.now() + BOARD_SETTLE_MS + 50;
+  const an = wrap.animate([
+    { opacity: 0, transform: `scale(${BOARD_SETTLE_FROM})` },
+    { opacity: 1, offset: .3 },
+    { opacity: 1, transform: "scale(1)" },
+  ], { duration: BOARD_SETTLE_MS, easing: "cubic-bezier(.2,.7,.3,1)" });
+  an.onfinish = an.oncancel = () => { S.settleUntil = 0; lastVB = ""; };
 }
 
 /* ================= D-31: the desktop stage's own size ================= */
