@@ -1560,6 +1560,21 @@ replaced with his explicit width, not just mirrored.
       board at his phone size and the laptop window before anything ships — and his call on which four, and on whether a ship's
       style follows the seat or the captain.
 
+## 🏆 THE TROPHIES — his ask of 2026-09-13
+
+- [ ] **ORIGINAL ART FOR EVERY END-OF-VOYAGE TROPHY.** His words: *"add to the backlog: we need original art as trophies for each of
+      the endgame trophies"*. Today each award card on the end screen carries a placeholder emblem from `assets/badges/` (the
+      pool's own note: "placeholders Wyatt will repaint"). The ten trophies a voyage can hand out today (`BADGE_POOL` +
+      `FALLBACK_BADGE`, src/ui/util.js): The Cutlass of a Thousand Notches (cutlass.png), The Open Purse (doubloon.png), The
+      Horizon-Chaser's Compass (compass.png), The Iron Gut Medal (medal.png), The Black Spot of Bad Tides (blackspot.png), The Lucky
+      Streak (herring.png — a fish on a luck trophy, left over from the retired Golden Herring), The Silver-Tongued Ledger
+      (ledger.png), The Painted Target (target.png), The Splintered Timbers (timbers.png), Good Mate (anchor.png).
+      `barnacle.png` belongs to the retired Barnacle Brain and nothing draws it. ⚠ The narration pass page of 2026-09-13 showed
+      three trophies that no longer exist (The Golden Herring, The Lucky Doubloon, The Barnacle Brain) — build from `BADGE_POOL`, not
+      from that page. Process when built: the art pipeline (scripts/art/gen.mjs, in the style of the approved ingredient art, outlined
+      at the same weight), a line-up first, then each trophy on the real end card at his phone size and the laptop window, his
+      approval before anything ships.
+
 ## ⬇ LAST, BY HIS WORD — not urgent
 
 - [ ] **THE EMPTY HOLD'S CRATE: DARK, WITH THE CRATE'S TEXTURE SHOWING — NOT A SOLID BLACK SHAPE.** His words, 2026-09-13:

@@ -2978,3 +2978,42 @@ died on the Blade. Rooted off `fileURLToPath(import.meta.url)`.
   popping in -- can you do that?"* The tuner gets a choice of pop sounds and pitch dials; his pick is rendered to a file for the game.
 - **THEN THE GAME FEEL AUDIT.** *"then do the game feel audit"* — after the pop sound; the BACKLOG GAME FEEL item's deliverable
   (every moment, what it does today, the juice it could have, Passed/Problem per suggestion).
+
+**2026-09-13, night — HIS NARRATION PASS (the page was built on dev @ a450a323), and ONE PLACE FOR THE WORDS:**
+
+- **EVERY WORD THE GAME SAYS LIVES IN ONE PLACE, AND NARRATION HAS ONE DOOR — NO SEPARATE LINES FOR BOTS AND HUMANS.** His notes
+  across the pass: *"the narration system should be overhauled to use the same engine logic as we have created for everything else
+  -- every action has a location (this browser/remote) and a player type (bot/human) -- we need to clean this up."* · *"All the
+  narration should be re-architected to live in one place -- fix this."* · *"there should be no separate track of dialogy for
+  botTurn() -- re-architect this away. we use one engine, that accepts as arguments the action taken, the player type (human/bot),
+  the location of the player (this browser/remote), and serves an event."* So: a player's type decides HOW a move is chosen and
+  never which words describe it; the location decides "ye" or the captain's name. The "ye" form is derived, never hand-written
+  twice — his standing ask: *"i don't want to actually write out every single for of "ye" vs "Player""*.
+- **THE TURN-START LINE IS ONE LINE FOR EVERY CAPTAIN, AND IT IS SILENT FOR NOW.** On the bots' "takes the wheel…": *"I don't think
+  we need this, it always makes the game feel laggy. can we cut it and see how it feels?"* Asked whether the humans' "Ahoy, yer
+  turn!" goes too: *"make sure your change is architectural -- not changing the bot line AND the human line.."* One entry for
+  the start of any captain's turn, used on every screen; empty, so he can feel the game without it.
+- **SAIL ORDER, AS HE WROTE IT:** *"{Crustbeard} goes first! The rest o' ye get {coin}."* — no per-captain amounts (picked
+  "As I wrote it").
+- **THE DAY LINE KEEPS "Tomorrow: …"** (picked "Keep"; the pass page had left that ending off — a fault in the page).
+- **THE WEATHER WORDS:** "Day 3: Wind still NORTH." for ANY repeated direction (*"Make this appear for 2+ (any repeated wind
+  directions."*); "Day 3: Storm's blowin' NORTH." (a new storm), "Day 3: Storm's now blowin' NORTH." (the storm goes on, the
+  direction changed), "Day 3: Storm's still blowin' NORTH." (the storm goes on, same direction). The "won't quit" forms are cut.
+  **This drops "It'll blow every ship 3 squares NORTH." and SUPERSEDES A-9 (2026-08-28)** — the storm summary after the push still
+  names the squares.
+- **THE COIN-FLIP ANNOUNCEMENT ("Crustbeard flips HEADS!") IS CUT** — *"We can all now see what the coin flips to -- i think we can
+  cut this; but check my thinking"*.
+- **THE STATS SAY "HEADS ⚪", NOT "heads-luck"** — *"Change the term "heads-luck" to "HEADS {heads-coin}""*.
+- **HIS REWRITES, VERBATIM** (placeholders are his): "Crustbeard fired up the bakery!" · "{Crustbeard} goes first! The rest o' ye get
+  {coin}." · "Yer mateys will appear when they join. Wait for them before ye hit start." · "Docking at {wheat} the Flour Patch" ·
+  "Crustbeard's downwind shot hits!" · "No hit -- cannonballs collide in the crosswind." · "Both miss." · "{Player} called it
+  wrong." · "Crustbeard wins and takes Cacao Pods." · "Davy Scones slips away!" · "Crustbeard attacks Davy Scones!" · "Dough Hook
+  +5 · Flaky Jack −2" (the settle line, no "The Lookout settles") · "A battle's brewing! Guess the winner and win 1"
+  battle's brewing!") · the trade button "Coins" · "Crustbeard finds treasure (+N) at the Flour Patch!" · "Crustbeard earns
+  1{coin} scrubbin' the docks and buys a crate of Wheat Sheaves (−N)." · "Flip the doubloon!" · "Pass to {Name}" (on a card he
+  had never seen).
+- **CLEAN UP WHAT OLD RULES LEFT BEHIND** — *"This isn't in the game any more -- remove it."* / *"I think this from an old version
+  of the game.. clean it up?"*: storm dodge and anchor-or-flip, fishing, the backed call and the raise, bribes, the trade bonus,
+  the bot's hail, leeward, too-broke-to-sail, the dock's tails choice, and *"Final round — set sail!"* — *"players keep playing
+  until someone wins the bakeoff. clean this up from the game."* And the drumroll line is cut.
+- **BACKLOG: ORIGINAL ART FOR EVERY END-OF-VOYAGE TROPHY.** *"we need original art as trophies for each of the endgame trophies"*.
