@@ -1,0 +1,326 @@
+<title>Pastry Pirates Voyage Ahead</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Averia+Serif+Libre:wght@400;700&family=Nunito+Sans:opsz,wght@6..12,400;6..12,600;6..12,800&display=swap">
+<style>
+  :root {
+    --ground: #f7f1dc;
+    --surface: #fffdf3;
+    --ink: #1f4249;
+    --ink-soft: #4e6d72;
+    --teal: #1d7f8b;
+    --teal-bright: #29a3b2;
+    --gold: #fdb63d;
+    --gold-deep: #b9780f;
+    --gold-ink: #5a3a05;
+    --line: #d9e6df;
+    --note: #eef5ef;
+    --display: 'Averia Serif Libre', 'Iowan Old Style', Georgia, serif;
+    --body: 'Avenir Next', Avenir, 'Nunito Sans', 'Segoe UI', system-ui, sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ground: #0d2529; --surface: #133238; --ink: #e8f1ec; --ink-soft: #a7c0c0;
+      --teal: #6fcad5; --teal-bright: #6fcad5; --gold: #fdb63d; --gold-deep: #fdb63d;
+      --gold-ink: #3b2603; --line: #24484f; --note: #0f2b30;
+    }
+  }
+  :root[data-theme="dark"] {
+    --ground: #0d2529; --surface: #133238; --ink: #e8f1ec; --ink-soft: #a7c0c0;
+    --teal: #6fcad5; --teal-bright: #6fcad5; --gold: #fdb63d; --gold-deep: #fdb63d;
+    --gold-ink: #3b2603; --line: #24484f; --note: #0f2b30;
+  }
+
+  * { box-sizing: border-box; }
+  body { background: var(--ground); color: var(--ink); font-family: var(--body); font-size: 16px; line-height: 1.55; }
+  a { color: var(--teal); text-underline-offset: 2px; }
+  a:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; border-radius: 3px; }
+
+  .page { max-width: 46rem; margin: 0 auto; padding: 2.5rem 1.25rem 4rem; display: grid; gap: 2.5rem; }
+
+  header { display: grid; gap: .9rem; }
+  .eyebrow { font-size: .75rem; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; color: var(--teal); margin: 0; }
+  h1 { font-family: var(--display); font-weight: 700; font-size: clamp(2rem, 6vw, 2.9rem); line-height: 1.05; margin: 0; text-wrap: balance; }
+  .lede { margin: 0; font-size: 1.05rem; max-width: 38rem; }
+  .how { margin: 0; color: var(--ink-soft); font-size: .95rem; max-width: 38rem; }
+
+  .settled { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 1rem 1.2rem; }
+  .settled h2 { font-size: .75rem; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; color: var(--ink-soft); margin: 0 0 .5rem; font-family: var(--body); }
+  .settled ul { margin: 0; padding-left: 1.1rem; display: grid; gap: .3rem; font-size: .93rem; }
+
+  nav { display: flex; flex-wrap: wrap; gap: .5rem; }
+  nav a { font-size: .85rem; font-weight: 600; text-decoration: none; padding: .35rem .8rem; border-radius: 999px; border: 1.5px solid var(--line); background: var(--surface); color: var(--ink); }
+  nav a:hover { border-color: var(--teal-bright); }
+
+  section { display: grid; gap: 1.5rem; }
+  .leg { display: flex; align-items: baseline; gap: .75rem; border-bottom: 2px solid var(--ink); padding-bottom: .4rem; }
+  .leg h2 { font-family: var(--display); font-size: 1.5rem; margin: 0; }
+  .leg span { color: var(--ink-soft); font-size: .88rem; }
+
+  .q { display: grid; grid-template-columns: 2.6rem 1fr; gap: 0 1rem; scroll-margin-top: 1rem; }
+  .coin { width: 2.6rem; height: 2.6rem; border-radius: 50%; display: grid; place-items: center;
+    background: radial-gradient(circle at 35% 30%, #ffe19a, var(--gold) 60%, #e39a1f);
+    box-shadow: inset 0 0 0 2px rgba(120, 70, 0, .35); color: var(--gold-ink);
+    font-weight: 800; font-variant-numeric: tabular-nums; font-size: 1rem; }
+  .qbody { display: grid; gap: .55rem; min-width: 0; }
+  .q h3 { font-family: var(--display); font-weight: 700; font-size: 1.28rem; line-height: 1.2; margin: .35rem 0 0; text-wrap: balance; }
+  .ask { margin: 0; font-size: 1.02rem; font-weight: 600; }
+  .context { margin: 0; color: var(--ink-soft); font-size: .95rem; }
+  .others { background: var(--note); border-radius: 10px; padding: .7rem .95rem; font-size: .9rem; }
+  .others b { display: block; font-size: .7rem; letter-spacing: .12em; text-transform: uppercase; color: var(--teal); margin-bottom: .25rem; }
+  .others ul { margin: 0; padding-left: 1rem; display: grid; gap: .25rem; }
+  .src { font-size: .8rem; white-space: nowrap; }
+
+  footer { color: var(--ink-soft); font-size: .85rem; border-top: 1px solid var(--line); padding-top: 1rem; }
+
+  @media (max-width: 480px) {
+    .q { grid-template-columns: 1fr; gap: .4rem; }
+    .coin { width: 2.2rem; height: 2.2rem; font-size: .9rem; }
+  }
+</style>
+
+<main class="page">
+  <header>
+    <p class="eyebrow">Interview · 14 September 2026 · branch sep14-future-plans</p>
+    <h1>The voyage ahead</h1>
+    <p class="lede">Twenty questions about where Pastry Pirates sails after launch: money, accounts, ways to play, merch and the real-world board. Each one is built from what comparable games actually do.</p>
+    <p class="how">We'll go one at a time in chat and you answer out loud. If you'd rather dictate a batch, start each answer with its number. Every "others" note links to the page it came from; anything that couldn't be verified was left out.</p>
+  </header>
+
+  <aside class="settled">
+    <h2>Already settled, so not asked again</h2>
+    <ul>
+      <li>It's <strong>"a living game I grow for years"</strong> (your ruling, 30 Aug).</li>
+      <li>Logins and paid digital merch come <strong>within a month of launch</strong>, so the questions ask what they're <em>for</em>, not whether.</li>
+      <li>Today: free, no login, no download, no ads, 1 to 4 captains, solo, pass-the-wheel or online crew, and a 🍪 Buy me a cookie button.</li>
+      <li>Bots and humans always play by identical rules.</li>
+    </ul>
+  </aside>
+
+  <nav aria-label="Jump to a topic">
+    <a href="#shape">The shape of it</a><a href="#money">Money</a><a href="#accounts">Accounts</a><a href="#modes">Ways to play</a><a href="#physical">Merch &amp; the real world</a><a href="#growth">Getting found</a>
+  </nav>
+
+  <section id="shape">
+    <div class="leg"><h2>The shape of it</h2><span>1–2</span></div>
+
+    <article class="q" id="q1"><div class="coin">1</div><div class="qbody">
+      <h3>What does "a living game I grow for years" look like when it's working?</h3>
+      <p class="ask">Pick your scoreboard: players a week, money, hours you get back, letters from families? If thousands played and it never earned a cent, would that count as winning?</p>
+      <div class="others"><b>What others did</b><ul>
+        <li>Wordle had fewer than 100 players at first, then 2 million within weeks. It never charged anything. The New York Times bought it for "low seven figures". <a class="src" href="https://www.cnbc.com/2022/01/31/the-new-york-times-is-buying-wordle.html">CNBC</a></li>
+        <li>Lichess is free forever to millions, and donations pay for its servers and one full-time developer. <a class="src" href="https://lichess.org/patron">lichess.org</a></li>
+      </ul></div>
+    </div></article>
+
+    <article class="q" id="q2"><div class="coin">2</div><div class="qbody">
+      <h3>Hobby, side business, or company?</h3>
+      <p class="ask">What monthly amount would change something for you: covering the Firebase bill, a few hundred dollars, or a salary? And how many hours a week of tax, support and payments are you willing to own?</p>
+      <div class="others"><b>What it takes</b><ul>
+        <li>Paddle becomes the legal seller and files sales tax worldwide, for 5% + 50¢ per checkout. <a class="src" href="https://www.paddle.com/pricing">Paddle</a></li>
+        <li>Stripe is cheaper per sale, but you stay the seller. Its full tax-filing service starts at $90 a month. <a class="src" href="https://stripe.com/tax/pricing">Stripe</a></li>
+        <li>EU tax on digital sales applies even to a US seller. <a class="src" href="https://vat-one-stop-shop.ec.europa.eu/one-stop-shop/declare-and-pay-oss_en">EU</a></li>
+      </ul></div>
+    </div></article>
+  </section>
+
+  <section id="money">
+    <div class="leg"><h2>Money</h2><span>3–8</span></div>
+
+    <article class="q" id="q3"><div class="coin">3</div><div class="qbody">
+      <h3>What will Pastry Pirates promise never to do?</h3>
+      <p class="context">Your About page already says "no cookies, no ads, nothing sold to anyone." Is that a launch-day fact or a forever promise?</p>
+      <p class="ask">Which of these go on the never list: ads, paying to win, selling data, mystery-box purchases, charging to play with friends?</p>
+      <div class="others"><b>What others do</b><ul>
+        <li>Lichess promises "no ads, no subscriptions", free forever. Ticket to Ride advertises "ad-free". <a class="src" href="https://lichess.org/about">Lichess</a> <a class="src" href="https://www.marmaladegamestudio.com/games/ticket-to-ride">Marmalade</a></li>
+        <li>Research consistently finds that players accept paying for looks and resent paying for power. <a class="src" href="https://link.springer.com/article/10.1186/s43093-025-00700-w">Springer</a></li>
+        <li>On phones, Gartic Phone players complain that ads lag the game. <a class="src" href="https://apps.apple.com/us/app/gartic-phone/id6788498566">App Store</a></li>
+      </ul></div>
+    </div></article>
+
+    <article class="q" id="q4"><div class="coin">4</div><div class="qbody">
+      <h3>When a crew sails together, should one captain's purchase carry the whole table?</h3>
+      <p class="ask">Does "one captain pays, the whole crew gets the extras" feel generous and right, or does it give too much away?</p>
+      <div class="others"><b>What others do</b><ul>
+        <li>Jackbox: "only one person in your group needs to own" the game. <a class="src" href="https://www.jackboxgames.com/how-to-play">Jackbox</a></li>
+        <li>Colonist: "to play with your friends only 1 player needs a Membership." <a class="src" href="https://colonist.io/store">Colonist</a></li>
+        <li>Board Game Arena: one premium player at the table unlocks a premium game. <a class="src" href="https://forum.boardgamearena.com/viewtopic.php?t=35510">BGA forum</a></li>
+      </ul></div>
+    </div></article>
+
+    <article class="q" id="q5"><div class="coin">5</div><div class="qbody">
+      <h3>What could someone buy that never helps them win?</h3>
+      <p class="ask">Which are Pastry Pirates: new seas or maps, new captains, ship and flag looks, new recipes, a winter or night sea, sound and music packs? And what is sacred and stays free for everyone?</p>
+      <div class="others"><b>What others sell</b><ul>
+        <li>Wingspan sells $4.99 look-only packs next to $9.99–$11.99 expansions. <a class="src" href="https://store.steampowered.com/app/1054490/Wingspan/">Steam</a></li>
+        <li>Ticket to Ride sells new maps from $3.99 to $34.99. <a class="src" href="https://store.steampowered.com/app/2477010/">Steam</a></li>
+        <li>Colonist sells colours, avatars and extra maps. Catan Universe sells avatar outfits and pets. <a class="src" href="https://colonist.io/store">Colonist</a></li>
+      </ul></div>
+    </div></article>
+
+    <article class="q" id="q6"><div class="coin">6</div><div class="qbody">
+      <h3>One price, a membership, or a supporter's badge?</h3>
+      <p class="ask">Should the 🍪 Buy me a cookie button grow into something: a flag on your ship, your name in the credits, a membership with perks, or a one-time "full game" unlock?</p>
+      <div class="others"><b>What others do</b><ul>
+        <li>Ticket to Ride costs $14.99 once, with expansions sold on top. <a class="src" href="https://store.steampowered.com/app/2477010/">Steam</a></li>
+        <li>Board Game Arena Premium is 36 a year. Their own announcement says some members use none of the perks and treat it as a donation. <a class="src" href="https://forum.boardgamearena.com/viewtopic.php?p=141374">BGA</a></li>
+        <li>Lichess supporters get "Patron wings" on their profile, and nothing is ever locked. <a class="src" href="https://lichess.org/patron">Lichess</a></li>
+      </ul></div>
+    </div></article>
+
+    <article class="q" id="q7"><div class="coin">7</div><div class="qbody">
+      <h3>Does the game live only at playpastrypirates.com?</h3>
+      <p class="ask">Or can you picture your players finding it on a game portal, on Steam, in the App Store, or inside a Discord call?</p>
+      <div class="others"><b>The trade-offs</b><ul>
+        <li>Poki splits ad money 50/50 on the players it sends you, but asks for 5 years of web exclusivity. <a class="src" href="https://developers.poki.com/guide/revenue-deal-types">Poki</a></li>
+        <li>CrazyGames has no exclusivity and shows ads, but you pay for multiplayer servers yourself. <a class="src" href="https://docs.crazygames.com/faq/">CrazyGames</a></li>
+        <li>Steam costs $100 per game. The App Store costs $99 a year, takes a 15% cut, and rejects apps that are just "a repackaged website". <a class="src" href="https://developer.apple.com/app-store/review/guidelines/">Apple</a></li>
+        <li>Colonist runs inside Discord as a game friends play during a voice call. <a class="src" href="https://blog.colonist.io/play-colonist-on-discord/">Colonist</a></li>
+      </ul></div>
+    </div></article>
+
+    <article class="q" id="q8"><div class="coin">8</div><div class="qbody">
+      <h3>Is Pastry Pirates yours for keeps?</h3>
+      <p class="ask">If the right offer came, would you license it to a publisher or sell it outright? What's untouchable: the name, the art, the rules, the voice?</p>
+      <div class="others"><b>What others did</b><ul>
+        <li>New board-game designers usually earn about 5% royalties, with $500–$2,000 up front. Stonemaier pays $10,000 up front, and the publisher decides what changes. <a class="src" href="https://stonemaiergames.com/game-designer-contracts-and-stonemaier-games/">Stonemaier</a></li>
+        <li>Exploding Kittens has a version inside Netflix Games. <a class="src" href="https://www.netflix.com/games/81518722">Netflix</a></li>
+      </ul></div>
+    </div></article>
+  </section>
+
+  <section id="accounts">
+    <div class="leg"><h2>Accounts</h2><span>9–11</span></div>
+
+    <article class="q" id="q9"><div class="coin">9</div><div class="qbody">
+      <h3>When a captain signs in, what do they get to keep?</h3>
+      <p class="ask">A win count? A log of past voyages? Captains or looks they've unlocked? Their purchases on any device? A list of their crewmates?</p>
+      <div class="others"><b>What others do</b><ul>
+        <li>Chess.com guests can play, but keep no game history. <a class="src" href="https://support.chess.com/en/articles/8615312-what-is-guest-play-i-can-play-without-an-account">Chess.com</a></li>
+        <li>Among Us guests get preset chat and random names; an account unlocks typed chat and a chosen name. <a class="src" href="https://www.innersloth.com/info-on-accounts/">Innersloth</a></li>
+        <li>Games usually put ratings, history, custom names, saved progress and purchases behind a sign-in.</li>
+      </ul></div>
+    </div></article>
+
+    <article class="q" id="q10"><div class="coin">10</div><div class="qbody">
+      <h3>Must anyone ever sign in just to play?</h3>
+      <p class="context">Your About page promises "no login, no download."</p>
+      <p class="ask">Does that stay true forever for playing, with signing in only for extras? Or is there a line where it's worth asking?</p>
+      <div class="others"><b>What others do</b><ul>
+        <li>Jackbox and Gartic Phone never ask anyone to sign in. <a class="src" href="https://gartic-phone.org/faq">Gartic</a></li>
+        <li>Lichess guests play, but only unrated games. <a class="src" href="https://lichess.org/forum/lichess-feedback/playing-with-anonymous">Lichess</a></li>
+        <li>Firebase, which the game already uses, can quietly give every player a guest account. They can attach Google or email later and keep everything. <a class="src" href="https://firebase.google.com/docs/auth/web/anonymous-auth">Firebase</a></li>
+      </ul></div>
+    </div></article>
+
+    <article class="q" id="q11"><div class="coin">11</div><div class="qbody">
+      <h3>Who's at the table, and what can they say to each other?</h3>
+      <p class="context">A cute pastry game can look like a kids' game to a regulator. US children's privacy law covers games aimed at under-13s, and counts a screen name as personal information. UK law requires the most private settings by default for children.</p>
+      <p class="ask">Families with young kids, adults, classrooms? And chat: none, preset pirate phrases, emoji, or typed?</p>
+      <div class="others"><b>What others do</b><ul>
+        <li>Among Us: under-13s need a parent's permission, and guests only get preset "Quick Chat". <a class="src" href="https://www.innersloth.com/info-on-accounts/">Innersloth</a></li>
+        <li>Jackbox ships a family-friendly filter, extended timers and subtitles. <a class="src" href="https://www.jackboxgames.com/blog/streaming-moderation-accessibility-features-jackbox-party-pack-eight">Jackbox</a></li>
+        <li>US rule in plain terms. <a class="src" href="https://www.ftc.gov/business-guidance/resources/complying-coppa-frequently-asked-questions">FTC</a> <a class="src" href="https://ico.org.uk/for-organisations/uk-gdpr-guidance-and-resources/childrens-information/childrens-code-guidance-and-resources/introduction-to-the-childrens-code/">UK ICO</a></li>
+      </ul></div>
+    </div></article>
+  </section>
+
+  <section id="modes">
+    <div class="leg"><h2>Ways to play</h2><span>12–15</span></div>
+
+    <article class="q" id="q12"><div class="coin">12</div><div class="qbody">
+      <h3>A Daily Voyage: the same sea for everyone, every day?</h3>
+      <p class="ask">Does it fit? And when you finish, what does the share card show: days to home, your recipe, your broadsides won?</p>
+      <div class="others"><b>What others do</b><ul>
+        <li>A player invented Wordle's spoiler-free emoji grid, the creator built it in, and press credits it for the game's spread. <a class="src" href="https://en.wikipedia.org/wiki/Wordle">Wikipedia</a></li>
+        <li>Dominion gives one free daily puzzle. Chess.com gives three. <a class="src" href="https://store.steampowered.com/app/1131620/Dominion/">Steam</a></li>
+        <li>The game already builds the same board every time from the same seed, so this is the cheapest mode on the list.</li>
+      </ul></div>
+    </div></article>
+
+    <article class="q" id="q13"><div class="coin">13</div><div class="qbody">
+      <h3>Friends only, or strangers too?</h3>
+      <p class="ask">Should a captain be able to press "find me a crew" and sail with strangers? Is there a ranked ladder with seasons? Or is Pastry Pirates a friends-and-family game?</p>
+      <div class="others"><b>What others do</b><ul>
+        <li>Colonist runs ranked seasons, and the top 50 win free membership. <a class="src" href="https://blog.colonist.io/colonist-ranked-games-leaderboards-memberhip-system/">Colonist</a></li>
+        <li>Jackbox has no matchmaking at all: you bring your own friends and your own voice call. <a class="src" href="https://www.jackboxgames.com/how-to-play">Jackbox</a></li>
+        <li>Ranked play needs enough people online at once, and it brings cheating reports.</li>
+      </ul></div>
+    </div></article>
+
+    <article class="q" id="q14"><div class="coin">14</div><div class="qbody">
+      <h3>A slow voyage: one move a day, with a nudge when it's your turn?</h3>
+      <p class="ask">Would your players sail one voyage across a week, from their phones, in between everything else?</p>
+      <div class="others"><b>What others do</b><ul>
+        <li>Board Game Arena runs games at 1–2 moves a day with email reminders, and says over 98% of them finish. <a class="src" href="https://en.doc.boardgamearena.com/Turn_based_FAQ">BGA</a></li>
+        <li>Since iOS 16.4, a web game saved to an iPhone home screen can send notifications. <a class="src" href="https://webkit.org/blog/13878/web-push-for-web-apps-on-ios-and-ipados/">WebKit</a></li>
+      </ul></div>
+    </div></article>
+
+    <article class="q" id="q15"><div class="coin">15</div><div class="qbody">
+      <h3>What other ways to play are already in your head?</h3>
+      <p class="ask">Rattle off your list and I'll sort it. Here's what turned up elsewhere, to jog it.</p>
+      <div class="others"><b>Seen in other games</b><ul>
+        <li>Story or campaign voyages, 2-vs-2 crews, a blitz mode with a faster shot clock, tournaments.</li>
+        <li>Spectators: Jackbox lets up to 10,000 watch a game. Also replays of a finished voyage.</li>
+        <li>House rules, extra-long timers, and colourblind support, which Colonist players have asked for.</li>
+      </ul></div>
+    </div></article>
+  </section>
+
+  <section id="physical">
+    <div class="leg"><h2>Merch &amp; the real world</h2><span>16–18</span></div>
+
+    <article class="q" id="q16"><div class="coin">16</div><div class="qbody">
+      <h3>The laser-cut board: keepsake, Kickstarter, or printable?</h3>
+      <p class="ask">Is the wooden board a handmade premium edition made in small numbers, the first draft of a cheaper boxed game, or a free print-at-home version that brings people to the web game?</p>
+      <div class="others"><b>What others did</b><ul>
+        <li>In 2024, 80% of Kickstarter tabletop campaigns funded. <a class="src" href="https://gamedevreports.substack.com/p/kickstarter-2024-set-a-record-for">GDR</a></li>
+        <li>Twelve first-time creators averaged about $39,000 from 782 backers. <a class="src" href="https://thecityofkings.com/news/stats-from-successful-first-time-creators/">City of Games</a></li>
+        <li>Shipping is where campaigns lose money; for one designer, some countries cost over half the game's price. <a class="src" href="https://www.efulfillmentservice.com/2025/04/kickstarter-board-game-fulfillment-a-complete-guide-for-creators/">guide</a></li>
+        <li>Cards Against Humanity gives away a free printable version and still sells the box. The Game Crafter prints one copy at a time. <a class="src" href="https://www.thegamecrafter.com/make/pricing">TGC</a></li>
+      </ul></div>
+    </div></article>
+
+    <article class="q" id="q17"><div class="coin">17</div><div class="qbody">
+      <h3>Which art would people wear, stick on a laptop, or hug?</h3>
+      <p class="ask">Captain portraits? The candycrab? Ingredient crates? The flippenator coin? And does merch start digital (captain looks) or physical (stickers, tees, plush)?</p>
+      <div class="others"><b>No-stock options</b><ul>
+        <li>Printful tees start at $9.25–$13.50 base, and you set the price. <a class="src" href="https://www.printful.com/pricing">Printful</a></li>
+        <li>Redbubble pays the artist 20% by default. <a class="src" href="https://help.redbubble.com/hc/en-us/articles/202270799-How-is-my-payment-calculated">Redbubble</a></li>
+        <li>Makeship makes a plush only if 200 fans preorder within 21 days. <a class="src" href="https://www.makeship.com/how-it-works">Makeship</a></li>
+      </ul></div>
+    </div></article>
+
+    <article class="q" id="q18"><div class="coin">18</div><div class="qbody">
+      <h3>Should the pastries leave the screen?</h3>
+      <p class="context">One of your About-page captains says: "I'm going to actually bake my recipe in real life."</p>
+      <p class="ask">Are the in-game recipes real ones you'd bake? A cookbook, a bake-your-recipe contest, a real bakery sponsoring an island?</p>
+      <div class="others"><b>What others did</b><ul>
+        <li>The Official Stardew Valley Cookbook (74 recipes) became a NYT bestseller. <a class="src" href="https://en.wikipedia.org/wiki/The_Official_Stardew_Valley_Cookbook">Wikipedia</a></li>
+        <li>Catan, Ticket to Ride and Candy Land have official cookbooks. <a class="src" href="https://www.simonandschuster.com/series/Board-Game-Cookbooks">S&amp;S</a></li>
+        <li>No documented bakery partnership with an indie game turned up. That's open water.</li>
+      </ul></div>
+    </div></article>
+  </section>
+
+  <section id="growth">
+    <div class="leg"><h2>Getting found</h2><span>19–20</span></div>
+
+    <article class="q" id="q19"><div class="coin">19</div><div class="qbody">
+      <h3>Who are your first thousand captains, and what do they post?</h3>
+      <p class="context">In August you said you wanted to launch on Reddit a month earlier.</p>
+      <p class="ask">Which places: subreddits, board game groups, baking TikTok, streamers, friends of friends? And what moment in a voyage would a player screenshot and share?</p>
+      <div class="others"><b>What others saw</b><ul>
+        <li>Wordle jumped to 80,000 players in a day after one blog post and a newsletter mention. <a class="src" href="https://techcrunch.com/2022/01/12/josh-wardle-interview-wordle/">TechCrunch</a></li>
+        <li>One Hacker News front-page launch drew about 468 users on day one, then a few dozen a day within a week. Spikes fade without a reason to come back. <a class="src" href="https://www.indiehackers.com/post/front-page-of-hn-the-full-postmortem-traffic-lessons-surprises-cbe9e0a7f6">Indie Hackers</a></li>
+      </ul></div>
+    </div></article>
+
+    <article class="q" id="q20"><div class="coin">20</div><div class="qbody">
+      <h3>What's on your list that I didn't ask about?</h3>
+      <p class="ask">A feature, a fear, a partner, a wild idea. Your list outranks mine, and last time the best answers were the ones you wrote in yourself.</p>
+    </div></article>
+  </section>
+
+  <footer>Research from four passes on 14 September 2026 covering digital board games, merch and physical editions, accounts and ways to play, and solo-creator business models. Prices and fees are only given where the page was opened; everything else was left out.</footer>
+</main>
