@@ -418,6 +418,11 @@ export function sayAll(id,facts){
   const seats=[...new Set(Object.values(facts||{}).filter(v=>v&&typeof v==="object"&&"seat" in v).map(v=>v.seat))];
   return {html,variants:seats.map(s=>({seat:s,html:say(id,facts,s)})).filter(v=>v.html!==html)};
 }
+/* THE PLAIN-TEXT DOOR — for words drawn with textContent, like a greyed button's reason (showWhy). A coloured name or a
+   no-break span would reach the screen there as literal markup, so both are taken off. */
+export function sayText(id,facts,viewerSeat){
+  return say(id,facts,viewerSeat).replace(/<[^>]*>/g,"");
+}
 export { seat };
 export function fl(h){return h?"⚪H":"⚫T";}
 // D-17 (Wyatt-approved 2026-07-29): ingredients render as the SAME custom art the islands and the
@@ -1645,7 +1650,7 @@ export function ask(msg,opts,colors,sub,extra){
      and fires the next real line, which is his own wording for item 19: "it should disappear when
      their teammates have played". It is fire-and-forget — nothing awaits it — which is what makes
      an un-deadlined bubble safe here (see stageFlash). */
-  netHandlers().onBroadcast(`${pn(seat)} is deciding…`,[{seat,html:msg}],{wait:true});
+  netHandlers().onBroadcast(say("wait.deciding",{name:pn(seat)}),[{seat,html:msg}],{wait:true});
   const isFlip=opts.length===1&&!!opts[0].flip;
   // `sub` is optional helper text rendered under the button row; an option flagged `disabled`
   // renders greyed and non-clickable (notes/edits #5) — used for the too-poor Attack button.
@@ -1799,7 +1804,7 @@ export function voyageAground(err,where){
   }catch(e){
     // the surface itself failed — say it the one way that cannot also fail
     console.error("voyageAground() could not render",e,"original:",err);
-    try{alert("The voyage has run aground. "+String(err));}catch(_){}
+    try{alert(sayText("error.aground",{err:String(err)}));}catch(_){}
   }
 }
 // used only to derive flip/spin animation-pacing constants (asyncBattle, asyncBakeoff, fishCast)

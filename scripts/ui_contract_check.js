@@ -1014,17 +1014,8 @@ const COIN_PARENTHETICAL_SITES = [
     anchor: "${seaLine(e.sea,",
     wraps: ['<span class="nobrk">${say("muse.idea",{n:appState.game.cfg.passCoin})}</span>'],
   },
-  {
-    name: "turn-order draw — waiting captains' consolation coin",
-    rel: path.join("src", "ui", "flow.js"),
-    anchor: "const rest=order.slice(1).map(",
-    // P7 (Wyatt, 2026-08-01, second pass): the span used to cover the parenthetical ALONE, which
-    // kept "(+2🌕)" intact but let it detach from the captain it belongs to across a line break —
-    // "…Davy Scones" / "(+2🌕), Dough Hook…". The expectation is now the STRONGER form: the name
-    // and its amount inside one span, as a single readable unit. Tightened deliberately, not
-    // relaxed — this still fails if the wrapper disappears entirely.
-    wraps: ['<span class="nobrk">${pn(i)} (+${k+1}🌕)</span>'],
-  },
+  /* "turn-order draw — waiting captains' consolation coin" stood here: his rewrite of 2026-09-13 ("{Crustbeard} goes first!
+     The rest o' ye get {coin}.") names no amount per captain, so there is no parenthetical left to wrap. */
 ];
 
 /* THE FROZEN classic/ GAME KEEPS ITS OWN LIST — the ten sites exactly as they were before the
