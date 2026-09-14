@@ -8,7 +8,7 @@ fifteen that already exist.
 here is the one that is wrong.
 
 SHEET: https://claude.ai/code/artifact/a1623d69-328c-417e-920f-8a99782ebce2
-BUILD: 2026.09.14.2-staging@32c03061
+BUILD: 2026.09.14.3-staging@15a0f25b
 
 ## The others, so nobody re-makes them
 
@@ -23,5 +23,6 @@ BUILD: 2026.09.14.2-staging@32c03061
 - Crate Size Tuner (the real captain's box at real size; his dials in `crates/wyatt`) — https://claude.ai/code/artifact/7695863a-e429-40a1-89b2-55e8c379aa4e
 - The Narration Pass (W7-2 — since 2026-09-13 late night REBUILT ON `src/shared/words.js`, every line the game says today, written-as shorthand shown; his new marks in `narration/wyatt-words`; his first pass, in `narration/wyatt`, is applied) — https://claude.ai/code/artifact/f5369931-f83e-46f5-8a3b-624508069437
 - Ingredient Pop-In Tuner (the real board at real size; his dials in `popin/wyatt`, or pasted from Copy my notes) — https://claude.ai/code/artifact/64052412-b5b9-4163-b8f3-8132c89694ef
+- One Engine, One Display (the CEO's architecture audit of how player-facing words are served, 2026-09-14 — 15 recommendations + a phased path, Passed/Problem on each; his marks in `arch/wyatt`) — https://claude.ai/code/artifact/89fab77d-5a17-4dd6-8a4d-958c3bbeafee
 - Victory Card Proposals (his game feel audit note on the end of voyage card: 9 blue-sky proposals with animated mockups in real game art, Passed/Problem; his marks in `victory/wyatt`) — https://claude.ai/code/artifact/a7e8dae4-42d9-4f01-891a-ef2c782f091f
 - Game Feel Audit (every moment of a voyage, what it does today, 39 ideas with Passed/Problem; his marks in `feel/wyatt`) — https://claude.ai/code/artifact/d7621423-5760-4242-b83d-3321c4bfb9d2

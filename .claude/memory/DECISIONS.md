@@ -3089,3 +3089,17 @@ died on the Blade. Rooted off `fileURLToPath(import.meta.url)`.
   approved earlier sails fb1da47f, and staging moved on before his QA pass. Sent to the running "Wy-Blade" session: its own branch,
   no merging or deploying, verdict back to this session. The earlier request had gone to "Wy: Blade", which now shows offline, so
   it was asked whether that one ever ran.
+- **HAVE THE CEO AUDIT HOW PLAYER-FACING WORDS ARE SERVED, AND HOW AAA ARCHITECTS WOULD FUTURE-PROOF IT.** *"with a separate side agent,
+  have the ceo audit our current setup for serving player-facing words, and suggest ways to make it more robust according to my design
+  values: eg. one game engine (that is passed actionTaken + playerType (human/both) + playerLocation (here/remote) + gameMode
+  (solo/pass-and-play/crew) and one display engine (that is passed the same variables). in the future, these engines could also be passed
+  gameBoard and recipeList; we want the ceo to suggest all the ways AAA software architects would future-proof our architecture"*
+  ("human/both" read as human/bot). The audit is at the top of `.planning/CEO-REVIEWS.md` and on the page "One Engine, One Display"
+  (CURRENT-SHEET); nothing from it is built until he marks it.
+- **GAME FEEL BUILDS GO ON THEIR OWN BRANCH.** *"does it make sense to build the game feel ideas on a new branch?"* — yes: `sep14-game-feel`
+  off dev, so dev and staging stay the build Wy-Blade sails and he QAs; merged back in pieces after the trial and his QA.
+- **WY-BLADE'S TRIAL OF 2026.09.14.2 — FAILED, 10 of 10 sailed.** Acted on: both crew guests played the pop-in before their board art
+  loaded → the picker's show now waits for the board's pictures and the pop sound (capped 5s), measured on a throttled guest; staging
+  2026.09.14.3-staging@15a0f25b. Taken to him, not acted on: two dead taps (a card tapped while the stack flew in; a first Bake this! tap
+  after the pop-in on WebKit tablet) and one covered sail square under the day bubble, each seen once; the End of Voyage sheet is
+  see-through below the stats on tablet (both engines) — needs his ruling; not yet known whether it is new.
