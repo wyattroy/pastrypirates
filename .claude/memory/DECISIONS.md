@@ -3035,3 +3035,50 @@ died on the Blade. Rooted off `fileURLToPath(import.meta.url)`.
   the island gap), which moves the cards' arrival later than the 2.62s his readout showed; the game must build the fixed timeline.
 - **THE POP SOUND PLAYS WHEN THE INGREDIENT APPEARS, NOT WHEN THE SPARKLE DOES.** *"Also make the sound play when the ingredient
   appears -- not when the sparkle appears"*.
+
+**2026-09-13, late night — after the narration work: one place for every word, pictures, solo "ye", and his game feel marks:**
+
+- **WHY ONE PLACE MATTERS: PASTA PIRATES.** *"at some point, I'm going to make a version of pastry pirates that is called pasta
+  pirates where we have totally different ingredients and a totally different theme and it's set in the Mediterranean in Italy
+  instead of in the Caribbean, and we need to very easily be able to change every single line of narration and dialogue for that new
+  theme... the game is going to expand massively over the next year."* Emojify stays: *"it's totally fine to have that emojify...
+  function"*. On organizing the rest of the theme text (names, recipes, sea creatures, pages): *"don't do anything yet -- this is just
+  context for you to help design scalable architecture"*.
+- **THE PICTURES STAY IN THE LINES.** *"I simply was not able to write emojis in the comment boxes of the page artifact... I want all of
+  those images that were in the lines still there, I think the images are a really important element of the game deal."* The five lines
+  whose coin went with a cut HEADS/TAILS word get it back (he picked all four): the dock's treasure lines ⚪, the dock's scrubbin' lines ⚫,
+  the battle card's two both-heads lines ⚪, and "Both miss." ⚫. A rewrite typed on the pass page never removes a picture by itself.
+- **SOLO SAYS "YE" TOO — ONE RULE IN EVERY MODE.** Picked "Yes, "ye" everywhere": *"Wyatt — ye call Dough Hook from the crow's nest."*
+- **THE HANDSHAKE STAMP OVER A TRADE IS REMOVED.** Game feel audit: *"A handshake stamp: This already happens, and it seems weird."*;
+  then picked "Remove it". The 🤝 at the start of the trade LINE is a picture in a line and stays.
+- **THE END CARD'S HEADS ROW IS POSSESSIVE:** *"instead of Wyatt HEADS i want it to use apostrophes, like "Wyatt's HEADS ⚪️""*.
+- **A CEO AUDIT OF THE ONE-PLACE WORK**, *"to audit and and verify that you've done this work one hundred percent correctly"*.
+- **SEA TRIAL ON WY-BLADE, APPROVED:** *"can you also get the Wy blade to run a Sea trial of your changes? to make sure that it works
+  before I do my QA pass."*
+- **HIS GAME FEEL AUDIT MARKS** (verbatim, from the page's Copy my notes) — PASSED = build it, PROBLEM = not this way:
+  - First screen: PASSED the board settles in (*"The board currently jitters when it comes in, and seems to choose a few differnt sizes
+    before settling. It may be caused by the navbar row/other elements fighting/jostling -- you'll have to fix this simultaneously."*),
+    buttons squish when pressed, the parrot bobs when it speaks.
+  - Choosing a recipe: PASSED whoosh + thump as the cards fly in, the chosen card flies into the captain's box, the dotted route draws itself.
+  - Your turn: PROBLEM the camera settle (*"This could be nauseating."*); PASSED your row lifts, your boat bobs once.
+  - Picking where to sail — NOTE: *"I think all squares that are tapped should take two taps -- and on the second tap, the board should zoom
+    in to let you accurately confirm it. Also, the trade winds squares should also appear yellowgold, not blue -- but they should clearly
+    be seen as "special" -- the line projecting where the trade winds take you should be yellow/gold too, this way all
+    wind-sailing-related movement cues are yellow-gold."* PASSED squares pop in from the boat outward, the tapped square squishes and flashes.
+  - The boat sails: PASSED anticipation lean, a wake, arrival bob + splash ring.
+  - The coin flip: PASSED sinks before it flips, lands with weight, HEADS/TAILS stamps in, a tiny screen nudge on tails.
+  - Docking: PASSED treasure bursts out on heads. Buying: PASSED crate flies island → hold, coins count down, a juicier store sound.
+  - Trading: PASSED the two crates swap in arcs; PROBLEM the handshake stamp (see above).
+  - Battles — NOTE: *"Currently, the battle screen pops up; I don't like any part of the battle screen, to be honest -- after you do these
+    changes, we can get rid of the battle screen entirely so that the whole battle happens over the gameboard. when you're the one engaging
+    in the battle, the coin flipper stage should still appear; but the moment it's finished flipping, the board should reveal itself again
+    with the two ships battling."* PASSED the cannon kicks, a hit lands with flash + shake, the loser gets knocked about.
+  - Storms: PASSED lightning with the thunder (*"make this subtle -- too much could be annoying."*), boats rock, the sea darkens.
+  - Trade winds: PASSED speed lines on the ride.
+  - Fishing: PROBLEM *"There is no fishing in the game.... what rules are you looking at?"* — the audit page's error (see the reply).
+  - Coming home: PASSED a short fanfare and confetti for the first home.
+  - The bake-off: PASSED lids slam down with a puff, a right answer bursts green; PROBLEM the shuffle speeds up (*"We need them to be
+    trackable."*).
+  - The end of the voyage — NOTE: *"Somehow bring this end of voyage card to life -- I'm not sure how, but it should feel more exciting.
+    I'm giving you blue-sky redesign here -- research other game victory cards and make 5-10 more proposals. Intention: someone feels SO
+    excited to win that they HAVE to play again immediately"*. PASSED awards deal in like cards, stats count up, a confetti burst for the winner.
