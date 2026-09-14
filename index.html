@@ -252,8 +252,12 @@
      (see src/ui/util.js). Stacking and full-width rows are identical to the block layout it
      replaces — with no `order` set anywhere, every row is 0 and DOM order stands. */
   #players { display: flex; flex-direction: column; }
-  .player-row { padding: 5px 6px; border-radius: 7px; margin-bottom: 4px; font-size: 13.5px; border: 2px solid transparent; box-sizing: border-box; transition: border-color .25s ease, box-shadow .25s ease; }
-  .player-row.activeTurn { box-shadow: 0 0 0 2px var(--rowcol, var(--accent)), 0 0 7px rgba(0,0,0,.22); }
+  .player-row { padding: 5px 6px; border-radius: 7px; margin-bottom: 4px; font-size: 13.5px; border: 2px solid transparent; box-sizing: border-box; transition: border-color .25s ease, box-shadow .25s ease, translate .25s ease; }
+  /* YOUR ROW LIFTS — PASSED on his game feel audit (2026-09-13), as proposed: "The row whose turn it is rises 2px with a
+     soft shadow while the ring appears, so it reads as "you're up" before you read a word." `translate`, not transform,
+     so it composes with anything else that moves a row. */
+  .player-row.activeTurn { box-shadow: 0 0 0 2px var(--rowcol, var(--accent)), 0 0 7px rgba(0,0,0,.22), 0 4px 8px rgba(0,0,0,.28); translate: 0 -2px; }
+  @media (prefers-reduced-motion: reduce) { .player-row { transition: none; } }
   /* fixed dot/name/coins columns keep money and hold aligned across all captains regardless of
      name length or how many ingredients they're holding. The recipe name is a second grid row
      inside the same .prowTop grid (not a separate row/div) so its placement — above the chips

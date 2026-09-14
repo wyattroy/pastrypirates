@@ -591,6 +591,22 @@ export function drawBoard(){
     shipEls[i].style.transform=`translate(${x}px,${y}px)`;
   });
 }
+/* ⭐ THE ACTIVE BOAT BOBS ONCE WHEN ITS TURN BEGINS — PASSED on his game feel audit (2026-09-13), as proposed: "One gentle
+   bob of the active boat when the turn begins — the eye goes straight to it."
+   Called from the ONE event consumer on the `turn` event (orchestrator.js consumeEvent), so every screen bobs the same
+   boat at the same moment. The boat's PICTURE bobs (CSS `translate` on its <image>), never its group: the group's
+   transform is where the boat sits on the board and carries the sailing glide. A one-shot, so its SVG cost is a moment,
+   not the continuous cost BOARD-RENDERING §5 forbids. */
+export const SHIP_BOB = 0.1;        // of a square, up
+export const SHIP_BOB_MS = 560;
+export function bobShip(seat){
+  const g=shipEls[seat], im=g&&g.querySelector("image");
+  if(!im||typeof im.animate!=="function"||!cell)return;
+  if(typeof matchMedia==="function"&&matchMedia("(prefers-reduced-motion: reduce)").matches)return;
+  const up=cell*SHIP_BOB;
+  im.animate([{translate:"0px 0px"},{translate:`0px ${(-up).toFixed(2)}px`,offset:.35},{translate:"0px 0px",offset:.7},
+    {translate:`0px ${(-up/3).toFixed(2)}px`,offset:.85},{translate:"0px 0px"}],{duration:SHIP_BOB_MS,easing:"ease-in-out"});
+}
 /* ---------- playback ---------- */
 // notes/edits BUG-01: build the storm's rain layers once, on the first storm. The rain is now a
 // pre-rendered tiling PNG (see #stormOverlay .rlayer CSS), so each layer only varies things that
