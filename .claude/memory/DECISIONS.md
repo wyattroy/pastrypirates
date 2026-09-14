@@ -3082,3 +3082,10 @@ died on the Blade. Rooted off `fileURLToPath(import.meta.url)`.
   - The end of the voyage — NOTE: *"Somehow bring this end of voyage card to life -- I'm not sure how, but it should feel more exciting.
     I'm giving you blue-sky redesign here -- research other game victory cards and make 5-10 more proposals. Intention: someone feels SO
     excited to win that they HAVE to play again immediately"*. PASSED awards deal in like cards, stats count up, a confetti burst for the winner.
+
+**2026-09-14 — after the review fixes and the pop-in reached staging (2026.09.14.2-staging@32c03061):**
+
+- **SAIL THE TRIAL ON 2026.09.14.2 TOO — WY-BLADE.** *"yes, have Wy-Blade sail 2026.09.14.2 too"* — asked because the trial he
+  approved earlier sails fb1da47f, and staging moved on before his QA pass. Sent to the running "Wy-Blade" session: its own branch,
+  no merging or deploying, verdict back to this session. The earlier request had gone to "Wy: Blade", which now shows offline, so
+  it was asked whether that one ever ran.
