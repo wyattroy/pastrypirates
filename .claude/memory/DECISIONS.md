@@ -3462,3 +3462,24 @@ tomorrow's sea overnight, rejecting a seed that cannot be baked or that one seat
   if finished and passing the full test overnight: **"Yes, push it (Recommended)"** to staging. The architecture cleanup: **"Ship the first
   13 (Recommended)"** — Tier 1 goes to dev and staging once Mac: Dev has checked it and a sea trial on Wy-Blade passes (his approval of
   that sea trial), without waiting for all 45. Production untouched; main still merges only on his word.
+
+**2026-09-14 — HIS VICTORY CARD PROPOSALS MARKS** (verbatim, from the sheet's Copy my notes):
+
+    PASSED — The crown comes down
+    PASSED — The podium at Tortuga: You could calculate place ranking based on how close the player was to winning -- how many of their bakeoff they had guessed right; how many ingredients from their recipe they had; how much money they had; how close they were to tortuga. this podium could appear below the idea 1, with the winning boat moved up the screen?
+    PASSED — The winning bake
+    PASSED — Polly's awards show
+    PASSED — The voyage replay: This could read as hectic -- unless you focus in just on the active player during the recap.
+    PASSED — The treasure tally: I like this... we don't currently create a "score" for best voyage. before building this, i'd want you to audit the current gameplay and rules and come up with a compelling way to judge the strategy of the player with their score, and i'll give feedback on it.
+    PASSED — So close: I like this
+    PASSED — Set sail again: Love this
+    PROBLEM — A new ship on the slipway: This is an awesome idea -- put it in the backlog for when we have user accounts -- otherwise the player will lose their "viking longship" after they leave the game
+    NOTE — A suggested bundle: I want 1,2,3,4,6,7,8  -- i want all these ideas! can you build and sequence all of them in a new version of this artifact, in such a way that i can check a box to turn on/off each idea, and tweak its details with 5-10 turners?
+
+- **THE BUNDLE IS 1,2,3,4,6,7,8** — crown, podium, winning bake, Polly's awards, treasure tally, so close, set sail again. The
+  voyage replay (5) passed but is not in his bundle; if it is ever built, it follows only the active player.
+- **THE PODIUM RANKS BY HOW CLOSE EACH CAPTAIN CAME** — bake-off guesses right, recipe ingredients held, coin, distance to
+  Tortuga — and sits below the crown, with the winning boat moved up the screen.
+- **THE VOYAGE SCORE NEEDS HIS FEEDBACK BEFORE IT IS BUILT** into the game: audit the rules, propose a score that judges strategy.
+- **THE SLIPWAY WAITS FOR USER ACCOUNTS** — backlogged 2026-09-14.
+- Next step, same day: a new version of the same sheet (same URL) where each of the seven is a tick box with 5–10 dials.

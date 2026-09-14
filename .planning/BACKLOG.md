@@ -1735,3 +1735,11 @@ cutover come first. He calls that "the first level of success".
   ONE reserved look for earned things (gold edge + a gentle idle movement; bought things never
   animate), a date stamped on each, a streak mark that fades, two labelled shelves in the bakery, and
   no retired trophy ever re-awarded.
+# 🚢 WAITING ON USER ACCOUNTS — 2026-09-14
+
+- [ ] **A new ship on the slipway (Victory Card idea 9).** After the end of voyage card, a ship's frame sits on a slipway and
+      every voyage adds planks (a win three, reaching home two, sailing at all one) until it launches as a boat ye can sail.
+      His ruling, 2026-09-14: *"This is an awesome idea -- put it in the backlog for when we have user accounts -- otherwise the
+      player will lose their "viking longship" after they leave the game"*. **Blocked on user accounts**, not on design: progress
+      kept only in one browser is progress a player loses. Ties to the backlog item "every boat a different kind of pirate ship".
+      Mockup lives on the Victory Card Proposals sheet (idea 9).
