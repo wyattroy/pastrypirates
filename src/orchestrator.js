@@ -104,7 +104,7 @@ import {
   bakeoffPrompt, bakeoffReveal, playBakeoffLive,
   benchChoreoMs, BENCH_STUDY_MS, BENCH_BEAT_MS, // A-2: the choreography's own timings, answered by the file that runs them
   appendChatLine, showChatBubble,
-  setFlipActive, setFlipCoin, flipSpinLeftMs, FLIP_LAND_HOLD_MS, boardCell, boardShipEls, drawBoard, render, resetBoardLog, bobShip, sailSetsOff, sailArrives, treasureBurst, crateFlightFrom, crateFlightTo, tradeSwapFrom, tradeSwapTo, rideStreaks, firstHomeConfetti,
+  setFlipActive, setFlipCoin, flipSpinLeftMs, FLIP_LAND_HOLD_MS, boardCell, boardShipEls, drawBoard, render, resetBoardLog, bobShip, sailSetsOff, sailArrives, treasureBurst, crateFlightFrom, crateFlightTo, tradeSwapFrom, tradeSwapTo, rideStreaks, firstHomeConfetti, shotLands, loserKnocked,
   seedIdleGameState, syncBoardSizing, watchMutePlacement, victoryConfetti, clearChatBubbles,
   showSeatCoins, // MP-06: the ONE purse renderer, shared with render() (04-01 Task 2)
   battleSnapshot, renderBattleFromSnap, battleFooter, coinHTML, pipsHTML,
@@ -749,6 +749,10 @@ async function asyncBattleRun(att,def){
      spin paint. Adding a sleep here would restate two constants that already produce the gap, and
      would go wrong silently the day either of them is tuned. */
   if(scorer)playCannon();
+  /* his game feel audit (2026-09-13): the shot is RECORDED as it lands, so the ONE event consumer kicks the cannon, flashes the
+     struck boat and shakes the board on every screen (board.js shotLands). `by`, not `p`: a shot is not a turn, and `p` would
+     hand the active-captain highlight to the shooter for the length of the fight. */
+  if(scorer){appState.game.ev({t:"shotLands",by:scorer==="a"?att.idx:def.idx,a:att.idx,d:def.idx});liveRender();}
   battlePublish(base({atState:ah?"H":"T",dfState:dh?"H":"T",live:null,winCoin:scorer,result:rmsg}));
   await sleep(hold);
 
@@ -826,6 +830,7 @@ async function asyncBattleRun(att,def){
         const rh=hA?await hFlip("a",att,say("battle.fireAgainFlip",{}),{dfState:dh?"H":"T"}):await bFlip("a",att,{dfState:dh?"H":"T"});
         rounds.push([rh?1:0,null,0,rh?"a":null]);
         if(rh){a++;winner=att;
+          appState.game.ev({t:"shotLands",by:att.idx,a:att.idx,d:def.idx});liveRender();   // the re-fire landed: same kick, flash and shake
           // @copy misc.battleline.refirehits
           battlePublish(base({atState:"H",dfState:dh?"H":"T",live:null,winCoin:"a",result:{id:"battle.refireHits",facts:{a:seat(att.idx)},cls:"score"}}));
         }else{
@@ -1937,6 +1942,8 @@ export async function consumeEvent(e){
   stormCamForEvent(e);            // W9: the storm's wide shot, the SAME cue the host's storm driver fires, off the same event — not a guest-only camera call. Self-guarded: any event that is not a storm returns immediately.
   if(e.t==="tradewind"&&!appState.replaying)rideStreaks(e.p);    // his game feel audit: speed lines while the current carries the boat (board.js)
   if(e.t==="ovens"&&!appState.replaying)firstHomeConfetti(e);      // …and confetti for the first captain home
+  if(e.t==="shotLands"&&!appState.replaying)shotLands(e);          // …a landed shot kicks the cannon, flashes the hull, shakes the board
+  if(e.t==="battle"&&!appState.replaying)loserKnocked(e);          // …and a won battle knocks the loser about
   await animateRimSweepIfAny(e);  // W9: THE EVENT BEING CONSUMED, not the top of the pile — same correction, same reason, as the sail walker on the line below. Idempotent (a WeakMap of ridden events -> their promise), so a host call site that already started the ride has this JOIN it rather than skip past it.
   await animateSailRoute(e);      // W7: the guest walks the squares the boat crossed instead of gliding across the islands. THE EVENT BEING CONSUMED, not the top of the pile — W7b measured the guest sliding on 3 of 8 sails because watchEvents pushes each arriving event before awaiting this consumer, so the pile's top is regularly not the sail. Idempotent (a WeakMap of ridden events -> their promise), so a host call site that already started the ride has this JOIN it rather than skip past it.
   /* ⭐ AND NOTHING AFTER A MOVE IS SHOWN UNTIL THE BOAT HAS ARRIVED — Wyatt, 2026-09-11, note 2:

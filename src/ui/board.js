@@ -727,6 +727,63 @@ export function firstHomeConfetti(e){
     a.onfinish=a.oncancel=()=>d.remove();
   }
 }
+/* ⭐ A SHOT LANDS: THE CANNON KICKS, THE HIT FLASHES, THE BOARD SHAKES — PASSED on his game feel audit (2026-09-13), as proposed:
+   "The firing side's art recoils backward and springs back, with a smoke puff" and "The struck ship flashes white for one frame
+   and the board shakes 3px — a hit you can feel." ON THE BOARD, NOT THE BATTLE CARD: he means to retire the battle screen and
+   fight over the board, so the reaction belongs to the boats. Called from THE ONE event consumer on a `shotLands` event, which
+   the fight records the moment a shot gets through, so every screen feels the same hit. Smoke and flash sit OVER the boats
+   (#dockCoinHost); the shake moves the whole board window by its individual `translate`, which composes with the camera. */
+export const KICK_MS=320, SMOKE_MS=520, HIT_AT_MS=110, HIT_FLASH_MS=110, SHAKE_PX=3, SHAKE_MS=300;
+export function shotLands(e){
+  if(fxReduced()||!e||e.by==null||!cell)return;
+  const shooter=e.by,target=e.by===e.a?e.d:e.a;
+  const from=drawnShipPoint(shooter),to=drawnShipPoint(target),host=$("dockCoinHost");
+  if(!from||!to||!host)return;
+  const len=Math.hypot(to[0]-from[0],to[1]-from[1])||1,ux=(to[0]-from[0])/len,uy=(to[1]-from[1])/len;
+  const im=shipEls[shooter]&&shipEls[shooter].querySelector("image");
+  if(im&&typeof im.animate==="function")
+    im.animate([{translate:"0px 0px"},{translate:`${(-ux*cell*.14).toFixed(2)}px ${(-uy*cell*.14).toFixed(2)}px`,offset:.18},{translate:"0px 0px"}],
+      {duration:KICK_MS,easing:"cubic-bezier(.2,.8,.3,1)",id:"cannon-kick"});
+  // a pale puff that small vanished on sand in the frozen-frame photo, so it is bigger, holds its body for a third of its life,
+  // and carries a grey edge that reads against sand and sea alike
+  fxDot(host,"ppSmoke",[from[0]+ux*cell*.45,from[1]+uy*cell*.45],cell*.85,[{opacity:1,scale:".35"},{opacity:.9,scale:"1",offset:.35},{opacity:0,scale:"1.45"}],SMOKE_MS);
+  setTimeout(()=>{
+    if(!host.isConnected)return;
+    fxDot(host,"ppHitFlash",drawnShipPoint(target)||to,cell*1.1,[{opacity:1,scale:".75"},{opacity:0,scale:"1.1"}],HIT_FLASH_MS);
+    const wrap=$("boardwrap");
+    if(wrap&&typeof wrap.animate==="function")
+      wrap.animate([{translate:"0px 0px"},{translate:`${SHAKE_PX}px ${-SHAKE_PX/2}px`,offset:.2},{translate:`${-SHAKE_PX}px ${SHAKE_PX/2}px`,offset:.45},
+        {translate:`${SHAKE_PX/2}px 0px`,offset:.7},{translate:"0px 0px"}],{duration:SHAKE_MS,easing:"linear",id:"hit-shake"});
+  },HIT_AT_MS);
+}
+/* ⭐ THE LOSER IS KNOCKED ABOUT — PASSED on his game feel audit (2026-09-13), as proposed: "The losing boat wobbles and a crate
+   splashes into the sea when spoils are taken." On the `battle` event, which the engine records only for a fight somebody WON (a
+   flee and a null battle are other events); the crate goes only when one actually changed hands. It tumbles off the far side of
+   the loser, away from the winner, and lands in a splash ring on the water. */
+export const KNOCK_MS=900, CRATE_SPLASH_MS=620;
+export function loserKnocked(e){
+  if(fxReduced()||!e||e.winner==null||!cell)return;
+  const loser=e.winner===e.a?e.d:e.a;
+  const im=shipEls[loser]&&shipEls[loser].querySelector("image");
+  if(im&&typeof im.animate==="function")
+    im.animate([{rotate:"0deg"},{rotate:"-12deg",offset:.15},{rotate:"9deg",offset:.38},{rotate:"-5deg",offset:.6},{rotate:"2deg",offset:.8},{rotate:"0deg"}],
+      {duration:KNOCK_MS,easing:"ease-out",id:"loser-knock"});
+  if(!e.spoilIng)return;
+  const host=$("dockCoinHost"),water=$("popHost"),at=drawnShipPoint(loser),won=drawnShipPoint(e.winner);
+  if(!host||!at)return;
+  const away=(won&&Math.sign(at[0]-won[0]))||1,size=cell*.42,land=[away*cell*.75,cell*.35];
+  const img=document.createElement("img");
+  img.src=`${ASSET_BASE}plaque/crate.webp`;img.alt="";img.className="ppCrateSplash";
+  img.style.left=CQfx(at[0]-size/2);img.style.top=CQfx(at[1]-size/2);img.style.width=img.style.height=CQfx(size);
+  host.appendChild(img);
+  const a=img.animate([{translate:"0 0",rotate:"0deg",opacity:1,scale:"1"},
+    {translate:`${CQfx(land[0]*.5)} ${CQfx(-cell*.55)}`,rotate:`${away*140}deg`,opacity:1,offset:.45},
+    {translate:`${CQfx(land[0])} ${CQfx(land[1])}`,rotate:`${away*260}deg`,opacity:.9,scale:".8",offset:.85},
+    {translate:`${CQfx(land[0])} ${CQfx(land[1]+cell*.1)}`,rotate:`${away*270}deg`,opacity:0,scale:".5"}],
+    {duration:CRATE_SPLASH_MS,easing:"cubic-bezier(.3,.5,.6,1)",fill:"both",id:"crate-splash"});
+  a.onfinish=a.oncancel=()=>img.remove();
+  if(water)setTimeout(()=>{if(water.isConnected)fxDot(water,"ppSplash",[at[0]+land[0],at[1]+land[1]],cell*.8,[{opacity:.9,scale:".3"},{opacity:0,scale:"1.4"}],SPLASH_MS);},CRATE_SPLASH_MS*.85);
+}
 export function sailArrives(seat){
   if(fxReduced()||!shipEls[seat]||!cell)return;
   const im=shipEls[seat].querySelector("image");

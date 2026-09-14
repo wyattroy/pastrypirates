@@ -937,6 +937,14 @@
   .ppStreak { position: absolute; border-radius: 99px; background: rgba(255,255,255,.9); opacity: 0; will-change: transform, opacity; }
   /* first-home confetti flies in FIXED position too, over the narration bubble (board.js firstHomeConfetti) */
   .ppConfetti { position: fixed; z-index: 60; pointer-events: none; border-radius: 1px; opacity: 0; will-change: transform, opacity; }
+  /* a landed shot and a won battle (board.js shotLands / loserKnocked): smoke at the firing bow, a white flash over the struck hull and
+     a crate tumbling off the loser, all OVER the boats in #dockCoinHost; the crate's splash ring stays on the water in #popHost */
+  .ppSmoke { position: absolute; border-radius: 50%; opacity: 0; pointer-events: none; will-change: transform, opacity;
+    background: radial-gradient(rgba(252,252,250,1) 0 28%, rgba(196,196,192,.92) 50%, rgba(120,120,118,.45) 62%, rgba(120,120,118,0) 72%); }
+  .ppHitFlash { position: absolute; border-radius: 50%; opacity: 0; pointer-events: none; will-change: transform, opacity;
+    background: radial-gradient(rgba(255,255,255,1) 35%, rgba(255,255,255,0) 70%); }
+  .ppCrateSplash { position: absolute; opacity: 0; pointer-events: none; will-change: transform, opacity; object-fit: contain;
+    filter: drop-shadow(0 1px 2px rgba(0,0,0,.35)); }
   .ppSplash { position: absolute; border-radius: 50%; border: 2px solid rgba(255,255,255,.9); box-sizing: border-box; opacity: 0; will-change: transform, opacity; }
   .ppPop { position: absolute; opacity: 0; will-change: transform, opacity; }
   .ppPop img { width: 100%; height: 100%; display: block; object-fit: contain; }
