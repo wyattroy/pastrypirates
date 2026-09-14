@@ -2307,6 +2307,69 @@ function flipArmed(el, onClick){
 
 /* ================= recipe compare (two-tap focus + island glow) ================= */
 let focusBtn = null;
+/* ⭐ THE CHOSEN CARD FLIES INTO THE CAPTAIN'S BOX — PASSED on his game feel audit (2026-09-13), as proposed: "On "Bake
+   this!" the card shrinks and flies to the recipe band at the top of your box, and its five ingredients ripple in one
+   after another — so you see where your recipe went."
+   THE CHOICE WAITS FOR THE CARD: the confirming tap is held while the card flies (RC_COMMIT_MS) and sent on when it
+   lands, so the picker cannot be torn down from under its own card. A dropped animation still sends it (the timeout).
+   The card animates `translate`/`scale`, which compose with the stack's own transforms, and whatever it is drawn inside
+   stops clipping it for the journey (#actionPanel scrolls, so it clips). The band's ingredients ripple in the first
+   time the band shows a recipe after a choice — at once in solo; in a crew, when the last captain has chosen. */
+let rcCommitting = null, rcRippleWanted = null;   // rcRippleWanted: the chosen card's ingredient pictures, in order
+const RC_COMMIT_MS = 620;
+function flyChosenCard(btn){
+  if (typeof btn.animate !== "function") return false;
+  if (typeof matchMedia === "function" && matchMedia("(prefers-reduced-motion: reduce)").matches) return false;
+  const band = $("capRecipeBand"), cap = $("pp4Cap");
+  const tgt = [band, cap].find(el => el && !el.hidden && el.getBoundingClientRect().width > 2);
+  const a = btn.getBoundingClientRect();
+  if (!tgt || a.width < 2) return false;
+  const b = tgt.getBoundingClientRect();         // a DELTA between two gBCRs: one space for both (see boardDrawnRect)
+  const dx = Math.round((b.left + b.width / 2) - (a.left + a.width / 2));
+  const dy = Math.round((b.top + b.height / 2) - (a.top + a.height / 2));
+  const s = Math.max(0.12, Math.min(0.6, b.height / a.height));
+  const lifted = [];
+  for (let el = btn.parentElement; el && el !== document.body; el = el.parentElement){
+    const cs = getComputedStyle(el);
+    if (cs.overflowX !== "visible" || cs.overflowY !== "visible"){ lifted.push([el, el.style.overflow]); el.style.overflow = "visible"; }
+  }
+  rcCommitting = btn;
+  /* THE RIPPLE WAITS FOR THIS RECIPE. Every captain already holds a seeded recipe before the draft (capEmptyTick's note),
+     so the band can be showing a DIFFERENT one the frame the box appears — the ripple is keyed to the chosen card's own
+     ingredient pictures, which are the same files the band draws. */
+  rcRippleWanted = [...btn.querySelectorAll(".recipeList img")].map(i => i.getAttribute("src")).join("|") || null;
+  const an = btn.animate([
+    { translate: "0px 0px", scale: "1", opacity: 1 },
+    { translate: `${Math.round(dx * .08)}px ${Math.round(dy * .08) - 24}px`, scale: "1.05", opacity: 1, offset: .22 },   // lifts first
+    { translate: `${dx}px ${dy}px`, scale: String(s), opacity: 0 },
+  ], { duration: RC_COMMIT_MS, easing: "cubic-bezier(.55,0,.35,1)", fill: "forwards" });
+  let landed = false;
+  const land = () => {
+    if (landed) return;
+    landed = true;
+    lifted.forEach(([el, v]) => { el.style.overflow = v; });
+    if (btn.isConnected) btn.click(); else rcCommitting = null;
+  };
+  an.onfinish = land; an.oncancel = land;
+  setTimeout(land, RC_COMMIT_MS + 300);
+  return true;
+}
+function rcRippleTick(){
+  if (!rcRippleWanted) return;
+  const band = $("capRecipeBand"), cap = $("pp4Cap");
+  if (!band || band.hidden || band.classList.contains("bandEmpty") || (cap && cap.style.visibility === "hidden")) return;
+  const chips = [...band.querySelectorAll(".capRecipeIng .chip")];
+  if (!chips.length) return;
+  const shows = chips.map(c => { const i = c.querySelector("img"); return i ? i.getAttribute("src") : ""; }).join("|");
+  if (shows !== rcRippleWanted) return;          // not the chosen recipe yet
+  rcRippleWanted = null;
+  if (typeof matchMedia === "function" && matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  chips.forEach((c, k) => {
+    if (typeof c.animate === "function")
+      c.animate([{ scale: "0.3", opacity: 0 }, { scale: "1.18", opacity: 1, offset: .6 }, { scale: "1", opacity: 1 }],
+        { duration: 340, delay: k * 80, fill: "backwards", easing: "ease-out" });
+  });
+}
 function recipeGuard(){
   document.addEventListener("click", e => {
     if (!S.active) return;
@@ -2317,7 +2380,13 @@ function recipeGuard(){
        glow) all stayed. Pixels and state disagreed, and the next tap re-selected instead of
        confirming. The internal state now follows the visible one: an outside tap changes nothing. */
     if (!btn || !btn.querySelector(".recipeList")) return;
-    if (focusBtn === btn) { clearGlow(); clearBake(); focusBtn = null; return; }  // second tap: let it through
+    if (rcCommitting === btn) { rcCommitting = null; return; }                // the choice, re-sent as its card lands
+    if (rcCommitting) { e.stopPropagation(); e.preventDefault(); return; }    // a card is already on its way
+    if (focusBtn === btn) {                                                   // second tap: the choice
+      clearGlow(); clearBake(); focusBtn = null;
+      if (flyChosenCard(btn)) { e.stopPropagation(); e.preventDefault(); }   // it goes through when the card lands
+      return;
+    }
     e.stopPropagation(); e.preventDefault();                          // first tap: focus + glow
     if (rcSwapCancel) rcSwapCancel();   // a tap mid-swap keeps the tapped card in front (see cancelSwap in mountRecipeStack)
     focusBtn = btn;
@@ -3223,6 +3292,7 @@ function buildStage(){
   camFull();
   S.active = true;
   S.recipePicked = false;      // a new voyage starts with an empty captains box again (capEmptyTick)
+  rcCommitting = null; rcRippleWanted = null;   // …and no chosen card still in the air from the last one
   /* ⭐ ONE LAYOUT BEFORE THE FIRST PAINT. The pill's words and row, then the board measured under them, then the pill
      once more in case the ribbon's fit moved it, then the camera — all before the browser paints, so the board's
      first frame is its final one. Before this the stage painted a frame at the full window height (732x800 on a
@@ -3859,6 +3929,7 @@ function promptTick(force){
   const box = $("pp4Prompt"), ap = $("actionPanel");
   if (!box || !ap) return;
   capEmptyTick();
+  rcRippleTick();
   // AT PORT: this loop keeps running (it is the shared stage rAF, not per-game), and it owns
   // box.style.display. Without this it re-shows the prompt one frame after hideStageLayer() hides
   // it — T-12's second half. Returning early leaves the hidden display exactly as set.
