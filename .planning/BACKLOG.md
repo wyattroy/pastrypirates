@@ -1542,6 +1542,35 @@ replaced with his explicit width, not just mirrored.
       Chrome cannot composite an SVG transform), so the pop is drawn as an HTML layer in CAM_HTML_LAYERS and hands over to the
       SVG crate when it lands; the dotted course line is drawn by the picker's chartFrontRecipe — it must wait for the cards.
       Both screens (host and guest, one at his iPhone 13 mini size) must pop in step.
+- [x] **HIS GAME FEEL AUDIT MARKS ARE IN — 2026-09-13 late night (verbatim in DECISIONS.md).** Build every PASSED idea; do not build
+      the PROBLEM ones as written. What he passed, by moment: the board settles in (AND fix today's load jitter, where the board picks
+      several sizes before settling — "the navbar row/other elements fighting/jostling -- you'll have to fix this simultaneously") ·
+      buttons squish · the parrot bobs · recipe cards whoosh in and thump · the chosen card flies into the captain's box · the dotted
+      route draws itself · your row lifts · your boat bobs once · squares pop in from the boat outward · the tapped square squishes and
+      flashes · the boat leans back before it sails, leaves a wake, arrives with a bob and a splash ring · the coin sinks before it
+      flips, lands with weight, HEADS/TAILS stamps in, a tiny screen nudge on tails · treasure bursts out on heads · the bought crate
+      flies from the island to the hold, coins count down, a juicier store sound · traded crates swap in arcs · the cannon kicks, a hit
+      flashes and shakes, the loser gets knocked about · lightning with the thunder ("make this subtle") · boats rock and the sea
+      darkens in a storm · speed lines on the trade-wind ride · a short fanfare and confetti for the first captain home · bake-off lids
+      slam down with a puff, a right answer bursts green · the end card's awards deal in like cards, stats count up, confetti for the
+      winner.
+      NOT THIS WAY: the camera settling at your turn ("could be nauseating"); the handshake stamp (REMOVED 2026-09-13, fb1da47f); the
+      bake-off shuffle speeding up ("We need them to be trackable"); fishing (there is none — the audit page built that moment from the
+      Muse's old sound name, "fishing", without checking the rules; the page's error, not the game's).
+      ⭐ THREE PROJECTS HE ADDED IN THE NOTES, each its own item below:
+- [ ] **SAILING: EVERY SQUARE TAKES TWO TAPS, AND THE SECOND TAP ZOOMS IN TO CONFIRM; THE TRADE WINDS GO YELLOW-GOLD.** His words: *"I think
+      all squares that are tapped should take two taps -- and on the second tap, the board should zoom in to let you accurately confirm
+      it. Also, the trade winds squares should also appear yellowgold, not blue -- but they should clearly be seen as "special" -- the line
+      projecting where the trade winds take you should be yellow/gold too, this way all wind-sailing-related movement cues are
+      yellow-gold."* Today blue squares (trade winds) take two taps and ordinary ones take one (pilot ladder "sail.twotap").
+- [ ] **BATTLES HAPPEN OVER THE BOARD — THE BATTLE CARD GOES.** His words: *"I don't like any part of the battle screen, to be honest --
+      after you do these changes, we can get rid of the battle screen entirely so that the whole battle happens over the gameboard. when
+      you're the one engaging in the battle, the coin flipper stage should still appear; but the moment it's finished flipping, the board
+      should reveal itself again with the two ships battling."* Its words (the battle card lines) already live in words.js.
+- [ ] **THE END OF VOYAGE CARD, BLUE-SKY: 5–10 PROPOSALS.** His words: *"Somehow bring this end of voyage card to life -- I'm not sure how,
+      but it should feel more exciting. I'm giving you blue-sky redesign here -- research other game victory cards and make 5-10 more
+      proposals. Intention: someone feels SO excited to win that they HAVE to play again immediately"*. Deliverable: an artifact of
+      proposals grounded in how other games' victory screens do it, his pick before anything is built.
 - [ ] **A GAME FEEL AUDIT — EVERY MOMENT THAT COULD HAVE MORE OOMPH, JUICE AND GLOSS.** 🟢 THE PAGE IS UP, 2026-09-13 ("Game Feel Audit", link in `.planning/CURRENT-SHEET.md`): 16 moments, what each does and sounds like today (read from the code), 39 sized ideas with Passed/Problem, photographed in a real phone-size voyage; 8 moments the voyage never reached (coin, dock, buy, storm, winds, fishing, home, the boat sailing) say so rather than show a wrong screen. Build only what he passes. His words: *"a "game feel" audit that looks
       for all the areas where we can increase game feel satisfaction, eg during the coin flip by making the coin sink down before
       flipping, and lots of other moments where we can give the game more oomph, juice, and gloss."* Deliverable: an artifact that
