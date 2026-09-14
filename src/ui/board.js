@@ -151,7 +151,7 @@ import {
   // the decorative board's demo log line, and that board no longer renders. Dead imports are
   // forbidden in this codebase (D-33/D-34/D-40) and no gate catches them, so they go with the code
   // that used them rather than being left behind as plausible-looking dependencies.
-  assignBadges, pname, pn, buildPlayerRows, applyCaptainOrder, SHIP_GLIDE_MS, vwPx, vhPx, say, seat,
+  assignBadges, pname, pn, buildPlayerRows, applyCaptainOrder, SHIP_GLIDE_MS, vwPx, vhPx, say, seat, fixedOrigin,
   fitHold,   // 2026-09-11: every hold on one line (his check-9 note)
   fitRecipeName,   // 2026-09-12: the recipe's name at the largest size that fits its card
 } from "./util.js";
@@ -1802,12 +1802,109 @@ export function paintShipAt(seat,c){
    is CONVERGE, not add a path: so render() goes through this too, and the pulse, the dataset stamp
    and the markup are one statement rather than two copies drifting.
    `coins` is a NUMBER, and 0 is a real purse — every test in here is explicit, never truthiness. */
+/* ⭐ THE COUNT ROLLS, IT DOES NOT JUMP — PASSED on his game feel audit (2026-09-13), as proposed for both directions: "Coins
+   spray up from the dock and arc into your coin count, which rolls up number by number." · "The price leaves your coin count
+   as a quick tick-down ... instead of the number just changing." The number ticks one at a time toward the new purse
+   (never longer than COIN_ROLL_MAX_MS), and waits while treasure is still in the air (holdCoinRoll). The coin picture is
+   written once and only the number changes, so the roll re-fetches nothing. A replay and reduced motion just set it. */
+const COIN_ROLL_STEP_MS=40, COIN_ROLL_MAX_MS=700;
+const coinRolls={};
+export function holdCoinRoll(seat,ms){(coinRolls[seat]=coinRolls[seat]||{}).holdUntil=performance.now()+ms;}
 export function showSeatCoins(seat,coins){
   const el=$("coins"+seat);
   if(!el)return;
-  if(el.dataset.coins!==undefined&&+el.dataset.coins!==coins)pulseEl(el);
+  const had=el.dataset.coins!==undefined?+el.dataset.coins:null;
+  if(had!==null&&had!==coins)pulseEl(el);
   el.dataset.coins=coins;
-  el.innerHTML=`${iconImg(COIN_IMG)} ${coins}`;
+  const n=el.querySelector(".coinN");
+  if(!n){el.innerHTML=`${iconImg(COIN_IMG)} <span class="coinN">${coins}</span>`;return;}
+  const r=coinRolls[seat]=coinRolls[seat]||{};
+  clearTimeout(r.timer);
+  const from=parseInt(n.textContent,10);
+  if(had===null||!Number.isFinite(from)||from===coins||appState.replaying||fxReduced()){n.textContent=coins;return;}
+  const every=Math.max(12,Math.min(COIN_ROLL_STEP_MS,COIN_ROLL_MAX_MS/Math.abs(coins-from))),dir=Math.sign(coins-from);
+  const tick=()=>{
+    if(!n.isConnected)return;
+    const cur=parseInt(n.textContent,10);
+    if(!Number.isFinite(cur)||cur===coins){n.textContent=coins;return;}
+    n.textContent=cur+dir;
+    if(cur+dir!==coins)r.timer=setTimeout(tick,every);
+  };
+  r.timer=setTimeout(tick,Math.max(0,(r.holdUntil||0)-performance.now()));
+}
+/* ⭐ TREASURE BURSTS OUT, AND A BOUGHT CRATE FLIES HOME — PASSED on his game feel audit (2026-09-13), as proposed: "Coins spray
+   up from the dock and arc into your coin count" · "It lifts off the island, arcs to your captain's box, and lands on its
+   crate with a squash — the island's copy greys with a little poof as it leaves."
+   Called from THE ONE event consumer on a `dock` event, so every screen shows every captain's dock. They fly in FIXED
+   position between two things drawn in different places — the board and the captains box — so both ends are measured as
+   drawn and brought into the one fixed space (fixedOrigin, util.js) before a single number is taken between them. */
+const TREASURE_COINS=6, TREASURE_MS=780, CRATE_FLY_MS=620;
+function fixedPointOfBoard(svg,x,y){
+  const ctm=svg&&svg.getScreenCTM();if(!ctm)return null;
+  const pt=svg.createSVGPoint();pt.x=x;pt.y=y;
+  const p=pt.matrixTransform(ctm),o=fixedOrigin();
+  return [p.x-o.x,p.y-o.y];
+}
+function capShowing(){const cap=$("pp4Cap");return !(cap&&cap.style.visibility==="hidden");}
+export function treasureBurst(seat){
+  if(fxReduced()||!shipEls[seat])return;
+  const ships=$("boardShips")||$("board");
+  const m=/translate\(([-\d.]+)px,\s*([-\d.]+)px\)/.exec(shipEls[seat].style.transform||"");
+  const from=m&&fixedPointOfBoard(ships,parseFloat(m[1]),parseFloat(m[2]));if(!from)return;
+  const icon=($("coins"+seat)||{querySelector:()=>null}).querySelector("img");
+  let to=null;
+  if(icon&&capShowing()){const r=icon.getBoundingClientRect(),o=fixedOrigin();if(r.width>1)to=[r.left+r.width/2-o.x,r.top+r.height/2-o.y];}
+  const ctm=ships.getScreenCTM(),size=Math.max(12,cell*(ctm?ctm.a:1)*0.42);
+  for(let k=0;k<TREASURE_COINS;k++){
+    const im=document.createElement("img");
+    im.src=COIN_IMG;im.alt="";im.className="ppTreasure";
+    Object.assign(im.style,{left:(from[0]-size/2)+"px",top:(from[1]-size/2)+"px",width:size+"px",height:size+"px"});
+    document.body.appendChild(im);
+    const spread=(k-(TREASURE_COINS-1)/2)*size*0.55,up=size*(2.2+((k*37)%5)*0.25);
+    const end=to?[to[0]-from[0],to[1]-from[1]]:[spread*1.4,-up*1.6];
+    const a=im.animate([{translate:"0px 0px",scale:"0.4",opacity:0},
+      {translate:`${spread.toFixed(1)}px ${(-up).toFixed(1)}px`,scale:"1.05",opacity:1,offset:.4},
+      {translate:`${end[0].toFixed(1)}px ${end[1].toFixed(1)}px`,scale:to?"0.55":"0.7",opacity:to?1:0}],
+      {duration:TREASURE_MS,delay:k*55,easing:"cubic-bezier(.3,.7,.4,1)",fill:"both",id:"treasure"});
+    a.onfinish=a.oncancel=()=>im.remove();
+  }
+  if(to)holdCoinRoll(seat,TREASURE_MS*0.8+TREASURE_COINS*55);
+}
+/* Measured BEFORE render() greys the crate (its island rect), handed to crateFlightTo AFTER render() has drawn the new chip. */
+export function crateFlightFrom(e){
+  if(fxReduced()||!e||!e.tokens||e.tokens[e.ing]==null)return null;
+  const crate=$(`crate_${e.ing}_${e.tokens[e.ing]}`);if(!crate)return null;
+  const r=crate.getBoundingClientRect();if(r.width<1)return null;
+  const o=fixedOrigin();
+  return {ing:e.ing,rect:{x:r.left-o.x,y:r.top-o.y,w:r.width,h:r.height}};
+}
+export function crateFlightTo(f,seat){
+  if(!f)return;
+  const cx=f.rect.x+f.rect.w/2,cy=f.rect.y+f.rect.h/2;
+  const poof=document.createElement("div");poof.className="ppPoof";
+  Object.assign(poof.style,{left:(cx-f.rect.w*.6)+"px",top:(cy-f.rect.h*.6)+"px",width:(f.rect.w*1.2)+"px",height:(f.rect.h*1.2)+"px"});
+  document.body.appendChild(poof);
+  const pa=poof.animate([{opacity:.8,scale:"0.5"},{opacity:0,scale:"1.5"}],{duration:480,easing:"ease-out",fill:"both",id:"crate-poof"});
+  pa.onfinish=pa.oncancel=()=>poof.remove();
+  const chipsEl=$("chips"+seat),src=ING_IMG[f.ing];
+  if(!chipsEl||!capShowing()||!src)return;
+  const chip=[...chipsEl.querySelectorAll(".chip")].filter(c=>{const i=c.querySelector("img");return i&&i.getAttribute("src")===src;}).pop();
+  if(!chip)return;
+  const cr=chip.getBoundingClientRect();if(cr.width<1)return;
+  const o=fixedOrigin(),tx=cr.left-o.x+cr.width/2,ty=cr.top-o.y+cr.height/2;
+  chip.style.visibility="hidden";
+  const im=document.createElement("img");im.src=src;im.alt="";im.className="ppCrateFly";
+  Object.assign(im.style,{left:f.rect.x+"px",top:f.rect.y+"px",width:f.rect.w+"px",height:f.rect.h+"px"});
+  document.body.appendChild(im);
+  const dx=tx-cx,dy=ty-cy,s=Math.max(.3,Math.min(2,cr.width/f.rect.w));
+  const a=im.animate([{translate:"0px 0px",scale:"1"},
+    {translate:`${(dx*.2).toFixed(1)}px ${(dy*.2-f.rect.h*1.2).toFixed(1)}px`,scale:"1.15",offset:.3},
+    {translate:`${dx.toFixed(1)}px ${dy.toFixed(1)}px`,scale:String(s)}],{duration:CRATE_FLY_MS,easing:"cubic-bezier(.45,0,.3,1)",fill:"both",id:"crate-fly"});
+  let landed=false;
+  const land=()=>{if(landed)return;landed=true;im.remove();chip.style.visibility="";
+    if(chip.isConnected&&typeof chip.animate==="function")chip.animate([{scale:"1.3 0.75"},{scale:"0.92 1.08",offset:.5},{scale:"1"}],{duration:300,easing:"ease-out",id:"crate-land"});};
+  a.onfinish=land;a.oncancel=land;
+  setTimeout(land,CRATE_FLY_MS+400);   // a dropped animation never leaves a crate invisible in the hold
 }
 export function render(){
   if(idlePlaceholder()){if(shipEls.length)hideShipsWhileIdle();return;}

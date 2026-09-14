@@ -390,6 +390,11 @@ function soundForEvent(e) {
      bus, so STORM_VOLUME governs it and fadeStorm() ends it.
      `bus: "storm"` and no `loop`: playForEvent hands this to the scatter starter below. */
   if (e.t === "newround" && e.storm) return { name: "storm", bus: "storm", scatter: true };
+  /* A JUICIER STORE SOUND — PASSED on his game feel audit (2026-09-13), as proposed: "The same pop you are picking in the
+     tuner, so buying and the pop-in speak the same language." A crate BOUGHT at a dock plays his cork pop (BUY_POP_SLOT
+     semitones above its starting pitch); scrubbing the docks and every trade keep the store sound. */
+  if (e.t === "dock" && e.got === "bought")
+    return { name: "cork-pop", bus: "master", from: BUY_POP_SLOT * POP_SLOT_S + POP_START_S - 0.01, dur: POP_SLOT_S - POP_START_S };
   const name = EVENT_SOUND[e.t];
   if (!name) return null;
   const out = { name, bus: "master" };
@@ -881,6 +886,7 @@ function play(name, opts) {
    long as a low one, which a sped-up sample would not be. Each pop starts 40ms into its slot; playback starts 10ms
    before it, so an mp3 decoder's priming delay can shift the pop but never clip its attack. */
 const POP_SLOT_S = 0.3, POP_START_S = 0.04, POP_SLOTS = 19;
+const BUY_POP_SLOT = 7;   // a bought crate's pop: seven semitones up (a fifth) — bright against the pop-in's low start
 function playPop(step) {
   const s = Math.max(0, Math.min(POP_SLOTS - 1, Math.round(step || 0)));
   play("cork-pop", { from: s * POP_SLOT_S + POP_START_S - 0.01, dur: POP_SLOT_S - POP_START_S });
@@ -1372,7 +1378,7 @@ function playForEvent(e, isLocalSeat) {
   if (s.localOnly && isLocalSeat !== true) return;
   /* The storm is not a one-shot and not a loop — it is a scatter that runs for the round. */
   if (s.scatter) { stormScatterStart(s.name); return; }
-  play(s.name, { bus: masterGain });
+  play(s.name, { bus: masterGain, from: s.from, dur: s.dur });
 }
 
 // D-05's placeholder cue, tied to the win screen APPEARING, not to the `end`/`finish` events —

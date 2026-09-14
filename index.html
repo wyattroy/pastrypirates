@@ -927,6 +927,11 @@
   #popHost { position: absolute; inset: 0; pointer-events: none; z-index: 2; }
   /* the boat's wake and its arrival ring (board.js sailSetsOff / sailArrives) share this camera layer, under the boats */
   .ppWake { position: absolute; border-radius: 50%; background: rgba(255,255,255,.9); opacity: 0; will-change: transform, opacity; }
+  /* treasure coins and a bought crate fly between the board and the captains box in FIXED position (board.js) */
+  .ppTreasure, .ppCrateFly { position: fixed; z-index: 60; pointer-events: none; will-change: transform, opacity; object-fit: contain;
+    filter: drop-shadow(0 2px 3px rgba(0,0,0,.35)); }
+  .ppPoof { position: fixed; z-index: 59; pointer-events: none; border-radius: 50%; opacity: 0;
+    background: radial-gradient(rgba(255,255,255,.85), rgba(255,255,255,0) 70%); will-change: transform, opacity; }
   .ppSplash { position: absolute; border-radius: 50%; border: 2px solid rgba(255,255,255,.9); box-sizing: border-box; opacity: 0; will-change: transform, opacity; }
   .ppPop { position: absolute; opacity: 0; will-change: transform, opacity; }
   .ppPop img { width: 100%; height: 100%; display: block; object-fit: contain; }
