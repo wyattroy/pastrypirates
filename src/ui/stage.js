@@ -26,6 +26,7 @@ import { showsThinkingIndicator } from "../shared/visibility.js";
 import { pilotToggle, pilotIsOn, pilotMsg, pilotSee } from "./pilot.js";
 import { showCourseFor, paintMarks, clearCourse, forgetCourse, redrawCourse } from "./course.js";
 import { startPopIn, releasePopIn } from "./popin.js";
+import { wirePressSquish } from "./press.js";
 
 const $ = id => document.getElementById(id);
 const AR = { N: "↑", S: "↓", E: "→", W: "←" };
@@ -1724,6 +1725,23 @@ const plain = h => String(h).replace(/<[^>]*>/g, "").replace(/\s+/g, " ").trim()
    fire-and-forget: netIntroBarrier's waitMsg, watchDraftPrompt's waitMsg, recipeDraftNet's two
    lines, and ask()'s "…is deciding…" broadcast. None is awaited by the game loop. If a future wait
    line IS awaited, it must not use this flag. */
+/* ⭐ THE PARROT BOBS WHEN IT SPEAKS — PASSED on his game feel audit (2026-09-13), as proposed: "A small hop each time a new
+   line of narration appears, so the voice has a body." The parrot is the header's parrot chip. Its PICTURE hops, never
+   the button, so a hop cannot fight the button's own press squish. A resting parrot (switched off) stays still. */
+const PARROT_HOP_PX = 4;
+const PARROT_HOP_MS = 380;
+function hopParrot(){
+  const img = document.querySelector("#pp4Help img");
+  if (!img || typeof img.animate !== "function" || !pilotIsOn()) return;
+  if (typeof matchMedia === "function" && matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  img.animate([
+    { transform: "translateY(0px)" },
+    { transform: `translateY(${-PARROT_HOP_PX}px)`, offset: .35 },
+    { transform: "translateY(0px)", offset: .7 },
+    { transform: "translateY(-1px)", offset: .85 },
+    { transform: "translateY(0px)" },
+  ], { duration: PARROT_HOP_MS, easing: "ease-out" });
+}
 function stageFlash(msg, ms, holdMs, variants, opts){
   if (!S.active) return null;                        // pre-game: let the panel handle it
   /* A REPLAY IS SILENT AND INSTANT — playtest 22, the other half of the stall report (Wyatt: "when
@@ -1828,6 +1846,7 @@ function stageFlash(msg, ms, holdMs, variants, opts){
     b.innerHTML = `<div class="pp4BubIn">${emojify(String(msg))}</div>` + (subj != null ? `<div class="pp4Tail" style="border-color:${HEXCOL[subj] || "#177"}"></div>` : "");
     const host = fxHost();
     host.appendChild(b);
+    hopParrot();
     // playtest 4: lines type themselves in, the game's own reveal — and fade out on replace
     try { typewriterReveal(b.querySelector(".pp4BubIn"), 9); } catch (e) {}
     /* ONLY AS WIDE AS THE WORDS — playtest 23 item 3 (Wyatt): "the narration text boxes should only
@@ -5679,6 +5698,7 @@ export function cleanupLegacyTimerKey(store){
 }
 
 export function initStage(){
+  wirePressSquish();   // every button in the game squishes when pressed (src/ui/press.js) — welcome screen included
   // FIX-01: clear the shared legacy key once per browser, BEFORE the seed below reads anything.
   // Wrapped again here because a browser can throw on merely touching localStorage (Safari private
   // mode) — the boot path must not go down for a housekeeping call.
