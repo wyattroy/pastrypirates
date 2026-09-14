@@ -42,7 +42,7 @@ import {
   pn, boatXY, narrationHoldMs, chatBubbleHoldMs,
   sleepMs, describeFor, narrationVariants, NEUTRAL_VIEWER,
   pickNarrVariant, eventCeremony, voyageAground,
-  expectEventDrawing, narrateEvent,
+  expectEventDrawing, narrateEvent, say, sayText,
 } from "./util.js";
 import { escHtml } from "./recipe.js";
 import { netHandlers } from "./handlers.js";
@@ -133,12 +133,12 @@ export function setClockUI(){
        ARIA-PRESSED IS GONE ON PURPOSE: it is a BINARY, and it would announce "sound off" or
        "sound on" for a mode that is neither. aria-label carries the whole state instead, which is
        the treatment that works on touch as well as desktop (see MUTE-01 above). */
-    const muteLabel=diag==="muted"?"Sound is off. Tap for sound and music."
-                   :diag==="nomusic"?"Sound on, music off. Tap to mute."
+    const muteLabel=diag==="muted"?sayText("sound.muted",{})
+                   :diag==="nomusic"?sayText("sound.noMusic",{})
                    // the stalled state names itself here too, or the row and the label disagree at
                    // the one moment a player is actually looking for an explanation
-                   :diag==="stalled"?"Sound is on but yer browser has stalled it. Tap the board twice."
-                   :"Sound and music on. Tap to turn the music off.";
+                   :diag==="stalled"?sayText("sound.stalled",{})
+                   :sayText("sound.on",{});
     setIf(muteEl,"title",muteLabel);
     setAttrIf(muteEl,"aria-label",muteLabel);
     if(muteEl.hasAttribute("aria-pressed"))muteEl.removeAttribute("aria-pressed");
@@ -1156,10 +1156,9 @@ export function dryCeremony(){
     // it instead of quietly lying to a captain about what the crate costs. Reached unguarded for
     // the same reason board.js reaches it unguarded: no client ever draws without appState.game.
     const bmPrice=appState.game.cfg.blackMarket;
-    panel(`<div class="apMsg">🏴 <b>The shelves be bare…</b><br><br>
-      Sold-out islands fly the black market flag. They'll find ye one more
-      ingredient — for <b>${bmPrice}🌕.</b></div>
-      <div class="apBtns"><button class="apBtn" id="bmCerGo" type="button">Arrgh!</button></div>
+    panel(`<div class="apMsg">${say("market.bareTitle",{})}<br><br>
+      ${say("market.bareBody",{price:bmPrice})}</div>
+      <div class="apBtns"><button class="apBtn" id="bmCerGo" type="button">${say("market.bareGo",{})}</button></div>
       `,true);   /* the "Steep, aye…" helper line is gone — his call, 2026-08-25 */
     const go=$("bmCerGo");
     if(!go){delete ap.dataset.pp4Stage;res();return;}

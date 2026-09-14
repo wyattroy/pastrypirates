@@ -123,8 +123,7 @@ function ffRecapLine(g,from){
     const cur=by.get(seat);if(!cur||w>cur.w)by.set(seat,{w,txt});
   };
   for(const e of g.events.slice(Math.max(0,from))){
-    if(e.t==="finish")note(e.p,6,say("recap.home",{}));
-    else if(e.t==="battle"){
+    if(e.t==="battle"){
       const loser=e.winner===e.a?e.d:e.a;
       note(e.winner,5,say("recap.bested",{q:pn(loser)}));
       note(loser,4,say("recap.lost",{q:pn(e.winner)}));
@@ -2590,12 +2589,7 @@ export async function humanAct(player,sailCtx){
   opts.push({label:say("act.trade",{}),value:"trade",disabled:!canTrade,
     why:!canOffer?sayText("act.nothingToTrade",{})
       :sayText("act.noCargoOnWater",{})});
-  // v2.1: dead under the bake-off, and gated EXPLICITLY rather than left to be dead by accident.
-  // The bake-off lights the ovens from the turn loop the moment a full recipe reaches Tortuga, so
-  // this button can never be the thing that starts a bakery — offering it would promise a finish
-  // the engine no longer grants on a click.
-  if(!appState.game.cfg.bakeoff&&!appState.game.needs(player).length&&man(player.pos,appState.game.home)<=1)
-    opts.unshift({label:`${iconImg(CUPCAKE_IMG)} Start yer bakery!`,short:`${iconImg(CUPCAKE_IMG)} Bakery!`,value:"bakery"});
+  // (the classic "Start yer bakery!" button stood here — the classic day is gone, his word of 2026-09-13)
   // THE OVENS BUTTON (Wyatt, 2026-08-09: "Where did the button go? This is a celebratory moment!
   // It feels terrible to have to click 'pass'").
   //
@@ -2806,8 +2800,6 @@ export async function humanAct(player,sailCtx){
   // Ends the turn and nothing else — runLiveDayBakeoff lights the ovens the instant this returns,
   // and narrates it. See the option's own note above for why the click must not do it itself.
   if(v==="ovens")return;
-  // @copy adhoc.act.bakerystart
-  if(v==="bakery"){await flash("🧁 Firing up the ovens on the Isle of Tortuga!",1200);return;}
   if(v==="dock"){
     const r=await humanDock(player,port);
     if(r==="back"){await humanAct(player,sailCtx);return;}

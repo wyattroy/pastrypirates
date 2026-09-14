@@ -642,8 +642,8 @@ const EVENT_NARRATION={
   // notes/edits UI-04: on a catch, the emoji that rises from the boat is the SUGARFISH itself, not
   // the fishing line — you just landed a fish, so show the fish coming up out of the boat.
   // NARR-01/D-25/D-38 (Wyatt-approved 2026-07-29): signed catch amounts.
-  finish:(e,at,cellPx,viewerSeat)=>({cls:"roundhdr",txt:isLocalTo(e.p,viewerSeat)?`🏁 ${pn(e.p)} — ye return to the Isle of Tortuga with a full recipe!`:`🏁 ${pn(e.p)} returns to the Isle of Tortuga with a full recipe!`,
-    caps:[[e.p,"🏁 recipe done!"]],pops:[[at(e.p),"🏁",true]]}),
+  /* (`finish` — "returns to the Isle of Tortuga with a full recipe!" — stood here. Only the classic day emitted it, and the
+     classic day is gone by his word of 2026-09-13; a captain home with a full recipe lights the ovens, and `ovens` says it.) */
   /* The `shotclock` (20s coin penalty) and `shotclockskip` (30s turn skip, Wyatt's "Dozed at the
      helm!" wording) rows stood here — removed 2026-08-28 with the shot clock itself (see ask()).
      Nothing emits either event any more; the wordings and their approval history live in git. */
@@ -962,18 +962,18 @@ export function computeAwards(){
 // that category, so assignBadges() can compare across categories with different units. `key` selects
 // the per-player stat array (computeAwards() output, plus a synthesised `tails`).
 const BADGE_POOL=[
-  {key:"battlesWon",   img:"cutlass",  name:"The Cutlass of a Thousand Notches", byline:"One notch per fallen foe, carved into the hilt.",                 stat:"Most battles won",   unit:"",         scale:3},
+  {key:"battlesWon",   img:"cutlass",  name:say("trophy.cutlass.name",{}), byline:say("trophy.cutlass.byline",{}),                 stat:say("trophy.cutlass.stat",{}),   unit:say("trophy.cutlass.unit",{}),         scale:3},
   // v2 rule 3: no fishing, so the Golden Herring is retired. In its place, the award that
   // actually measures a v2 captain — who spent the most at the docks now that every crate on the
   // board has a price on it (rules 10/11).
-  {key:"cratesBought", img:"doubloon", name:"The Open Purse",                      byline:"Paid the harbourmaster more than any captain on the Sugar Seas.", stat:"Most ingredients bought", unit:"",         scale:4},
-  {key:"dist",         img:"compass",  name:"The Horizon-Chaser's Compass",      byline:"For the salt-crusted soul who sailed further than sense allowed.", stat:"Farthest traveled",  unit:" sq",      scale:45},
-  {key:"longestBattle",img:"medal",    name:"The Iron Gut Medal",                byline:"For the crew that refused to sink.",                               stat:"Longest battle",     unit:" rounds",  scale:4},
-  {key:"tails",        img:"blackspot",name:"The Black Spot of Bad Tides",       byline:"Survived the curse — worst luck on the Sugar Seas.", stat:"Most tails flipped", unit:" tails", scale:16},
-  {key:"hottestStreak",img:"herring",  name:"The Lucky Streak",                  byline:"Heads, then heads, then heads again — Lady Luck rode on their shoulder.", stat:"Hottest streak", unit:" heads", scale:4},
-  {key:"trades",       img:"ledger",   name:"The Silver-Tongued Ledger",         byline:"Struck more deals than a Tortuga fishmonger on market day.",       stat:"Most trades struck", unit:"",         scale:3},
-  {key:"timesAttacked",img:"target",   name:"The Painted Target",                byline:"Somehow every cannon in the Caribbean swung their way.",           stat:"Most set upon",      unit:"",         scale:3},
-  {key:"battlesLost",  img:"timbers",  name:"The Splintered Timbers",            byline:"Took a right drubbing and lived to grumble about it.",             stat:"Most battles lost",  unit:"",         scale:3},
+  {key:"cratesBought", img:"doubloon", name:say("trophy.doubloon.name",{}),                      byline:say("trophy.doubloon.byline",{}), stat:say("trophy.doubloon.stat",{}), unit:say("trophy.doubloon.unit",{}),         scale:4},
+  {key:"dist",         img:"compass",  name:say("trophy.compass.name",{}),      byline:say("trophy.compass.byline",{}), stat:say("trophy.compass.stat",{}),  unit:say("trophy.compass.unit",{}),      scale:45},
+  {key:"longestBattle",img:"medal",    name:say("trophy.medal.name",{}),                byline:say("trophy.medal.byline",{}),                               stat:say("trophy.medal.stat",{}),     unit:say("trophy.medal.unit",{}),  scale:4},
+  {key:"tails",        img:"blackspot",name:say("trophy.blackspot.name",{}),       byline:say("trophy.blackspot.byline",{}), stat:say("trophy.blackspot.stat",{}), unit:say("trophy.blackspot.unit",{}), scale:16},
+  {key:"hottestStreak",img:"herring",  name:say("trophy.herring.name",{}),                  byline:say("trophy.herring.byline",{}), stat:say("trophy.herring.stat",{}), unit:say("trophy.herring.unit",{}), scale:4},
+  {key:"trades",       img:"ledger",   name:say("trophy.ledger.name",{}),         byline:say("trophy.ledger.byline",{}),       stat:say("trophy.ledger.stat",{}), unit:say("trophy.ledger.unit",{}),         scale:3},
+  {key:"timesAttacked",img:"target",   name:say("trophy.target.name",{}),                byline:say("trophy.target.byline",{}),           stat:say("trophy.target.stat",{}),      unit:say("trophy.target.unit",{}),         scale:3},
+  {key:"battlesLost",  img:"timbers",  name:say("trophy.timbers.name",{}),            byline:say("trophy.timbers.byline",{}),             stat:say("trophy.timbers.stat",{}),  unit:say("trophy.timbers.unit",{}),         scale:3},
   /* "The Barnacle Brain" (slowest to decide) left with the shot clock, 2026-08-28 — its tally
      counted shotclock/shotclockskip events nothing emits now; kept, every seat would score 0 and
      the award would be handed out by tie-break, a visibly wrong End of Voyage screen. */
@@ -981,7 +981,7 @@ const BADGE_POOL=[
 // Guaranteed fallback for a captain who earned no standout stat (rare — everyone at least sails, so
 // "Farthest traveled" is nearly always claimable — but this ensures EVERY captain gets one award).
 // It still carries a real number: how many ingredients they finished the voyage holding.
-const FALLBACK_BADGE={img:"anchor",name:"Good Mate",byline:"Pirated for the love of the game.",stat:"Number of ingredients plundered",unit:""};
+const FALLBACK_BADGE={img:"anchor",name:say("trophy.anchor.name",{}),byline:say("trophy.anchor.byline",{}),stat:say("trophy.anchor.stat",{}),unit:say("trophy.anchor.unit",{})};
 // notes/edits EOV-04: every captain gets exactly ONE award, and no two share a category. Build all
 // (captain, category) claims with a positive stat, rank them by value/scale (so a 57-square voyage
 // and a 4-win rampage compare fairly), then greedily hand each captain their single most impressive
@@ -1783,8 +1783,8 @@ export function voyageAground(err,where){
     const onReplay=!!(appState&&appState.replaying);
     const hasLog=!!(appState&&appState.dlog&&appState.dlog.length);
     const advice=onReplay||hasLog
-      ? "Refreshin' will sail ye back onto the same rock — start a fresh voyage."
-      : "A refresh may set ye right.";
+      ? sayText("aground.freshVoyage",{})
+      : sayText("aground.refresh",{});
     console.error("VOYAGE AGROUND"+(where?" ("+where+")":""),err);
     const box=document.createElement("div");
     box.id="ppAground";
@@ -1793,8 +1793,8 @@ export function voyageAground(err,where){
       "font:14px/1.45 system-ui,sans-serif;color:#123;box-shadow:0 8px 30px rgba(0,0,0,.35)";
     const esc=s=>String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;");
     box.innerHTML=
-      `<div style="font-weight:800;margin-bottom:6px">🪨 The voyage has run aground</div>`+
-      `<div style="margin-bottom:8px">Somethin' broke below decks and the game can sail no further. `+
+      `<div style="font-weight:800;margin-bottom:6px">${say("aground.title",{})}</div>`+
+      `<div style="margin-bottom:8px">${say("aground.body",{})} `+
       `${esc(advice)}</div>`+
       `<div style="opacity:.6;font-size:11px;margin-bottom:6px">${esc(stamp)}`+
       `${where?" · "+esc(where):""}</div>`+

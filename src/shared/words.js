@@ -266,7 +266,6 @@ export const WORDS = {
 
   /* ── WHILE YE LOOKED AWAY — the recap after a skip ─────────────────────────────────────────────── */
   "recap.line": "⏩ While ye looked away: {list}.",
-  "recap.home": "made it home with a full recipe",
   "recap.bested": "bested {q} in battle",
   "recap.lost": "lost a battle to {q}",
   "recap.black": "paid the black market for {icon}",
@@ -280,4 +279,335 @@ export const WORDS = {
   "restore.short": "We rebuilt this voyage but came up {n} events short. Carrying on may put ye out of step with the rest of the crew.",
   "restore.shortOne": "We rebuilt this voyage but came up 1 event short. Carrying on may put ye out of step with the rest of the crew.",
   "error.aground": "The voyage has run aground. {err}",
+  "aground.title": "🪨 The voyage has run aground",
+  "aground.body": "Somethin' broke below decks and the game can sail no further.",
+  "aground.freshVoyage": "Refreshin' will sail ye back onto the same rock — start a fresh voyage.",
+  "aground.refresh": "A refresh may set ye right.",
+
+  /* ── THE BATTLE CARD ───────────────────────────────────────────────────────────────────────────────── */
+  "battle.title": "⚔️ Broadside Battle",
+  "battle.attacker": "Attacker",
+  "battle.defender": "Defender",
+  "battle.crosswindTag": "CROSSWIND · ties collide",
+  "battle.downwindTag": "⬇ {name} FIRES DOWNWIND — WINS TIES",
+  "battle.opening": "⚔️ {a} {a:attacks|attack} {d}!",
+  "battle.waitDefend": "⚔️ {a} attacks {d}! Waiting for {name} to defend…",
+  "battle.waitFor": "⚔️ {a} attacks {d} — waiting for {name}…",
+  "battle.loads": "{name} loads the cannon…",
+  "battle.fire": "⚔️ {name} (attacker) — fire!",
+  "battle.defend": "⚔️ {name} attacks ye — defend! FLIP",
+  "battle.showsHeads": "{a} shows HEADS — {d} must answer…",
+  "battle.showsTails": "{a} shows TAILS — {d} must answer…",
+  /* his pass, 2026-09-13 */
+  "battle.downwindHits": "{name}'s downwind shot hits!",
+  "battle.crosswindMiss": "No hit — cannonballs collide in the crosswind.",
+  "battle.hit": "{name} lands a hit!",
+  "battle.bothMiss": "Both miss.",
+  "battle.fleeAsk": "{name}: both shots missed wildly! Slip away?",
+  "battle.flee": "🏃 Flee!",
+  "battle.stand": "⚔️ Stand yer ground",
+  "battle.refireAsk": "{name}: load another broadside (−{n}🌕)? ⚪ HEADS and the shot lands.",
+  "battle.fireAgain": "🔥 Fire again −{n}🌕",
+  "battle.fireAgainFlip": "🔥 Fire again!",
+  "battle.breakOff": "🏳️ Break off",
+  "battle.refireHits": "The second broadside tells — {name} lands it!",
+  "battle.refireMiss": "The shot goes wide.",
+  "battle.plunder": "{name}, choose yer plunder!",
+  "ceremony.broadside": "⚔️ Broadside!",
+  "ceremony.tapCoin": "Tap the coin, captain — let fate decide.",
+  "battle.vs": "VS",
+  "ceremony.downwind": "is firin' downwind — two heads and the tie is theirs.",
+  "ceremony.crosswind": "Crosswind — two heads and the cannonballs collide.",
+
+  /* ── CHOOSING A RECIPE ───────────────────────────────────────────────────────────────────────────────
+     Two lines, not drift (his question, 2026-09-13): one while several captains choose at once, one while a single
+     captain does. */
+  "draft.choose": "{name}, choose yer recipe:",
+  "draft.pickSay": ", pick yer recipe:",
+  "draft.everyone": "⚓ Everyone's choosing their recipe…",
+  "draft.one": "{name} is choosing a recipe…",
+  "draft.chosen": "⚓ Recipe chosen! Waiting for the rest of the crew…",
+  "draft.tapHint": "Tap a recipe to see its route",
+  "recipe.check": "🔍 Check my recipe",
+  "recipe.bakeThis": "Bake this!",
+  "recipe.swapAria": "Show the other recipe",
+
+  /* ── THE CAPTAINS BOX ──────────────────────────────────────────────────────────────────────────────── */
+  "hold.aboard": " — aboard",
+  "hold.surplus": "surplus cargo: {ing}",
+  "hold.empty": "empty hold",
+
+  /* ── THE TOP OF THE SCREEN ─────────────────────────────────────────────────────────────────────────── */
+  "ribbon.day": "DAY {n}",
+  "ribbon.ff": "Skip to yer next turn",
+  "ribbon.chat": "Scuttlebutt",
+  "ribbon.parrot": "Yer parrot",
+  "pill.now": "WIND NOW:",
+  "pill.forecast": "FORECAST:",
+  "peek.tapHold": "Tap and hold",
+  "peek.clickHold": "Click and hold",
+  "peek.hint": "{verb} the sea to reveal the board",
+  "parrot.watching": "Yer parrot's watchin'",
+  "parrot.resting": "Yer parrot's restin'",
+  "parrot.helping": "🦜 Polly's helping!",
+  "parrot.notHelping": "🦜 Polly's not helping",
+  "sound.muted": "Sound is off. Tap for sound and music.",
+  "sound.noMusic": "Sound on, music off. Tap to mute.",
+  "sound.stalled": "Sound is on but yer browser has stalled it. Tap the board twice.",
+  "sound.on": "Sound and music on. Tap to turn the music off.",
+
+  /* ── PASS AND PLAY ───────────────────────────────────────────────────────────────────────────────────── */
+  "pass.to": "{icon} Pass the wheel to",
+  "pass.go": "At the helm!",
+
+  /* ── THE BLACK MARKET'S ONE LESSON — his own sentence, 2026-08-27 ─────────────────────────────────── */
+  "market.bareTitle": "🏴 <b>The shelves be bare…</b>",
+  "market.bareBody": "Sold-out islands fly the black market flag. They'll find ye one more ingredient — for <b>{price}🌕.</b>",
+  "market.bareGo": "Arrgh!",
+
+  /* ── THE BAKE-OFF ───────────────────────────────────────────────────────────────────────────────────── */
+  "bake.benchTitle": "🧁 The Bake-Off",
+  "bake.title": "The Bake-Off",
+  "bake.titleWatching": "{who}'s Bake-Off",
+  "bake.titleMine": "{who}, Yer Bake-Off",
+  "bake.watching": "{name} is at the ovens — watch the crates.",
+  "bake.attempt": "attempt {n}",
+  "bake.watchAgain": "Watch again {icon}1",
+  /* his words, 2026-08-08 and 2026-08-25 */
+  "bake.introLead": "{icon} The ovens be roarin'! Yer ingredients be waitin'. Ye must bake yer recipe by addin' them in the <b>correct order</b>.",
+  "bake.recipeName": "{name} Recipe",
+  "bake.introWarn": "Add them in this exact order or it's a ruined mess.",
+  "bake.introGo": "Get bakin'!",
+  "bake.study": "Study the order. Start the shuffle when yer ready.",
+  "bake.ready": "Ready to bake!",
+  "bake.justWatching": "Now yer just watchin'",
+  "bake.tapOrder": "Tap the crates in recipe order. Tap again to undo.",
+  "bake.leftOne": "{n} left — tap them for step {steps}. Tap again to undo.",
+  "bake.leftMany": "{n} left — tap them for steps {steps}. Tap again to undo.",
+  "bake.and": "and",
+  "bake.go": "Bake it!",
+  "bake.watchClosely": "Watch closely — the crates move again.",
+  "bake.inOven": "In the oven…",
+  "bake.opening": "Opening the crates…",
+  "bake.perfect": "Every crate in its place — ye baked it!",
+  "bake.partial": "{got} of {of} in place. Those stay put; the rest get shuffled again tomorrow.",
+  "bake.crate": "Crate {n}",
+  "bake.crateLocked": "Crate {n}, step {step}, already placed",
+
+  /* ── THE END OF THE VOYAGE ──────────────────────────────────────────────────────────────────────────── */
+  "end.nobody": "⏳ Nobody finished the voyage.",
+  "end.nobodyBanner": "{icon} Nobody finished!",
+  "end.winsBanner": "{icon} {name} wins!",
+  "end.victory": "{name} baked {article}{recipe} and won <b>Best Baker in the Caribbean!</b>",
+  "end.playAgain": "🔁 Play again!",
+  "stats.days": "Days",
+  "stats.battles": "Battles",
+  "stats.battlesValue": "{n} (attacker won {pct}%)",
+  "stats.trades": "Trades",
+  "stats.bakeries": "Bakeries",
+  "stats.noneHome": "no bakers home",
+  "stats.oneHome": "1 baker home",
+  "stats.manyHome": "{n} bakers home",
+  /* his pass, 2026-09-13: "Change the term "heads-luck" to "HEADS {heads-coin}"" */
+  "stats.heads": "{name} HEADS ⚪",
+  "stats.headsValue": "{pct}% of {n} flips",
+
+  /* ── THE TROPHIES — every captain gets one; the art is on the backlog (his ask, 2026-09-13) ─────────── */
+  "trophy.cutlass.name": "The Cutlass of a Thousand Notches",
+  "trophy.cutlass.byline": "One notch per fallen foe, carved into the hilt.",
+  "trophy.cutlass.stat": "Most battles won",
+  "trophy.cutlass.unit": "",
+  "trophy.doubloon.name": "The Open Purse",
+  "trophy.doubloon.byline": "Paid the harbourmaster more than any captain on the Sugar Seas.",
+  "trophy.doubloon.stat": "Most ingredients bought",
+  "trophy.doubloon.unit": "",
+  "trophy.compass.name": "The Horizon-Chaser's Compass",
+  "trophy.compass.byline": "For the salt-crusted soul who sailed further than sense allowed.",
+  "trophy.compass.stat": "Farthest traveled",
+  "trophy.compass.unit": " sq",
+  "trophy.medal.name": "The Iron Gut Medal",
+  "trophy.medal.byline": "For the crew that refused to sink.",
+  "trophy.medal.stat": "Longest battle",
+  "trophy.medal.unit": " rounds",
+  "trophy.blackspot.name": "The Black Spot of Bad Tides",
+  "trophy.blackspot.byline": "Survived the curse — worst luck on the Sugar Seas.",
+  "trophy.blackspot.stat": "Most tails flipped",
+  "trophy.blackspot.unit": " tails",
+  "trophy.herring.name": "The Lucky Streak",
+  "trophy.herring.byline": "Heads, then heads, then heads again — Lady Luck rode on their shoulder.",
+  "trophy.herring.stat": "Hottest streak",
+  "trophy.herring.unit": " heads",
+  "trophy.ledger.name": "The Silver-Tongued Ledger",
+  "trophy.ledger.byline": "Struck more deals than a Tortuga fishmonger on market day.",
+  "trophy.ledger.stat": "Most trades struck",
+  "trophy.ledger.unit": "",
+  "trophy.target.name": "The Painted Target",
+  "trophy.target.byline": "Somehow every cannon in the Caribbean swung their way.",
+  "trophy.target.stat": "Most set upon",
+  "trophy.target.unit": "",
+  "trophy.timbers.name": "The Splintered Timbers",
+  "trophy.timbers.byline": "Took a right drubbing and lived to grumble about it.",
+  "trophy.timbers.stat": "Most battles lost",
+  "trophy.timbers.unit": "",
+  "trophy.anchor.name": "Good Mate",
+  "trophy.anchor.byline": "Pirated for the love of the game.",
+  "trophy.anchor.stat": "Number of ingredients plundered",
+  "trophy.anchor.unit": "",
+
+  /* ── THE LOBBY AND THE CONNECTION ──────────────────────────────────────────────────────────────────── */
+  /* his rewrite, 2026-09-13 */
+  "lobby.waitCaption": "{icon} Yer mateys will appear when they join. Wait for them before ye hit start.",
+  "lobby.waitHost": "Waiting for the host to start the voyage…",
+  "lobby.nameTaken": "Arrgh — a captain aboard already sails as {name}. Pick another name, matey.",
+  "error.noConnection": "Can't reach the Sugar Seas — check yer connection, wifi, and ad blockers, then try again matey.",
+  "error.gameGone": "That game no longer exists.",
+  "error.capacity": "Arrgh, the server's got too many pirates baking right now! Try a Solo game instead?",
+  "error.rename": "Couldn't change yer name just now — the seas are choppy. Try again in a moment.",
+  "error.enterCode": "Enter the room code yer host shared.",
+  "error.noGame": "Arrgh, no game found with code {code}. Try typin' again.",
+  "error.sailed": "⛵ That game has already set sail! Tell yer mateys and they may restart to come back for ye.",
+  "error.full": "Too many pirates already in that game.",
+  "error.service": "Couldn't reach the multiplayer service — it may be at capacity right now. Try again in a moment.",
+  "host.grace": "⚓ Yer matey has left the game… let's give 'em 30 seconds to return before callin' off yer voyage.",
+  "host.back": "⚓ Yargh! They're back!",
+  "host.someone": "Yer matey",
+  "host.left": "{who} has left the voyage",
+  "host.leftWhy": "There be no hand on the wheel, so this ship sails no further. Gather yer crew and set out afresh, captain.",
+  "button.port": "Back to port",
+  "button.close": "Close",
+  "resume.stuck": "⚓ Still reconnectin'…",
+  "resume.stuckWhy": "If yer voyage won't come back, ye can abandon ship and set out afresh.",
+  "resume.reconnecting": "⚓ Reconnecting to yer voyage…",
+  "resume.reconnectingPlain": "Reconnecting to yer voyage…",
+
+  /* ── TEST SHORTCUTS (?ovens=1, ?endcard=1) — still the game speaking, on a dev host ──────────────── */
+  "test.ovens": "{icon} <b>TEST GAME</b> — holds stocked and the ovens are lit. The bake-off begins at the end of day one.",
+  "test.ovensSpent": "{icon} <b>TEST GAME</b> — holds stocked, ovens lit, and one attempt already spent. The bake-off resumes at attempt 2 at the end of day one.",
+  "test.endcard": "{icon} <b>TEST GAME</b> — every captain is home with a full recipe. Skipping to the end of the voyage.",
+};
+
+/* ── THE PARROT'S LADDERS — the tutorial lines (moved from src/ui/pilot.js, 2026-09-13) ─────────────────────────────
+   Each moment holds its phrasings longest first, indexed by how many times this device has seen the moment; the bottom
+   rung is null — "whatever the game builds today". An entry is a string, or {msg, sub} where `sub` is the helper line
+   beneath the buttons. The shape rules and his 29 rulings behind these lines are in src/ui/pilot.js and DECISIONS.md. */
+export const PILOT = {
+  // ---- the sail moment. The wind rule is the single most important sentence in the game, and
+  // it rides HERE rather than getting a ladder of its own, because the sail prompt is the only
+  // moment where the wind is the answer to the question on screen.
+  //
+  // Wyatt SET ASIDE his own 2026-08-25 deletion of wind text for exactly this rung:
+  //   "ignore my previous ruling, it was about a different matter and we are solving it with our
+  //    rung system". That ruling still governs PERMANENT wind text; it does not govern a clause
+  //    that deletes itself after three turns.
+  //
+  // The wind clause goes in `sub`, which lands in sailPanelHTML's `hint` — a parameter that was
+  // deliberately kept on the wire when the red debug shout was deleted on 2026-08-25, so the spec
+  // shape and the guest payload are unchanged. No new field, no new parity risk.
+  "sail.pick": [
+    /* ⭐ HIS WORDS, 2026-09-07 playtest item 3, replacing my draft ("Sailin' into the wind is
+       slower — half sail, half the squares"). He kept the rung and rewrote the sentence: the old
+       one made a player parse two halves to reach one fact. */
+    { msg: "Tap a gold square to sail — head for a dock.", sub: "Sailin' into the wind only gets ye half the distance." },
+    { msg: "Tap a gold square to sail toward a dock." },
+    { msg: "Tap a gold square to sail." },
+    null,
+  ],
+
+  // ---- the act menu: docking, and the fact that ye must
+  "act.menu": [
+    "Ingredients come off the islands — tie up at a dock to take one aboard.",
+    "Tie up at a dock to take an ingredient aboard.",
+    null,
+  ],
+
+  // ---- first sighting of each button. Driven by FIRST SIGHTING of that option, never by turn
+  // count, so a captain offered their first battle on day nine still meets rung 0.
+  "act.attack": [
+    "One broadside each — heads beats tails, and the winner takes an ingredient off the loser.",
+    "One broadside each — heads beats tails, winner takes an ingredient.",
+    null,
+  ],
+  "act.trade": [
+    "A hail reaches the whole table, not one captain — name what ye want and what ye'll give.",
+    "A hail reaches the whole table — name what ye want and what ye'll give.",
+    null,
+  ],
+  "act.muse": [
+    "Nothin' worth doin' today? Muse on it and pocket a doubloon.",
+    "Nothin' worth doin'? Muse on it and pocket a doubloon.",
+    null,
+  ],
+
+  // ---- the recipe draft. Two of his nine topics are true at the same instant — which
+  // ingredients ye need, and which every captain holds — so they are one sentence, not two beats.
+  //
+  // He rejected adding text here: "The recipe choice moment has a lot of text in it already, and
+  // it's pretty overwhelming -- even as is. Adding more text is not the solution to this." So this
+  // ladder is SHORT and the real teaching at this moment is the dotted course (src/ui/course.js),
+  // which is a picture rather than a paragraph.
+  /* ⚠ SHORTENED AFTER LOOKING AT IT. Rung 0 was two sentences and wrapped to THREE LINES above the
+     card — on the one screen he singled out for having too much text already. That is not a length
+     I get to defend; it is his ruling being broken by my own copy. The dropped clause (every
+     captain's hold sits below) is not lost: recipe.stowed says it a moment later, at the instant
+     the hold actually appears, which is where it belongs. */
+  /* ⭐ HIS WORDS, 2026-09-09: "change 'Tap a recipe to highlight its docks' to 'tap a recipe to see
+     its route'". THE WHOLE LADDER MOVES WITH IT — a rung still saying "docks" would teach a
+     different noun for the same picture, which is the drift this ladder exists to prevent. And the
+     lowercase is his, typed inside his own quotes; the pill is small italic text where it reads
+     as a whisper rather than a heading. CAPITALISED on his second look, 2026-09-09 — the lowercase
+     was mine, read back off the quotes in his message rather than asked about. */
+  "recipe.draft": [
+    "Tap a recipe to see its route — those five docks are what ye must gather.",
+    "Tap a recipe to see its route.",
+    null,
+  ],
+
+  // ---- THE ONE LADDER THAT ADDS A LINE. Nothing is said at this moment today, so its bottom
+  // rung is SILENCE rather than today's copy — and a veteran's game is still byte-identical.
+  // It earns the exception: the answer to "where did my recipe go?" is "look down there", and
+  // nothing currently points down there. The captains box flashes once as the line lands; a
+  // sentence saying `below` and a box that blinks are the same instruction twice, and the second
+  // one works without being read.
+  "recipe.stowed": [
+    "Yer recipe's stowed below, {name} — five ingredients to find. Each gets a tick when ye hold it, and every captain's hold sits right beside yers.",
+    "Yer recipe's stowed below — five ingredients to find, ticked as ye hold 'em.",
+    "Yer recipe's stowed below.",
+    null,
+  ],
+
+  // ---- the one square that takes two taps. Wyatt, 2026-09-11, playtest note 3: "'blue squares
+  // take 2 taps' should be a rung on the tutorial ladder -- not always present." It had been on
+  // every sail line that offered a blue square, for every captain, forever (W2-8). Like
+  // recipe.stowed, its bottom rung is SILENCE: nothing is said here at all once it has been
+  // learned, or with the parrot off. Counted by SIGHTING — only a sail line that actually offers a
+  // blue square shows it (and spends it). Rung 0 says why there are two taps; the words after it
+  // are his, unchanged from W2-8. How many sightings is his call, and it is on his sheet.
+  "sail.twotap": [
+    "Blue squares take two taps — the first shows ye the ride.",
+    "Blue squares take two taps.",
+    null,
+  ],
+
+  // ---- the trade winds, taught the first time the rim actually carries somebody
+  "rim.sweep": [
+    // ⭐ HIS WORDS, 2026-09-08, replacing my draft — it names the rim, the direction AND where ye
+    // end up, which the old line left ye to work out from a moving picture.
+    "Sail into the trade winds along the rim and they'll carry ye clockwise to the next whirlpool",
+    null,
+  ],
+
+  // ---- the storm. Wyatt ruled it IN, 2026-09-02: it moves every ship three squares with no
+  // explanation, and it hits about one first voyage in five.
+  "storm.hit": [
+    "A storm takes the whole crew — every ship runs three squares afore anyone acts.",
+    null,
+  ],
+
+  // ---- the price of a crate. Also ruled IN. The Buy button already says −3🌕; what it never
+  // says is that the number climbs as the island empties, which is why getting there first
+  // matters. Legal under the editorial law: the button states the price, not that it moves.
+  "dock.buy": [
+    "Ingredients come dearer as an island empties — the early bird pays least.",
+    null,
+  ],
 };

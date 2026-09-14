@@ -72,8 +72,11 @@ else {
 }
 
 console.log("\nThe rename did NOT bleed into pass-and-play's device hand-off");
-/Pass the wheel to/.test(lobby)  ? ok('lobby still says "Pass the wheel to…"')  : bad('lobby\'s "Pass the wheel to…" was renamed — that is handing the device over, not the Muse action');
-/Pass the board to/.test(lobby)  ? ok('lobby still says "Pass the board to…"')  : bad('lobby\'s "Pass the board to…" was renamed — same fault');
+/* the hand-off card's words live in src/shared/words.js ("pass.to"); the dead "Pass the board to…" fallback card was cut
+   by his pass of 2026-09-13, so only the live card is held here */
+(/Pass the wheel to/.test(WORDS["pass.to"] || "") && /say\("pass\.to"/.test(lobby))
+  ? ok('the hand-off card still says "Pass the wheel to…" (words.js "pass.to")')  : bad('the hand-off card\'s "Pass the wheel to…" was renamed — that is handing the device over, not the Muse action');
+!Object.values(WORDS).some(v => /Muse the/.test(v)) ? ok('no "Muse the wheel/board" in words.js')     : bad('found "Muse the …" in words.js — the rename was over-applied');
 !/Muse the/.test(lobby)          ? ok('no "Muse the wheel/board" anywhere')     : bad('found "Muse the …" — the rename was over-applied');
 
 console.log(fails ? `\nFAIL — ${fails}\n` : "\nPASS — Muse reads as three lines, and 'Pass the wheel' survived\n");

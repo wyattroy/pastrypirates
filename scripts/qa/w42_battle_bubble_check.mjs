@@ -139,7 +139,8 @@ const shared = strip(fs.readFileSync(path.join(REPO, "src/shared/index.js"), "ut
 /* (5) THE TWO HALVES OF ONE BATTLE ARE DRAWN ALIKE (rule 8). */
 {
   const orch2 = strip(fs.readFileSync(path.join(REPO, "src/orchestrator.js"), "utf8"));
-  const open = orch2.match(/await flash\(`[^`]*attacks \$\{pn\(def\.idx\)\}[^`]*`[^;]*\)/);
+  // the opening's words live in src/shared/words.js ("battle.opening") since 2026-09-13; the line is the sayAll + flash pair
+  const open = orch2.match(/const opening=sayAll\("battle\.opening"[^;]*;\s*await flash\(opening\.html[^;]*\)/);
   if (!open) fail("could not find the battle's opening narration in orchestrator.js — re-anchor this assertion");
   else if (/subject/.test(open[0]))
     fail("the battle's OPENING line now sets a subject while the result withholds one — the two halves of one fight drawn two ways again");
