@@ -2470,6 +2470,14 @@
   .pp4CerStakes { color:#e8dcc0; font-size:12.5px; font-style:italic; text-align:center;
     max-width:82vw; line-height:1.55; text-shadow:0 1px 4px rgba(0,0,0,.7); }
   .pp4CerTitle img, .pp4CerStakes img { width:18px; height:18px; vertical-align:-3px; }
+  /* his game feel audit: the landed word stamps in under the coin, and a dust ring leaves the coin (stage.js coinLandsWithWeight) */
+  .pp4CerStamp { font-weight:900; font-size:clamp(26px,8vw,40px); letter-spacing:2px;
+    text-align:center; text-shadow:0 3px 10px rgba(0,0,0,.6); }
+  .pp4CerStamp.heads { color:#ffd76b; }
+  .pp4CerStamp.tails { color:#c9d4dc; }
+  #pp4CerSlot { position:relative; }
+  .pp4Dust { position:absolute; border-radius:50%; pointer-events:none; opacity:0;
+    border:calc(3px * var(--pp4CerZoom,1)) solid rgba(255,236,190,.8); box-shadow:0 0 12px rgba(255,220,150,.45); }
   /* playtest 10 item 6: the landed face hits like a gavel — shudder + golden flare */
   #pp4CerSlot #flipCoinWrap.pp4Land { animation:pp4LandFx .62s ease-out; }
   @keyframes pp4LandFx {

@@ -15,7 +15,7 @@
 // Everything here is render-side. The engine, its RNG, and the dlog are never touched.
 "use strict";
 import { appState } from "../state/index.js";
-import { boardShipEls, setFlipCoin, boardArtReady } from "./board.js";
+import { boardShipEls, setFlipCoin, boardArtReady, FLIP_SPIN_MS } from "./board.js";
 import { soundReady } from "./audio.js";
 import { narrationHoldMs, vwPx, vhPx, isDisabledBtn, fixedOrigin, fixedRect, refreshNameMarquees,
   waitLineIsSelfAddressed, pname } from "./util.js";
@@ -2196,6 +2196,58 @@ function cerTeardown(){
    is a constant, and a new one here would be a third clock to keep in step with these two). */
 const CER_REVEAL_MS = 1100, CER_FALLBACK_MS = 6000;
 const CER_VEIL_WAIT_CAP_MS = CER_FALLBACK_MS + CER_REVEAL_MS;
+/* ⭐ THE COIN FLIP, WITH WEIGHT — four PASSED ideas from his game feel audit (2026-09-13), as proposed:
+     "The coin sinks down before it flips — your example: it dips 10–15% and squashes wide for a beat, then launches —
+      anticipation makes the flip feel like a throw." · "It lands with weight — a squash on landing, one small bounce, and a
+      dust ring — then the result." · "HEADS or TAILS stamps in — the word punches in at 130% and settles." · "A tiny
+      screen nudge on tails — a 2px, 150ms shake — just enough to feel the bad luck."
+   All four live in the flip CEREMONY, the stage every flip ye make is thrown on. The coin's sink and launch ride the whole
+   spin (FLIP_SPIN_MS), so the flip still lands on the same frame its sound's landing blip peaks. `translate`/`scale`, so
+   they compose with the spin's own rotateX. The two stings named in the audit are sounds, and come with the sound page. */
+const COIN_SINK = 0.12, COIN_SQUASH = 0.2, STAMP_MS = 380, NUDGE_PX = 2, NUDGE_MS = 150, DUST_MS = 620;
+const cerReduced = () => typeof matchMedia === "function" && matchMedia("(prefers-reduced-motion: reduce)").matches;
+function coinSinksAndLaunches(){
+  const c = $("flipCoinWrap");
+  if (!c || cerReduced() || typeof c.animate !== "function") return;
+  const v = $("pp4Veil"); if (v) v.querySelectorAll(".pp4CerStamp").forEach(s => s.remove());
+  c.animate([
+    { translate: "0 0", scale: "1" },
+    { translate: `0 ${COIN_SINK * 100}%`, scale: `${1 + COIN_SQUASH} ${1 - COIN_SQUASH}`, offset: .16 },
+    { translate: `0 ${-COIN_SINK * 110}%`, scale: "0.94 1.06", offset: .42 },
+    { translate: `0 ${-COIN_SINK * 45}%`, scale: "1", offset: .72 },
+    { translate: "0 0", scale: "1" },
+  ], { duration: FLIP_SPIN_MS, easing: "ease-in-out", id: "coin-sink" });
+}
+function coinLandsWithWeight(heads){
+  const c = $("flipCoinWrap"), v = $("pp4Veil");
+  if (!c || !v || cerReduced() || typeof c.animate !== "function") return;
+  // a squash on landing and one small bounce — `scale`/`translate`, on top of the gavel shudder's own transform
+  c.animate([
+    { scale: "1.22 0.8", translate: "0 6%" }, { scale: "0.95 1.05", translate: "0 -7%", offset: .4 },
+    { scale: "1.02 0.98", translate: "0 0", offset: .7 }, { scale: "1", translate: "0 0" },
+  ], { duration: 420, easing: "ease-out", id: "coin-land" });
+  // the dust ring, round the coin where it sits
+  const slot = $("pp4CerSlot");
+  if (slot){
+    const r = c.getBoundingClientRect(), sr = slot.getBoundingClientRect(), dust = document.createElement("div");
+    dust.className = "pp4Dust";
+    Object.assign(dust.style, { left: (r.left - sr.left - r.width * .1) + "px", top: (r.top - sr.top - r.height * .1) + "px",
+      width: (r.width * 1.2) + "px", height: (r.height * 1.2) + "px" });
+    slot.appendChild(dust);
+    const a = dust.animate([{ opacity: .75, scale: "0.7" }, { opacity: 0, scale: "1.55" }], { duration: DUST_MS, easing: "ease-out", fill: "both" });
+    a.onfinish = a.oncancel = () => dust.remove();
+  }
+  // the word stamps in, where the tap-the-coin line stood
+  let stamp = v.querySelector(".pp4CerStamp");
+  if (!stamp){ stamp = document.createElement("div"); v.insertBefore(stamp, v.querySelector(".pp4CerSub")); }
+  stamp.className = "pp4CerStamp " + (heads ? "heads" : "tails");
+  stamp.textContent = sayText(heads ? "flip.stampHeads" : "flip.stampTails", {});
+  stamp.animate([{ opacity: 0, scale: "1.3" }, { opacity: 1, scale: "0.96", offset: .6 }, { opacity: 1, scale: "1" }],
+    { duration: STAMP_MS, easing: "ease-out", fill: "both", id: "coin-stamp" });
+  // and on tails, the screen flinches
+  if (!heads) v.animate([{ translate: "0 0" }, { translate: `${-NUDGE_PX}px 0` }, { translate: `${NUDGE_PX}px 0` },
+    { translate: `${-NUDGE_PX / 2}px 0` }, { translate: "0 0" }], { duration: NUDGE_MS, easing: "linear", id: "tails-nudge" });
+}
 function cerWatchResult(){
   // the flip flow swaps faces on #flipCoinWrap: spin -> heads/tails. Hold the veil until a face
   // lands, show it a beat, then leave. Fallback teardown if nothing lands (e.g. prompt cancelled).
@@ -2210,6 +2262,7 @@ function cerWatchResult(){
       // playtest 10 item 6: the landed face hits like a gavel — shudder + golden flare
       c.classList.add("pp4Land");
       setTimeout(() => c.classList.remove("pp4Land"), 700);
+      coinLandsWithWeight(c.classList.contains("heads"));
       /* If the coin re-armed during the reveal beat, this used to do NOTHING — and the interval
          above was already cleared, so the veil was left standing with no watcher at all. Watch
          the new flip instead; the watchdog is the backstop, not the mechanism. */
@@ -2230,7 +2283,7 @@ function flipArmed(el, onClick){
   if (!onClick){
     // disarmed: the tap landed and the spin is starting — hold the stage and watch for the face
     const veil = $("pp4Veil");
-    if (veil){ veil.classList.add("resolving"); cerWatchResult(); }
+    if (veil){ veil.classList.add("resolving"); coinSinksAndLaunches(); cerWatchResult(); }
     return true;
   }
   let veil = $("pp4Veil");
