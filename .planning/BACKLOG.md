@@ -1614,3 +1614,14 @@ replaced with his explicit width, not just mirrored.
       itself (`assets/plaque/crate.webp`), darkened so the planks and posts still read, never regenerated; shown to him in the
       captain's box at his phone's size and the laptop window beside today's before it ships. The islands' ingredient
       silhouettes are not part of this.
+
+---
+
+# 🚢 WAITING ON USER ACCOUNTS — 2026-09-14
+
+- [ ] **A new ship on the slipway (Victory Card idea 9).** After the end of voyage card, a ship's frame sits on a slipway and
+      every voyage adds planks (a win three, reaching home two, sailing at all one) until it launches as a boat ye can sail.
+      His ruling, 2026-09-14: *"This is an awesome idea -- put it in the backlog for when we have user accounts -- otherwise the
+      player will lose their "viking longship" after they leave the game"*. **Blocked on user accounts**, not on design: progress
+      kept only in one browser is progress a player loses. Ties to the backlog item "every boat a different kind of pirate ship".
+      Mockup lives on the Victory Card Proposals sheet (idea 9).
