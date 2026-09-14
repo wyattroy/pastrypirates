@@ -795,6 +795,11 @@ export function narrationSubjects(e){
   if(e.t==="battle"||e.t==="battleflee"){if(e.a!=null)seats.add(e.a);if(e.d!=null)seats.add(e.d);}
   if(e.t==="parley"||e.t==="trade"||e.t==="collab"){if(e.a!=null)seats.add(e.a);if(e.b!=null)seats.add(e.b);}
   if(e.t==="blocked"&&e.other!=null)seats.add(e.other);
+  /* THE STORM SUMMARY NAMES EVERY CAPTAIN IT MOVED OR HELD, and each of them reads "ye" for themselves — its builder has
+     always said so (list() asks isLocalTo per captain), but no captain was counted here, so no screen ever received its
+     own version and everyone read the names. Found in a two-window crew game, 2026-09-13: the guest read "The storm
+     drives HOSTCAP, GUESTCAP an' Flaky Jack…" about itself. */
+  if(e.t==="stormSummary")for(const k of ["moved","blown","swept","held","shipHeld"])(e[k]||[]).forEach(i=>{if(i!=null)seats.add(i);});
   return [...seats].sort((a,b)=>a-b);
 }
 // D-10: the host computes this ONCE per broadcast narration line — the viewer-neutral default

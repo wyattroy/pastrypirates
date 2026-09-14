@@ -21,6 +21,6 @@ BUILD: 2026.09.13.5-staging@21c13ef9
 - Recipe Card Tuner (his numbers, 20 sliders) — https://claude.ai/code/artifact/6e1c84b1-cfc0-45ef-b33e-7d76e9eecc6e
 - Butter & Milk (W4-11, round 1 — three rolls in the game; his marks in `milk/wyatt-r1`) — https://claude.ai/code/artifact/3588cebc-c443-4894-9b16-ced75318799c
 - Crate Size Tuner (the real captain's box at real size; his dials in `crates/wyatt`) — https://claude.ai/code/artifact/7695863a-e429-40a1-89b2-55e8c379aa4e
-- The Narration Pass (W7-2 — every line, his rewrites in `narration/wyatt`) — https://claude.ai/code/artifact/f5369931-f83e-46f5-8a3b-624508069437
+- The Narration Pass (W7-2 — since 2026-09-13 late night REBUILT ON `src/shared/words.js`, every line the game says today, written-as shorthand shown; his new marks in `narration/wyatt-words`; his first pass, in `narration/wyatt`, is applied) — https://claude.ai/code/artifact/f5369931-f83e-46f5-8a3b-624508069437
 - Ingredient Pop-In Tuner (the real board at real size; his dials in `popin/wyatt`, or pasted from Copy my notes) — https://claude.ai/code/artifact/64052412-b5b9-4163-b8f3-8132c89694ef
 - Game Feel Audit (every moment of a voyage, what it does today, 39 ideas with Passed/Problem; his marks in `feel/wyatt`) — https://claude.ai/code/artifact/d7621423-5760-4242-b83d-3321c4bfb9d2
