@@ -6,6 +6,136 @@ say whether a fault is *recurring* — which is the check this file exists to ma
 
 ---
 
+## 2026-09-14 · `fb1da47f` · AUDIT: does every line of narration come from one place, and are the pictures still in the lines? · **PARTIAL. THE PICTURES ARE ALL THERE AND ONE NARRATOR SERVES BOTS AND HUMANS — BUT "EVERY LINE IN ONE PLACE" IS NOT TRUE YET, AND THE WORDS CHECK CLAIMS MORE THAN IT CAN SEE.**
+
+**Reviewed:** dev `fb1da47f`, staging `2026.09.14.1-staging@fb1da47f`. Verbatim below, including its closing note that it was read-only and did not write this entry.
+
+## THE ONE SENTENCE FOR WYATT (read this first)
+
+> **Your two worries are answered well: every picture that was in a line is still in it (I recounted them all myself; the only pictures that went left with lines you cut, and you were told which), and bot and human moves now go through one narrator. But "every single line in one place" is not true yet. The 100 sea-creature sentences, the recipe book, the welcome screen and a few buttons like "Change yer name" and "FLIP" still live outside the words file. And the automatic check that announces "everything a player reads comes out of words.js" cannot see them.**
+
+**How I checked:** I read the code at `fb1da47f` and ran the words check myself (it passes). I pulled every line with a picture from before the work (`95e1bcd7`) and matched each one against today's words file. I searched all of `src/` with my own scan instead of trusting the CTO's, and fetched staging. No browser or server was started and nothing in the repo was edited. My probe scripts are in `/private/tmp/claude-501/ceo-probe-narration/`.
+
+---
+
+## 1. Each thing he asked for
+
+### (a) "All narration now comes from one consistent narration engine instead of being passed as variables through different weird places": **PARTIAL**
+
+**Done, and checked:**
+- **The words really are in one file.** `src/shared/words.js` holds 331 entries and the parrot's 11 tutorial scripts. Every entry renders cleanly.
+- **Staging runs exactly this.** It serves `2026.09.14.1-staging@fb1da47f`, and its `words.js` is byte-for-byte identical to the repo's.
+- **One narrator for things that happen in the game.**
+  - A human's move reaches it through `src/ui/panel.js:1135-1137`, a bot's through `src/ui/util.js:1986`. Both call the same `narrateEvent` at `util.js:1903`.
+  - The start of a turn is narrated once, at `src/ui/flow.js:2891`, before the code splits into a human turn and a bot turn (`flow.js:2892`).
+  - A battle opens with one line for both kinds of captain (`src/orchestrator.js:648`).
+- **Bots and humans get the same words.** I searched for any line picked by bot-versus-human. The only hit is `orchestrator.js:870`, and that is a question only a person gets asked, not a different description.
+
+**Not done:**
+- **The words are in one place; the moments that say them are not.** About 340 spots in 8 files each build their own sentence and hand it on: flow.js 119, util.js 82, orchestrator.js 61, stage.js 25, bakeoff.js 22, board.js 17, panel.js 7, lobby.js 6. There are also 64 direct calls that show a line on screen. Questions, cards, the battle play-by-play and wait lines still go "through different weird places". The CTO admits this (gap b).
+  - For Pasta Pirates this does not stop you changing words. It does mean "one engine" describes the words, not the delivery.
+- **There are two kinds of captain placeholder, not one grammar.**
+  - Only 9 calls hand the words file a *captain*, which becomes "ye" on that captain's own screen.
+  - 44 calls hand it a *ready-made coloured name*, which can never become "ye": flow.js 26, orchestrator.js 14, board.js 3, util.js 1. Examples are `flow.js:2146` (a counter-offer) and `orchestrator.js:870` (the plunder choice).
+  - At those 44 spots, the code picks name-or-"ye", not the words file. I did not see one wrong on screen; these lines are probably only shown to someone else. But a Pasta Pirates writer will meet `{p}`, which turns into "ye", and `{name}`, which never does.
+- **One deliberate change from his wording.** He asked for an engine that takes "the player type (human/bot)". The CTO left that input out on purpose (`util.js:401-408`), so a bot and a human *cannot* be described differently. That fits the project rule. He should be told in one plain line that this was a choice, not an oversight.
+
+### (b) "Very easily change every single line of narration and dialogue" for Pasta Pirates: **PARTIAL** (partly by his own "don't do anything yet")
+
+Still outside `words.js`:
+
+| What | Where | Admitted? |
+|---|---|---|
+| **50 sea-creature sightings = 100 sentences**, each written twice by hand ("ye peep into…" / "{} peeps into…"). Spoken in every Muse line. | `src/shared/index.js:347-448`; "ye" chosen in code at `util.js:514` | Yes (gap a) |
+| Island names, dock flavours, default captain names | `src/shared/index.js:232-233, 616` | Yes |
+| Recipe book (~235 wordy strings) and bake-off step names (~105) | `src/ui/recipe.js`, `src/shared/recipe-steps.js` | Yes |
+| Welcome screen, menus, rules (~160 runs of text) | `index.html` | Yes |
+| **"Change yer name"** button, in pirate voice | `src/ui/lobby.js:469` | **No** |
+| **"FLIP"** on the coin | `src/ui/board.js:2526` | **No** |
+| Tooltips "— that's you!" and "🤖 bot (strategy)" | `src/ui/util.js:163` | **No** |
+| Screen-reader label "Back" | `util.js:1513` | Partly (gap d names aria labels) |
+| "📜 recipe name" inside the victory line | `recipe.js:356`, used at `board.js:2180` | **No** |
+
+Dead words also remain in code. No player sees them, but a reskinner searching for "bakery" will trip on them:
+- The captions table, with "⚔️ wins!", "🏃 flees!", "🧁 fired up the bakery" and "🌊 looks into the ocean" (`util.js:587-763`). Nothing calls `captions()` (`util.js:906`), and the code itself says "Nothing renders caps" (`util.js:762`).
+- `windHoldPhrase`, "this northerly won't quit" (`util.js:453-457`), which has no caller.
+
+### (c) "Make sure images were not taken out of the lines; if they were, tell me which": **DONE, independently confirmed**
+
+**Method:** I took every piece of text with a picture in the 9 game code files before the work, and matched each one by shared words to its entry today. I read by hand all 21 lines where the match seemed to lack a picture, plus every picture type whose count fell.
+
+**Result:** 174 picture uses before, 162 after. Every drop is explained:
+- **The "ye" and third-person copies of one line became a single entry:** ⚔️ 24→17, 🔭 9→5, 🤝 8→4, 🏃 6→4.
+- **Lines he cut entirely.** The CTO told him about these by name: turn banners ⛵🧭, final-round card 🏁⛵🦜, the old "returns with a full recipe" line 🏁, the old bakery line 🧁, flip announcements ⚪⚫.
+- **The 🤝 stamps over the boats**, which he chose to remove.
+
+**All five restores are present:**
+- Dock lines ⚪ ×4 and ⚫ ×4 (`words.js:105-112`).
+- Downwind hit ⚪ and crosswind miss ⚪ (`words.js:307-308`; before the work these were `orchestrator.js:724/726`).
+- "⚫ Both miss." (`words.js:310`).
+
+**The lines I suspected all still have their picture:** 🪨 `words.js:287`, 🏴 `:369`, 🔭 `:270`, ⚔️…🌕 `:265`, 🌊 `:144`, 🏃 `:126`.
+
+**I found no picture lost that he wasn't told about.**
+- **Limit:** the matching is approximate. A coin lost on one line and gained on another could hide (🌕 went 38→46).
+
+### (d) His ruling "ye everywhere" (solo too): **DONE in code, not yet seen on screen**
+
+- **Solo and crew now use the same rule.** Both places that pick a line now pick this screen's version in every mode: `panel.js:1270` and `orchestrator.js:210`.
+- **Pass-and-play follows the phone.** "Ye" goes to whoever has the phone, because the hand-over sets it (`lobby.js:413, 421`).
+- **No choice of words depends on the game mode any more.**
+- **Only labels still differ by bot or human:** `lobby.js:459-460` and `util.js:163`. They say what a seat *is*; they don't describe a move.
+
+---
+
+## 2. Delivered but not asked for
+
+- **The deletions came from his own narration pass**, so they were asked for. That covers the old day loop, the "Pass the board" overlay, "Drumroll…", the banners and the handshake stamps (`lobby.js:417-419` quotes his "cut it if not").
+- **The words check** (`scripts/qa/words_one_place_check.mjs`, 191 lines) is tooling. It is defensible as the guard for his architecture ask and displaced nothing. It is also the thing that overclaims (§3).
+- **Not displaced, but not addressed:** the only finished sea trial containing this work failed 10 of 10.
+  - It ran on build `2026.09.13.5`, which includes `1b9e3698` (checked in git). See `.planning/SEA-TRIAL.md:3`.
+  - Its failures are features offered but never tried, plus **12 screens the picture-judging check flagged, across 5 voyages** (`SEA-TRIAL.md:47,54,59,70,76`). The report says "OPEN THESE".
+  - The account says nothing about anyone opening them. The trial on `fb1da47f` is still not back.
+
+## 3. Claims the repo does not support
+
+1. **"No sentence typed into the game code near a display call" and "everything a player reads comes out of words.js"** (`words_one_place_check.mjs:145`). This is only true of what the check looks at: text sitting next to a fixed list of display calls (`:100`).
+   - It skips any all-capitals word of four letters or fewer (`:120`), which is how "FLIP" gets through.
+   - It exempts **all of `recipe.js`** with an empty-text rule that matches everything (`:89`). The rule that spots out-of-date exemptions skips empty ones (`:146`), so this one is never flagged.
+   - It misses `lobby.js:469`, `board.js:2526`, `util.js:163` and `util.js:1513`.
+2. **"No picture typed into a line in that code (2 listed exceptions)"** (`:176`). This is contradicted by four spots. All four pictures are game art, so they are still on screen and nothing is lost; the claim is just untrue.
+   - `flow.js:2143` and `flow.js:2413`: a 🌕 typed inside the counter-offer lines.
+   - `stage.js:1407`: ⛈ in the forecast pill.
+   - `recipe.js:356`: 📜 in the victory line.
+3. **"The counter-offer circle's 🌕 moved into words.js."** It moved for one spot (`flow.js:2435`). The same coin is still typed 22 lines above in the same function (`flow.js:2413`) and again at `flow.js:2143`.
+4. **The file header says "The 'ye' forms are derived by fill(), never typed"** (`words.js:21`). The sightings have "ye" typed by hand 50 times (`src/shared/index.js:347-448`). The account admits the sightings are outside; the header states the opposite.
+5. **"The ye/name choice depends only on which screen is reading."** True for event lines. Not true at the 44 calls that pass a ready-made name (§1a).
+6. **Two code comments now say the opposite of the code they describe.** `panel.js:1244-1247` explains why it picks "only when `appState.room` is set", and `orchestrator.js:2193-2195` repeats it. Since `fb1da47f`, `panel.js:1270` picks in every mode.
+
+**Checked and true:** 331 entries, 11 parrot scripts, gates total 114 (`package.json:6`), staging serving `fb1da47f`.
+
+## 4. Is the last verdict's fault fixed, or back in new clothes?
+
+**Back, in new clothes.** Last time a check passed where it looked (the corners of the picture, one direction) and was read as a pass everywhere. This time the words check looks only at text beside certain display calls, in 17 files. It waves through short capital words and all of `recipe.js`. Then it prints "everything a player reads comes out of words.js". The picture check looks in the same limited places and makes the same universal claim.
+
+In fairness, the CTO's own account says "the guard is a heuristic" (gap d), which is better disclosure than last time. But the check's output and account item 7 still say the general thing.
+
+"No one looked" also recurs. Nothing was seen on screen after `fb1da47f` (gap e), although the solo "ye" change rewords every solo line.
+
+## 5. Did the CTO spend its own head on bulk reading?
+
+**None I can prove.** I cannot see the session transcript. The scratchpad suggests the right habit: results were written to files rather than dumped into the conversation (`text_sites.txt` 207 lines, `npm_test.log` 105 KB, patch scripts up to 42 KB). I cannot tell whether the 105 KB test log was then read whole.
+
+The one read the account describes, checking about 174 picture lines by hand, caught dock lines its script missed. That is judgment, not a fault.
+
+The reading that belongs in the main thread, looking at the running game after `fb1da47f`, did not happen.
+
+---
+
+**Not done by me:** the brief asks for this verdict to be added to `.planning/CEO-REVIEWS.md`. Your rules for me said read-only, so I did not write it. Whoever launched me should record it.
+
+---
+
 ## 2026-09-12 · `d227e12d` · AUDIT: is the plaque keyed out, and is the X fixed? · **TWO OF THE THREE PICTURES ARE PROPERLY CUT OUT. THE LAPTOP ONE IS NOT — IT IS STILL A RECTANGLE OF WOOD.**
 
 **Its one sentence for Wyatt, verbatim:**
