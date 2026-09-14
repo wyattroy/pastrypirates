@@ -104,7 +104,7 @@ import {
   bakeoffPrompt, bakeoffReveal, playBakeoffLive,
   benchChoreoMs, BENCH_STUDY_MS, BENCH_BEAT_MS, // A-2: the choreography's own timings, answered by the file that runs them
   appendChatLine, showChatBubble,
-  setFlipActive, setFlipCoin, flipSpinLeftMs, FLIP_LAND_HOLD_MS, boardCell, boardShipEls, drawBoard, render, resetBoardLog, bobShip, sailSetsOff, sailArrives, treasureBurst, crateFlightFrom, crateFlightTo,
+  setFlipActive, setFlipCoin, flipSpinLeftMs, FLIP_LAND_HOLD_MS, boardCell, boardShipEls, drawBoard, render, resetBoardLog, bobShip, sailSetsOff, sailArrives, treasureBurst, crateFlightFrom, crateFlightTo, tradeSwapFrom, tradeSwapTo,
   seedIdleGameState, syncBoardSizing, watchMutePlacement, victoryConfetti, clearChatBubbles,
   showSeatCoins, // MP-06: the ONE purse renderer, shared with render() (04-01 Task 2)
   battleSnapshot, renderBattleFromSnap, battleFooter, coinHTML, pipsHTML,
@@ -1954,9 +1954,11 @@ export async function consumeEvent(e){
   /* his game feel audit: treasure bursts into the coin count on heads, and a bought crate flies from its island into the
      hold (board.js). The crate's island rect is read BEFORE render() greys it, the hold's new chip AFTER render() draws it. */
   const buyFlight=(e.t==="dock"&&e.got==="bought"&&!e.black&&!appState.replaying)?crateFlightFrom(e):null;
+  const swapFlight=(e.t==="trade"&&!appState.replaying)?tradeSwapFrom(e):null;   // …and a trade's two crates swap in arcs
   if(e.t==="dock"&&e.heads&&!appState.replaying)treasureBurst(e.p);
   render();
   if(buyFlight)crateFlightTo(buyFlight,e.p);
+  if(swapFlight)tradeSwapTo(swapFlight);
   /* …AND THE ARRIVAL'S DIP AND SPLASH RING, ONCE IT HAS STOPPED. After render(), not inside the wait above: a hop too short
      to walk only starts gliding here, and a ring placed at the settle above landed a full square behind the boat on 3 of 8
      sails (measured). Not awaited, so the consumer's pace is unchanged; the stage's own settle says when the hull is still. */

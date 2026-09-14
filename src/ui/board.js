@@ -1870,6 +1870,47 @@ export function treasureBurst(seat){
   }
   if(to)holdCoinRoll(seat,TREASURE_MS*0.8+TREASURE_COINS*55);
 }
+/* ⭐ THE TWO CRATES SWAP IN ARCS — PASSED on his game feel audit (2026-09-13), as proposed: "Your crate and theirs cross over
+   each other between the two rows, and both land with a squash." Same shape as the crate flight home: each side's crate is
+   read out of its row BEFORE render() moves it, and flies to the new chip in the other row AFTER render() draws it. The two
+   bow opposite ways, so they visibly pass each other rather than overlap in a straight line. A counter paid in coin has no
+   crate on that side — only the ingredient flies, and the coin counts roll. */
+const SWAP_MS=680;
+function chipIn(seat,src){
+  const el=$("chips"+seat);if(!el||!src)return null;
+  return [...el.querySelectorAll(".chip")].filter(c=>{const i=c.querySelector("img");return i&&i.getAttribute("src")===src;}).pop()||null;
+}
+function fixedBox(el){const r=el.getBoundingClientRect();if(r.width<1)return null;const o=fixedOrigin();return {x:r.left-o.x,y:r.top-o.y,w:r.width,h:r.height};}
+export function tradeSwapFrom(e){
+  if(fxReduced()||!e||e.t!=="trade")return null;
+  const giveSrc=(/src="([^"]+)"/.exec(String(e.gave||""))||[])[1]||null,wantSrc=ING_IMG[e.got]||null;
+  const legs=[];
+  const g=chipIn(e.a,giveSrc),w=chipIn(e.b,wantSrc);
+  if(g&&fixedBox(g))legs.push({src:giveSrc,from:fixedBox(g),to:e.b,bow:-1});
+  if(w&&fixedBox(w))legs.push({src:wantSrc,from:fixedBox(w),to:e.a,bow:1});
+  return legs.length?legs:null;
+}
+export function tradeSwapTo(legs){
+  if(!legs||!capShowing())return;
+  for(const leg of legs){
+    const chip=chipIn(leg.to,leg.src),to=chip&&fixedBox(chip);
+    if(!to)continue;
+    chip.style.visibility="hidden";
+    const im=document.createElement("img");im.src=leg.src;im.alt="";im.className="ppCrateFly";
+    Object.assign(im.style,{left:leg.from.x+"px",top:leg.from.y+"px",width:leg.from.w+"px",height:leg.from.h+"px"});
+    document.body.appendChild(im);
+    const dx=(to.x+to.w/2)-(leg.from.x+leg.from.w/2),dy=(to.y+to.h/2)-(leg.from.y+leg.from.h/2);
+    const side=leg.bow*Math.max(leg.from.w*1.4,Math.abs(dy)*0.35),s=Math.max(.3,Math.min(2,to.w/leg.from.w));
+    const a=im.animate([{translate:"0px 0px",scale:"1"},
+      {translate:`${(dx*.5+side).toFixed(1)}px ${(dy*.5).toFixed(1)}px`,scale:"1.2",offset:.5},
+      {translate:`${dx.toFixed(1)}px ${dy.toFixed(1)}px`,scale:String(s)}],{duration:SWAP_MS,easing:"ease-in-out",fill:"both",id:"trade-swap"});
+    let landed=false;
+    const land=()=>{if(landed)return;landed=true;im.remove();chip.style.visibility="";
+      if(chip.isConnected&&typeof chip.animate==="function")chip.animate([{scale:"1.3 0.75"},{scale:"0.92 1.08",offset:.5},{scale:"1"}],{duration:300,easing:"ease-out",id:"crate-land"});};
+    a.onfinish=land;a.oncancel=land;
+    setTimeout(land,SWAP_MS+400);
+  }
+}
 /* Measured BEFORE render() greys the crate (its island rect), handed to crateFlightTo AFTER render() has drawn the new chip. */
 export function crateFlightFrom(e){
   if(fxReduced()||!e||!e.tokens||e.tokens[e.ing]==null)return null;
