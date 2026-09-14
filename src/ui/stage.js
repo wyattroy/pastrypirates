@@ -1404,7 +1404,7 @@ function pillHTML(){
   const now = g.windNow, fc = g.forecastWind();
   const nowS = `${say("pill.now",{})} ${now}${AR[now]}`;
   const fcS = g.stormNext
-    ? ` · ${say("pill.forecast",{})} ⛈<span class="pp4Spin">↑</span>`
+    ? ` · ${say("pill.forecast",{})} ${say("pill.storm",{spin:`<span class="pp4Spin">↑</span>`})}`
     : (fc ? ` · ${say("pill.forecast",{})} ${fc}${AR[fc] || ""}` : "");
   return nowS + fcS;
 }
