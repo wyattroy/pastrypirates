@@ -6,6 +6,310 @@ say whether a fault is *recurring* — which is the check this file exists to ma
 
 ---
 
+## 2026-09-14 · `sep14-game-feel` (word serving = dev `e4e0df64`) · ARCHITECTURE AUDIT: how player-facing words are served, and how to future-proof it · **NOT A PASS/FAIL REVIEW. WORDS NEARLY ALL IN ONE FILE; RULES ARE NOT — BATTLES AND DOCKING WRITTEN TWICE, AND MOST SCREENS ARE SENT FINISHED SENTENCES.**
+
+**Asked for by Wyatt, 2026-09-14** ("have the ceo audit our current setup for serving player-facing words, and suggest ways to make it more robust according to my design values"). Verbatim below.
+
+Paths are relative to the repo root, `/Users/wyattroy/Documents/Projects/pastrypirates/.claude/worktrees/google-search-console-020493`. I read the code on `sep14-game-feel`. Against `origin/dev`, only `course.js`, `press.js` and `stage.js` differ, so line numbers in `stage.js` are this branch's. I ran the words check, the display-door check and the mode-fork check myself, and all three pass. I started no browser or server and edited nothing.
+
+## 1. Read this first
+
+**Your words are nearly all in one file, but your rules are not: battles and docking are each written twice, and most screens are still sent finished sentences instead of "which line, about whom". Fix those two things and Pasta Pirates gets close to swapping one folder.**
+
+("human/both" in your message reads as "human/bot".)
+
+---
+
+## 2. The map, as it really is
+
+### How each kind of word reaches a screen
+
+**An event line (dock, trade, battle result, storm, muse)**
+- **Path:**
+  - The event is recorded: 33 `this.ev` calls in `src/engine/index.js`, plus 5 recorded outside the engine (`src/orchestrator.js:790,823,854,885`, `src/ui/flow.js:3613`).
+  - It goes through the one consumer, `consumeEvent` (`orchestrator.js:1791`), then the one narrator, `narrateEvent` (`src/ui/util.js:1881`). The narrator waits for the board to finish (`:1883`).
+  - `EVENT_NARRATION` picks a line id (`util.js:510-747`), then `say()` and `fill()` build it (`src/shared/words.js:62`).
+  - `flash()` picks this screen's version (`src/ui/panel.js:1270`).
+- **Who writes the sentence:** the host, for every screen. It builds one "everyone else" line plus a "ye" version for each captain named (`util.js:794-805`).
+- **On the wire:** finished HTML plus the versions (`src/net/writers.js:79-81`). A guest only picks one (`orchestrator.js:2256`).
+
+**The captain's log**
+- Each screen words it itself, from the event, inside the consumer (`orchestrator.js:1865`, third person per `util.js:863-869`). Nothing crosses the wire.
+
+**A question (Accept / Deny, "what'll ye do")**
+- **Path:** built inside the turn code, where it is asked. Examples: the trade offer (`flow.js:3026`), the crow's-nest call (`:3581`), the dock flip (`:1881`), fire and defend (`orchestrator.js:712,718`). Then `ask(msg, opts)` (`util.js:1597`) draws it locally or sends it with `remotePrompt` (`orchestrator.js:1661`).
+- **Who writes it:** the host, from one viewpoint that each caller picks (for example `say("trade.offered",…,q.idx)` at `flow.js:3026`).
+- **On the wire:** finished `msg`, `labels`, `why`, `sub` and slider texts (`util.js:1641-1675`, `1565-1579`).
+
+**A button label**
+- `say()` runs when the options are built (`flow.js:3027-3035`), and `optionButtonsHTML` draws them (`util.js:1485`). Labels cross the wire as finished strings.
+
+**A wait line ("…is deciding…")**
+- `ask()` sends one before every question (`util.js:1636`). There are also `flow.js:802` (sailing), `:915` (ovens), `:3362` (mateys), `orchestrator.js:564-576` (battle) and `:1044` (recipe draft).
+- The host words them with `sayAll`, and they go as HTML plus versions.
+
+**The battle card**
+- **Path:** the host runs the fight (`orchestrator.js:635-890`). `battlePublish` (`:281`) draws it locally and sends a snapshot. The guest's `watchBattle` (`:507`) draws it through `battleFooter` (`flow.js:3544`).
+- **The lines are mixed:**
+  - Some go as `{id, facts}` and each screen words them (`orchestrator.js:710,716,726,830` → `flow.js:3555`).
+  - Four go as finished HTML (`orchestrator.js:728,734,737,833`).
+  - "Waiting for…" goes as a seat number (`:593` → `flow.js:3551`).
+
+**A guest's screen**
+- Events, narration and questions come through the same consumer (`:1971`), `watchNarr` (`:2202`) and the same prompt renderer (`:2062`).
+- **The guest words only a few things itself:** the captain's log, some battle lines, the bake-off watcher line (`orchestrator.js:409`), the skip recap (`flow.js:119`) and the lobby. The host worded everything else.
+
+**Pass-and-play**
+- Handing over the device changes `mySeat` (`src/ui/lobby.js:413,421`), and "ye" follows `mySeat` (`util.js:2009-2010`).
+- Every human seat answers on this device (`src/shared/storyboard.js:213-214`).
+- A line that opens with its captain reads "Crustbeard — ye", so a shared screen still says who "ye" is (`words.js:77`).
+
+**Theme names (islands, ingredients, captains, directions)**
+- These are code tables in `src/shared/index.js`: `ING_NAME` :225, `DOCK_PLACE` :232, `DOCK_FLAVOR` :260, `DIRNAME` :304, `NAMES` :616. They are passed into lines as finished text (`util.js:576`).
+
+**Sea-creature sightings**
+- 50 sightings, each typed twice (`src/shared/index.js:~346-447`).
+- The sentence text is stored on the event and read back (`util.js:498-507`). So it is saved in Firebase and in solo saves.
+
+**The recipe book**
+- `RECIPE_BOOK` (`src/ui/recipe.js:44`, 21 real recipes), `RECIPE_STEPS` (`src/shared/recipe-steps.js:33`) and the art list (`recipe.js:318-335`).
+
+**The parrot's tutorial ladder**
+- It lives in `words.js:522`, but `{name}` is filled by a plain text replace that bypasses `fill()` (`orchestrator.js:1084,1863`).
+
+**Static page text**
+- `index.html` holds 185 text nodes and 11 labels by my count, including "Sail the Caribbean" in its page description (`:15`). The about, credits, rules, privacy and stats pages add more.
+
+### Where your four variables are actually decided
+
+| Variable | One place? | Evidence |
+|---|---|---|
+| **actionTaken** | **No.** There is no action object. | A human's choice comes back from `ask()` as a value (`util.js:1694`), and separate code applies each action in `flow.js` (dock `:1869`, trade `:2237`, menu `:2503`). A bot's choice is made in `flow.js` `botTurn` (`:3119`) or in the engine's `takeTurn` (`engine/index.js:2887`). Only the event list is uniform. |
+| **playerType** | **Mostly.** | At the turn door, `flow.js:2892` picks `humanTurn` or `botTurn`. It is also checked ad hoc at `flow.js:2337, 3004, 3357, 3574`. The intent is right: type decides how a move is chosen. |
+| **playerLocation** | **Yes**, as two pure answers. | "Who answers" is `decisionIsLocal` (`util.js:2023` → `storyboard.js:213`). "Who reads ye" is `isLocalTo` (`util.js:2009`). But each caller picks the viewpoint (`flow.js:3026`, `orchestrator.js:718`), and `mySeat ?? 0` is read directly in `stage.js:266,1179,1190,3074,4560,4674,5541` and `flow.js:113,122,716`. |
+| **gameMode** | **No.** There is no mode value. | It is three flags: `passAndPlay` (`flow.js:3718`), `room`/`db`, and `isHost` (`flow.js:3702`). They are read at `flow.js:2982,3299`, `util.js:129`, `lobby.js:374,474`, `board.js:1760` and `stage.js:1585`. The right pattern already exists: `src/shared/visibility.js` asks "do the captains share a device?" instead of naming a mode. |
+
+### Where the CTO's map is wrong or incomplete
+
+- **"The battle card is the only place words cross the wire as data."** Wrong both ways.
+  - The captain's log, the battle "waiting" line and the bake-off watcher line also travel as data.
+  - The battle card still sends 4 lines as finished HTML.
+- **HOLE 1 counts 2 question doors; there are 5.** Each sends finished text: `ask`, `battleAsk`, the sail pick (`flow.js:840`), the recipe/intro channel (`orchestrator.js:1692-1700`), and the bake-off prompt. The bake-off prompt sends the baker's ready-made name (`flow.js:940`).
+- **"The words all come from one file."** Not yet:
+  - The "ye / yer / Crustbeard — ye" grammar is typed into `fill()` (`words.js:75-77`), even though the file has a `list.ye` entry (`:153`).
+  - The engine writes English into events: "nothing" and "N coins" (`engine/index.js:1320,1703,1953`), plus the sea sentences.
+  - One line is glued together in code from a name and a fragment (`stage.js:4406`).
+  - The bake-off title is written twice by hand ("{who}'s Bake-Off" / "{who}, Yer Bake-Off"), picked in code (`bakeoff.js:188`). That is exactly the "write both forms" you said you don't want.
+- **A line about a captain still gets a ready-made name, and the check misses it.** "battle.hit" gets `nm()` through a variable (`orchestrator.js:732-734`), so the captain who lands the hit never reads "ye". The name check only spots `pn(`/`nm(` written inside the call.
+- **The biggest "one engine" gap is not on the map.**
+  - **Battles are written twice:** once live in `orchestrator.js:635-890`, which moves coins and crates itself at `:651,822,873`, and once as the engine's `battle()` (`engine/index.js:1888`), which the engine's own bot turns use (`:2914`).
+  - **Docking is written twice:** a human's dock pays in `flow.js:1884`, under a comment that says *"Keep this in step with Game.doDock or bots and humans diverge on the rule"* (`:1875`). A bot's dock pays in the engine (`engine/index.js:1079`).
+  - **The crow's-nest bounty** is paid in display code (`flow.js:3612`).
+  - I did not measure whether these copies disagree today. They are kept in step by hand.
+- **Words are used as switches.**
+  - The bake-off bench's title text is what silences the battle clash sound (`orchestrator.js:380,400,502`).
+  - Which captain a narration bubble points at is sometimes guessed from a name's colour in the HTML (`stage.js:1786`).
+- **The fork counter can't see a display fork the code calls a "declared gap".** It is `if(appState.isHost)return;` in `watchBattle` (`orchestrator.js:522`). The counter skips `orchestrator.js` on purpose, and never counts `strategy` or `room` checks.
+- **Where the map is right (measured):** 343 entries and 11 ladders; `say`/`sayAll`/`sayText`; `flash()` picks per screen in every mode; one consumer, `eventDrawn` and `decisionIsLocal`.
+
+---
+
+## 3. Against your values
+
+| Value | Verdict | Evidence |
+|---|---|---|
+| One engine: every screen reacts to one list of events | **HOLDS** | Host (`panel.js:230`) and guest (`orchestrator.js:1997`) both reach `consumeEvent`. |
+| One engine: one set of rules | **DOES NOT HOLD** | Battles twice (`orchestrator.js:635-890` vs `engine/index.js:1888`); dock pay twice (`flow.js:1884` vs `engine/index.js:1079`); bounty in display code (`flow.js:3612`). |
+| One display engine | **PARTIAL** | Right: one consumer, one narrator (`util.js:1881`), one prompt renderer for host and guest (`orchestrator.js:2062,1745`). Not yet: the host words nearly everything and ships HTML, and the battle card is host-drawn and guest-watched (`orchestrator.js:515-522`). |
+| Words in one place for a reskin | **PARTIAL** | 343 lines and 21 parrot lines are in `words.js`. Still outside: 100 sea sentences, names, islands, directions, 21 recipes, `index.html` plus 5 pages, the "ye" grammar inside `fill()`, and English inside engine events. |
+| Bots = humans | **PARTIAL** | Right: `say()` cannot see bot or human (`util.js:405-408`), and there is one narrator for both. Not yet: human and bot docks run different code. Bots never get the question a human gets, so "a bot may only do what the human menu offers" rests on care, not structure. That last point is my reading, not measured. |
+| No mode forks in what a player sees | **PARTIAL** | 42 fork lines, held by a ratchet (measured). Some are your rulings, e.g. no skip button in crew or pass-and-play (`stage.js:1571-1577`). The counter can't see `orchestrator.js:522`, the online-only chat button (`stage.js:1598`), or `strategy` checks. |
+| Nothing is a constant | **PARTIAL** | Right for amounts in lines, which come from the game's settings (`util.js:562,745`, `panel.js:1158`). Theme facts are typed into code: 4 captain names (`shared/index.js:616`) and 7 islands (`:232`). The order of ingredients and directions feeds the random board setup ("ORDER IS LOAD-BEARING", `shared/index.js:213, ~301`). |
+
+---
+
+## 4. Recommendations
+
+**The known problem, numbered, so each recommendation can say how much it covers ("~N of 12"):**
+1. Theme text outside the words file.
+2. The pirate grammar typed into `fill()`.
+3. Questions built where they're asked, sent as finished text through 5 doors.
+4. Finished words stored inside events.
+5. Battle rules written twice.
+6. Dock and bounty payouts in display code.
+7. No single answer to "who is looking, and in what setup".
+8. Words used as switches.
+9. Side doors around the grammar (text replace, name plus fragment, two bake-off titles, battle.hit).
+10. Blind spots in the checks.
+11. No test that real events give the right line on each screen. The existing golden test covers the sail animation only.
+12. Sentences glued from fragments and plurals chosen in code. This blocks a second language and is mostly harmless for an English reskin.
+
+**Sizes:** S = a few files · M = one subsystem · L = touches every turn. Ranked by value to you: Pasta Pirates within a year, a much bigger game, and crew play online.
+
+### R1. A theme pack: all theme content as data, one folder per game
+- **What you get:** Pasta Pirates starts as "copy the pastry folder, rewrite it, play it on staging". Pastry players see no change.
+- **What goes in it:**
+  - the words file;
+  - captain, island, ingredient and direction names;
+  - sea creatures rewritten once as `{p}` lines, deleting the 50 duplicate typings;
+  - recipes;
+  - the art and sound list (R10);
+  - the page shell (R11).
+- **Size:** M. **Covers:** 1 and most of 2 (~2 of 12), but that is the whole of the reskin's content problem.
+- **Risk:**
+  - Ingredient and direction order feeds the random board setup, so a pack must swap names and art into fixed slots and never reorder them.
+  - A different *number* of ingredients is a rules change, not a skin. That is your call when you get there.
+  - Old solo saves keep their old sea sentences (`util.js:498-507`) until R4.
+- **Leaves undone:** questions, words inside events, the doubled rules.
+- **Fits:** yes. It is one plain module per theme, with no build step.
+
+### R2. One rulebook, with questions as engine events
+*"Command pattern": the engine says, as data, "captain 2 must choose: buy or leave". A person answers on a screen, a bot answers in code, and only the engine applies the answer.*
+- **What a player gets:** bots and people get the same menu, and a guest's question can never differ from the host's.
+- **What you get:** each new action is written once, not two or three times, and the "keep this in step" comment (`flow.js:1875`) goes away.
+- **Size:** L. **Covers:** 3, 5, 6 and most of 7 (~4 of 12).
+- **Risk:**
+  - Highest of all. It touches every turn: `flow.js` `:1869`, `:2237`, `:2503`, `:3119` and `orchestrator.js:635-890`.
+  - The answer log stores which button was pressed (`util.js:1600`), so older solo saves would be refused. The game already refuses those safely (`util.js:2183`).
+  - Convert one question at a time, the way `storyboard.js` converted one event kind.
+- **Leaves undone:** the theme.
+- **Fits:** yes. The remote answer path already exists (`orchestrator.js:1661-1688`).
+- **If the battle card is going away** (your 2026-09-13 note), rebuild the battle this way rather than polishing the card.
+
+### R3. Finish the "presenter" layer
+*A presenter is one pure function: event + game snapshot + who is looking → what to draw and which lines to say.*
+- **It already has a plan:** `.planning/architecture-one-director.html`, section "Four layers". Its first piece is `present()` in `storyboard.js`, which handles the sail animation only.
+- **Next step:** move `EVENT_NARRATION` (`util.js:510-747`) in. Today it reads live game state (`:562,745`) and the host's names (`:377-401`); it would be handed them instead.
+- **What a player gets:** nothing at first. Then every screen words each event itself, so "the guest read the host's version" bugs can't happen.
+- **Size:** M. **Covers:** half of 7 directly, and makes 4 and 11 cheap.
+- **Risk:** low, done one event kind at a time.
+- **Leaves undone:** questions.
+- **Fits:** exactly. `src/shared/` is already checked to stay pure.
+
+### R4. Words cross the wire, and live in events, as "line id + facts"
+- **Where:** narration, question text, labels, reasons, slider texts, the baker's name, and the engine's "nothing", "N coins" and sea sentences.
+- **What a player gets:** a guest reads "ye" in every question and battle line, exactly like the host.
+- **What you get:** old voyages replay in a new theme's words.
+- **Size:** M. **Covers:** 4, the wire half of 3, and part of 9 (~2 of 12).
+- **Risk:** a room with a new host and an old guest. Send the finished text beside the id for one release; the code already adds fields this way (`util.js:1561-1576`).
+- **Leaves undone:** who builds the question (R2).
+- **Fits:** well. `words.js` imports nothing (`words.js:39-43`), so every device already has the whole table.
+
+### R5. One "view context": your four variables, made real
+- **The shape:**
+  - `view = {viewerSeat, sharedDevice, online, computesGame}`, built in one function.
+  - `actor = {seat, isPerson, answersHere}` for each event.
+  - Later, `setup = {board, recipes, theme}`.
+  - There is no mode name; capabilities stand in for it, as `visibility.js` already does.
+- **Pushback:** give the display everything *except* player type. `say()` is deliberately blind to bot or human (`util.js:405-408`), and that blindness is what guarantees bots and humans get the same words. Only the bot badge needs to know.
+- **Size:** S. **Covers:** 7 (1 of 12), and it makes R2 and R3 cheaper. **Risk:** low.
+
+### R6. The grammar moves into the words file
+*"ICU-style": the industry's standard notation for plurals and "you vs a name" choices inside one sentence.*
+- **What moves:**
+  - "ye / yer / Crustbeard — ye" and possessives (`words.js:75-82`);
+  - one-or-many choices (`util.js:732-733`, `storm.holds.one/many`);
+  - list joining (`util.js:711-716`, `bakeoff.js:168`).
+- **How:** extend `fill()` rather than add a library.
+- **What you get:** Pasta's voice ("you", or Italian-flavoured) needs no code.
+- **Size:** S. **Covers:** 2 and 12 (2 of 12).
+- **Risk:** every line re-renders. The words check already renders all 343 for every viewer; add a before/after diff.
+
+### R7. A "golden" test of real lines, plus a pseudo-theme
+*Golden test: a committed file of what every line said in recorded voyages, per screen. It fails when a line changes without anyone meaning it to. Pseudo-theme: every word replaced by its id, so any readable English left on screen is a leak.*
+- **What you get:** a readable diff whenever lines change, and a staging link (`?theme=ids`) where a leak is obvious on your phone.
+- **Size:** S, after R3. I did not check whether the narrator can run without a browser today.
+- **Covers:** 11 and part of 10 (~2 of 12).
+- **Fits:** yes. Recorded voyages already exist (`scripts/fixtures/storyboard/events.jsonl`).
+
+### Smaller ones
+
+| # | What | What you get | Size | Covers | Risk | Fits? |
+|---|---|---|---|---|---|---|
+| R8 | Widen the checks: scan engine, shared, net and all HTML; catch names passed through variables; forbid `.replace("{`; count `strategy`/`room` forks and `orchestrator.js` display forks, with an allowed list. | Leaks caught before you see them | S | 10 | Red on day one; use the existing ratchet | Yes |
+| R9 | Stop using words as switches: mark the bench `kind:"bake"` (`orchestrator.js:380,400,502`); take the bubble's captain from the event only (`stage.js:1786`). | A Pasta title can't turn the battle clash on during a bake-off | S | 8 | Low | Yes |
+| R10 | One art and sound list per theme. Today it is spread across `EMOJI_IMG` (`shared/index.js:139`), island art (`:209`), pastry art (`recipe.js:318-335`), `EVENT_SOUND` (`audio.js:275`) and the preload list (`util.js:2105-2160`). | Pasta art drops in by filename; a missing file fails a test, not your phone | S–M | part of 1 | Low | Yes |
+| R11 | Theme switch on staging only (`?theme=pasta`, like `?ovens=1`), plus a second page shell per theme | Play Pasta on staging while players keep Pastry; no words blinking in | S | delivery | Low | Yes |
+| R12 | Theme completeness check: every line, every ingredient's name, art and island, enough sea creatures, valid recipe orders | A half-finished pack can't reach staging | S | 10 | Low | Yes |
+| R13 | Version each event and upgrade old shapes when read ("upcasting"; `fixEv` already exists, `util.js:2326`) | Old voyages still replay after R4 | S | part of 4 | Low | Yes |
+| R14 | Seeded simulation on the *one* rulebook, after R2. Today the engine's own bot turns use `engine.battle` (`:2914`), while players get `orchestrator.js`'s battle. So headless bot tuning measures a fight nobody plays; that is inference, not measured. | Bot tuning tests the real game | M | checks 5 | Binding a test corpus is your ruling (CLAUDE.md) | Yes |
+| R15 | A second language | Nearly free after R1, R4 and R6. Each screen words its own lines, so two crewmates could even read two languages | the translation | 12 | Phone text limits, e.g. 34-character recipe steps | Yes |
+
+---
+
+## 5. What NOT to do
+
+- **No framework, build step or TypeScript.** React or Redux would fight "vanilla modules in Safari and Chrome" for no gain to players.
+- **No translation library.** `fill()` is about 30 lines and already does the hard part ("ye" on the reader's own screen). A library adds a download and would still need that logic. This is my opinion.
+- **Don't pass player type to the display.** It reopens "bots and humans read different words".
+- **No server-run game** (Cloud Functions, cheat-proof servers). One host sending events works; server authority is anti-cheat you don't need.
+- **No full event-store machinery** (read models, projections). The event list and answer log already cover it.
+- **Don't design for many themes or mods.** Design for two. A third will show what to generalise.
+- **No content pipeline** (spreadsheet, export, import) and no in-game theme switcher. One file per theme that your review page reads directly is what already worked, and CLAUDE.md says not to build tooling when the ask is the game.
+- **No rollback or lockstep networking.** Those are for fast action games; this is turn-based with one host.
+- **No big-bang rewrite.** Convert one kind at a time.
+- **Don't translate before the reskin** has proved the seams.
+
+---
+
+## 6. A phased path
+
+**Phase 1: the narrator goes pure and gets a golden test.** (S–M; players see nothing)
+- **What:**
+  - Move `EVENT_NARRATION`, `narrationSubjects`/`narrationVariants` and `seaLine` into `src/shared/`, handed the snapshot, settings, names and viewpoint.
+  - Record golden lines per screen.
+  - Fix the two words-as-switches.
+- **Why first:** every later step moves words or rules, and this is the net that catches mistakes. It moves no theme text, so it respects your "don't do anything yet".
+- **Files:** `src/ui/util.js`, new `src/shared/narrate.js`, `src/shared/storyboard.js`, `src/orchestrator.js` (380, 400, 502), `src/ui/stage.js` (1786), new `scripts/qa/narration_golden_check.mjs`, `package.json`.
+
+**Phase 2: one view context and wider checks.** (S)
+- **Files:** `src/ui/util.js` (1999–2023), `src/shared/visibility.js`, `src/shared/storyboard.js` (213), the `mySeat`/`passAndPlay` readers in `flow.js`, `stage.js`, `lobby.js` and `board.js`, `scripts/qa/words_one_place_check.mjs`, `scripts/mode_fork_check.js`.
+
+**Phase 3: line ids on the wire and in events.** (M)
+- **Files:** `src/net/writers.js` (56, 79, 127, 141), `src/orchestrator.js` (205, 243, 552–600, 710–833, 1661, 1692, 2001, 2202), `src/ui/util.js` (1565, 1597), `src/ui/flow.js` (840, 928–940, 3544), `src/ui/panel.js` (1220), `src/engine/index.js` (1320, 1703, 1953, sea creature storage), `src/ui/bakeoff.js` (188), `src/ui/stage.js` (4406).
+
+**Phase 4: the theme pack, when you say go.** (M)
+- **What:** grammar into the words file; sea creatures as single lines; names, islands, recipes, the art and sound list and the page shell; `?theme=` on staging; the completeness check.
+- **Files:** `src/shared/words.js` moves into a theme folder; `src/shared/index.js` (225–304, ~346–447, 616), `src/ui/recipe.js`, `src/shared/recipe-steps.js`, `src/ui/audio.js` (275), `src/ui/util.js` (2105–2160), `index.html` and the about, credits, rules, privacy and stats pages, `scripts/module_graph_check.js`.
+
+**Phase 5: one rulebook, questions as events, one kind at a time.** (L)
+- **Order:**
+  1. Dock (deletes the copy at `flow.js:1884`).
+  2. Crow's-nest call (moves the payout at `flow.js:3603-3620` into the engine).
+  3. Battle (deletes the rules copy at `orchestrator.js:635-890`, and replaces the battle card if you retire it).
+  4. Trade.
+  5. Action menu.
+  6. Recipe draft and intro.
+  7. Bake-off.
+- **Files:** `src/engine/index.js`, `src/ui/flow.js`, `src/orchestrator.js`, `src/ui/util.js` (`ask`, save version at 2183), `src/net/writers.js`, `scripts/dlog_replay_test.js`.
+
+**Phase 6, only if wanted:** a seeded test corpus bound to the one rulebook (your ruling), then a second language.
+
+---
+
+## Files read
+- `/Users/wyattroy/Documents/Projects/pastrypirates/.claude/worktrees/google-search-console-020493/.claude/CLAUDE.md`
+- `…/.planning/CEO-REVIEWS.md` (top entry)
+- `…/.claude/memory/DECISIONS.md` (searched; lines 2895–2912, 2980–3091)
+- `…/src/shared/words.js` (whole)
+- `…/src/ui/util.js` (370–869, 1455–1764, 1795–2054, function index)
+- `…/src/orchestrator.js` (195–634, 700–760, 1655–2294, function index)
+- `…/src/ui/panel.js` (236–246, 1130–1303)
+- `…/src/ui/flow.js` (100–160, 836–870, 925–945, 1872–1892, 2880–2895, 3290–3348, 3510–3634, searches)
+- `…/src/shared/storyboard.js` (1–216), `…/src/shared/visibility.js`, `…/src/shared/host.js` (head)
+- `…/src/shared/index.js` (215–308, 330–460, searches)
+- `…/src/engine/index.js` (1074–1100, 2905–2916, searches)
+- `…/src/ui/recipe.js` (44–56, searches), `…/src/shared/recipe-steps.js` (1–40)
+- `…/src/net/writers.js` (79–91, function index)
+- `…/src/ui/lobby.js` (468–480), `…/src/ui/board.js` (1750–1765), `…/src/ui/audio.js` (275–300), `…/src/ui/stage.js` (1570–1600, searches), `…/src/ui/bakeoff.js` (searches)
+- `…/index.html` (text scan)
+- `…/scripts/qa/words_one_place_check.mjs` (whole, run), `…/scripts/qa/one_display_door_check.mjs` (whole, run), `…/scripts/mode_fork_check.js` (whole, run), `…/scripts/ui_contract_check.js` (header), `…/scripts/qa/storyboard_golden_check.mjs` (header), `…/package.json` (test script)
+- `…/.planning/architecture-one-director.html` (section titles)
+
+(`…` = `/Users/wyattroy/Documents/Projects/pastrypirates/.claude/worktrees/google-search-console-020493`)
+
+---
+
 ## 2026-09-14 · `fb1da47f` · AUDIT: does every line of narration come from one place, and are the pictures still in the lines? · **PARTIAL. THE PICTURES ARE ALL THERE AND ONE NARRATOR SERVES BOTS AND HUMANS — BUT "EVERY LINE IN ONE PLACE" IS NOT TRUE YET, AND THE WORDS CHECK CLAIMS MORE THAN IT CAN SEE.**
 
 **Reviewed:** dev `fb1da47f`, staging `2026.09.14.1-staging@fb1da47f`. Verbatim below, including its closing note that it was read-only and did not write this entry.
