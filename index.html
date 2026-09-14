@@ -1172,8 +1172,12 @@
      background. cqw units keep the geometry identical to the 640-unit board. */
   .sailCell { position: absolute; box-sizing: border-box; pointer-events: auto; cursor: pointer;
     background: #ffc23a; border-radius: 6px; opacity: .5;
-    animation: sailBounce 1.15s ease-in-out infinite;
+    animation: sailBounce 1.15s ease-in-out infinite, sailPop .22s ease-out backwards;
     transition: opacity .12s ease, filter .12s ease; }
+  /* THE SQUARES POP IN FROM THE BOAT OUTWARD — his game feel audit, PASSED (2026-09-13). LISTED LAST so its hidden start
+     wins over the bounce until each square's own --sailPopDelay (renderPickPrompt, by distance from the boat); `scale`,
+     so it composes with the bounce's transform. */
+  @keyframes sailPop { 0% { scale: .2; opacity: 0; } 60% { scale: 1.12; opacity: .8; } 100% { scale: 1; opacity: .5; } }
   /* UI-04: a more distinct hover. Was opacity .85 + brightness 1.12 + a 4px glow, which on an
      already-pulsing square read as "slightly brighter" rather than "this one". Now the hovered
      square goes FULLY opaque, gains a white outline, and throws a wider two-stage glow — three cues
