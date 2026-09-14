@@ -158,7 +158,7 @@ import {
 import { deriveActiveSeat } from "../shared/storyboard.js";
 import { mayRevealRecipe, offersRecipeCheck } from "../shared/visibility.js";
 import { recipeTitle, recipeInfo, winRecipeSpan, recipeArticle } from "./recipe.js";
-import { playFlip, startFlipSpinSound, stopFlipSpinSound } from "./audio.js";
+import { playFlip, startFlipSpinSound, stopFlipSpinSound, onThunder } from "./audio.js";
 import { popInHolds } from "./popin.js";
 
 // `$` is a classic-script-local `const $=id=>document.getElementById(id)` (index.html:863) —
@@ -678,6 +678,31 @@ export function sailArrives(seat){
   const host=document.getElementById("popHost"),p=drawnShipPoint(seat);
   if(host&&p)fxDot(host,"ppSplash",p,cell*0.95,[{opacity:.85,scale:"0.35"},{opacity:0,scale:"1.35"}],SPLASH_MS);
 }
+/* ⭐ STORMS: LIGHTNING WITH THE THUNDER, AND THE BOATS ROCK — PASSED on his game feel audit (2026-09-13), as proposed: "A white
+   flash across the board timed to each thunder clap" — with his note, "make this subtle -- too much could be annoying." —
+   and "Every boat tilts gently back and forth while the storm lasts." The third storm idea, the sea darkening as a storm
+   rolls in, was already there (#stormOverlay's navy tint); it now eases in over a full second.
+   ⚠ THE ROCKING RIDES THE THUNDER, NOT A LOOP. The boats are SVG, and Chrome cannot composite a transform animation on SVG
+   (BOARD-RENDERING §5: ~62 layouts a second), so a rock running the whole round would spend the board's idle budget for the
+   whole storm. Each clap — the first the instant the storm arrives, then about every 20 seconds — rocks every boat for two
+   seconds. A clap is per screen (the thunder is scattered on each device), so each screen's lightning matches its own sound. */
+export const LIGHTNING_PEAK=0.2, LIGHTNING_MS=420, ROCK_DEG=4, ROCK_MS=2000;
+export function stormFlash(){
+  const wrap=$("boardwrap"),ov=$("stormOverlay");
+  if(!wrap||!ov||!wrap.classList.contains("storming")||fxReduced())return;
+  let f=ov.querySelector(".ppLightning");
+  if(!f){f=document.createElement("div");f.className="ppLightning";ov.appendChild(f);}
+  f.animate([{opacity:0},{opacity:LIGHTNING_PEAK,offset:.1},{opacity:.03,offset:.3},{opacity:LIGHTNING_PEAK*.55,offset:.45},{opacity:0}],
+    {duration:LIGHTNING_MS,easing:"ease-out",id:"lightning"});
+  shipEls.forEach((g,i)=>{
+    const im=g&&g.querySelector("image");
+    if(!im||typeof im.animate!=="function"||g.style.visibility==="hidden")return;
+    im.animate([{rotate:"0deg"},{rotate:`${ROCK_DEG}deg`,offset:.2},{rotate:`${-ROCK_DEG}deg`,offset:.45},
+      {rotate:`${(ROCK_DEG*.6).toFixed(1)}deg`,offset:.7},{rotate:`${(-ROCK_DEG*.3).toFixed(1)}deg`,offset:.88},{rotate:"0deg"}],
+      {duration:ROCK_MS,delay:i*60,easing:"ease-in-out",id:"storm-rock"});
+  });
+}
+onThunder(stormFlash);
 /* ---------- playback ---------- */
 // notes/edits BUG-01: build the storm's rain layers once, on the first storm. The rain is now a
 // pre-rendered tiling PNG (see #stormOverlay .rlayer CSS), so each layer only varies things that

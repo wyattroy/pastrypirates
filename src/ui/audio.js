@@ -955,7 +955,12 @@ let stormScatterTimer = null;
 let stormGen = 0;                    // bumped on every stop, so a timer from a past storm is dead
 let stormLive = [];                  // the claps still ringing, for fadeStorm to retire
 
+/* EACH CLAP IS ALSO A MOMENT THE BOARD CAN SEE — his game feel audit's lightning (board.js stormFlash). Told BEFORE the
+   sound checks, so a muted screen, or one whose sound never started, still sees the lightning the clap would have brought. */
+const thunderListeners = [];
+function onThunder(fn) { if (typeof fn === "function") thunderListeners.push(fn); }
 function stormFireOne(name) {
+  for (const fn of thunderListeners) { try { fn(); } catch (e) {} }
   if (!ctx || !buffers[name] || isMuted()) return;
   const src = ctx.createBufferSource();
   src.buffer = buffers[name];
@@ -1432,6 +1437,7 @@ export {
      all. That is precisely how a page could end up permanently silent. */
   wakeCtx,
   soundReady,
+  onThunder,
   playPop,
   EVENT_SOUND, soundForEvent, playForEvent, playWinScreen, fadeStorm,
   STORM_VOLUME, STORM_FADE_SEC, WIN_SOUND, DRUMROLL_SOUND, CANNON_SOUND,

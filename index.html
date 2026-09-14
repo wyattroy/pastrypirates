@@ -155,10 +155,12 @@
      The rain angle/travel is driven by CSS vars set per-storm from the wind (see render()).
      Fades in/out rather than snapping on/off. Purely decorative. */
   #stormOverlay { position: absolute; inset: 0; pointer-events: none; border-radius: 10px; overflow: hidden;
-    opacity: 0; transition: opacity .8s ease; z-index: 5; background: rgba(18, 24, 45, 0.4);
+    opacity: 0; transition: opacity 1s ease; z-index: 5; background: rgba(18, 24, 45, 0.4);
     /* --slant is set per-storm (render) to the wind direction; --drop is one dash period of the tile */
     --slant: 0deg; --speed: 0.75s; --drop: 113px; }
   #boardwrap.storming #stormOverlay { opacity: 1; }
+  /* his game feel audit: the lightning, over the rain (board.js stormFlash) — subtle, at his word */
+  #stormOverlay .ppLightning { position: absolute; inset: 0; background: #eef7ff; opacity: 0; pointer-events: none; will-change: opacity; }
   /* notes/edits BUG-01: the rain used to be a live CSS build — a huge repeating-linear-gradient
      masked by another gradient with an animated mask-position and a blur filter. Safari re-rasterizes
      AND re-blurs that whole 220%-sized masked layer on the CPU every single frame (Chrome
