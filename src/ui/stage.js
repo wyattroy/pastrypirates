@@ -2919,7 +2919,7 @@ function chartFrontRecipe(card){
   const ids = [...card.querySelectorAll("[data-ing]")].map(e => e.dataset.ing).filter(Boolean);
   const seat = (S.activeSeat != null) ? S.activeSeat : appState.curSeat;
   const me = (seat != null && g.players) ? g.players[seat] : null;
-  if (me) showCourseFor(g, me, svgEl(), cellPx(), ids);
+  if (me) showCourseFor(g, me, svgEl(), cellPx(), ids, { trace: true });   // the picker's route draws itself (course.js)
   else paintMarks(ids.map(i => (g.dockOf && g.dockOf[i]) || (g.islandOf && g.islandOf[i])).filter(Boolean), cellPx());
 }
 
