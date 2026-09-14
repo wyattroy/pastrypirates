@@ -104,7 +104,7 @@ import {
   bakeoffPrompt, bakeoffReveal, playBakeoffLive,
   benchChoreoMs, BENCH_STUDY_MS, BENCH_BEAT_MS, // A-2: the choreography's own timings, answered by the file that runs them
   appendChatLine, showChatBubble,
-  setFlipActive, setFlipCoin, flipSpinLeftMs, FLIP_LAND_HOLD_MS, boardCell, boardShipEls, drawBoard, render, resetBoardLog, bobShip,
+  setFlipActive, setFlipCoin, flipSpinLeftMs, FLIP_LAND_HOLD_MS, boardCell, boardShipEls, drawBoard, render, resetBoardLog, bobShip, sailSetsOff, sailArrives,
   seedIdleGameState, syncBoardSizing, watchMutePlacement, victoryConfetti, clearChatBubbles,
   showSeatCoins, // MP-06: the ONE purse renderer, shared with render() (04-01 Task 2)
   battleSnapshot, renderBattleFromSnap, battleFooter, coinHTML, pipsHTML,
@@ -1901,6 +1901,7 @@ export async function consumeEvent(e){
      the same events that wait for the boat to arrive (below), in the one consumer, on every device. */
   const moves=(e.draw&&Array.isArray(e.draw.route))||e.t==="tradewind";
   if(moves)forgetCourse();
+  if(e.t==="sail"&&moves&&!appState.replaying)sailSetsOff(e.p,e.draw.route);   // his game feel audit: the wind-up and the wake (board.js)
   playForEvent(e, decisionIsLocal(e.p));
   /* ⭐ THE TINY DOCK COIN IS DRAWN HERE, FOR EVERY CAPTAIN WHOSE CHOICE WAS NOT MADE ON THIS SCREEN —
      Wyatt, 2026-09-13 (note 8): "the human players don't see each other's tiny docking coins when the
@@ -1951,6 +1952,13 @@ export async function consumeEvent(e){
     if(settled)await settled();
   }
   render();
+  /* …AND THE ARRIVAL'S DIP AND SPLASH RING, ONCE IT HAS STOPPED. After render(), not inside the wait above: a hop too short
+     to walk only starts gliding here, and a ring placed at the settle above landed a full square behind the boat on 3 of 8
+     sails (measured). Not awaited, so the consumer's pace is unchanged; the stage's own settle says when the hull is still. */
+  if(e.t==="sail"&&moves&&!appState.replaying){
+    const settledNow=window.__pp4&&window.__pp4.settled;
+    (settledNow?settledNow():Promise.resolve()).then(()=>sailArrives(e.p));
+  }
   spawnPops(e,boardCell());
   if(e.t==="end")applyEndMeta();  // self-guarded: host/already-applied return immediately
   } finally { finishEventDrawing(e); }

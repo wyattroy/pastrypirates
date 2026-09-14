@@ -607,6 +607,77 @@ export function bobShip(seat){
   im.animate([{translate:"0px 0px"},{translate:`0px ${(-up).toFixed(2)}px`,offset:.35},{translate:"0px 0px",offset:.7},
     {translate:`0px ${(-up/3).toFixed(2)}px`,offset:.85},{translate:"0px 0px"}],{duration:SHIP_BOB_MS,easing:"ease-in-out"});
 }
+/* ⭐ THE BOAT SAILS: A WIND-UP, A WAKE, AND A SPLASH WHEN IT ARRIVES — all three PASSED on his game feel audit (2026-09-13),
+   as proposed: "A short rock backward, then it surges forward — the classic wind-up that makes movement feel powered." ·
+   "A few foam dots that trail and fade, so speed and direction are visible." · "When it stops, it dips and rises once with
+   a small ring on the water."
+   Called from THE ONE event consumer on a `sail` event (sailSetsOff as the boat moves, sailArrives once the stage has
+   settled), so every screen shows the same boat doing the same thing. The boat's PICTURE leans and dips (translate and
+   scale on its <image>); its group, which carries its place and its glide, is never touched. The foam and the ring are
+   HTML in #popHost, a camera layer under the boats, placed from where the boat is DRAWN at that moment (its computed
+   transform), so they sit where the eye sees the hull whatever route or glide is moving it. */
+export const SAIL_LEAN=0.09, SAIL_LEAN_MS=320;          // how far back the wind-up rocks, in squares; how long it takes
+export const WAKE_EVERY=0.28, WAKE_MS=650;              // a foam dot every this many squares travelled; how long each lasts
+export const ARRIVE_DIP=0.07, ARRIVE_MS=520, SPLASH_MS=700;
+const fxReduced=()=>typeof matchMedia==="function"&&matchMedia("(prefers-reduced-motion: reduce)").matches;
+const CQfx=v=>(v/640*100)+"cqw";
+function drawnShipPoint(seat){
+  const g=shipEls[seat]; if(!g)return null;
+  const m=/matrix\([^,]+,[^,]+,[^,]+,[^,]+,\s*([-\d.]+),\s*([-\d.]+)\)/.exec(getComputedStyle(g).transform);
+  return m?[parseFloat(m[1]),parseFloat(m[2])]:null;
+}
+function fxDot(host,cls,p,size,keyframes,ms){
+  const d=document.createElement("div");
+  d.className=cls;
+  d.style.left=CQfx(p[0]-size/2);d.style.top=CQfx(p[1]-size/2);d.style.width=d.style.height=CQfx(size);
+  host.appendChild(d);
+  const a=d.animate(keyframes,{duration:ms,easing:"ease-out",fill:"both"});
+  a.onfinish=a.oncancel=()=>d.remove();
+  return d;
+}
+export function sailSetsOff(seat,route){
+  if(fxReduced()||!shipEls[seat]||!cell)return;
+  const im=shipEls[seat].querySelector("image");
+  let dx=0,dy=0;
+  if(Array.isArray(route)&&route.length>=2){dx=route[1][0]-route[0][0];dy=route[1][1]-route[0][1];}
+  const len=Math.hypot(dx,dy)||1;dx/=len;dy/=len;
+  const back=cell*SAIL_LEAN,fwd=back*.55;
+  if(im&&typeof im.animate==="function")
+    im.animate([{translate:"0px 0px",scale:"1"},
+      {translate:`${(-dx*back).toFixed(2)}px ${(-dy*back).toFixed(2)}px`,scale:"0.94",offset:.35},
+      {translate:`${(dx*fwd).toFixed(2)}px ${(dy*fwd).toFixed(2)}px`,scale:"1.03",offset:.7},
+      {translate:"0px 0px",scale:"1"}],{duration:SAIL_LEAN_MS,easing:"ease-in-out",id:"sail-lean"});
+  const host=document.getElementById("popHost");
+  if(!host)return;
+  /* THE WAKE FOLLOWS THE DRAWN HULL until it has stopped: a dot is left where the boat WAS once it has moved on by
+     WAKE_EVERY of a square, so the foam trails behind rather than sitting under the hull. */
+  let lastDot=drawnShipPoint(seat),prev=lastDot,moved=false,stillMs=0,prevT=performance.now();
+  const t0=prevT;
+  const step=now=>{
+    const p=drawnShipPoint(seat);
+    if(!p||!host.isConnected)return;
+    const dt=now-prevT;prevT=now;
+    if(prev&&Math.hypot(p[0]-prev[0],p[1]-prev[1])<0.25)stillMs+=dt;else{stillMs=0;moved=true;}
+    if(lastDot&&Math.hypot(p[0]-lastDot[0],p[1]-lastDot[1])>=cell*WAKE_EVERY){
+      fxDot(host,"ppWake",lastDot,cell*0.16,[{opacity:.8,scale:"1"},{opacity:0,scale:"0.3"}],WAKE_MS);
+      lastDot=p;
+    }
+    prev=p;
+    if((moved&&stillMs>250)||(!moved&&now-t0>1200)||now-t0>6000)return;
+    requestAnimationFrame(step);
+  };
+  requestAnimationFrame(step);
+}
+export function sailArrives(seat){
+  if(fxReduced()||!shipEls[seat]||!cell)return;
+  const im=shipEls[seat].querySelector("image");
+  if(im&&typeof im.animate==="function")
+    im.animate([{translate:"0px 0px"},{translate:`0px ${(cell*ARRIVE_DIP).toFixed(2)}px`,offset:.4},
+      {translate:`0px ${(-cell*ARRIVE_DIP*.4).toFixed(2)}px`,offset:.75},{translate:"0px 0px"}],
+      {duration:ARRIVE_MS,easing:"ease-in-out",id:"sail-arrive"});
+  const host=document.getElementById("popHost"),p=drawnShipPoint(seat);
+  if(host&&p)fxDot(host,"ppSplash",p,cell*0.95,[{opacity:.85,scale:"0.35"},{opacity:0,scale:"1.35"}],SPLASH_MS);
+}
 /* ---------- playback ---------- */
 // notes/edits BUG-01: build the storm's rain layers once, on the first storm. The rain is now a
 // pre-rendered tiling PNG (see #stormOverlay .rlayer CSS), so each layer only varies things that

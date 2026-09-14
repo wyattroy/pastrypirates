@@ -925,6 +925,9 @@
      itself back to the board's own SVG crate the moment it lands. Z-INDEX 2 after #sailHost: over the islands, under the
      rings(3) and boats(4). transform and opacity only, in a camera layer (CAM_HTML_LAYERS). The sparkle is his tuner's. */
   #popHost { position: absolute; inset: 0; pointer-events: none; z-index: 2; }
+  /* the boat's wake and its arrival ring (board.js sailSetsOff / sailArrives) share this camera layer, under the boats */
+  .ppWake { position: absolute; border-radius: 50%; background: rgba(255,255,255,.9); opacity: 0; will-change: transform, opacity; }
+  .ppSplash { position: absolute; border-radius: 50%; border: 2px solid rgba(255,255,255,.9); box-sizing: border-box; opacity: 0; will-change: transform, opacity; }
   .ppPop { position: absolute; opacity: 0; will-change: transform, opacity; }
   .ppPop img { width: 100%; height: 100%; display: block; object-fit: contain; }
   .ppSpark { position: absolute; opacity: 0; will-change: transform, opacity; }
