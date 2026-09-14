@@ -28,6 +28,7 @@ import { panel, setNeedsAction, GHOST_FADE_MS } from "./panel.js";
 // imports neither panel.js nor this file), so this adds no cycle — see the note beside the bake-off's
 // export in ./index.js, updated in this same commit.
 import { narrationHoldMs, say, sayText } from "./util.js";
+import { playLidNote, playCrateVerdict } from "./audio.js";
 
 const $=(id)=>document.getElementById(id);
 // module-local, as every other src/ui/ file keeps its own
@@ -98,7 +99,7 @@ try{
    still squashing then would hand the swaps a wrong spacing. Every bench closes through coverBench — the baker's, a
    watcher's, a paid rewatch — so every screen sees the same slam. */
 const LID_DROP_MS=190, SLAM_MS=240, PUFF_MS=420;
-function dropLid(bowl){
+function dropLid(bowl,k){
   const dome=bowl.querySelector(".bkoDome");
   if(!dome||typeof dome.animate!=="function"){bowl.classList.add("covered");return;}
   /* THE FALL IS PLAYED HERE AND THE SQUASH WAITS FOR IT TO FINISH — not for a timer set to the same length. MEASURED with a
@@ -111,6 +112,7 @@ function dropLid(bowl){
   fall.finished.then(()=>{
     dome.style.transition="";
     if(!bowl.isConnected||!bowl.classList.contains("covered"))return;
+    playLidNote(k);   // his pick, 2026-09-14: a marimba note as the lid LANDS, a step up the scale for each lid of the sweep
     dome.animate([{scale:"1 1"},{scale:"1.1 .84",offset:.3},{scale:".97 1.04",offset:.65},{scale:"1 1"}],
       {duration:SLAM_MS,easing:"ease-out",id:"bake-slam"});
     for(const side of [-1,1]){
@@ -610,9 +612,10 @@ export async function playBakeoffLive(spec,io){
       await sleep(60);
       return;
     }
+    let k=0;
     for(const b of bowls){
       if(b.classList.contains("locked"))continue;
-      dropLid(b);
+      dropLid(b,k++);
       await sleep(COVER_MS);
     }
   }
@@ -941,6 +944,7 @@ export async function bakeoffReveal(view,result){
     if(num)num.textContent=String(k+1);
     el.classList.add(result.correct[k]?"right":"wrong");
     if(alreadyLocked)continue;
+    playCrateVerdict(!!result.correct[k]);   // his pick, 2026-09-14: a chime for a right crate, a thud for a wrong one — with or without the motion
     if(!reduced&&typeof el.animate==="function")(result.correct[k]?crateRight:crateWrong)(el);
     await sleep(reduced?Math.round(REVEAL_MS*0.5):REVEAL_MS);
   }

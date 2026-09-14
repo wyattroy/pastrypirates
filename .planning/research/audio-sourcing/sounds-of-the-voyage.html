@@ -1,0 +1,322 @@
+<title>Sounds of the Voyage</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Source+Sans+3:wght@400;600;700&display=swap">
+<style>
+:root{--bg:#f4ecdc;--card:#fffcf3;--line:#e3d4b6;--text:#23303a;--muted:#6c6150;--sea:#15485a;--teal:#1d8f9e;--gold:#e8a21c;
+ --mint:#27c78d;--coral:#f2679e;--pick:#1d8f9e;--stage:#123f4e;--shadow:0 1px 2px rgba(45,30,10,.07),0 6px 16px rgba(45,30,10,.07)}
+@media (prefers-color-scheme:dark){:root:not([data-theme=light]){--bg:#10181d;--card:#19242b;--line:#2d3d46;--text:#e8eff2;--muted:#9eabb1;--sea:#9fd6e4;--teal:#5cc6d2;--pick:#5cc6d2;--stage:#0b2a34;--shadow:0 1px 2px rgba(0,0,0,.5)}}
+:root[data-theme=dark]{--bg:#10181d;--card:#19242b;--line:#2d3d46;--text:#e8eff2;--muted:#9eabb1;--sea:#9fd6e4;--teal:#5cc6d2;--pick:#5cc6d2;--stage:#0b2a34;--shadow:0 1px 2px rgba(0,0,0,.5)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font:16px/1.5 "Source Sans 3",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+.wrap{max-width:920px;margin:0 auto;padding:0 16px}
+header{padding:18px 0 6px}
+h1{font-family:"Fredoka",system-ui,sans-serif;font-weight:700;font-size:clamp(26px,5vw,34px);margin:0;color:var(--sea)}
+.meta{color:var(--muted);font-size:13.5px;margin:2px 0 0;max-width:75ch}
+#bar{position:sticky;top:0;z-index:5;background:var(--card);border-bottom:1px solid var(--line);box-shadow:var(--shadow)}
+#bar .wrap{display:flex;gap:10px;align-items:center;flex-wrap:wrap;padding:8px 16px}
+#count{font-weight:700;font-size:14px;font-variant-numeric:tabular-nums}
+#saved{color:var(--muted);font-size:13px;flex:1;min-width:120px}
+.vol{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--muted)}
+.vol input{width:96px;accent-color:var(--teal)}
+#copy{font:inherit;font-size:14px;font-weight:700;padding:7px 14px;border-radius:9px;border:0;background:var(--gold);color:#2e1c00;cursor:pointer}
+button:focus-visible,textarea:focus-visible,input:focus-visible{outline:3px solid var(--teal);outline-offset:2px}
+#copyOut{width:100%;height:140px;margin:8px 0}
+nav.toc{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0 4px}
+nav.toc a{font-size:13px;font-weight:600;color:var(--teal);text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:3px 10px;background:var(--card)}
+section.m{margin:20px 0;background:var(--card);border:1px solid var(--line);border-left:6px solid var(--line);border-radius:14px;padding:14px;box-shadow:var(--shadow)}
+section.m.ok{border-left-color:var(--mint)} section.m.no{border-left-color:var(--coral)}
+h2{font-family:"Fredoka",system-ui,sans-serif;font-weight:600;font-size:21px;color:var(--sea);margin:0;text-wrap:balance}
+.when{font-size:14.5px;margin:2px 0 10px;color:var(--muted);max-width:75ch}
+.when b{color:var(--text);font-weight:600}
+/* the stage: a strip of sea where the moment replays with each candidate */
+.stage{position:relative;height:132px;border-radius:12px;overflow:hidden;background:radial-gradient(120% 90% at 50% 40%,#2a7d92 0,var(--stage) 75%);margin:0 0 10px}
+.stage img{position:absolute;display:block}
+.cands{display:grid;grid-template-columns:repeat(auto-fit,minmax(148px,1fr));gap:8px}
+/* every candidate here is CONSTRUCTED, not recorded — marked with a dashed edge, the way the audition galleries marked the drumroll */
+.cand{display:flex;flex-direction:column;gap:6px;border:1.5px dashed var(--line);border-radius:11px;padding:9px 10px;background:var(--bg)}
+.cand.lib{border-style:solid}
+.cand[aria-checked=true]{border-color:var(--pick);border-style:solid;box-shadow:inset 0 0 0 1.5px var(--pick)}
+.cand .name{font-weight:700;font-size:15px;line-height:1.2}
+.cand .desc{font-size:13px;color:var(--muted);line-height:1.35;flex:1}
+.cand .btns{display:flex;gap:6px}
+.cand button{font:inherit;font-size:13px;font-weight:700;padding:5px 10px;border-radius:8px;border:1px solid var(--line);background:var(--card);color:var(--text);cursor:pointer}
+.cand button.hear{background:var(--sea);color:#fff;border-color:transparent;flex:1}
+:root[data-theme=dark] .cand button.hear{color:#062630}
+@media (prefers-color-scheme:dark){:root:not([data-theme=light]) .cand button.hear{color:#062630}}
+.cand button.pickb[aria-pressed=true]{background:var(--pick);color:#fff;border-color:transparent}
+.cand.lib{justify-content:center}
+.row{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-top:10px}
+.row button{font:inherit;font-size:13px;font-weight:700;padding:5px 12px;border-radius:8px;border:1px solid var(--line);background:var(--bg);color:var(--text);cursor:pointer}
+.row button[aria-pressed=true][data-v=ok]{background:var(--mint);color:#053a26;border-color:transparent}
+.row button[aria-pressed=true][data-v=no]{background:var(--coral);color:#3d0717;border-color:transparent}
+textarea.note{width:100%;margin-top:6px;min-height:38px;padding:6px 9px;border-radius:8px;border:1px dashed var(--line);background:transparent;color:var(--text);font:inherit;font-size:14px;resize:vertical}
+.foot{margin:26px 0 60px;color:var(--muted);font-size:13.5px;border-top:1px solid var(--line);padding-top:12px;max-width:75ch}
+/* stage pieces */
+.rc{position:absolute;top:18px;width:78px;height:96px;background:#fffdf2;border-radius:10px;box-shadow:0 3px 8px rgba(0,0,0,.3);display:grid;place-items:center;opacity:0}
+.rc img{position:static!important;width:56px}
+.word{position:absolute;left:0;right:0;top:92px;text-align:center;font:700 22px "Fredoka",system-ui,sans-serif;color:#ffd24d;text-shadow:0 2px 0 rgba(0,0,0,.35);opacity:0}
+.num{position:absolute;top:44px;font:700 38px "Fredoka",system-ui,sans-serif;color:#fff;font-variant-numeric:tabular-nums}
+.cf{position:absolute;width:8px;height:4px;border-radius:1px;opacity:0}
+.crate{position:absolute;top:44px;width:48px;height:48px}
+.crate .ing{position:absolute;inset:14%;width:72%;height:72%}
+.crate .lid{position:absolute;inset:0;width:100%;height:100%;opacity:0;transform-origin:50% 100%}
+.crate.right{outline:3px solid #3aa76d;outline-offset:1px;border-radius:6px}
+.crate.wrong{outline:3px solid #c9372c;outline-offset:1px;border-radius:6px}
+.aw{position:absolute;top:16px;width:66px;height:100px;background:#fff;border:2px solid;border-radius:10px;display:grid;place-items:center;opacity:0}
+.aw img{position:static!important;width:40px}
+.st{position:absolute;left:50%;top:22px;transform:translateX(-50%);width:230px;background:#fffdf2;border-radius:10px;padding:6px 12px;font:600 14px "Source Sans 3";color:#1f2d33}
+.st div{display:flex;justify-content:space-between;font-variant-numeric:tabular-nums}
+@media (prefers-reduced-motion:reduce){.stage *{transition:none!important}}
+</style>
+
+<header class="wrap"><h1>Sounds of the voyage</h1>
+<p class="meta">On an iPhone, flip the ring/silent switch off — it silences web pages. Every candidate is built in the page (dashed edge = constructed, not recorded) by a session that cannot hear them: they are levelled against each other by measurement, and judged only by yer ears. The one ye pick is rendered from the same numbers into the game.</p></header>
+<div id="bar"><div class="wrap"><span id="count">0 picked</span><span id="saved">saves as ye tap</span>
+<label class="vol">🔊 <input id="vol" type="range" min="0" max="100" value="70" aria-label="Volume"></label>
+<button id="copy">Copy my notes</button></div></div>
+<main class="wrap">
+<nav class="toc" id="toc"></nav>
+<textarea id="copyOut" hidden readonly></textarea>
+<div id="moments"></div>
+<div class="foot">Every moment here already moves in the game (the game feel build on <b>sep14-game-feel</b>); these are the sounds the audit proposed alongside. <b>Find a real recording</b> sends that moment to the libraries (Kenney, OpenGameArt, Sonniss) or to Luis, the way the cannon and the drumroll were chosen.</div>
+</main>
+<script>
+const $=id=>document.getElementById(id), esc=t=>String(t).replace(/&/g,"&amp;").replace(/</g,"&lt;");
+/* ================= THE SOUND KIT — every candidate is built from these few pieces ================= */
+let AC=null, MASTER=null, VOL=.7;
+function ac(){ if(!AC){ AC=new (window.AudioContext||window.webkitAudioContext)(); MASTER=AC.createGain(); MASTER.gain.value=VOL; MASTER.connect(AC.destination); }
+  if(AC.state==="suspended") AC.resume(); return AC; }
+const E=.0001, NOTE=m=>440*Math.pow(2,(m-69)/12);
+function env(g,t,peak,att,dec){ g.gain.setValueAtTime(E,t); g.gain.exponentialRampToValueAtTime(Math.max(E,peak),t+att); g.gain.exponentialRampToValueAtTime(E,t+att+dec); }
+function noiseSrc(a,len){ const b=a.createBuffer(1,Math.max(1,Math.floor(a.sampleRate*len)),a.sampleRate), d=b.getChannelData(0); let s=91;
+  for(let i=0;i<d.length;i++){ s=(s*16807)%2147483647; d[i]=(s/2147483647)*2-1; } const n=a.createBufferSource(); n.buffer=b; return n; }
+function tone(a,out,t,{type="sine",f,f2=0,glide=0,peak=.3,att=.004,dec=.2}){ const o=a.createOscillator(), g=a.createGain(); o.type=type;
+  o.frequency.setValueAtTime(f,t); if(f2) o.frequency.exponentialRampToValueAtTime(f2,t+(glide||att+dec)); env(g,t,peak,att,dec);
+  o.connect(g).connect(out); o.start(t); o.stop(t+att+dec+.05); }
+function hiss(a,out,t,{len=.2,type="bandpass",f=1000,f2=0,Q=1,peak=.3,att=.01,dec=null}){ const n=noiseSrc(a,len+.06), fl=a.createBiquadFilter(), g=a.createGain();
+  fl.type=type; fl.frequency.setValueAtTime(f,t); if(f2) fl.frequency.exponentialRampToValueAtTime(f2,t+len); fl.Q.value=Q; env(g,t,peak,att,dec==null?len:dec);
+  n.connect(fl).connect(g).connect(out); n.start(t); n.stop(t+len+.06); }
+function flutter(a,out,t,{len=.3,f=1100,rate=17,peak=.35}){ const n=noiseSrc(a,len+.06), lp=a.createBiquadFilter(), g=a.createGain(), tr=a.createGain(), lfo=a.createOscillator(), lg=a.createGain();
+  lp.type="lowpass"; lp.frequency.setValueAtTime(f,t); lp.frequency.linearRampToValueAtTime(f*2.2,t+len*.5); lp.frequency.linearRampToValueAtTime(f,t+len);
+  env(g,t,peak,len*.35,len*.65); tr.gain.value=.55; lfo.frequency.value=rate; lg.gain.value=.45; lfo.connect(lg).connect(tr.gain);
+  n.connect(lp).connect(g).connect(tr).connect(out); n.start(t); n.stop(t+len+.06); lfo.start(t); lfo.stop(t+len+.06); }
+function bell(a,out,t,f,dec=.9,peak=.22){ [[1,1],[2.4,.35],[5.95,.12],[8.1,.05]].forEach(([r,p])=>tone(a,out,t,{f:f*r,peak:peak*p,att:.002,dec:dec/Math.sqrt(r)})); }
+function brass(a,out,t,f,dur,peak=.13,vib=false){ const o1=a.createOscillator(), o2=a.createOscillator(), lp=a.createBiquadFilter(), g=a.createGain();
+  o1.type="sawtooth"; o2.type="triangle"; o1.frequency.value=f; o2.frequency.value=f*1.004; lp.type="lowpass"; lp.frequency.setValueAtTime(900,t); lp.frequency.exponentialRampToValueAtTime(2600,t+.05); lp.Q.value=.8;
+  g.gain.setValueAtTime(E,t); g.gain.exponentialRampToValueAtTime(peak,t+.025); g.gain.setValueAtTime(peak,t+Math.max(.03,dur-.06)); g.gain.exponentialRampToValueAtTime(E,t+dur+.08);
+  if(vib){ const l=a.createOscillator(), lg=a.createGain(); l.frequency.value=5.5; lg.gain.value=f*.012; l.connect(lg); lg.connect(o1.frequency); lg.connect(o2.frequency); l.start(t); l.stop(t+dur+.12); }
+  o1.connect(lp); o2.connect(lp); lp.connect(g).connect(out); o1.start(t); o2.start(t); o1.stop(t+dur+.12); o2.stop(t+dur+.12); }
+function squawk(a,out,t,len=.22,f=1500){ const o=a.createOscillator(), m=a.createOscillator(), mg=a.createGain(), bp=a.createBiquadFilter(), g=a.createGain();
+  o.type="sawtooth"; o.frequency.setValueAtTime(f,t); o.frequency.exponentialRampToValueAtTime(f*.62,t+len); m.type="square"; m.frequency.value=62; mg.gain.value=f*.35; m.connect(mg).connect(o.frequency);
+  bp.type="bandpass"; bp.frequency.value=f*1.3; bp.Q.value=1.8; env(g,t,.3,.012,len); o.connect(bp).connect(g).connect(out); o.start(t); m.start(t); o.stop(t+len+.05); m.stop(t+len+.05); }
+const PENTA=[0,2,4,7,9];
+
+/* ================= THE MOMENTS =================
+   Each moment has a stage (what the game shows) and a sound SCORE: the same timings the stage uses, so a candidate can be heard
+   in the moment, and measured on its own (score() takes any audio context — the levelling pass renders it offline). */
+const A=p=>`assets/${p}`;
+const COLS=["#f2679e","#1d8f9e","#27c78d","#e8a21c"];
+function wipe(st){ st.getAnimations({subtree:true}).forEach(x=>{try{x.cancel()}catch(e){}}); st.innerHTML=""; }
+const go=(el,kf,o)=>el.animate(kf,Object.assign({fill:"both",easing:"cubic-bezier(.2,.7,.3,1)"},o));
+const pickOf=id=>(S[id]&&S[id].pick)||"a";
+const MOMENTS=[
+ {id:"cards",title:"The recipe cards arrive",when:"<b>Choosing a recipe.</b> A whoosh as the two cards fly in, a soft thump as each lands.",
+  cands:[
+   {id:"a",name:"Paper swish",desc:"A card cutting the air — the swish alone, as ye asked (no thump at the end).",swishOnly:true,
+    sounds:{whoosh:(a,o,t)=>hiss(a,o,t,{len:.28,f:700,f2:3200,Q:.8,peak:.35,att:.09,dec:.2}),
+            thump:(a,o,t)=>{tone(a,o,t,{f:140,f2:60,peak:.5,att:.003,dec:.12}); hiss(a,o,t,{type:"lowpass",len:.05,f:400,peak:.25,att:.002});}}},
+   {id:"b",name:"Sail flap",desc:"A flutter like canvas catching wind, then a wooden knock.",
+    sounds:{whoosh:(a,o,t)=>flutter(a,o,t,{len:.32,f:1100,rate:17,peak:.4}),
+            thump:(a,o,t)=>{tone(a,o,t,{type:"triangle",f:220,f2:110,peak:.45,att:.002,dec:.07}); hiss(a,o,t,{len:.03,f:1800,Q:4,peak:.3,att:.001});}}},
+   {id:"c",name:"Airy whoosh",desc:"Lighter and higher — the cards float in and tap down.",
+    sounds:{whoosh:(a,o,t)=>hiss(a,o,t,{type:"highpass",len:.22,f:2500,f2:6000,peak:.22,att:.06,dec:.16}),
+            thump:(a,o,t)=>tone(a,o,t,{f:420,f2:300,peak:.3,att:.002,dec:.05})}},
+  ],
+  score(c,a,o,t){ c.sounds.whoosh(a,o,t); if(!c.swishOnly) [0,1].forEach(k=>c.sounds.thump(a,o,t+.5+k*.08)); },
+  stage(st){ const imgs=["pastries/01-spiced-cocoa-shortbread.webp","ingredients/cocoa.webp"];
+    [0,1].forEach(k=>{ const d=document.createElement("div"); d.className="rc"; d.style.left=`calc(50% ${k?"+ 8px":"- 86px"})`; d.innerHTML=`<img src="${A(imgs[k])}" alt="">`; st.appendChild(d);
+      go(d,[{opacity:0,transform:"translateY(-120%) scale(1.25)"},{opacity:1,transform:"translateY(3%) scale(1.03)",offset:.8},{opacity:1,transform:"none"}],{duration:620+k*80}); }); }},
+ {id:"flip",title:"HEADS or TAILS stamps in",when:"<b>Every coin flip.</b> A bright sting under HEADS!, a dull one under TAILS. The replay throws one of each.",
+  cands:[
+   {id:"a",name:"Bell & clunk",desc:"Heads rings a small bell; tails is a flat wooden clunk.",
+    sounds:{heads:(a,o,t)=>bell(a,o,t,1318.5,.7,.28), tails:(a,o,t)=>{tone(a,o,t,{type:"triangle",f:196,f2:160,peak:.45,att:.003,dec:.25}); hiss(a,o,t,{type:"lowpass",len:.08,f:300,peak:.3,att:.002});}}},
+   {id:"b",name:"Sparkle & thud",desc:"Heads is three quick rising notes; tails is a low thud.",
+    sounds:{heads:(a,o,t)=>[84,88,91].forEach((m,i)=>{tone(a,o,t+i*.06,{f:NOTE(m),peak:.25,att:.003,dec:.18}); tone(a,o,t+i*.06,{type:"triangle",f:NOTE(m+12),peak:.06,att:.003,dec:.1});}),
+            tails:(a,o,t)=>{tone(a,o,t,{f:90,f2:55,peak:.6,att:.003,dec:.22}); hiss(a,o,t,{type:"lowpass",len:.1,f:200,peak:.35,att:.002});}}},
+   {id:"c",name:"Brass & womp",desc:"Heads is a short brass stab; tails a sagging womp.",
+    sounds:{heads:(a,o,t)=>[72,76,79].forEach(m=>brass(a,o,t,NOTE(m),.28,.09)),
+            tails:(a,o,t)=>{ const x=a.createOscillator(), lp=a.createBiquadFilter(), g=a.createGain(); x.type="sawtooth"; x.frequency.setValueAtTime(233,t); x.frequency.exponentialRampToValueAtTime(174,t+.35);
+              lp.type="lowpass"; lp.frequency.value=700; env(g,t,.2,.02,.4); x.connect(lp).connect(g).connect(o); x.start(t); x.stop(t+.5); }}},
+  ],
+  score(c,a,o,t){ c.sounds.heads(a,o,t+.8); c.sounds.tails(a,o,t+2.7); },
+  stage(st,rest){ const im=document.createElement("img"); im.style.cssText="left:calc(50% - 30px);top:18px;width:60px;height:60px"; st.appendChild(im);
+    const w=document.createElement("div"); w.className="word"; st.appendChild(w);
+    if(rest){ im.src=A("icons/flip-heads.png"); w.textContent="HEADS!"; w.style.opacity=1; return; }
+    [["heads","HEADS!",0],["tails","TAILS",1.9]].forEach(([k,label,at])=>{
+      setTimeout(()=>{ if(!im.isConnected) return; im.src=A(`icons/flip-${k}.png`); w.textContent=label; w.style.color=k==="heads"?"#ffd24d":"#c9d3d6";
+        go(im,[{transform:"rotateY(0) scale(.9)"},{transform:"rotateY(1440deg) scale(1)"}],{duration:800,easing:"cubic-bezier(.3,.6,.4,1)"});
+        go(w,[{opacity:0,transform:"scale(1.3)"},{opacity:1,transform:"scale(1)",offset:.4},{opacity:1,transform:"scale(1)"}],{duration:600,delay:800}); },at*1000); }); }},
+ {id:"tick",title:"Coins tick as they count",when:"<b>Buying, and treasure on heads.</b> The coin count rolls one step at a time, a tick for each coin. The replay spends five, then gains five.",
+  cands:[
+   {id:"a",name:"Coin clink",desc:"A tiny bright clink per coin, a hair different each time.",
+    sounds:{tick:(a,o,t,k)=>{tone(a,o,t,{f:2350*(1+(k%3)*.03),peak:.22,att:.001,dec:.05}); tone(a,o,t,{f:3520,peak:.07,att:.001,dec:.03});}}},
+   {id:"b",name:"Abacus click",desc:"A dry wooden click — quieter, like counting beads.",
+    sounds:{tick:(a,o,t)=>hiss(a,o,t,{len:.02,f:3500,Q:3,peak:.35,att:.001})}},
+   {id:"c",name:"Stepping notes",desc:"Each coin a note — falling as ye spend, rising as treasure comes in.",
+    sounds:{tick:(a,o,t,k,dir)=>tone(a,o,t,{type:"triangle",f:NOTE(84+dir*k*2),peak:.2,att:.002,dec:.06})}},
+  ],
+  score(c,a,o,t){ for(let k=0;k<5;k++) c.sounds.tick(a,o,t+(k+1)*.12,k,-1); for(let k=0;k<5;k++) c.sounds.tick(a,o,t+1.2+(k+1)*.12,k,1); },
+  stage(st,rest){ const im=document.createElement("img"); im.src=A("icons/coin-emoji.png"); im.style.cssText="left:calc(50% - 62px);top:48px;width:40px"; st.appendChild(im);
+    const n=document.createElement("div"); n.className="num"; n.style.left="calc(50% - 10px)"; n.textContent="12"; st.appendChild(n);
+    if(rest) return;
+    for(let k=0;k<5;k++) setTimeout(()=>{n.textContent=String(11-k);},(k+1)*120);
+    for(let k=0;k<5;k++) setTimeout(()=>{n.textContent=String(8+k);},1200+(k+1)*120); }},
+ {id:"fanfare",title:"A fanfare for the first captain home",when:"<b>The first captain reaches Tortuga with a full hold.</b> Two seconds, under the confetti — the moment the race turns.",
+  cands:[
+   {id:"a",name:"Bugle call",desc:"A short brass call, rising to a held note.",
+    sounds:{go:(a,o,t)=>[[67,0,.14],[72,.16,.14],[76,.32,.14],[79,.48,.45],[76,.98,.14],[79,1.14,.75,1]].forEach(([m,at,d,v])=>brass(a,o,t+at,NOTE(m),d,.13,!!v))}},
+   {id:"b",name:"Ship's horn & bells",desc:"A low horn swells and three bells ring over it.",
+    sounds:{go:(a,o,t)=>{[110,165,220].forEach(f=>{ const x=a.createOscillator(), lp=a.createBiquadFilter(), g=a.createGain(); x.type="sawtooth"; x.frequency.value=f;
+        lp.type="lowpass"; lp.frequency.setValueAtTime(500,t); lp.frequency.linearRampToValueAtTime(1400,t+.5); g.gain.setValueAtTime(E,t); g.gain.exponentialRampToValueAtTime(.1,t+.4); g.gain.exponentialRampToValueAtTime(E,t+1.6);
+        x.connect(lp).connect(g).connect(o); x.start(t); x.stop(t+1.7); });
+      [[.5,1046.5],[.8,1318.5],[1.1,1568]].forEach(([at,f])=>bell(a,o,t+at,f,.8,.2)); }}},
+   {id:"c",name:"Jig flourish",desc:"A quick plucked run up the scale that lands on a chord.",
+    sounds:{go:(a,o,t)=>{ [0,2,4,7,9,12,14,16].forEach((s,i)=>{tone(a,o,t+i*.07,{type:"triangle",f:NOTE(72+s),peak:.22,att:.002,dec:.12}); tone(a,o,t+i*.07,{f:NOTE(84+s),peak:.05,att:.002,dec:.08});});
+      [72,76,79,84].forEach(m=>tone(a,o,t+.62,{type:"triangle",f:NOTE(m),peak:.12,att:.004,dec:1.1})); }}},
+  ],
+  score(c,a,o,t){ c.sounds.go(a,o,t); },
+  stage(st){ const b=document.createElement("img"); b.src=A("boats/1.webp"); b.style.cssText="left:calc(50% - 26px);top:52px;width:52px"; st.appendChild(b);
+    for(let k=0;k<30;k++){ const d=document.createElement("div"); d.className="cf"; d.style.left="50%"; d.style.top="72px"; d.style.background=["#f2679e","#ffd76b","#fff3d6"][k%3]; st.appendChild(d);
+      const ang=-Math.PI/2+(((k*53)%100)/100-.5)*Math.PI*1.1, pow=50+((k*31)%40);
+      go(d,[{opacity:1,transform:"translate(0,0)"},{opacity:1,transform:`translate(${Math.cos(ang)*pow}px,${Math.sin(ang)*pow}px) rotate(${k*37}deg)`,offset:.35},{opacity:0,transform:`translate(${Math.cos(ang)*pow*1.2}px,${Math.sin(ang)*pow+70}px) rotate(${k*74}deg)`}],{duration:1800+(k%5)*80}); } }},
+ {id:"lids",title:"Each lid slams a note higher",when:"<b>The bake-off.</b> The five lids drop left to right; each lands a note higher than the last.",
+  cands:[
+   {id:"a",name:"Wood knocks",desc:"Knocks on a crate, climbing a friendly five-note scale.",
+    sounds:{lid:(a,o,t,k)=>{const f=NOTE(72+PENTA[k]); tone(a,o,t,{type:"triangle",f,f2:f*.5,peak:.45,att:.002,dec:.08}); hiss(a,o,t,{len:.025,f:f*4,Q:5,peak:.25,att:.001});}}},
+   {id:"b",name:"Marimba",desc:"Round wooden bars, two octaves lower so they land like big crates, as ye asked.",
+    sounds:{lid:(a,o,t,k)=>{const f=NOTE(48+PENTA[k%5]+12*Math.floor(k/5)); tone(a,o,t,{f,peak:.45,att:.002,dec:.35}); tone(a,o,t,{f:f*4,peak:.12,att:.001,dec:.05});}}},
+   {id:"c",name:"Pot lids",desc:"Little metal clangs, like lids on a galley stove.",
+    sounds:{lid:(a,o,t,k)=>{const f=NOTE(84+PENTA[k]); [[1,.25,.25],[2.76,.1,.15],[5.4,.05,.08]].forEach(([r,p,d])=>tone(a,o,t,{f:f*r,peak:p,att:.001,dec:d})); hiss(a,o,t,{type:"highpass",len:.02,f:3000,peak:.15,att:.001});}}},
+  ],
+  score(c,a,o,t){ for(let k=0;k<5;k++) c.sounds.lid(a,o,t+(300+k*280+190)/1000,k); },
+  stage(st){ const ings=["dairy.png","cocoa.webp","sugar.png","spice.webp","eggs.webp"];
+    ings.forEach((ing,k)=>{ const cr=document.createElement("div"); cr.className="crate"; cr.style.left=`calc(50% - 142px + ${k*58}px)`;
+      cr.innerHTML=`<img class="ing" src="${A("ingredients/"+ing)}" alt=""><img class="lid" src="${A("plaque/crate.webp")}" alt="">`; st.appendChild(cr);
+      const lid=cr.querySelector(".lid"), at=300+k*280;
+      go(lid,[{opacity:0,transform:"translateY(-18%)"},{opacity:1,transform:"translateY(-10%)",offset:.4},{opacity:1,transform:"translateY(0)"}],{duration:190,delay:at,easing:"cubic-bezier(.55,0,1,.45)"});
+      go(lid,[{scale:"1 1"},{scale:"1.1 .84",offset:.3},{scale:".97 1.04",offset:.65},{scale:"1 1"}],{duration:240,delay:at+190,easing:"ease-out",fill:"none"}); }); }},
+ {id:"verdict",title:"A right crate chimes, a wrong one thuds",when:"<b>The bake-off reveal.</b> A right crate pops with a rising chime; a wrong one sags. (Ye once asked: <i>“a wrong bowl can be a squawk?”</i> — that is candidate two.)",
+  cands:[
+   {id:"a",name:"Chime & thud",desc:"Two rising chime notes; a low, dull thud.",
+    sounds:{right:(a,o,t)=>{[88,95].forEach((m,i)=>{tone(a,o,t+i*.08,{f:NOTE(m),peak:.22,att:.003,dec:.45}); tone(a,o,t+i*.08,{type:"triangle",f:NOTE(m+12),peak:.05,att:.003,dec:.2});});},
+            wrong:(a,o,t)=>{tone(a,o,t,{f:82,f2:55,peak:.6,att:.003,dec:.25}); hiss(a,o,t,{type:"lowpass",len:.12,f:250,peak:.3,att:.002});}}},
+   {id:"b",name:"Sparkle & squawk",desc:"A quick sparkle up the scale; a parrot squawk (a stand-in — a real parrot would come from the library).",
+    sounds:{right:(a,o,t)=>[79,83,86,91].forEach((m,i)=>tone(a,o,t+i*.04,{f:NOTE(m),peak:.2,att:.002,dec:.2})),
+            wrong:(a,o,t)=>{squawk(a,o,t,.2,1500); squawk(a,o,t+.14,.12,1300);}}},
+   {id:"c",name:"Ship's bell & bwomp",desc:"A bright bell for right; a sad falling horn for wrong.",
+    sounds:{right:(a,o,t)=>bell(a,o,t,880,.9,.24),
+            wrong:(a,o,t)=>{ const x=a.createOscillator(), lp=a.createBiquadFilter(), g=a.createGain(); x.type="sawtooth"; x.frequency.setValueAtTime(196,t); x.frequency.exponentialRampToValueAtTime(98,t+.3);
+              lp.type="lowpass"; lp.frequency.value=500; env(g,t,.2,.02,.35); x.connect(lp).connect(g).connect(o); x.start(t); x.stop(t+.45); }}},
+  ],
+  RIGHT:[true,false,true,true,false],
+  score(c,a,o,t){ this.RIGHT.forEach((ok,k)=>c.sounds[ok?"right":"wrong"](a,o,t+(250+k*520)/1000)); },
+  stage(st,rest){ const ings=["dairy.png","cocoa.webp","sugar.png","spice.webp","eggs.webp"];
+    ings.forEach((ing,k)=>{ const cr=document.createElement("div"); cr.className="crate"; cr.style.left=`calc(50% - 142px + ${k*58}px)`;
+      cr.innerHTML=`<img class="ing" src="${A("ingredients/"+ing)}" alt=""><img class="lid" src="${A("plaque/crate.webp")}" alt="" style="opacity:1">`; st.appendChild(cr);
+      const at=250+k*520, lid=cr.querySelector(".lid"), ok=this.RIGHT[k];
+      if(rest){ cr.classList.add(ok?"right":"wrong"); lid.style.opacity=0; return; }
+      setTimeout(()=>{ cr.classList.add(ok?"right":"wrong"); },at);
+      go(lid,[{opacity:1,transform:"translateY(0)"},{opacity:0,transform:"translateY(-18%)"}],{duration:260,delay:at,easing:"ease"});
+      go(cr,ok?[{translate:"0 0",scale:"1"},{translate:"0 -18%",scale:"1.12",offset:.35},{translate:"0 0",scale:"1"}]:[{translate:"0 0",rotate:"0deg"},{translate:"0 9%",rotate:"-5deg",offset:.35},{translate:"0 6%",rotate:"-3deg",offset:.7},{translate:"0 0",rotate:"0deg"}],{duration:ok?440:520,delay:at,fill:"none"}); }); }},
+ {id:"deal",title:"A whoosh as each award deals in",when:"<b>The end of the voyage.</b> The award cards flip in one after another, a whoosh apiece.",
+  cands:[
+   {id:"a",name:"Card flick",desc:"The snap of a playing card dealt onto the table.",
+    sounds:{deal:(a,o,t)=>{hiss(a,o,t,{type:"highpass",len:.08,f:3000,f2:1500,peak:.3,att:.005}); tone(a,o,t,{f:900,f2:600,peak:.08,att:.002,dec:.04});}}},
+   {id:"b",name:"Soft whoosh",desc:"A short rush of air per card.",
+    sounds:{deal:(a,o,t)=>hiss(a,o,t,{len:.25,f:500,f2:2500,Q:.9,peak:.3,att:.08,dec:.17})}},
+   {id:"c",name:"Page turn",desc:"A papery flutter, like turning a page in a logbook.",
+    sounds:{deal:(a,o,t)=>[0,.035,.07].forEach((d,i)=>hiss(a,o,t+d,{len:.06,f:1500+i*300,Q:.6,peak:.22-i*.05,att:.004}))}},
+  ],
+  score(c,a,o,t){ for(let k=0;k<4;k++) c.sounds.deal(a,o,t+(220+k*150)/1000,k); },
+  stage(st){ const em=["target.png","cutlass.png","doubloon.png","medal.png"];
+    em.forEach((e,k)=>{ const d=document.createElement("div"); d.className="aw"; d.style.left=`calc(50% - 146px + ${k*74}px)`; d.style.borderColor=COLS[k]; d.innerHTML=`<img src="${A("badges/"+e)}" alt="">`; st.appendChild(d);
+      go(d,[{opacity:0,transform:"perspective(500px) translateY(14px) rotateY(85deg)"},{opacity:1,transform:"perspective(500px) rotateY(-10deg)",offset:.7},{opacity:1,transform:"perspective(500px) rotateY(0deg)"}],{duration:440,delay:220+k*150}); }); }},
+ {id:"count",title:"The stats tick as they roll up",when:"<b>The end of the voyage.</b> Every number rolls up from zero with a quick ticking sound.",
+  cands:[
+   {id:"a",name:"Clock tick",desc:"A tick-tock, quick and dry.",
+    sounds:{tick:(a,o,t,k)=>hiss(a,o,t,{len:.015,f:k%2?2200:2600,Q:6,peak:.35,att:.001})}},
+   {id:"b",name:"Typewriter",desc:"Little key strikes, like a logbook being filled in.",
+    sounds:{tick:(a,o,t)=>{hiss(a,o,t,{len:.03,f:1800,Q:1.5,peak:.3,att:.001}); tone(a,o,t,{type:"square",f:1200,peak:.03,att:.001,dec:.01});}}},
+   {id:"c",name:"The coin tick",desc:"Whichever coin tick ye pick above, so counting sounds the same everywhere.",
+    sounds:{tick:(a,o,t,k)=>{ const m=MOMENTS.find(x=>x.id==="tick"), cand=m.cands.find(x=>x.id===pickOf("tick"))||m.cands[0]; cand.sounds.tick(a,o,t,k,1); }}},
+  ],
+  ROWS:[["Days",14],["Battles",6],["Trades",9],["Bakers home",3]], DUR:900, STEPS:15,
+  score(c,a,o,t){ for(let k=0;k<this.STEPS;k++){ const u=k/(this.STEPS-1); c.sounds.tick(a,o,t+(this.DUR*u)/1000,k); } },
+  stage(st,rest){ const box=document.createElement("div"); box.className="st"; box.innerHTML=this.ROWS.map(([k,v])=>`<div><span>${k}</span><b>${rest?v:0}</b></div>`).join(""); st.appendChild(box);
+    if(rest) return;
+    const bs=[...box.querySelectorAll("b")], t0=performance.now();
+    const step=now=>{ if(!box.isConnected) return; const u=Math.min(1,(now-t0)/this.DUR), e=1-Math.pow(1-u,3); bs.forEach((b,i)=>{ b.textContent=String(Math.ceil(this.ROWS[i][1]*e)); }); if(u<1) requestAnimationFrame(step); };
+    requestAnimationFrame(step); }},
+];
+/* THE LEVELS — measured, not guessed: each candidate rendered offline and its loudness over the sounding frames compared, so no
+   candidate wins a moment for being louder than its neighbours (docs/AUDIO.md §5, "the loudest master wins"). Filled by the
+   levelling pass; 1 until then. */
+const LEVELS={"cards/a":2.483,"cards/b":0.966,"cards/c":1.084,"flip/a":0.733,"flip/b":0.562,"flip/c":0.767,"tick/a":1.148,"tick/b":3.467,"tick/c":1.429,"fanfare/a":0.631,"fanfare/b":1.047,"fanfare/c":1.23,"lids/a":0.668,"lids/b":0.513,"lids/c":0.841,"verdict/a":0.603,"verdict/b":1,"verdict/c":0.977,"deal/a":0.912,"deal/b":3.388,"deal/c":4.266,"count/a":9.016,"count/b":3.631,"count/c":1.202};
+for(const m of MOMENTS) for(const c of m.cands) c.gain=LEVELS[m.id+"/"+c.id]||1;
+
+/* ================= marks, notes, saving (same shape as his other pages) ================= */
+const KEY="pp-sounds-2026-09-14";
+let S={}; try{S=JSON.parse(localStorage.getItem(KEY)||"{}")||{}}catch(e){S={}}
+let db=null;
+(async()=>{try{ if(window.claude&&claude.use){ db=await claude.use("db"); if(!db)return; const d=await db.doc("sound/wyatt").get(); if(d&&d.data&&d.data.S){ S={...d.data.S,...S}; paint(); } } }catch(e){}})();
+$("toc").innerHTML=MOMENTS.map(m=>`<a href="#m-${m.id}">${esc(m.title)}</a>`).join("");
+$("moments").innerHTML=MOMENTS.map(m=>`<section class="m" id="m-${m.id}">
+  <h2>${esc(m.title)}</h2><p class="when">${m.when}</p>
+  <div class="stage" id="st-${m.id}" aria-hidden="true"></div>
+  <div class="cands">${m.cands.map(c=>`<div class="cand" data-m="${m.id}" data-c="${c.id}" role="radio" aria-checked="false">
+      <div class="name">${esc(c.name)}</div><div class="desc">${esc(c.desc)}</div>
+      <div class="btns"><button class="hear" data-m="${m.id}" data-c="${c.id}">▶ Hear it</button><button class="pickb" data-m="${m.id}" data-c="${c.id}" aria-pressed="false">Pick</button></div></div>`).join("")}
+    <div class="cand lib" data-m="${m.id}" data-c="lib" role="radio" aria-checked="false"><div class="name">Find a real recording</div><div class="desc">None of these — send it to the libraries or to Luis.</div>
+      <div class="btns"><button class="pickb" data-m="${m.id}" data-c="lib" aria-pressed="false">Pick</button></div></div></div>
+  <div class="row" data-id="${m.id}"><button data-v="ok" aria-pressed="false">Passed</button><button data-v="no" aria-pressed="false">Problem</button></div>
+  <textarea class="note" data-id="${m.id}" placeholder="Note on “${esc(m.title)}”…"></textarea></section>`).join("");
+for(const m of MOMENTS){ const st=$("st-"+m.id); m.stage(st,true); st.getAnimations({subtree:true}).forEach(a=>{try{a.finish()}catch(e){}}); }
+function candName(m,id){ if(id==="lib") return "Find a real recording"; const c=m.cands.find(x=>x.id===id); return c?c.name:""; }
+function paint(){
+  for(const m of MOMENTS){ const s=S[m.id]||{}, sec=$("m-"+m.id); if(!sec) continue;
+    sec.classList.toggle("ok",s.v==="ok"); sec.classList.toggle("no",s.v==="no");
+    sec.querySelectorAll(".row button").forEach(b=>b.setAttribute("aria-pressed",String(s.v===b.dataset.v)));
+    sec.querySelectorAll(".cand").forEach(c=>c.setAttribute("aria-checked",String(s.pick===c.dataset.c)));
+    sec.querySelectorAll(".pickb").forEach(b=>{ const on=s.pick===b.dataset.c; b.setAttribute("aria-pressed",String(on)); b.textContent=on?"Picked ✓":"Pick"; });
+    const ta=sec.querySelector("textarea.note"); if(ta&&document.activeElement!==ta) ta.value=s.c||""; }
+  tally(); }
+function tally(){ const picked=MOMENTS.filter(m=>(S[m.id]||{}).pick).length, ok=MOMENTS.filter(m=>(S[m.id]||{}).v==="ok").length, no=MOMENTS.filter(m=>(S[m.id]||{}).v==="no").length;
+  $("count").textContent=`${picked}/${MOMENTS.length} picked · ${ok} passed · ${no} problem`; }
+let pushT=null;
+function save(){ let ok=true; try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){ok=false}
+  $("saved").textContent=ok?"saved ✓":"can't save here — copy yer notes before ye leave"; tally();
+  clearTimeout(pushT); pushT=setTimeout(()=>{ try{ if(db) db.doc("sound/wyatt").set({S,_t:Date.now()}); }catch(e){} },500); }
+function hear(m,c){ const st=$("st-"+m.id); wipe(st); m.stage(st);
+  try{ const a=ac(), out=a.createGain(); out.gain.value=c.gain; out.connect(MASTER); m.score(c,a,out,a.currentTime+.05); }
+  catch(err){ $("saved").textContent="this browser can't play these sounds"; } }
+document.addEventListener("click",e=>{
+  const h=e.target.closest("button.hear");
+  if(h){ const m=MOMENTS.find(x=>x.id===h.dataset.m); hear(m,m.cands.find(x=>x.id===h.dataset.c)); return; }
+  const pk=e.target.closest("button.pickb");
+  if(pk){ const s=S[pk.dataset.m]=S[pk.dataset.m]||{}; s.pick=s.pick===pk.dataset.c?null:pk.dataset.c; paint(); save(); return; }
+  const b=e.target.closest(".row button"); if(!b) return; const id=b.parentElement.dataset.id, s=S[id]=S[id]||{};
+  s.v=s.v===b.dataset.v?null:b.dataset.v; paint(); save(); });
+document.addEventListener("input",e=>{
+  if(e.target.id==="vol"){ VOL=e.target.value/100; if(MASTER) MASTER.gain.value=VOL; return; }
+  if(!e.target.classList.contains("note")) return; const id=e.target.dataset.id, s=S[id]=S[id]||{}; s.c=e.target.value; save(); });
+function notes(){ const P=[], L=[];
+  for(const m of MOMENTS){ const s=S[m.id]||{};
+    if(s.pick) P.push(`${m.title}: ${candName(m,s.pick)}`);
+    if(s.v||(s.c||"").trim()) L.push((s.v==="ok"?"PASSED":s.v==="no"?"PROBLEM":"NOTE")+" — "+m.title+((s.c||"").trim()?": "+s.c.trim():"")); }
+  if(!P.length&&!L.length) return "";
+  return "SOUNDS OF THE VOYAGE\n"+(P.length?"\nPICKS\n"+P.join("\n")+"\n":"")+(L.length?"\nVERDICTS\n"+L.join("\n"):""); }
+$("copy").onclick=async()=>{ const t=notes(), out=$("copyOut"); if(!t){ $("saved").textContent="nothing marked yet"; return; }
+  try{ await navigator.clipboard.writeText(t); $("saved").textContent="copied ✓ — paste it into our chat"; out.hidden=true; return; }catch(e){}
+  out.hidden=false; out.value=t; out.focus(); out.select(); let ok=false; try{ok=document.execCommand("copy")}catch(e){}
+  $("saved").textContent=ok?"copied ✓ — paste it into our chat":"couldn't copy — yer notes are selected below, copy them by hand"; };
+paint();
+</script>

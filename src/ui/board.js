@@ -158,7 +158,7 @@ import {
 import { deriveActiveSeat } from "../shared/storyboard.js";
 import { mayRevealRecipe, offersRecipeCheck } from "../shared/visibility.js";
 import { recipeTitle, recipeInfo, winRecipeSpan, recipeArticle } from "./recipe.js";
-import { playFlip, startFlipSpinSound, stopFlipSpinSound, onThunder } from "./audio.js";
+import { playFlip, startFlipSpinSound, stopFlipSpinSound, onThunder, playCoinTick, playAwardWhoosh } from "./audio.js";
 import { popInHolds } from "./popin.js";
 
 // `$` is a classic-script-local `const $=id=>document.getElementById(id)` (index.html:863) —
@@ -1969,6 +1969,7 @@ export function showSeatCoins(seat,coins){
     const cur=parseInt(n.textContent,10);
     if(!Number.isFinite(cur)||cur===coins){n.textContent=coins;return;}
     n.textContent=cur+dir;
+    playCoinTick();                                            // his pick, 2026-09-14: the abacus click, one per coin
     if(cur+dir!==coins)r.timer=setTimeout(tick,every);
   };
   r.timer=setTimeout(tick,Math.max(0,(r.holdUntil||0)-performance.now()));
@@ -2630,23 +2631,29 @@ function endCardArrives(panel,w){
   g.__endArrived=true;
   if(fxReduced())return;
   const cards=[...panel.querySelectorAll(".awardCard")];
-  cards.forEach((c,k)=>c.animate([
-    {opacity:0,transform:"perspective(700px) translateY(18px) rotateY(85deg)"},
-    {opacity:1,transform:"perspective(700px) translateY(0) rotateY(-10deg)",offset:.7},
-    {opacity:1,transform:"perspective(700px) rotateY(0deg)"}],
-    {duration:DEAL_MS,delay:DEAL_START_MS+k*DEAL_GAP_MS,easing:"cubic-bezier(.2,.7,.3,1)",fill:"backwards",id:"end-deal"}));
+  cards.forEach((c,k)=>{
+    const a=c.animate([
+      {opacity:0,transform:"perspective(700px) translateY(18px) rotateY(85deg)"},
+      {opacity:1,transform:"perspective(700px) translateY(0) rotateY(-10deg)",offset:.7},
+      {opacity:1,transform:"perspective(700px) rotateY(0deg)"}],
+      {duration:DEAL_MS,delay:DEAL_START_MS+k*DEAL_GAP_MS,easing:"cubic-bezier(.2,.7,.3,1)",fill:"backwards",id:"end-deal"});
+    // his pick, 2026-09-14: a soft whoosh as each card deals in — from the moment its animation starts, then its own delay
+    a.ready.then(()=>setTimeout(()=>{ if(c.isConnected&&a.playState!=="idle")playAwardWhoosh(); },DEAL_START_MS+k*DEAL_GAP_MS)).catch(()=>{});
+  });
   // the numbers roll up as the last card lands: every run of digits in the stats column and in each award's value
   const texts=[];
   const collect=node=>{for(const c of node.childNodes){if(c.nodeType===3){if(/\d/.test(c.nodeValue))texts.push([c,c.nodeValue]);}else collect(c);}};
   for(const el of panel.querySelectorAll("table td:nth-child(2), .awardStat b"))collect(el);
   if(texts.length){
-    const roll=t=>{for(const [n,full] of texts)if(n.isConnected)n.nodeValue=full.replace(/\d+/g,d=>String(Math.ceil(Number(d)*t)));};
-    roll(0);
+    // the stats tick as they roll — his pick, 2026-09-14: "The coin tick", the same abacus click as a coin count, once per visible change
+    const roll=t=>{let sum=0;for(const [n,full] of texts)if(n.isConnected)n.nodeValue=full.replace(/\d+/g,d=>{const v=Math.ceil(Number(d)*t);sum+=v;return String(v);});return sum;};
+    let shown=roll(0);
     const start=performance.now()+DEAL_START_MS+Math.max(0,cards.length-1)*DEAL_GAP_MS;
     const step=now=>{
       if(!texts.some(([n])=>n.isConnected))return;
       const u=Math.min(1,Math.max(0,(now-start)/COUNT_MS));
-      roll(1-Math.pow(1-u,3));
+      const sum=roll(1-Math.pow(1-u,3));
+      if(sum!==shown){shown=sum;playCoinTick();}
       if(u<1)requestAnimationFrame(step);
     };
     requestAnimationFrame(step);

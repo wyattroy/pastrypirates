@@ -78,7 +78,7 @@ import {
   rulesFacts, // A-7: the one source of every number the How-to-Play page teaches
   subjectOf,  // Q-18: the ONE rule both seats run — never a decision one seat ships to the other
 } from "./shared/index.js";
-import { initAudio, playForEvent, playWinScreen, playBattleEngage, playCannon, isMuted, cycleSoundMode, audioRunning, wakeCtx, kickAudioSession, recoverAudio } from "./ui/audio.js";
+import { initAudio, playForEvent, playWinScreen, playBattleEngage, isMuted, cycleSoundMode, audioRunning, wakeCtx, kickAudioSession, recoverAudio } from "./ui/audio.js";
 import {
   netSetFlip, netWatchFlip,
   netDeleteRoom,
@@ -736,7 +736,8 @@ async function asyncBattleRun(att,def){
   // @copy misc.battleline.bothmiss
   else rmsg=`<span class="cancel">${say("battle.bothMiss",{})}</span>`;
   rounds.push([ah?1:0,dh?1:0,0,scorer]);
-  /* T-073 — THE CANNON, AND IT FIRES ON THE HIT, NOT ON THE BATTLE.
+  /* T-073 — THE CANNON, AND IT FIRES ON THE HIT, NOT ON THE BATTLE. (Since 2026-09-14 it fires from the shotLands record
+     just below — the reasoning here is unchanged, only the place the sound is played moved.)
      His ruling: "cannon sound happens only when a shot lands". `scorer` is non-null exactly when a
      shot got through, so it is the test the engine already computes — and guarding on it keeps the
      cannon SILENT on the two outcomes where nothing lands: both captains missing, and both firing
@@ -748,10 +749,10 @@ async function asyncBattleRun(att,def){
      FLIP_SPIN_MS (795) + FLIP_LAND_HOLD_MS (800) have both elapsed since playFlip() fired at the
      spin paint. Adding a sleep here would restate two constants that already produce the gap, and
      would go wrong silently the day either of them is tuned. */
-  if(scorer)playCannon();
-  /* his game feel audit (2026-09-13): the shot is RECORDED as it lands, so the ONE event consumer kicks the cannon, flashes the
-     struck boat and shakes the board on every screen (board.js shotLands). `by`, not `p`: a shot is not a turn, and `p` would
-     hand the active-captain highlight to the shooter for the length of the fight. */
+  /* THE HIT IS RECORDED AS IT LANDS, and everything a hit does follows from that record, on every screen: the cannon (audio.js
+     EVENT_SOUND.shotLands — moved here 2026-09-14, when it turned out a crew guest never heard it, because this line used to
+     play it on the fight's own device only) and the kick, flash and shake (board.js shotLands, his game feel audit). `by`,
+     not `p`: a shot is not a turn, and `p` would hand the active-captain highlight to the shooter for the length of the fight. */
   if(scorer){appState.game.ev({t:"shotLands",by:scorer==="a"?att.idx:def.idx,a:att.idx,d:def.idx});liveRender();}
   battlePublish(base({atState:ah?"H":"T",dfState:dh?"H":"T",live:null,winCoin:scorer,result:rmsg}));
   await sleep(hold);

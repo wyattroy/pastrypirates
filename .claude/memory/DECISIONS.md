@@ -3103,3 +3103,27 @@ died on the Blade. Rooted off `fileURLToPath(import.meta.url)`.
   2026.09.14.3-staging@15a0f25b. Taken to him, not acted on: two dead taps (a card tapped while the stack flew in; a first Bake this! tap
   after the pop-in on WebKit tablet) and one covered sail square under the day bubble, each seen once; the End of Voyage sheet is
   see-through below the stats on tablet (both engines) — needs his ruling; not yet known whether it is new.
+
+**2026-09-14 — his notes on Sounds of the Voyage, and three rulings that came with them:**
+
+- **THE END OF VOYAGE CARD IS SET ASIDE.** *"Don't worry about the end of voyage card, it's going ot be changed soon."* — the see-through
+  tablet question is dropped; nothing more is built on today's card.
+- **THE VICTORY CARD IDEAS REPLACE THE END OF VOYAGE CARD — NOT A TOGGLE PAGE.** *"the victory card ideas will replace the end of voyage
+  card -- not a toggle page."* His marks (`victory/wyatt`): passed 1 crown, 2 podium (rank by how close each captain came), 3 the
+  winning bake, 4 Polly's awards, 5 replay (only if it focuses on the active player), 6 tally (score audit FIRST, for his feedback),
+  7 so close, 8 set sail again; 9 the ship on the slipway → backlog until there are user accounts.
+- **SOUND PICKS.** Recipe cards arrive: Paper swish, *"remove the "boop boop" at the end -- just use the swish at the beginning."* Coins
+  tick: Abacus click. Lids: Marimba, *"make them lower pitched so they sound more like big crates."* Right/wrong crate: Chime & thud.
+  Award deals in: Soft whoosh. Stats roll up: the coin tick. HEADS/TAILS sting: PROBLEM, *"No need - the coin already has a landing sound
+  baked in."* First captain home fanfare: PROBLEM, *"Get Luis to come up with this"* → added to the brief for Luis.
+- **THE CANNON PLAYS ON EVERY SCREEN.** *"Fix this too"* (a crew guest probably heard no cannon): the sound moves to the landed-shot event
+  in the one consumer — it still fires only on a hit.
+- **THE SEA TRIAL STOPS TAPPING THE RECIPE CARDS SO QUICKLY.** *"i don't care about these taps."*
+- **FIX THE SAIL SQUARE HIDDEN UNDER THE DAY BUBBLE** *"-- and show me that screenshot so I can evaluate whether it's a problem."*
+- **THE NEW END OF VOYAGE — HIS FOUR ANSWERS (question UI, 2026-09-14).** Where it plays: **board first, then the card** (the crown on the
+  winner's boat and the podium at Tortuga, then the card rises). Podium for the captains who didn't win: **closeness order** — baked first,
+  then most bake-off crates right, then most recipe ingredients held, then nearest to Tortuga, then most coins. The voyage replay: **left
+  out** (backlog). Crew rematch: **sails up, then a 5-second countdown**, the host may go early — with *"but hang on -- I wrote a bunch of
+  notes to the Victory Card Proposal artifact and session -- did you read those?"*: the page's notes, yes; the session ("Victory Card
+  proposals", branch `sep14-victory-card`) had already built the toggle-and-dials page and is waiting on his score question and dial
+  settings. His rulings were relayed to it; he has not said which session builds the in-game card.
