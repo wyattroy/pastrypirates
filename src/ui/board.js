@@ -159,6 +159,7 @@ import { deriveActiveSeat } from "../shared/storyboard.js";
 import { mayRevealRecipe, offersRecipeCheck } from "../shared/visibility.js";
 import { recipeTitle, recipeInfo, winRecipeSpan, recipeArticle } from "./recipe.js";
 import { playFlip, startFlipSpinSound, stopFlipSpinSound } from "./audio.js";
+import { popInHolds } from "./popin.js";
 
 // `$` is a classic-script-local `const $=id=>document.getElementById(id)` (index.html:863) —
 // see the file header's deviation note.
@@ -362,6 +363,13 @@ export function drawBoard(){
         const scx=(c[0]+.5)*cell,scy=(c[1]+.5)*cell;
         const g=iconAt(svg,scx,scy,cell*.8,ING_IMG[ing]);
         g.id=`crate_${ing}_${idx}`;
+        /* THE POP-IN READS ITS CRATES OFF WHAT WAS DRAWN — the square, the centre, the size, the picture — so there is no
+           second copy of where a crate sits (BOARD-RENDERING §2). Until this voyage's pop-in lands, a crate is drawn but
+           not shown: his "pop in the ingredients ... until the recipe picker cards appear" (src/ui/popin.js).
+           ⚠ VISIBILITY, NOT OPACITY: render() below writes every crate's opacity on every render (a taken crate greys to
+           .45), and measured, that un-hid all 21 crates within 700ms of the show starting. */
+        Object.assign(g.dataset,{gx:c[0],gy:c[1],cx:scx,cy:scy,size:cell*.8,ing,idx});
+        if(popInHolds())g.style.visibility="hidden";
       });
       // 🏴 THE BLACK MARKET FLAG (draft art — emoji until Wyatt commissions a proper flag): flies
       // over the dock when the shelf is empty — the same promise the ceremony card makes, that a
