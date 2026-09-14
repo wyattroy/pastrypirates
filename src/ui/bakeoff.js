@@ -90,6 +90,66 @@ try{
   }
 }catch(err){}
 
+/* ⭐ THE LIDS SLAM DOWN — PASSED on his game feel audit (2026-09-13), as proposed: "Each lid drops with a squash and a small
+   dust puff, left to right." (Each a note higher is a sound, and comes with the sound page.) The lid falls on an ease-in, so it
+   gathers speed and LANDS; it squashes the moment it does, and dust leaves both sides of the crate. The drop's timing is set
+   here, beside the moment that answers it, so the two cannot disagree; the lid comes OFF on the stylesheet's own gentle ease.
+   THE SQUASH IS ON THE LID, NEVER THE CRATE: readPitch() measures the crates' own boxes at the top of the shuffle, and a crate
+   still squashing then would hand the swaps a wrong spacing. Every bench closes through coverBench — the baker's, a
+   watcher's, a paid rewatch — so every screen sees the same slam. */
+const LID_DROP_MS=190, SLAM_MS=240, PUFF_MS=420;
+function dropLid(bowl){
+  const dome=bowl.querySelector(".bkoDome");
+  if(!dome||typeof dome.animate!=="function"){bowl.classList.add("covered");return;}
+  /* THE FALL IS PLAYED HERE AND THE SQUASH WAITS FOR IT TO FINISH — not for a timer set to the same length. MEASURED with a
+     timer, on a busy laptop: two of five lids squashed at 372ms and 97ms, one well after its lid had landed and one while it
+     was still in the air. The same lesson as the pop-in's sound, which now times off its animation too. */
+  dome.style.transition="none";
+  bowl.classList.add("covered");
+  const fall=dome.animate([{transform:"translateY(-18%)",opacity:0},{opacity:1,offset:.4},{transform:"translateY(0)",opacity:1}],
+    {duration:LID_DROP_MS,easing:"cubic-bezier(.55,0,1,.45)",id:"bake-drop"});
+  fall.finished.then(()=>{
+    dome.style.transition="";
+    if(!bowl.isConnected||!bowl.classList.contains("covered"))return;
+    dome.animate([{scale:"1 1"},{scale:"1.1 .84",offset:.3},{scale:".97 1.04",offset:.65},{scale:"1 1"}],
+      {duration:SLAM_MS,easing:"ease-out",id:"bake-slam"});
+    for(const side of [-1,1]){
+      const puff=document.createElement("span");
+      puff.className="bkoPuff";
+      bowl.appendChild(puff);
+      const a=puff.animate([{opacity:.85,translate:"0 0",scale:".4"},{opacity:0,translate:`${side*60}% -40%`,scale:"1.25"}],
+        {duration:PUFF_MS,easing:"ease-out",fill:"both",id:"bake-puff"});
+      a.onfinish=a.oncancel=()=>puff.remove();
+    }
+  },LID_DROP_MS);
+}
+/* ⭐ A RIGHT CRATE BURSTS GREEN, A WRONG ONE SAGS — PASSED on his game feel audit (2026-09-13), as proposed: "A correct crate
+   pops up with a green sparkle burst ...; a wrong one sags." (The rising chime and the dull thud are sounds, and come with the
+   sound page.) Both play inside the reveal's own beat, on every screen that renders the verdict (applyBenchSnap). */
+const RIGHT_POP_MS=440, SPARKS=8;
+function crateRight(bowl){
+  bowl.animate([{translate:"0 0",scale:"1"},{translate:"0 -18%",scale:"1.12",offset:.35},{translate:"0 0",scale:"1"}],
+    {duration:RIGHT_POP_MS,easing:"cubic-bezier(.3,.7,.4,1)",id:"bake-right"});
+  for(let k=0;k<SPARKS;k++){
+    const spark=document.createElement("span");
+    spark.className="bkoSpark";
+    bowl.appendChild(spark);
+    // a translate in % is of the spark's own size (a third of the crate), so 200% carries it to the crate's edge and past
+    const ang=(k/SPARKS)*Math.PI*2+0.3, r=190+((k*37)%3)*30;
+    const at=f=>`${(Math.cos(ang)*r*f).toFixed(0)}% ${(Math.sin(ang)*r*f).toFixed(0)}%`;
+    const a=spark.animate([{opacity:0,translate:"0 0",scale:".3",rotate:"0deg"},
+      {opacity:1,translate:at(.6),scale:"1",offset:.35},
+      {opacity:0,translate:at(1),scale:".6",rotate:"90deg"}],
+      {duration:RIGHT_POP_MS+120,easing:"ease-out",fill:"both",id:"bake-spark"});
+    a.onfinish=a.oncancel=()=>spark.remove();
+  }
+}
+function crateWrong(bowl){
+  bowl.animate([{translate:"0 0",rotate:"0deg",scale:"1 1"},{translate:"0 9%",rotate:"-5deg",scale:"1.04 .9",offset:.35},
+    {translate:"0 6%",rotate:"-3deg",scale:"1.02 .94",offset:.7},{translate:"0 0",rotate:"0deg",scale:"1 1"}],
+    {duration:REVEAL_MS,easing:"ease-in-out",id:"bake-wrong"});
+}
+
 /* ================= the recipe card ================= */
 // One line per step: the ordinal, the ingredient's OWN ICON, and the wording. The icon is drawn
 // from the same array the answer is built from (recipeSteps().ings), so the card physically cannot
@@ -552,7 +612,7 @@ export async function playBakeoffLive(spec,io){
     }
     for(const b of bowls){
       if(b.classList.contains("locked"))continue;
-      b.classList.add("covered");
+      dropLid(b);
       await sleep(COVER_MS);
     }
   }
@@ -881,6 +941,7 @@ export async function bakeoffReveal(view,result){
     if(num)num.textContent=String(k+1);
     el.classList.add(result.correct[k]?"right":"wrong");
     if(alreadyLocked)continue;
+    if(!reduced&&typeof el.animate==="function")(result.correct[k]?crateRight:crateWrong)(el);
     await sleep(reduced?Math.round(REVEAL_MS*0.5):REVEAL_MS);
   }
   if(hint){

@@ -647,26 +647,85 @@ export function sailSetsOff(seat,route){
       {translate:`${(-dx*back).toFixed(2)}px ${(-dy*back).toFixed(2)}px`,scale:"0.94",offset:.35},
       {translate:`${(dx*fwd).toFixed(2)}px ${(dy*fwd).toFixed(2)}px`,scale:"1.03",offset:.7},
       {translate:"0px 0px",scale:"1"}],{duration:SAIL_LEAN_MS,easing:"ease-in-out",id:"sail-lean"});
+  followHull(seat,WAKE_EVERY,(host,at)=>fxDot(host,"ppWake",at,cell*0.16,[{opacity:.8,scale:"1"},{opacity:0,scale:"0.3"}],WAKE_MS));
+}
+/* FOLLOW THE DRAWN HULL until it has stopped, and leave something where the boat WAS each time it moves on by `every` of a
+   square — so a trail falls behind the boat rather than under it. drop(host, point, angle) makes the mark. */
+const SNAP_SQUARES=1.2;
+function followHull(seat,every,drop){
   const host=document.getElementById("popHost");
   if(!host)return;
-  /* THE WAKE FOLLOWS THE DRAWN HULL until it has stopped: a dot is left where the boat WAS once it has moved on by
-     WAKE_EVERY of a square, so the foam trails behind rather than sitting under the hull. */
-  let lastDot=drawnShipPoint(seat),prev=lastDot,moved=false,stillMs=0,prevT=performance.now();
+  let last=drawnShipPoint(seat),prev=last,moved=false,stillMs=0,prevT=performance.now();
   const t0=prevT;
   const step=now=>{
     const p=drawnShipPoint(seat);
     if(!p||!host.isConnected)return;
     const dt=now-prevT;prevT=now;
+    /* A SNAP IS NOT TRAVEL. A boat sailing or riding the wind moves a fraction of a square a frame; one that jumps more than a
+       square in a frame was put back on its true square by a paint (MEASURED on the trade wind: two rides each left a pair of
+       streaks pointing straight back along the jump). Nothing trails a jump — the trail picks up again from where it landed. */
+    if(prev&&Math.hypot(p[0]-prev[0],p[1]-prev[1])>cell*SNAP_SQUARES){last=p;prev=p;stillMs=0;requestAnimationFrame(step);return;}
     if(prev&&Math.hypot(p[0]-prev[0],p[1]-prev[1])<0.25)stillMs+=dt;else{stillMs=0;moved=true;}
-    if(lastDot&&Math.hypot(p[0]-lastDot[0],p[1]-lastDot[1])>=cell*WAKE_EVERY){
-      fxDot(host,"ppWake",lastDot,cell*0.16,[{opacity:.8,scale:"1"},{opacity:0,scale:"0.3"}],WAKE_MS);
-      lastDot=p;
+    if(last&&Math.hypot(p[0]-last[0],p[1]-last[1])>=cell*every){
+      drop(host,last,Math.atan2(p[1]-last[1],p[0]-last[0]));
+      last=p;
     }
     prev=p;
-    if((moved&&stillMs>250)||(!moved&&now-t0>1200)||now-t0>6000)return;
+    if((moved&&stillMs>250)||(!moved&&now-t0>1200)||now-t0>8000)return;
     requestAnimationFrame(step);
   };
   requestAnimationFrame(step);
+}
+/* ⭐ SPEED LINES ON THE TRADE WIND — PASSED on his game feel audit (2026-09-13), as proposed: "Short streaks trail the boat
+   while the current carries it, so the ride reads as fast." Called from THE ONE event consumer on a `tradewind` event, so
+   every screen sees every ride. Each streak lies along the direction the hull is travelling (a static `rotate`), and fades
+   and shortens behind it. His separate note, that every wind-sailing cue should be yellow-gold, belongs to the sailing
+   project on the backlog; these stay white like the rest of the water until that is built. */
+export const STREAK_EVERY=0.22, STREAK_MS=520;
+export function rideStreaks(seat){
+  if(fxReduced()||!shipEls[seat]||!cell)return;
+  followHull(seat,STREAK_EVERY,(host,at,angle)=>{
+    const len=cell*0.55,thick=cell*0.07,d=document.createElement("div");
+    d.className="ppStreak";d.dataset.seat=seat;
+    d.style.left=CQfx(at[0]-len/2);d.style.top=CQfx(at[1]-thick/2);d.style.width=CQfx(len);d.style.height=CQfx(thick);
+    d.style.rotate=`${(angle*180/Math.PI).toFixed(1)}deg`;
+    host.appendChild(d);
+    const a=d.animate([{opacity:.85,scale:"1 1"},{opacity:0,scale:"0.3 0.6"}],{duration:STREAK_MS,easing:"ease-out",fill:"both",id:"ride-streak"});
+    a.onfinish=a.oncancel=()=>d.remove();
+  });
+}
+/* ⭐ CONFETTI FOR THE FIRST CAPTAIN HOME — PASSED on his game feel audit (2026-09-13), as proposed: "The first captain home
+   gets a two-second burst — it is the moment the race turns." (The fanfare is a sound and comes with the sound page.)
+   Called from THE ONE event consumer on the voyage's FIRST `ovens` event — a captain home with a full hold, lighting the
+   ovens — read off the event list, so a reload or a guest joining late never throws it twice. Paper in that captain's
+   colour, gold and cream, from their boat. */
+export const CONFETTI_PIECES=36, CONFETTI_MS=2000;
+export function firstHomeConfetti(e){
+  if(fxReduced()||!e||e.t!=="ovens"||!appState.game||!shipEls[e.p])return;
+  const evs=appState.game.events;
+  if(evs.find(x=>x&&x.t==="ovens")!==e)return;              // only the first captain home
+  /* ON TOP OF EVERYTHING, IN SCREEN PIXELS, like the treasure coins. Drawn first in the board's own camera layer, the
+     pieces MEASURED 3-4px on his phone and rose straight under the narration bubble that announces the ovens: 36 pieces
+     nobody could see. A burst for the moment the race turns has to be the top thing on the screen. */
+  const ships=$("boardShips")||$("board");
+  const m=/translate\(([-\d.]+)px,\s*([-\d.]+)px\)/.exec(shipEls[e.p].style.transform||"");
+  const from=m&&fixedPointOfBoard(ships,parseFloat(m[1]),parseFloat(m[2]));if(!from)return;
+  const ctm=ships.getScreenCTM(),sq=cell*(ctm?ctm.a:1);     // one square of the board, in screen pixels
+  const colours=[HEXCOL[e.p]||"#f5a623","#ffd76b","#fff3d6"];
+  const rnd=k=>{const x=Math.sin((k+1)*127.1+e.p*31.7)*43758.5453;return x-Math.floor(x);};
+  for(let k=0;k<CONFETTI_PIECES;k++){
+    const w=Math.max(6,sq*(0.26+rnd(k)*0.1)),h=w*0.5,d=document.createElement("div");
+    d.className="ppConfetti";d.style.background=colours[k%colours.length];
+    Object.assign(d.style,{left:(from[0]-w/2)+"px",top:(from[1]-h/2)+"px",width:w+"px",height:h+"px"});
+    document.body.appendChild(d);
+    const ang=-Math.PI/2+(rnd(k+50)-0.5)*Math.PI*1.1,pow=Math.max(45,sq*(2+rnd(k+90)*2));
+    const ux=Math.cos(ang)*pow,uy=Math.sin(ang)*pow,spin=(rnd(k+7)-0.5)*900,fall=Math.max(90,sq*4);
+    const a=d.animate([{translate:"0px 0px",rotate:"0deg",opacity:1},
+      {translate:`${ux.toFixed(1)}px ${uy.toFixed(1)}px`,rotate:`${(spin*.5).toFixed(0)}deg`,opacity:1,offset:.35},
+      {translate:`${(ux*1.25).toFixed(1)}px ${(uy+fall).toFixed(1)}px`,rotate:`${spin.toFixed(0)}deg`,opacity:0}],
+      {duration:CONFETTI_MS*(0.8+rnd(k+3)*0.4),easing:"cubic-bezier(.2,.6,.4,1)",fill:"both",id:"first-home-confetti"});
+    a.onfinish=a.oncancel=()=>d.remove();
+  }
 }
 export function sailArrives(seat){
   if(fxReduced()||!shipEls[seat]||!cell)return;
@@ -2498,6 +2557,65 @@ export function showStats(){
     <div class="awardsRow">${awards}</div>
     ${statsTable}`;
   renderWindSummary();
+  endCardArrives($("statsPanel"),w);
+}
+/* ⭐ THE END CARD ARRIVES — three ideas PASSED on his game feel audit (2026-09-13), as proposed: "Each award card flips in one
+   after another ..., instead of the list simply being there"; "Numbers roll up from zero ..."; and "One burst in the winner's
+   captain colour behind the pastry." (The whoosh and the ticking are sounds, and come with the sound page.)
+   ONCE A VOYAGE, ON EACH SCREEN. render() calls showStats() whenever the log sits at its end, so the same finished voyage can
+   be written more than once; the mark lives on the Game object it describes (as __idle does), so a new voyage starts unmarked
+   and a repaint of the same one never deals the cards twice. A repaint mid-arrival just writes the card at rest: every number
+   is final in the HTML, and the roll only rewrites what is on screen on its way there. */
+export const DEAL_MS=440, DEAL_GAP_MS=150, DEAL_START_MS=220, COUNT_MS=900, END_CONFETTI=26;
+function endCardArrives(panel,w){
+  const g=appState.game;
+  if(!panel||!g||g.__endArrived)return;
+  g.__endArrived=true;
+  if(fxReduced())return;
+  const cards=[...panel.querySelectorAll(".awardCard")];
+  cards.forEach((c,k)=>c.animate([
+    {opacity:0,transform:"perspective(700px) translateY(18px) rotateY(85deg)"},
+    {opacity:1,transform:"perspective(700px) translateY(0) rotateY(-10deg)",offset:.7},
+    {opacity:1,transform:"perspective(700px) rotateY(0deg)"}],
+    {duration:DEAL_MS,delay:DEAL_START_MS+k*DEAL_GAP_MS,easing:"cubic-bezier(.2,.7,.3,1)",fill:"backwards",id:"end-deal"}));
+  // the numbers roll up as the last card lands: every run of digits in the stats column and in each award's value
+  const texts=[];
+  const collect=node=>{for(const c of node.childNodes){if(c.nodeType===3){if(/\d/.test(c.nodeValue))texts.push([c,c.nodeValue]);}else collect(c);}};
+  for(const el of panel.querySelectorAll("table td:nth-child(2), .awardStat b"))collect(el);
+  if(texts.length){
+    const roll=t=>{for(const [n,full] of texts)if(n.isConnected)n.nodeValue=full.replace(/\d+/g,d=>String(Math.ceil(Number(d)*t)));};
+    roll(0);
+    const start=performance.now()+DEAL_START_MS+Math.max(0,cards.length-1)*DEAL_GAP_MS;
+    const step=now=>{
+      if(!texts.some(([n])=>n.isConnected))return;
+      const u=Math.min(1,Math.max(0,(now-start)/COUNT_MS));
+      roll(1-Math.pow(1-u,3));
+      if(u<1)requestAnimationFrame(step);
+    };
+    requestAnimationFrame(step);
+  }
+  const banner=panel.querySelector(".winner-banner"),pastry=banner&&banner.querySelector(".victoryRecipe");
+  if(w==null||!pastry)return;
+  const col=HEXCOL[w]||"#f5a623",colours=[col,`color-mix(in srgb, ${col} 55%, white)`,"#ffe6a0"];
+  setTimeout(()=>{                                             // as the pastry lands (its victoryPop settles at .55s)
+    if(!pastry.isConnected)return;
+    const b=banner.getBoundingClientRect(),r=pastry.getBoundingClientRect();
+    const cx=r.left+r.width/2-b.left,cy=r.top+r.height/2-b.top;
+    for(let k=0;k<END_CONFETTI;k++){
+      const d=document.createElement("div"),wd=6+(k*7)%4,ht=wd*.5;
+      d.className="endConfetti";d.style.background=colours[k%colours.length];
+      Object.assign(d.style,{left:(cx-wd/2)+"px",top:(cy-ht/2)+"px",width:wd+"px",height:ht+"px"});
+      banner.appendChild(d);
+      const ang=(k/END_CONFETTI)*Math.PI*2+((k*53)%10)/10,pow=Math.max(60,r.width*(.55+((k*31)%7)/12));
+      const ux=Math.cos(ang)*pow,uy=Math.sin(ang)*pow*.75,spin=((k*97)%360)-180;
+      const a=d.animate([{translate:"0px 0px",rotate:"0deg",opacity:0},
+        {translate:`${(ux*.2).toFixed(1)}px ${(uy*.2).toFixed(1)}px`,opacity:1,offset:.08},
+        {translate:`${ux.toFixed(1)}px ${uy.toFixed(1)}px`,rotate:`${spin}deg`,opacity:1,offset:.45},
+        {translate:`${(ux*1.15).toFixed(1)}px ${(uy+Math.max(40,r.height*.6)).toFixed(1)}px`,rotate:`${spin*2}deg`,opacity:0}],
+        {duration:1700+((k*41)%500),easing:"cubic-bezier(.2,.6,.4,1)",fill:"both",id:"end-confetti"});
+      a.onfinish=a.oncancel=()=>d.remove();
+    }
+  },300);
 }
 
 // LOAD-03 final (2026-08-02). This used to be renderDecorativeBoard(): it built a bot-vs-bot game
