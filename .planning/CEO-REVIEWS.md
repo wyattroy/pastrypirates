@@ -6,6 +6,73 @@ say whether a fault is *recurring* — which is the check this file exists to ma
 
 ---
 
+## 2026-09-15 · `sep14-game-feel` `f04d106d` (base `a6ca7eed`) · second review, answering the NOT YET of `f77dbe1b` · **APPROVED FOR THE WY-BLADE SEA TRIAL. Before main, watch two docks nobody has watched yet: a heads dock after the count fix, and a guest's own dock on a phone.**
+
+I read the diff from `f77dbe1b` to HEAD and looked at the author's screenshots myself. I cut the top bar and one corner out of two of them to look closer. I ran the new coin check (a script that reads the code and reports pass or fail) and it passed. I searched the game code myself for every place a captain gets coins. I edited nothing and started no browser or server. I did not re-run the other 114 checks, and I cannot see his screen recording.
+
+### 1. Each thing he asked for
+
+| His ask | Verdict | Evidence I checked |
+|---|---|---|
+| Squawk for a wrong bake-off crate | **DONE** | Checked last review; nothing changed since. |
+| A tick for each bake-off guess | **DONE in code** | Checked last review. Nobody has listened for it on a second player's screen. The author says so too. |
+| The boat bobs all turn | **DONE, his eyes needed** | `board.js:620-647` keeps the bob going. The bob's height did **not** change: still a tenth of a square (`board.js:609`, same before and after). It is now slower (1.4s per bob, was 0.56s) and never stops during the turn. He said "I don't see the boat bobbing". Whether a tenth of a square is enough on his phone is for him to judge. A still screenshot (`pairs/guest_bob.jpg`) cannot show a bob, so the author's "the bob shows" comes from their measuring script, not the pictures. |
+| Sail squares pop 50% slower | **DONE** | Checked last review. |
+| Flip stage: the coin vanishes early | **DONE for what he wrote, unconfirmable for the recording** | The author's log: 46 frames with the stage up, 0 empty, 1 landing, 1 stamp. He said the recording shows "a few bugs". The only list I found (the `f77dbe1b` commit message, `DECISIONS.md`) names three: the coin vanishing, the stamp covering the rules line, and the weak lift. If he saw more in the recording, nothing written down says so. |
+| Flip: the coin comes out toward the viewer more | **DONE, taste** | The 1.7x lift is the author's number. He hasn't seen it. |
+| Coins click audibly | **DONE, his ears** | Volume x3 (last review). One oddity in the author's own log (`count_phone_after.log`): **"coin clicks heard: 8"** on a dock where his count moved 5 steps (6→7, then 7→3). The account doesn't say where the other 3 came from. It may be other captains' counts. Not measured. |
+| Only the coins earned fly | **DONE** | `board.js:2052` flies exactly the number earned, capped at 20. |
+| **Every** coin earned flies | **DONE, now truly** | I found exactly four places in the code that add coins, and all four now fly: dock (`engine/index.js:1081`), pass (`:1147`), trade sale (`:1291`), correct crow's-nest call (`flow.js:3615`). Every other coin change is a setup or reload (`orchestrator.js:1374`, `:1780`) or a bot's practice run (`engine/index.js:2597-2599`). Trade coins fly from payer to seller (`orchestrator.js:1948` → `board.js coinsAcross`), in the right direction (`engine/index.js:1291`: p pays q, the event is a=p, b=q). Crow's-nest coins fly from the caller's boat (`orchestrator.js:1946-1947`). |
+| Coins land in the hold **before** the buy | **DONE on a laptop or solo screen; NOT WATCHED on a guest's own phone** | `flow.js:1931` makes "Buy a crate?" wait until the coins have been drawn, capped at 9 seconds (`util.js:1867-1871`). Measured on one posed dock: the count read 7 (was 6, earned 1) when the question appeared, 1ms after the last coin landed. Two gaps: (a) that was a **tails** dock (1 coin), and the failure the author found happened on heads (3 coins), so heads after the fix is unwatched (the author admits this); (b) **for a guest's own dock, the question is sent from the host** (`util.js:1641`, `onRemotePrompt`), so it waits for the *host's* coins, not the phone's. On the phone, the question could arrive before its own coins land. The auto-driver never docks a guest, so this has never been seen. That is his phone. |
+| Treasure flies a little slower | **DONE, taste** | 1170ms (`board.js:2035`). |
+| Crates swap as crates; an island buy flies as a crate | **DONE** | The phone edge fault was measured before and after (`arc_before.log`: 14px off the right edge; `arc_after.log`: 0px, both screens, 2 trades each). |
+| Speed lines and confetti 50% longer | **DONE** | Checked last review. |
+| Battle box removed entirely | **DONE, on screen and in code** | I looked at `pairs/host_battle.jpg` and `pairs/guest_battle.jpg`: no box on either. The diff removes `battleFooter`/`coinHTML`/`pipsHTML`, every `.btl` selector, and the box's style rules. The coin check confirms none are left. The laptop's flip stage (`pairs/host_flip.jpg`) says "Broadside!" with "Crosswind — two heads and the cannonballs collide.". The phone's bubble names the same wind. |
+| CEO approval, sea trial, merge | **This review approves the sea trial** | The last trial is still build 2026.09.13.5 and FAILED. It says nothing about this build. |
+
+**Last review's three conditions:** (1) host and phone-guest pictures: taken, and I read them. The one fault they found (the crate going off the phone's edge) is fixed and measured. The guest's own flip and dock were never seen, and the author says so. (2) The frozen count is released (`board.js:2057`). (3) Trade and crow's-nest coins fly.
+
+### 2. Delivered but not asked for
+
+- **The count fix** (`board.js holdCoinRoll`): the author found this one by looking at the phone pictures. It serves his 2026-08-05 complaint and his "coins enter the hold the moment you earn them".
+- **The new coin check**, `scripts/qa/every_coin_flies_check.mjs`: a small guard against the fixes being undone. The last review asked for one.
+- **Bot practice battles now record their flips** (`engine/index.js:1908`, `:1948`). Harmless if, as the author says, that code only runs in bot practice games.
+- **A pace measurement**: about 13% slower per day (35.2s against dev's 31.1s), in a voyage with 14 docks against dev's 10. He should hear that number.
+
+None of these pushed out anything he asked for.
+
+### 3. Claims the repo does not support
+
+- **"Docking written twice" is fixed only for the coins.** The payment is now in one place: `Game.payDock`, `engine/index.js:1079-1084`, called from both `:1089` and `flow.js:1914`. The check confirms only one place in the code records it. But the dock itself is still two functions. The bot's dock sets three pieces of bookkeeping (`engine/index.js:1088`: firstFlip, dockedNow, justDocked). The human's dock sets two (`flow.js:2042`: no justDocked). I did not establish whether that difference shows in play, because arriving at a berth also sets justDocked (`engine/index.js:659`). It predates this work.
+- **"All 115 green."** I ran only the coin check (11 of 11 pass). I can't confirm the rest.
+- **"The bob shows" on the guest.** A still picture cannot show a bob (see section 1).
+- **Two things in the author's own battle pictures, each seen once and not measured, possibly older than this work:**
+  - In `pairs/host_battle.jpg` the glowing boat in the top bar is **GUESTPAIR's**. In `pairs/guest_battle.jpg` it is **HOSTPAIR's**, while both screens ring HOSTPAIR's row. The two pictures may be moments apart. The same fault was found and fixed once before (`util.js:1972-1976`).
+  - In `pairs/host_battle.jpg`, a fading crow's-nest line sits in the laptop board's bottom-left corner, cut off by the board edge.
+
+  Worth a look in the sea trial or on staging. Neither blocks the trial.
+
+### 4. The last verdict's fault: fixed, or back in new clothing?
+
+**Fixed for what this change touched.** A dock's coins are paid and recorded in exactly one place, and the check fails if a second copy appears. The wider pattern is still there, and none of it is new:
+- battles are written twice: powder at `orchestrator.js:618` and `engine/index.js:1902`, re-fire at `orchestrator.js:795` and `engine/index.js:1946`
+- the dock's bookkeeping is written twice (section 3)
+
+Tagging battle flips in the bot practice copy is one more small edit made to both copies instead of merging them. It is harmless if that copy really only runs in bot practice games, which I did not verify.
+
+### 5. Bulk reading in the main thread
+
+**I found none I can name.** The screenshots and the frame-by-frame reading are the rendered game, which belongs in the main thread. The one thing I can't judge: the account says all 115 checks were run one by one, three times, and doesn't say whether that output was filtered before it was read.
+
+### 6. One sentence for Wyatt
+
+**Everything you asked for is now built, and every way to earn a coin makes coins fly. Before this goes to main, someone should watch a heads dock and a dock on your phone as a guest, and you should know the voyage now runs about 13% slower per day.**
+
+**APPROVED for the Wy-Blade sea trial.** It is not approved for main until a heads dock has been watched once (a quick posed test), and until he is told plainly that nobody has watched the buy question arrive on a guest phone's own dock.
+
+---
+
+
 ## 2026-09-15 · `sep14-game-feel` `f77dbe1b` (base `a6ca7eed`) · his checklist verdicts on 2026.09.14.4 · **NOT YET APPROVED. MOST OF IT IS BUILT, BUT NOBODY HAS LOOKED AT IT ON A HOST AND A GUEST SCREEN, AND "EVERY COIN FLIES" STILL MISSES TWO KINDS OF COIN.**
 
 I read the code diff myself and checked each claim against the code. I edited nothing, and I did not start a browser or a server. I cannot see his screen recording, so on the coin flip I checked the logic, not the picture.
