@@ -2106,7 +2106,11 @@ export function tradeSwapTo(legs){
     Object.assign(im.style,{left:leg.from.x+"px",top:leg.from.y+"px",width:leg.from.w+"px",height:leg.from.h+"px"});
     document.body.appendChild(im);
     const dx=(to.x+to.w/2)-(leg.from.x+leg.from.w/2),dy=(to.y+to.h/2)-(leg.from.y+leg.from.h/2);
-    const side=leg.bow*Math.max(leg.from.w*1.4,Math.abs(dy)*0.35),s=Math.max(.3,Math.min(2,to.w/leg.from.w));
+    /* THE ARC STAYS ON THE GLASS. On a phone the hold slots sit at the right edge of the captains box, so a crate bowing outward
+       flew half off the screen (a phone guest at 375 wide, 2026-09-15). The bow is clamped so the crate's widest moment, the
+       middle of the arc at 1.2x, sits inside the screen; start and end are already on it, so the whole path is. */
+    const o=fixedOrigin(),cx0=o.x+leg.from.x+leg.from.w/2+dx*.5,half=leg.from.w*.6+6;
+    const side=Math.max(half-cx0,Math.min(window.innerWidth-half-cx0,leg.bow*Math.max(leg.from.w*1.4,Math.abs(dy)*0.35))),s=Math.max(.3,Math.min(2,to.w/leg.from.w));
     const a=im.animate([{translate:"0px 0px",scale:"1"},
       {translate:`${(dx*.5+side).toFixed(1)}px ${(dy*.5).toFixed(1)}px`,scale:"1.2",offset:.5},
       {translate:`${dx.toFixed(1)}px ${dy.toFixed(1)}px`,scale:String(s)}],{duration:SWAP_MS,easing:"ease-in-out",fill:"both",id:"trade-swap"});
@@ -2129,7 +2133,8 @@ export async function coinsAcross(fromSeat,toSeat,coins){
   const from=at(fromSeat),to=at(toSeat);if(!from||!to)return;
   const n=Math.max(1,Math.min(TREASURE_MAX,Math.round(coins||1))),size=Math.max(12,from.w*1.15);
   holdCoinRoll(toSeat,ACROSS_MS*0.8);
-  const dx=to.x-from.x,dy=to.y-from.y,bow=Math.max(size*2,Math.abs(dy)*0.3);
+  const dx=to.x-from.x,dy=to.y-from.y,ox=fixedOrigin().x,cx0=ox+from.x+dx*.5,half=size*.55+6;
+  const bow=Math.max(half-cx0,Math.min(window.innerWidth-half-cx0,Math.max(size*2,Math.abs(dy)*0.3)));   // the same clamp: on the glass
   for(let k=0;k<n;k++){
     const im=document.createElement("img");
     im.src=COIN_IMG;im.alt="";im.className="ppTreasure";
