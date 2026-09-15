@@ -6,6 +6,76 @@ say whether a fault is *recurring* — which is the check this file exists to ma
 
 ---
 
+## 2026-09-15 · `sep14-game-feel` `f77dbe1b` (base `a6ca7eed`) · his checklist verdicts on 2026.09.14.4 · **NOT YET APPROVED. MOST OF IT IS BUILT, BUT NOBODY HAS LOOKED AT IT ON A HOST AND A GUEST SCREEN, AND "EVERY COIN FLIES" STILL MISSES TWO KINDS OF COIN.**
+
+I read the code diff myself and checked each claim against the code. I edited nothing, and I did not start a browser or a server. I cannot see his screen recording, so on the coin flip I checked the logic, not the picture.
+
+### 1. Each thing he asked for
+
+| His ask | Verdict | What I checked |
+|---|---|---|
+| A squawk for a wrong bake-off crate | **DONE** | `src/ui/audio.js:942` plays `crate-squawk`. It is the same byte size as the old thud, so I compared the two files: they are different recordings (6,021 of 6,669 bytes differ). The render script now takes the page's squawk (candidate "b") instead of the thud (candidate "a"). |
+| A tick for each bake-off guess | **DONE** | `src/ui/bakeoff.js:217-222`. The row of crates is built once per bench (`bakeoff.js:520`, `:914`), so it can tell when the pick count changes by one. Watchers' screens go through the same code (`:746`). I did not re-run the tap test. |
+| The boat bobs for the whole turn | **DONE in code, never looked at** | `board.js` `bobShip` starts on each `turn` event and stops when the next captain's turn starts. The bob is an HTML copy of the boat. The boat picture has no mirroring, so the copy matches it. |
+| Sail squares pop in 50% slower | **DONE** | `index.html:1201` goes from .22s to .33s, and `flow.js:668` goes from 250 to 375ms, which sets each square's delay at `flow.js:712`. There is no other copy of the pop animation. |
+| The coin flip: coin vanishes early, and a stronger "out of the screen" motion | **PARTIAL** | The logic is sound. `setFlipActive` calls the stage's hook (`board.js:3044`) before it clears the coin (`:3060`), so the new "only if the coin was armed" guards work as described. But the 1.7x lift is an amount the author picked, and Wyatt has not seen it. Nobody has watched the fixed flip land. |
+| Coins: the click is louder | **DONE** | The sound goes through a volume control that accepts 3x (`audio.js:891`, `:1018`). Whether he can hear it now is for his ears. |
+| Coins: only the coins earned fly | **DONE for docks and passing** | `treasureBurst` flies exactly the number earned. |
+| Coins: **every** coin you earn flies | **PARTIAL** | Treasure, dock work and the pass coin fly. Coins from **selling a crate in a trade** (`src/engine/index.js:1286`) and from a **correct crow's-nest call** (`src/ui/flow.js:3641`) do not. |
+| Coins enter the hold when earned, before the buy | **DONE in order, not measured on his own dock** | The coins are recorded at payment (`engine/index.js:1085`, `flow.js:1925`). The game waits for them to fly before the crate flies. But the "Buy a crate?" question is not held back for the coins (`flow.js:1926`), so on his own dock he may be asked to buy while his coins are still in the air. Nobody has checked. |
+| Treasure flies a little slower | **DONE** | 780ms is now 1170ms. Whether that is slow enough is his call. |
+| Crates swap as crates, and an island buy flies as a crate | **DONE** | `flyingCrate` is used for the trade swap and for the island buy. |
+| Speed lines and confetti linger 50% longer | **DONE** | Both timings really do set how long the animations last (`board.js:731`, `:764`). |
+| The battle box removed entirely | **DONE on screen, not in code, and never looked at** | The box is never drawn. Code that still looks for it is left behind: `orchestrator.js:466`, `stage.js:1824`, `:3639`, `:5649`, `flow.js:3576-3585`, and its styles at `index.html:707-718`. Nobody has looked at what now fills that space during a fight, or at the cannon hit it used to cover. One guest screenshot was taken and not reviewed. |
+| CEO approval, a sea trial on Wy-Blade, then merge to main | **NOT DONE** | The last sea trial is on build 2026.09.13.5, two builds ago, and it FAILED. It says nothing about this build. |
+
+**Why not approved yet.** The project's own rule says a visual change is not done until a host window and a guest window at his iPhone 13 mini size have been compared. That did not happen for any of these eight visual changes. The next step is main, which real players see, and he has not seen any of it on staging.
+
+**To approve, three things:**
+1. Take and look at host and guest (375x812) screenshots of:
+   - a battle, from a fighter's screen and a spectator's
+   - a dock that lands heads, from the flip through the coins to the crate
+   - a trade swap
+   - the flip stage landing
+   - the bobbing boat
+2. Fix the frozen coin count described in section 3.
+3. Either make trade coins and crow's-nest coins fly, or tell him plainly that they don't.
+
+Then run the sea trial, and watch its pace. On every screen, each pass and each dock now waits at least 1.2 seconds for its coins to fly (`orchestrator.js` `consumeEvent`, `await earnedFlight`). If the flip stage is still up, the wait can reach about 8 seconds. None of that has been measured.
+
+### 2. Delivered but not asked for
+
+- The wind's rule for a tie is now spoken with a fight's first line, instead of sitting in the box.
+- A battle flip is now recorded, so other screens show the small coin turning.
+- The squawk plays at twice the volume.
+
+All three follow from removing the box, and none of them pushed out anything he asked for.
+
+### 3. Claims the repo does not support
+
+- **"Same event, same place, for both"** (the comment at `engine/index.js:1080-1084`). The coins-earned record is written in **two** places: `engine/index.js:1085` for bots and `flow.js:1925` for humans.
+- **"Stops at the turn's `end` event."** The code stops the bob when the *voyage* ends (`if(e.t==="end")stopTurnBob()`). Between turns, the next turn stops it. The behaviour still matches his ask; the report's description is wrong.
+- **A new bug: the purse count can freeze for up to 60 seconds.** `treasureBurst` (`board.js` around 2040-2047) sets a 60,000ms hold on the count, then returns early if it can't measure where the boat is (`if(!from)return`). The hold is never released. It's rare, because it needs the board to be unmeasurable, but it is new.
+- **"Battle box removed entirely."** True for what players see, not for the code (the list in section 1).
+- **No new check guards any of the eight changes.** Only three old checks were updated. Nothing would catch it if "coins flown equals coins earned" breaks later.
+
+### 4. The last verdict's fault: it has come back in new clothing
+
+The last audit found that **docking and battles are each written twice**. This change added a new rule to both copies of docking instead of merging them, under a comment that says they are one place.
+
+It also recorded battle flips only in the live battle code (`orchestrator.js`). The engine's own battle code still flips without recording anything (`engine/index.js:1903`, `:1943`, called from `:2920`). I did not establish whether that engine copy runs in live play.
+
+### 5. Bulk reading in the main thread
+
+I found none I can name. Going through his recording frame by frame is his own evidence and belongs in the main thread. From the account alone I can't tell whether the output of the 114 checks was filtered before it was read.
+
+### 6. One sentence for Wyatt
+
+**Most of what you asked for is in the code, but nobody has looked at it on a host screen and a phone-sized guest screen yet, and "every coin flies" still misses coins from trades and correct crow's-nest calls. So it is not ready for the sea trial and main.**
+
+---
+
+
 ## 2026-09-14 · `sep14-game-feel` (word serving = dev `e4e0df64`) · ARCHITECTURE AUDIT: how player-facing words are served, and how to future-proof it · **NOT A PASS/FAIL REVIEW. WORDS NEARLY ALL IN ONE FILE; RULES ARE NOT — BATTLES AND DOCKING WRITTEN TWICE, AND MOST SCREENS ARE SENT FINISHED SENTENCES.**
 
 **Asked for by Wyatt, 2026-09-14** ("have the ceo audit our current setup for serving player-facing words, and suggest ways to make it more robust according to my design values"). Verbatim below.

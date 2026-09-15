@@ -440,7 +440,7 @@ const swellPeak = () => parseFloat(getComputedStyle(document.documentElement)
   .getPropertyValue("--pp4GrowPeak")) || 1.15;
 function swellRect(el, r){
   const cl = el && el.classList;
-  if (!cl || !(cl.contains("apBtn") || cl.contains("btlBtn"))) return r;
+  if (!cl || !cl.contains("apBtn")) return r;
   const k = swellPeak();
   const w = (el.offsetWidth || r.width) * k, h = (el.offsetHeight || r.height) * k;
   const cx = r.left + r.width / 2, cy = r.top + r.height / 2;   // scale origin is the centre
@@ -1815,13 +1815,13 @@ function stageFlash(msg, ms, holdMs, variants, opts){
      call can only be made by someone who can see the fight, not the caller's own boat.
      playtest 22 extends that ruling to the WHOLE fight rather than to the card alone (Wyatt: "the
      director should focus battles on the players fighting, not the player calling the battle").
-     The card is built after the calls are collected, so the `.btl` test could not cover the part
+     The card was built after the calls were collected, so its own test could not cover the part
      of a battle that asks a spectator anything: the crow's-nest call ran with the camera still on
      whoever the opening line named, and then every "X calls Y" line glided it to the CALLER. So
-     the hold is now armed by the battle itself (S.battle, set at the top of asyncBattle) and the
-     card test stays as the belt to that braces. */
+     the hold is now armed by the battle itself (S.battle, set at the top of asyncBattle); the
+     card, and the test that read it, were removed at his ask on 2026-09-14. */
   else if (S.battle) { /* hold the shot on the fight until it resolves */ }
-  else if (subj != null && !document.querySelector("#actionPanel .btl")) camToSeat(subj);
+  else if (subj != null) camToSeat(subj);
   return new Promise(res => {
     // HOW LONG A NARRATION LINE STAYS UP -- one call, and the model behind it lives in util.js
     // beside the curve it replaced (narrationHoldMs, D-34/D-45).
@@ -1935,7 +1935,7 @@ function stageFlash(msg, ms, holdMs, variants, opts){
          it." Two changes to this search were shipped on run-to-run counts that night and both
          were reverted; the trials read 22 -> 26 -> 31 on the same ten legs. §5e of
          docs/DRIVING-THE-GAME.md poses the state; two screenshots settle it in minutes. */
-      const OBST = [[".sailCell", 1000], [".apBtn,.btlBtn,#apStay", 60], [".apMsg", 40], [".apSub,.apSliderWrap", 15]]
+      const OBST = [[".sailCell", 1000], [".apBtn,#apStay", 60], [".apMsg", 40], [".apSub,.apSliderWrap", 15]]
         .flatMap(([sel, w]) => [...document.querySelectorAll(sel)]
           .filter(e => e !== b && !b.contains(e) && e.getBoundingClientRect().width > 4)
           .map(e => ({ r: swellRect(e, fixedRect(e)), w })));   // the PEAK box, as the hint does
@@ -3305,7 +3305,7 @@ function buildStage(){
      `capture:true` so the decision is made before the panel's own handlers run, and no
      preventDefault anywhere — this never consumes an event, it only ever hurries alongside one. */
   prompt.addEventListener("pointerdown", ev => {
-    if (ev.target.closest(".apBtn,.btlBtn,button,a,input,select,textarea,.recipeCard,.bkoBowl,#flipCoinWrap")) return;
+    if (ev.target.closest(".apBtn,button,a,input,select,textarea,.recipeCard,.bkoBowl,#flipCoinWrap")) return;
     const msg = prompt.querySelector(".apMsg:not(.fadeOut)");
     if (msg && typeof msg._revealNow === "function") msg._revealNow();
   }, { capture: true });
@@ -3636,7 +3636,7 @@ function menuButtons(ap){
      the slider bar silently stopped applying and the whole prompt fell back to a flat card.
      It is exempted by class rather than by type: any OTHER input still disqualifies, which is the
      behaviour this guard exists for. */
-  if (ap.querySelector(".btlBtn,.bkoRow,.recipeList,input:not(.apSlider),select")) return null;
+  if (ap.querySelector(".bkoRow,.recipeList,input:not(.apSlider),select")) return null;
   const btns = [...ap.querySelectorAll(".apBtn")];
   // playtest 15: up to EIGHT circles — the trade's what-do-ye-WANT step (7 crates) fans too;
   // the open-side fan wraps to a second arc row past four, so big menus stay one tight group
@@ -4015,7 +4015,7 @@ function promptTick(force){
   // it — T-12's second half. Returning early leaves the hidden display exactly as set.
   if (stageDown) return;
   // textContent, not innerText — innerText forces a layout pass, and this runs every frame
-  const has = ap.textContent.trim().length > 0 || ap.querySelector(".apBtn,.btlBtn,.bkoRow");
+  const has = ap.textContent.trim().length > 0 || ap.querySelector(".apBtn,.bkoRow");
   /* D-20 (playtest 22 item 11 / 02.2 item 11, Wyatt): "no popup appears until the director camera
      AND the ships have stopped moving." panel.js's `pendingReveal` gate already exists and already
      waits on exactly that — stageSettled() (the camera tween AND the ship's rendered transform,
@@ -5642,12 +5642,11 @@ function promptTick(force){
      tween. And `top = sy + 34` is NOT clamped to the viewport the way `left` is, which is the
      "sometimes it's offscreen" half: an anchor ship above the visible band sends top negative.
 
-     CENTRED IS ALREADY A SOLVED CASE HERE — it is what an over-tall card does, one line up. So the
-     battle card joins it rather than getting placement logic of its own. This function runs on both
+     CENTRED IS ALREADY A SOLVED CASE HERE — it is what an over-tall card does, one line up. The battle
+     card that joined it was removed at his ask, 2026-09-14. This function runs on both
      tiers, so host and guest take the rule from the same line; nothing is branched on who is
      watching. */
-  const isBattle = !!box.querySelector(".btl");
-  if (big || isBattle || !u){ box.classList.add("centered"); box.style.left = ""; box.style.top = ""; return; }
+  if (big || !u){ box.classList.add("centered"); box.style.left = ""; box.style.top = ""; return; }
   box.classList.remove("centered");
   const W = Math.min(330, vwPx() - 16);
   box.style.width = W + "px";

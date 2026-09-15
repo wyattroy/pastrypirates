@@ -104,10 +104,10 @@ import {
   bakeoffPrompt, bakeoffReveal, playBakeoffLive,
   benchChoreoMs, BENCH_STUDY_MS, BENCH_BEAT_MS, // A-2: the choreography's own timings, answered by the file that runs them
   appendChatLine, showChatBubble,
-  setFlipActive, setFlipCoin, flipSpinLeftMs, FLIP_LAND_HOLD_MS, boardCell, boardShipEls, drawBoard, render, resetBoardLog, bobShip, sailSetsOff, sailArrives, treasureBurst, crateFlightFrom, crateFlightTo, tradeSwapFrom, tradeSwapTo, rideStreaks, firstHomeConfetti, shotLands, loserKnocked, stopTurnBob,
+  setFlipActive, setFlipCoin, flipSpinLeftMs, FLIP_LAND_HOLD_MS, boardCell, boardShipEls, drawBoard, render, resetBoardLog, bobShip, sailSetsOff, sailArrives, treasureBurst, crateFlightFrom, crateFlightTo, tradeSwapFrom, tradeSwapTo, coinsAcross, rideStreaks, firstHomeConfetti, shotLands, loserKnocked, stopTurnBob,
   seedIdleGameState, syncBoardSizing, watchMutePlacement, victoryConfetti, clearChatBubbles,
   showSeatCoins, // MP-06: the ONE purse renderer, shared with render() (04-01 Task 2)
-  battleSnapshot, renderBattleFromSnap, battleFooter, coinHTML, pipsHTML,
+  battleSnapshot, renderBattleFromSnap,
   collectSideBets, settleSideBets, netIntroBarrier, showAhoyIntro, showTurnOrderIntro,
   reachable, pickCell, localAsk, pilotGate, armStormGate, pilotOpeningFork, takeTurn, runStormLive, renderPickPrompt, renderAskPrompt, clearSailWindow, draftDispatch, wireRestoreFail,
   startPassAndPlay, startSinglePlayer,
@@ -463,7 +463,6 @@ export function applyBenchSnap(snap){
    on to something else — the bake-off bench takes the same precaution. */
 export function applyBattleSnap(snap){
   if(!snap){
-    if(document.querySelector("#actionPanel .btl"))panel("");
     appState.spectatingBattle=false;
     return;
   }
@@ -1940,11 +1939,18 @@ export async function consumeEvent(e){
      the moment you earn them". It hung off the `dock` summary, heads only, six coins whatever was earned. It now rides the record of
      the earning itself — a dock's `purse` (heads or tails) and a pass's pay — one coin per coin, on every screen. AWAITED below:
      a bot earns and buys in one breath, so the coins land before its buy is shown, and the two read as the two steps they are. */
-  const earnedFlight=(!appState.replaying&&(e.t==="purse"||e.t==="pass")&&e.coins>0)?treasureBurst(e.p,e.coins):null;
+  /* AND EVERY OTHER WAY OF EARNING (CEO, 2026-09-15: "coins from selling a crate in a trade ... and from a correct crow's-nest call
+     ... do not" fly). A won call's bounty flies from the caller's boat like any payday; a trade's coins come from the other captain,
+     so they cross row to row, out of the payer's purse and into the seller's. With these four (dock, pass, won call, trade sale)
+     every coin credited anywhere in the game flies (scripts/qa/every_coin_flies_check.mjs holds that). */
+  const earned=(e.t==="purse"||e.t==="pass")?e.coins:(e.t==="sidebet"&&e.won)?e.delta:0;
+  const earnedFlight=(!appState.replaying&&earned>0)?treasureBurst(e.p,earned):null;
+  const paidFlight=(!appState.replaying&&e.t==="trade"&&e.paid>0)?coinsAcross(e.a,e.b,e.paid):null;
   render();
   if(buyFlight)crateFlightTo(buyFlight,e.p);
   if(swapFlight)tradeSwapTo(swapFlight);
   if(earnedFlight)await earnedFlight;
+  if(paidFlight)await paidFlight;
   /* …AND THE ARRIVAL'S DIP AND SPLASH RING, ONCE IT HAS STOPPED. After render(), not inside the wait above: a hop too short
      to walk only starts gliding here, and a ring placed at the settle above landed a full square behind the boat on 3 of 8
      sails (measured). Not awaited, so the consumer's pace is unchanged; the stage's own settle says when the hull is still. */

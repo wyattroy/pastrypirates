@@ -1071,18 +1071,23 @@ class Game{
   // heads you turn up buried treasure (cfg.dockHeads), tails you spend the turn working the dock as
   // a hand (cfg.dockTails). There is no free crate any more: crates are bought, won, or traded for (rule 10b).
   // Buying is offered after EITHER outcome and may use the coins just earned (rule 10c).
+  /* A DOCK'S PAYDAY, IN ONE PLACE. The CEO, 2026-09-15: the coins-earned record "is written in two places: engine/index.js for bots
+     and flow.js for humans", under a comment claiming one place, which is the fault of the audit before it (docking written twice)
+     come back. Both docks now pay here: the purse is credited and the `purse` event recorded in one breath, so its snapshot holds
+     the new purse and every screen flies exactly these coins (orchestrator consumeEvent -> board.js treasureBurst). Wyatt,
+     2026-09-14: "the coins should enter your hold the moment you earn them". Guarded by scripts/qa/every_coin_flies_check.mjs. */
+  payDock(p,heads){
+    const coins=heads?this.cfg.dockHeads:this.cfg.dockTails;
+    p.coins+=coins;
+    this.ev({t:"purse",p:p.idx,coins,why:heads?"treasure":"dockhand"});
+    return coins;
+  }
   doDock(p,port){
     const ing=port,k=port; // ports are identified by ingredient name
     if(this.cfg.singleDock&&this.dockOccupiedBy(ing,p))return false;
     p.firstFlip.add(k);p.dockedNow.add(k);p.justDocked=true;
     const h=this.flip(p,"dock");   // recorded as a coinflip event NOW — before the buy, before the dock summary
-    p.coins+=h?this.cfg.dockHeads:this.cfg.dockTails;
-    /* THE COINS ARE RECORDED THE MOMENT THEY ARE EARNED — Wyatt, 2026-09-14: "the coins should enter your hold the moment you
-       earn them -- not at the end of your turn AFTER you've bought the ingredient ... they happen sequentially and both require
-       player decisions, so they should be displayed that way." A human's dock already recorded a `purse` here (src/ui/flow.js
-       humanDock); a bot's did not, so its earnings reached every screen only with the dock summary, alongside what it spent.
-       Same event, same place, for both — after the payment, so its snapshot holds the new purse (the doPass ordering note). */
-    this.ev({t:"purse",p:p.idx,coins:h?this.cfg.dockHeads:this.cfg.dockTails,why:h?"treasure":"dockhand"});
+    this.payDock(p,h);   // credited AND recorded in one place, shared with a human's dock (flow.js humanDock)
     const price=this.cratePrice(ing);
     // a bot buys when it needs the crate and can afford today's price — or, if it trades for a
     // living, when the crate is leverage somebody else at the table plainly needs (rule 4 fodder)
@@ -1297,7 +1302,7 @@ class Game{
     // learn each other's recipes without ever being shown one.
     this.noteDemand(p,offer.want,1);
     if(offer.giveIng)this.noteDemand(q,offer.giveIng,0.5);
-    this.ev({t:"trade",a:p.idx,b:q.idx,gave:this.offerLabel(offer,extra),got:offer.want,kind:extra?"counter":"open"});
+    this.ev({t:"trade",a:p.idx,b:q.idx,gave:this.offerLabel(offer,extra),got:offer.want,kind:extra?"counter":"open",paid:total});   // `paid`: the coins that cross from a to b fly (board.js coinsAcross)
     return true;
   }
   /* WHAT A COUNTER ACTUALLY MEANS, in one place — playtest 21 item 7.
@@ -1900,7 +1905,7 @@ class Game{
     const rounds=[];
     let flips=0,win=null,fled=false,nulled=false;
     // ---- THE round. Both cannons speak once. ----
-    const ah=this.flip(att),dh=this.flip(def);flips+=2;
+    const ah=this.flip(att,"battle"),dh=this.flip(def,"battle");flips+=2;   // recorded, as the live battle's flips are (orchestrator hFlip/bFlip)
     let scorer=null;
     if(ah&&dh){
       if(downwind==="a"){win=att;scorer="a";}
@@ -1940,7 +1945,7 @@ class Game{
           if(!refire||att.coins<refire||!this.wantsRefire(att,def,downwind,rounds.length)){nulled=true;break;}
           att.coins-=refire;
           this.ev({t:"refire",a:att.idx,d:def.idx,cost:refire});
-          const rh=this.flip(att);flips++;
+          const rh=this.flip(att,"battle");flips++;
           rounds.push([rh?1:0,null,0,rh?"a":null]);
           if(rh)win=att;
         }

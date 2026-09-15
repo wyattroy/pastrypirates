@@ -2044,7 +2044,7 @@ export async function treasureBurst(seat,coins){
   await whenFlipStageGone();
   const ships=$("boardShips")||$("board");
   const m=/translate\(([-\d.]+)px,\s*([-\d.]+)px\)/.exec(shipEls[seat].style.transform||"");
-  const from=m&&fixedPointOfBoard(ships,parseFloat(m[1]),parseFloat(m[2]));if(!from)return;
+  const from=m&&fixedPointOfBoard(ships,parseFloat(m[1]),parseFloat(m[2]));if(!from){holdCoinRoll(seat,0);return;}   // never leave the count frozen (CEO, 2026-09-15)
   const icon=($("coins"+seat)||{querySelector:()=>null}).querySelector("img");
   let to=null;
   if(icon&&capShowing()){const r=icon.getBoundingClientRect(),o=fixedOrigin();if(r.width>1)to=[r.left+r.width/2-o.x,r.top+r.height/2-o.y];}
@@ -2116,6 +2116,32 @@ export function tradeSwapTo(legs){
     a.onfinish=land;a.oncancel=land;
     setTimeout(land,SWAP_MS+400);
   }
+}
+/* A TRADE'S COINS CROSS FROM ONE PURSE TO THE OTHER. Wyatt, 2026-09-14: "every coin you earn should fly over". The CEO found a trade's
+   coins never flew (2026-09-15). They come from the other captain, not from an island, so they fly row to row the way the crates
+   do: out of the payer's coin count and into the seller's, one coin per coin. The seller's count waits for them; the payer's drops
+   at once, because the coins have already left. Called BEFORE render(), so the hold is in place before the new count is drawn. */
+const ACROSS_MS=900;
+export async function coinsAcross(fromSeat,toSeat,coins){
+  if(fxReduced()||!capShowing())return;
+  const at=s=>{const icon=($("coins"+s)||{querySelector:()=>null}).querySelector("img");if(!icon)return null;
+    const r=icon.getBoundingClientRect(),o=fixedOrigin();return r.width>1?{x:r.left+r.width/2-o.x,y:r.top+r.height/2-o.y,w:r.width}:null;};
+  const from=at(fromSeat),to=at(toSeat);if(!from||!to)return;
+  const n=Math.max(1,Math.min(TREASURE_MAX,Math.round(coins||1))),size=Math.max(12,from.w*1.15);
+  holdCoinRoll(toSeat,ACROSS_MS*0.8);
+  const dx=to.x-from.x,dy=to.y-from.y,bow=Math.max(size*2,Math.abs(dy)*0.3);
+  for(let k=0;k<n;k++){
+    const im=document.createElement("img");
+    im.src=COIN_IMG;im.alt="";im.className="ppTreasure";
+    Object.assign(im.style,{left:(from.x-size/2)+"px",top:(from.y-size/2)+"px",width:size+"px",height:size+"px"});
+    document.body.appendChild(im);
+    const a=im.animate([{translate:"0px 0px",scale:"0.6",opacity:0},
+      {translate:`${(dx*.5+bow).toFixed(1)}px ${(dy*.5).toFixed(1)}px`,scale:"1.1",opacity:1,offset:.45},
+      {translate:`${dx.toFixed(1)}px ${dy.toFixed(1)}px`,scale:"0.7",opacity:1}],
+      {duration:ACROSS_MS,delay:k*TREASURE_GAP_MS,easing:"cubic-bezier(.3,.7,.4,1)",fill:"both",id:"coins-across"});
+    a.onfinish=a.oncancel=()=>im.remove();
+  }
+  await new Promise(r=>setTimeout(r,ACROSS_MS+(n-1)*TREASURE_GAP_MS));
 }
 /* Measured BEFORE render() greys the crate (its island rect), handed to crateFlightTo AFTER render() has drawn the new chip. */
 export function crateFlightFrom(e){
