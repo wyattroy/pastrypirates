@@ -93,6 +93,15 @@ check(tb.includes("holdCoinRoll(seat,60000)") && unreleased.length === 0,
   "every way out of treasureBurst after its long hold releases the count",
   "treasureBurst can return after holding the count without releasing it — the purse freezes");
 
+/* ADDED 2026-09-15, after the host+phone pictures showed it and a posed dock measured it at both sizes: the count read 4 when three
+   treasure coins landed and still read 4 when "Buy a crate?" asked him to spend them. treasureBurst shortens a 60s hold once the
+   coins fly, but the roll's tick was already sleeping against the 60s, and nothing woke it. */
+console.log("\nA shortened hold wakes the count");
+const hold = body(board, "export function holdCoinRoll(");
+check(/setTimeout\(\s*r\.tick/.test(hold) && /r\.tick\s*=\s*tick/.test(board),
+  "holdCoinRoll re-schedules a waiting roll, so the count shows coins the moment they land",
+  "holdCoinRoll only moves the hold; a roll already sleeping on a longer hold never wakes — the count lags the coins and the buy");
+
 console.log("\nThe battle box stays gone");
 const boxRefs = [];
 for (const f of srcFiles) {

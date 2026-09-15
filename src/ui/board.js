@@ -1988,7 +1988,16 @@ export function paintShipAt(seat,c){
    written once and only the number changes, so the roll re-fetches nothing. A replay and reduced motion just set it. */
 const COIN_ROLL_STEP_MS=40, COIN_ROLL_MAX_MS=700;
 const coinRolls={};
-export function holdCoinRoll(seat,ms){(coinRolls[seat]=coinRolls[seat]||{}).holdUntil=performance.now()+ms;}
+/* A SHORTER HOLD WAKES A ROLL ALREADY WAITING ON A LONGER ONE. treasureBurst holds the count for up to a minute the moment coins
+   are earned (they wait for the flip stage), then shortens the hold once they are actually in the air. The roll's next tick was
+   scheduled against the long hold, so without this it slept the full minute: the count never showed the coins just earned, and
+   "Buy a crate?" asked him to spend a purse the count said he did not have (measured on a posed dock, phone and laptop,
+   2026-09-15). A hold that is lengthened needs nothing — the tick re-checks it when it wakes. */
+export function holdCoinRoll(seat,ms){
+  const r=coinRolls[seat]=coinRolls[seat]||{};
+  r.holdUntil=performance.now()+ms;
+  if(r.tick){clearTimeout(r.timer);r.timer=setTimeout(r.tick,Math.max(0,ms));}
+}
 export function showSeatCoins(seat,coins){
   const el=$("coins"+seat);
   if(!el)return;
@@ -2000,18 +2009,19 @@ export function showSeatCoins(seat,coins){
   const r=coinRolls[seat]=coinRolls[seat]||{};
   clearTimeout(r.timer);
   const from=parseInt(n.textContent,10);
-  if(had===null||!Number.isFinite(from)||from===coins||appState.replaying||fxReduced()){n.textContent=coins;return;}
+  if(had===null||!Number.isFinite(from)||from===coins||appState.replaying||fxReduced()){n.textContent=coins;r.tick=null;return;}
   const every=Math.max(12,Math.min(COIN_ROLL_STEP_MS,COIN_ROLL_MAX_MS/Math.abs(coins-from))),dir=Math.sign(coins-from);
   const tick=()=>{
-    if(!n.isConnected)return;
+    if(!n.isConnected){r.tick=null;return;}
     // a hold set AFTER this roll was scheduled still holds it — the earned coins wait for the flip stage to come down (treasureBurst)
     if(performance.now()<(r.holdUntil||0)){r.timer=setTimeout(tick,r.holdUntil-performance.now());return;}
     const cur=parseInt(n.textContent,10);
-    if(!Number.isFinite(cur)||cur===coins){n.textContent=coins;return;}
+    if(!Number.isFinite(cur)||cur===coins){n.textContent=coins;r.tick=null;return;}
     n.textContent=cur+dir;
     playCoinTick();                                            // his pick, 2026-09-14: the abacus click, one per coin
-    if(cur+dir!==coins)r.timer=setTimeout(tick,every);
+    if(cur+dir!==coins)r.timer=setTimeout(tick,every);else r.tick=null;
   };
+  r.tick=tick;
   r.timer=setTimeout(tick,Math.max(0,(r.holdUntil||0)-performance.now()));
 }
 /* ⭐ TREASURE BURSTS OUT, AND A BOUGHT CRATE FLIES HOME — PASSED on his game feel audit (2026-09-13), as proposed: "Coins spray
