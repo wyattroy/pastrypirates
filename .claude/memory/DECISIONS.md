@@ -3134,3 +3134,6 @@ died on the Blade. Rooted off `fileURLToPath(import.meta.url)`.
   list), and scripts/lib/checks.mjs rules 2 and 6 exempt a sail square whose cover is a narration bubble; a real cover still fails.
   → and the placement change is UNDONE, his pick in the question UI: *"Undo the move"*. A table-wide bubble (the day's wind line) sits
   top-centre again whatever is under it, and a fading bubble no longer lets a tap through — exactly as before commit 971e4995.
+- **THE SEE-THROUGH END OF VOYAGE CARD ON TABLET IS FINE.** His checklist answer to "should it be solid?": *"This looks fine as is."* (and
+  the card is being replaced by the victory card work anyway). On the same sheet, on "build the seven victory ideas as a toggle page?":
+  *"I wrote comments elsewhere -- read those first."*
