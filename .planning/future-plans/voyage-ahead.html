@@ -14,6 +14,7 @@
     --gold-ink: #5a3a05;
     --line: #d9e6df;
     --note: #eef5ef;
+    --amber-bg: #fff3d6; --amber-line: #e0a12a; --amber-text: #8a5a00;
     --display: 'Averia Serif Libre', 'Iowan Old Style', Georgia, serif;
     --body: 'Avenir Next', Avenir, 'Nunito Sans', 'Segoe UI', system-ui, sans-serif;
   }
@@ -21,13 +22,13 @@
     :root:not([data-theme="light"]) {
       --ground: #0d2529; --surface: #133238; --ink: #e8f1ec; --ink-soft: #a7c0c0;
       --teal: #6fcad5; --teal-bright: #6fcad5; --gold: #fdb63d; --gold-deep: #fdb63d;
-      --gold-ink: #3b2603; --line: #24484f; --note: #0f2b30;
+      --gold-ink: #3b2603; --line: #24484f; --note: #0f2b30; --amber-bg: #2e2a17; --amber-line: #d19a2c; --amber-text: #f3c56b;
     }
   }
   :root[data-theme="dark"] {
     --ground: #0d2529; --surface: #133238; --ink: #e8f1ec; --ink-soft: #a7c0c0;
     --teal: #6fcad5; --teal-bright: #6fcad5; --gold: #fdb63d; --gold-deep: #fdb63d;
-    --gold-ink: #3b2603; --line: #24484f; --note: #0f2b30;
+    --gold-ink: #3b2603; --line: #24484f; --note: #0f2b30; --amber-bg: #2e2a17; --amber-line: #d19a2c; --amber-text: #f3c56b;
   }
 
   * { box-sizing: border-box; }
@@ -86,6 +87,27 @@
   .running { background: var(--gold); color: var(--gold-ink); }
   .yourcall { border: 1.5px solid var(--ink); color: var(--ink); }
   .next { background: var(--note); border-radius: 10px; padding: .9rem 1rem; }
+
+  .asks { display: grid; gap: 1rem; }
+  .asks > h2 { font-family: var(--display); font-size: 1.5rem; margin: 0; border-bottom: 2px solid var(--ink); padding-bottom: .4rem; }
+  .ask-card { background: var(--amber-bg); border: 1.5px solid var(--amber-line); border-left: 6px solid var(--amber-line); border-radius: 12px; padding: 1rem 1.1rem; display: grid; gap: .6rem; }
+  .ask-card h3 { font-family: var(--display); font-size: 1.2rem; line-height: 1.2; margin: 0; text-wrap: balance; }
+  .ask-card p { margin: 0; font-size: .95rem; }
+  .ask-card.answered { border-left-color: var(--teal); }
+  .opts { display: grid; gap: .45rem; }
+  .opt { font: inherit; font-size: .93rem; text-align: left; padding: .6rem .8rem; border-radius: 10px; border: 1.5px solid var(--line); background: var(--surface); color: var(--ink); cursor: pointer; }
+  .opt:hover { border-color: var(--amber-line); }
+  .opt:focus-visible, .copy:focus-visible, textarea:focus-visible { outline: 2px solid var(--teal-bright); outline-offset: 2px; }
+  .opt[aria-pressed="true"] { background: var(--teal); border-color: var(--teal); color: var(--surface); }
+  .opt .rec { font-size: .72rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; margin-left: .35rem; color: var(--gold-deep); }
+  .opt[aria-pressed="true"] .rec { color: var(--surface); }
+  .note { display: grid; gap: .25rem; }
+  .note label { font-size: .7rem; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; color: var(--ink-soft); }
+  .note textarea { font: inherit; font-size: .95rem; min-height: 3.2rem; resize: vertical; padding: .55rem .7rem; border-radius: 10px; border: 1.5px solid var(--line); background: var(--surface); color: var(--ink); width: 100%; }
+  .dock { position: sticky; bottom: 0; background: var(--ground); border-top: 1px solid var(--line); padding: .7rem 0; display: flex; align-items: center; gap: .8rem; flex-wrap: wrap; z-index: 2; }
+  .copy { font: inherit; font-weight: 800; font-size: .95rem; padding: .65rem 1.1rem; border-radius: 12px; border: 1.5px solid var(--gold-deep); background: var(--gold); color: var(--gold-ink); cursor: pointer; }
+  .status { font-size: .85rem; color: var(--ink-soft); }
+  .status.warn { color: var(--amber-text); font-weight: 700; }
   footer { color: var(--ink-soft); font-size: .85rem; border-top: 1px solid var(--line); padding-top: 1rem; }
 
   @media (max-width: 480px) {
@@ -96,22 +118,61 @@
 
 <main class="page">
   <header>
-    <p class="eyebrow">Interview · 14 September 2026 · branch sep14-future-plans</p>
     <h1>The voyage ahead</h1>
-    <p class="lede">Twenty questions about where Pastry Pirates sails after launch: money, accounts, ways to play, merch and the real-world board. Each one is built from what comparable games actually do.</p>
-    <p class="how">Answered 14 September. Your digest is just below, and your full words are saved in the repo. Follow-ups go one at a time in chat and you answer out loud. If you'd rather dictate a batch, start each answer with its number. Every "others" note links to the page it came from; anything that couldn't be verified was left out.</p>
   </header>
 
-  <aside class="settled">
-    <h2>Already settled, so not asked again</h2>
-    <ul>
-      <li>It's <strong>"a living game I grow for years"</strong> (your ruling, 30 Aug).</li>
-      <li>Logins and paid digital merch come <strong>within a month of launch</strong>, so the questions ask what they're <em>for</em>, not whether.</li>
-      <li>Today: free, no login, no download, no ads, 1 to 4 captains, solo, pass-the-wheel or online crew, and a 🍪 Buy me a cookie button.</li>
-      <li>Bots and humans always play by identical rules.</li>
-    </ul>
-  </aside>
 
+  <section class="asks" id="asks" aria-labelledby="asks-h">
+    <h2 id="asks-h">To settle</h2>
+
+    <article class="ask-card" data-ask="kids">
+      <h3>Who do we design for: 13 and up, or kids too?</h3>
+      <p>Answer 5: <em>"a lot of kids are going to play this."</em> Answer 11: <em>"too sophisticated for children under 13."</em> This decides how sign-ins, purchases and mystery boxes may work. In the US, a sign-in or purchase for an under-13 needs a parent's consent (<a href="https://www.ftc.gov/business-guidance/resources/complying-coppa-frequently-asked-questions">FTC</a>).</p>
+      <div class="opts">
+        <button class="opt" data-val="13 and up">13 and up: teens and adults; kids welcome to play, no kid-only features<span class="rec">Recommended</span></button>
+        <button class="opt" data-val="All ages, under-13s included">All ages, under-13s included, with parent consent built in</button>
+        <button class="opt" data-val="Adults first, kids play free with no sign-in or purchases">Adults first; kids play free with no sign-in and no purchases</button>
+      </div>
+    </article>
+
+    <article class="ask-card" data-ask="line">
+      <h3>Is this the line between bought and earned?</h3>
+      <p>Money buys what you wear (paint, sails, flags, coins, bakery decor, pet outfits, music, expansion seas). Voyages earn what you've proven (recipes, trophies, titles, pets, rank, streaks). The cookie flag is the one clout you can pay for. Full proposal below.</p>
+      <div class="opts">
+        <button class="opt" data-val="Yes, this line">Yes, this line<span class="rec">Recommended</span></button>
+        <button class="opt" data-val="Close, changes in my notes">Close, changes in my notes</button>
+        <button class="opt" data-val="No, rethink it">No, rethink it</button>
+      </div>
+    </article>
+
+    <article class="ask-card" data-ask="money-dubloons">
+      <h3>Can money buy dubloons?</h3>
+      <p>Your example was $1 for 100. If dubloons can be bought, anything dubloons buy is bought, which makes earned things buyable. In January 2025 the FTC made Genshin Impact's maker show what its in-game coins cost in real money (<a href="https://www.ftc.gov/news-events/news/press-releases/2025/01/genshin-impact-game-developer-will-be-banned-selling-lootboxes-teens-under-16-without-parental">FTC</a>). Belgium counts boxes bought with bought coins as gambling.</p>
+      <div class="opts">
+        <button class="opt" data-val="No: money buys named items; dubloons are only earned">No: money buys named items at a clear price; dubloons are only earned<span class="rec">Recommended</span></button>
+        <button class="opt" data-val="Yes, money buys dubloons">Yes, money buys dubloons</button>
+      </div>
+    </article>
+
+    <article class="ask-card" data-ask="dubloons-expansions">
+      <h3>Can earned dubloons buy expansion seas?</h3>
+      <p>A friend already plays any sea their crew owns for free (your answer 4). If dubloons also buy seas, a patient solo player never needs to pay, and the seas are the main thing you sell.</p>
+      <div class="opts">
+        <button class="opt" data-val="Looks only; seas cost money">Looks only; seas cost money (and crews share them)<span class="rec">Recommended</span></button>
+        <button class="opt" data-val="Yes, slowly">Yes, slowly</button>
+        <button class="opt" data-val="Only older seas, once a new one is out">Only older seas, once a new one is out</button>
+      </div>
+    </article>
+    <article class="ask-card" data-ask="physical-first">
+      <h3>The board game: pitch publishers first, or crowdfund it yourself?</h3>
+      <p>Decide this early, because one can close the other. Stonemaier Games says it does not take games that have already been crowdfunded (<a href="https://stonemaiergames.com/about/submission-guidelines/">Stonemaier</a>). Nobody says whether a free web game counts as "already published"; ask each publisher. Pitching costs almost nothing. A campaign costs a few thousand dollars before launch.</p>
+      <div class="opts">
+        <button class="opt" data-val="Pitch publishers first">Pitch publishers first, and crowdfund only if nobody bites<span class="rec">Recommended</span></button>
+        <button class="opt" data-val="Crowdfund it myself">Crowdfund it myself and keep control</button>
+        <button class="opt" data-val="Sell the wooden edition by hand now, pitch the boxed game">Sell the wooden edition by hand now, and pitch the boxed game</button>
+      </div>
+    </article>
+  </section>
 
   <section class="told" id="told" aria-labelledby="told-h">
     <h2 id="told-h">What you told me</h2>
@@ -123,6 +184,8 @@
         <li>Thousands of daily players, and some donations.</li>
         <li>A licence or a real revenue model. It pays its Firebase bill, then <strong>$4,000 a month</strong> to you, then enough to pay a helper.</li>
       </ol>
+    
+      <div class="note"><label for="n-told0">Your notes: Your ladder of success</label><textarea id="n-told0" data-note="told0" data-label="Your ladder of success" rows="2"></textarea></div>
     </div>
     <div>
       <h3>You asked for my thoughts: where bought ends and earned begins</h3>
@@ -145,6 +208,8 @@
         </ul></div>
       </div>
       <p style="margin-top:.7rem">Three risks to design around. <strong>First:</strong> if dubloons can be both bought and earned, they must never buy anything in the earned-only column, or clout becomes buyable. <strong>Second:</strong> a captain could pile up dubloons sailing solo against bots all day, so earnings may need a daily cap. <strong>Third:</strong> paid mystery boxes are the legal hot spot (checked below). The simplest safe version: <strong>money buys named items at a clear price, never dubloons</strong>, and dubloons are only ever earned. That also closes the first risk.</p>
+    
+      <div class="note"><label for="n-told1">Your notes: You asked for my thoughts: where bought ends and earned begins</label><textarea id="n-told1" data-note="told1" data-label="You asked for my thoughts: where bought ends and earned begins" rows="2"></textarea></div>
     </div>
     <div>
       <h3>Mystery boxes, checked at the source</h3>
@@ -155,6 +220,8 @@
         <li><strong>US (Jan 2025):</strong> the maker of Genshin Impact paid $20M. It may not sell loot boxes to under-16s without a parent’s consent, and must show odds and what its coins cost in real money. <a class="src" href="https://www.ftc.gov/news-events/news/press-releases/2025/01/genshin-impact-game-developer-will-be-banned-selling-lootboxes-teens-under-16-without-parental">FTC</a></li>
         <li><strong>So:</strong> the thrill you like is safe as <strong>a mystery box you earn by playing</strong>. Selling them for money waits until a lawyer has looked, and depends on your answer about kids.</li>
       </ul>
+    
+      <div class="note"><label for="n-told2">Your notes: Mystery boxes, checked at the source</label><textarea id="n-told2" data-note="told2" data-label="Mystery boxes, checked at the source" rows="2"></textarea></div>
     </div>
     <div>
       <h3>Your architecture question, in plain English</h3>
@@ -166,6 +233,8 @@
         <li><strong>Native apps keep one set of game files.</strong> A wrapper puts the game inside an app, with Capacitor for iPhone and Android and Tauri or Electron for Steam, and solo against bots works offline. <a class="src" href="https://capacitorjs.com/docs/config">Capacitor</a> Apple lets a web purchase unlock on iPhone, as long as the iPhone app also sells that item. <a class="src" href="https://developer.apple.com/app-store/review/guidelines/">Apple 3.1.3(b)</a> Whether Steam allows the same is not verified.</li>
         <li><strong>Order, smallest first:</strong> move today’s sea into a world folder with no visible change → add a tiny second test world without touching shared files → a free cosmetic slot (flip coins) → accounts and the real ledger → earned trophies → the store → the native apps. Paid mystery boxes and buyable dubloons are parked.</li>
       </ul>
+    
+      <div class="note"><label for="n-told3">Your notes: Your architecture question, in plain English</label><textarea id="n-told3" data-note="told3" data-label="Your architecture question, in plain English" rows="2"></textarea></div>
     </div>
     <div>
       <h3>What you asked me to do</h3>
@@ -173,10 +242,12 @@
         <li><span class="state done">Done</span>Talked to the victory card session about scoring. The score is per voyage and per captain, and deliberately luck-free: dock flips, battle flips and storms pay nothing. That’s exactly what a fair Daily Voyage leaderboard needs. It isn’t a player rating yet. Waiting on accounts: the slipway ship, “New best voyage!” and “3 of 21 recipes baked”. <a href="https://claude.ai/code/artifact/a7e8dae4-42d9-4f01-891a-ef2c782f091f">Victory card sheet</a></li>
         <li><span class="state done">Done</span>Your rulings and the physical-board pipeline are on the backlog.</li>
         <li><span class="state done">Done</span>What makes Pastry Pirates streamable and screenshot-worthy, plus first ideas for the viral brainstorm. See below.</li>
-        <li><span class="state running">Researching</span>Bringing the physical game to market without upfront money.</li>
+        <li><span class="state done">Done</span>Bringing the board game to market without upfront money. Below, with its one big choice at the top.</li>
         <li><span class="state done">Done</span>Architecture in plain English: worlds as folders, one ledger of what each captain owns, Steam, iOS and Google Play with offline play. Below, with mystery boxes checked.</li>
         <li><span class="state yourcall">Your call</span>The bought vs earned line above.</li>
       </ul>
+    
+      <div class="note"><label for="n-told4">Your notes: What you asked me to do</label><textarea id="n-told4" data-note="told4" data-label="What you asked me to do" rows="2"></textarea></div>
     </div>
     <div>
       <h3>Streaming and screenshots: the two strongest leads</h3>
@@ -185,10 +256,20 @@
         <li><strong>The Wordle loop needs both halves.</strong> A share button came two weeks after a player first typed the grid by hand. Wordle went from 90 players on 1 Nov 2021 to 2 million a week by 9 Jan 2022. <a class="src" href="https://en.wikipedia.org/wiki/Wordle">Wikipedia</a> The grid does nothing without a shared daily puzzle, so the Daily Voyage comes first and the emoji grid second, with a line of words under it for screen readers. <a class="src" href="https://slate.com/culture/2022/02/wordle-word-game-results-accessibility-twitter.html">Slate</a></li>
         <li><strong>Also found:</strong> friends playing together is what streamers spread (<em>Among Us</em>: 774K watching at once, Nov 2020 <a class="src" href="https://streamscharts.com/news/phenomena-2020-among-us">Streams Charts</a>). Streamer mode hides the room code (<em>Among Us</em>). A “beat my voyage” link replays your exact sea (<em>Balatro</em> seeds). Discord says over 25% of its monthly users use its built-in apps and Activities. <a class="src" href="https://discord.com/blog/build-where-the-world-plays">Discord</a></li>
       </ul>
+    
+      <div class="note"><label for="n-told5">Your notes: Streaming and screenshots: the two strongest leads</label><textarea id="n-told5" data-note="told5" data-label="Streaming and screenshots: the two strongest leads" rows="2"></textarea></div>
     </div>
-    <div class="next">
-      <h3>One thing to settle first</h3>
-      <p>In answer 5 you said <em>“a lot of kids are going to play this”</em>; in answer 11, <em>“too sophisticated for children under 13.”</em> Which one you design for decides how sign-ins, purchases, buying dubloons and mystery boxes can work. It’s the first follow-up in chat.</p>
+    <div>
+      <h3>The board game, without upfront money</h3>
+      <ul>
+        <li><strong>1. Pitch it to publishers. Costs almost nothing.</strong> You need a one-page sell sheet and a two-minute video of the wooden board being played. Stonemaier's advice is to pick about ten publishers you admire. Stonemaier pays a $10,000 advance and 7–10% of gross sales; newer designers usually get 5–8% (<a class="src" href="https://stonemaiergames.com/game-designer-contracts-and-stonemaier-games/">Stonemaier</a> <a class="src" href="https://www.ttgda.org/2a-royalty-methodology">TTGDA</a>). Unpub runs ten-minute pitches to publishers at Gen Con 2026 (<a class="src" href="https://www.unpub.org/upcoming-events/unpub-at-gen-con-2026">Unpub</a>).</li>
+        <li><strong>2. The wooden edition, cut after each sale. Low cost.</strong> Ponoko and SendCutSend cut wood the thickness of your board (<a class="src" href="https://www.ponoko.com/laser-cutting/wood">Ponoko</a> <a class="src" href="https://sendcutsend.com/materials/baltic-birch-plywood/">SendCutSend</a>). You upload the files and get a quote per set; the price wasn't verified. You're paid before you cut.</li>
+        <li><strong>3. Crowdfund a boxed game. A few thousand up front.</strong> Factories won't print fewer than about 500 copies (<a class="src" href="https://printninja.com/board-game-minimum-order-quantities/">PrintNinja</a>). One designer's 1,250-copy run cost about $8.50 a copy, delivered (<a class="src" href="https://brandonthegamedev.com/how-much-you-should-spend-on-board-game-manufacturing/">source</a>). Custom wooden pieces are likely the costliest part, so a boxed edition would use cardboard or printed pieces.</li>
+        <li><strong>What the web game is worth here:</strong> a publisher or backer can play the real thing in a minute. <em>Slay the Spire</em>'s board game raised $3.9M, but through a licence to a board game company (<a class="src" href="https://www.kicktraq.com/projects/contentiongames/slay-the-spire-the-board-game/">Kicktraq</a>). No verified case turned up of a solo designer's free browser game crowdfunding its own box.</li>
+        <li><strong>A cheap first gate:</strong> a "Get the board game" sign-up on the end card. About 30% of Kickstarter followers back at launch, against 2–10% of an email list (<a class="src" href="https://prelaunch.marketing/blogs/academy/average-conversion-rates-for-kickstarter-followers">Prelaunch</a>). So a 500-copy run needs roughly 1,700 followers before launch. That target is my arithmetic, not an industry rule.</li>
+        <li><strong>Risks:</strong> US tariffs on China-made goods have changed repeatedly since 2025, and today's rate for a board game wasn't verified (<a class="src" href="https://cardboardedison.com/tariffs">Cardboard Edison</a>). Shipping a big box is costly. Publishers rarely sign NDAs, but the web game's public release date is a dated record that the design is yours.</li>
+      </ul>
+      <div class="note"><label for="n-physical">Your notes: The board game, without upfront money</label><textarea id="n-physical" data-note="physical" data-label="The board game, without upfront money" rows="2"></textarea></div>
     </div>
   </section>
 
@@ -207,6 +288,8 @@
         <li>Lichess is free forever to millions, and donations pay for its servers and one full-time developer. <a class="src" href="https://lichess.org/patron">lichess.org</a></li>
       </ul></div>
       <div class="yours"><b>Your answer</b>Thousands of players, enough to live off, then enough to hire. Success is a ladder of steps, not one finish line. Big dreams: “the new Settlers of Catan”, selling it for low seven figures, royalties.</div>
+    
+      <div class="note"><label for="n-q1">Your notes: 1. What does "a living game I grow for years" look like when it's working?</label><textarea id="n-q1" data-note="q1" data-label="1. What does "a living game I grow for years" look like when it's working?" rows="2"></textarea></div>
     </div></article>
 
     <article class="q" id="q2"><div class="coin">2</div><div class="qbody">
@@ -218,6 +301,8 @@
         <li>EU tax on digital sales applies even to a US seller. <a class="src" href="https://vat-one-stop-shop.ec.europa.eu/one-stop-shop/declare-and-pay-oss_en">EU</a></li>
       </ul></div>
       <div class="yours"><b>Your answer</b>A hobby now; a side business or company next. Floor: it pays its own Firebase bill. Target: $4,000 a month. Happy to pay tax, but the paperwork should run itself so you can design. <em>(Paddle, in one line: a company that sells on your behalf, so worldwide sales tax is its job, not yours. The term is “merchant of record”.)</em></div>
+    
+      <div class="note"><label for="n-q2">Your notes: 2. Hobby, side business, or company?</label><textarea id="n-q2" data-note="q2" data-label="2. Hobby, side business, or company?" rows="2"></textarea></div>
     </div></article>
   </section>
 
@@ -234,6 +319,8 @@
         <li>On phones, Gartic Phone players complain that ads lag the game. <a class="src" href="https://apps.apple.com/us/app/gartic-phone/id6788498566">App Store</a></li>
       </ul></div>
       <div class="yours"><b>Your answer</b>Never: pay to win, selling data, charging to play with friends. Ads: “morally opposed”, only if nothing else works, and only where they steal no attention (loading, waiting for a friend). Mystery boxes: could be cool. Free to play forever. Bought looks carry no clout; earned things do.</div>
+    
+      <div class="note"><label for="n-q3">Your notes: 3. What will Pastry Pirates promise never to do?</label><textarea id="n-q3" data-note="q3" data-label="3. What will Pastry Pirates promise never to do?" rows="2"></textarea></div>
     </div></article>
 
     <article class="q" id="q4"><div class="coin">4</div><div class="qbody">
@@ -245,6 +332,8 @@
         <li>Board Game Arena: one premium player at the table unlocks a premium game. <a class="src" href="https://forum.boardgamearena.com/viewtopic.php?t=35510">BGA forum</a></li>
       </ul></div>
       <div class="yours"><b>Your answer</b>Yes, exactly Jackbox and Colonist. Friends get “treated” to the pack, and the owner’s pasta hat makes them want it.</div>
+    
+      <div class="note"><label for="n-q4">Your notes: 4. When a crew sails together, should one captain's purchase carry the whole table?</label><textarea id="n-q4" data-note="q4" data-label="4. When a crew sails together, should one captain's purchase carry the whole table?" rows="2"></textarea></div>
     </div></article>
 
     <article class="q" id="q5"><div class="coin">5</div><div class="qbody">
@@ -256,6 +345,8 @@
         <li>Colonist sells colours, avatars and extra maps. Catan Universe sells avatar outfits and pets. <a class="src" href="https://colonist.io/store">Colonist</a></li>
       </ul></div>
       <div class="yours"><b>Your answer</b>World expansions: Pasta Pirates (Mediterranean), Planetary Pirates (space), Sushi Pirates, a winter or night sea, each with captains, ships, flags, islands, ingredients and recipes. Music packs yes; sound packs unsure. Pets, outfits, bakery decor, ovens. Dubloons left at the end of a voyage become yours to spend, so a kid can slowly earn what others buy.</div>
+    
+      <div class="note"><label for="n-q5">Your notes: 5. What could someone buy that never helps them win?</label><textarea id="n-q5" data-note="q5" data-label="5. What could someone buy that never helps them win?" rows="2"></textarea></div>
     </div></article>
 
     <article class="q" id="q6"><div class="coin">6</div><div class="qbody">
@@ -267,6 +358,8 @@
         <li>Lichess supporters get "Patron wings" on their profile, and nothing is ever locked. <a class="src" href="https://lichess.org/patron">Lichess</a></li>
       </ul></div>
       <div class="yours"><b>Your answer</b>The cookie button is a short-term test. Yes to a supporter flag and a name in the credits. No subscriptions (“cheesy”). The base game stays free, with expansions sold on top.</div>
+    
+      <div class="note"><label for="n-q6">Your notes: 6. One price, a membership, or a supporter's badge?</label><textarea id="n-q6" data-note="q6" data-label="6. One price, a membership, or a supporter's badge?" rows="2"></textarea></div>
     </div></article>
 
     <article class="q" id="q7"><div class="coin">7</div><div class="qbody">
@@ -279,6 +372,8 @@
         <li>Colonist runs inside Discord as a game friends play during a voice call. <a class="src" href="https://blog.colonist.io/play-colonist-on-discord/">Colonist</a></li>
       </ul></div>
       <div class="yours"><b>Your answer</b>Steam, iOS and Google Play are in scope. Native feels better and works offline, “when you’re flying”.</div>
+    
+      <div class="note"><label for="n-q7">Your notes: 7. Does the game live only at playpastrypirates.com?</label><textarea id="n-q7" data-note="q7" data-label="7. Does the game live only at playpastrypirates.com?" rows="2"></textarea></div>
     </div></article>
 
     <article class="q" id="q8"><div class="coin">8</div><div class="qbody">
@@ -289,6 +384,8 @@
         <li>Exploding Kittens has a version inside Netflix Games. <a class="src" href="https://www.netflix.com/games/81518722">Netflix</a></li>
       </ul></div>
       <div class="yours"><b>Your answer</b>Open to licensing or selling, but not under ~$100,000. More willing to license the physical board than the digital game. Netflix Games: yes. You asked for the physical-board pipeline on the backlog.</div>
+    
+      <div class="note"><label for="n-q8">Your notes: 8. Is Pastry Pirates yours for keeps?</label><textarea id="n-q8" data-note="q8" data-label="8. Is Pastry Pirates yours for keeps?" rows="2"></textarea></div>
     </div></article>
   </section>
 
@@ -304,6 +401,8 @@
         <li>Games usually put ratings, history, custom names, saved progress and purchases behind a sign-in.</li>
       </ul></div>
       <div class="yours"><b>Your answer</b>Keep: win count, recipes won (sellable in your bakery), recipes seen but not won, trophies, looks, coins, boats, pets, purchases on every device, a friends list, and visits to friends’ bakeries. A voyage log isn’t needed.</div>
+    
+      <div class="note"><label for="n-q9">Your notes: 9. When a captain signs in, what do they get to keep?</label><textarea id="n-q9" data-note="q9" data-label="9. When a captain signs in, what do they get to keep?" rows="2"></textarea></div>
     </div></article>
 
     <article class="q" id="q10"><div class="coin">10</div><div class="qbody">
@@ -316,6 +415,8 @@
         <li>Firebase, which the game already uses, can quietly give every player a guest account. They can attach Google or email later and keep everything. <a class="src" href="https://firebase.google.com/docs/auth/web/anonymous-auth">Firebase</a></li>
       </ul></div>
       <div class="yours"><b>Your answer</b>Never required to play. Invite a sign-in at the end of a voyage to save progress and spend points. “As little friction as possible to begin playing.”</div>
+    
+      <div class="note"><label for="n-q10">Your notes: 10. Must anyone ever sign in just to play?</label><textarea id="n-q10" data-note="q10" data-label="10. Must anyone ever sign in just to play?" rows="2"></textarea></div>
     </div></article>
 
     <article class="q" id="q11"><div class="coin">11</div><div class="qbody">
@@ -328,6 +429,8 @@
         <li>US rule in plain terms. <a class="src" href="https://www.ftc.gov/business-guidance/resources/complying-coppa-frequently-asked-questions">FTC</a> <a class="src" href="https://ico.org.uk/for-organisations/uk-gdpr-guidance-and-resources/childrens-information/childrens-code-guidance-and-resources/introduction-to-the-childrens-code/">UK ICO</a></li>
       </ul></div>
       <div class="yours"><b>Your answer</b>Too sophisticated for under-13s, and an art redesign is coming. Chat only among people who know each other; strangers get the board plus something like a high-five. No moderation.</div>
+    
+      <div class="note"><label for="n-q11">Your notes: 11. Who's at the table, and what can they say to each other?</label><textarea id="n-q11" data-note="q11" data-label="11. Who's at the table, and what can they say to each other?" rows="2"></textarea></div>
     </div></article>
   </section>
 
@@ -343,6 +446,8 @@
         <li>The game already builds the same board every time from the same seed, so this is the cheapest mode on the list.</li>
       </ul></div>
       <div class="yours"><b>Your answer</b>Yes: a Daily Voyage or recipe of the day, played like a puzzle, with a leaderboard and an emoji grid. Daily challenges from the mechanics: all bots against you, an archipelago maze. “This is the stuff I find fun, not the taxes.”</div>
+    
+      <div class="note"><label for="n-q12">Your notes: 12. A Daily Voyage: the same sea for everyone, every day?</label><textarea id="n-q12" data-note="q12" data-label="12. A Daily Voyage: the same sea for everyone, every day?" rows="2"></textarea></div>
     </div></article>
 
     <article class="q" id="q13"><div class="coin">13</div><div class="qbody">
@@ -354,6 +459,8 @@
         <li>Ranked play needs enough people online at once, and it brings cheating reports.</li>
       </ul></div>
       <div class="yours"><b>Your answer</b>Strangers too: “Find me a crew”, matched by rank, with no chat.</div>
+    
+      <div class="note"><label for="n-q13">Your notes: 13. Friends only, or strangers too?</label><textarea id="n-q13" data-note="q13" data-label="13. Friends only, or strangers too?" rows="2"></textarea></div>
     </div></article>
 
     <article class="q" id="q14"><div class="coin">14</div><div class="qbody">
@@ -364,6 +471,8 @@
         <li>Since iOS 16.4, a web game saved to an iPhone home screen can send notifications. <a class="src" href="https://webkit.org/blog/13878/web-push-for-web-apps-on-ios-and-ipados/">WebKit</a></li>
       </ul></div>
       <div class="yours"><b>Your answer</b>Low priority. Playing over days breaks your memory of where you were going and what the wind was doing. It would need a strong business case.</div>
+    
+      <div class="note"><label for="n-q14">Your notes: 14. A slow voyage: one move a day, with a nudge when it's your turn?</label><textarea id="n-q14" data-note="q14" data-label="14. A slow voyage: one move a day, with a nudge when it's your turn?" rows="2"></textarea></div>
     </div></article>
 
     <article class="q" id="q15"><div class="coin">15</div><div class="qbody">
@@ -375,6 +484,8 @@
         <li>House rules, extra-long timers, and colourblind support, which Colonist players have asked for.</li>
       </ul></div>
       <div class="yours"><b>Your answer</b>Campaign voyages, a five-minute blitz, 2-vs-2 (trade matters more), streaming and spectating, and a map painter that places the islands. Never ships with powers or rule changes: “the current rule set is gospel.”</div>
+    
+      <div class="note"><label for="n-q15">Your notes: 15. What other ways to play are already in your head?</label><textarea id="n-q15" data-note="q15" data-label="15. What other ways to play are already in your head?" rows="2"></textarea></div>
     </div></article>
   </section>
 
@@ -391,6 +502,8 @@
         <li>Cards Against Humanity gives away a free printable version and still sells the box. The Game Crafter prints one copy at a time. <a class="src" href="https://www.thegamecrafter.com/make/pricing">TGC</a></li>
       </ul></div>
       <div class="yours"><b>Your answer</b>Both: a handmade premium edition in small numbers, and the first draft of a cheaper boxed game. No print-and-play (too many pieces). Open to Kickstarter. You asked for low-capital ways to market.</div>
+    
+      <div class="note"><label for="n-q16">Your notes: 16. The laser-cut board: keepsake, Kickstarter, or printable?</label><textarea id="n-q16" data-note="q16" data-label="16. The laser-cut board: keepsake, Kickstarter, or printable?" rows="2"></textarea></div>
     </div></article>
 
     <article class="q" id="q17"><div class="coin">17</div><div class="qbody">
@@ -402,6 +515,8 @@
         <li>Makeship makes a plush only if 200 fans preorder within 21 days. <a class="src" href="https://www.makeship.com/how-it-works">Makeship</a></li>
       </ul></div>
       <div class="yours"><b>Your answer</b>Root is the art reference. Pets and animals are cute; captains aren’t yet. Digital merch excites you far more than physical, which should come through no-stock shops set up by a hired helper.</div>
+    
+      <div class="note"><label for="n-q17">Your notes: 17. Which art would people wear, stick on a laptop, or hug?</label><textarea id="n-q17" data-note="q17" data-label="17. Which art would people wear, stick on a laptop, or hug?" rows="2"></textarea></div>
     </div></article>
 
     <article class="q" id="q18"><div class="coin">18</div><div class="qbody">
@@ -414,6 +529,8 @@
         <li>No documented bakery partnership with an indie game turned up. That's open water.</li>
       </ul></div>
       <div class="yours"><b>Your answer</b>Yes to all of it: an official cookbook, a social channel baking every recipe, a bake-your-recipe contest with in-game prizes, and a bakery sponsoring an island for a day.</div>
+    
+      <div class="note"><label for="n-q18">Your notes: 18. Should the pastries leave the screen?</label><textarea id="n-q18" data-note="q18" data-label="18. Should the pastries leave the screen?" rows="2"></textarea></div>
     </div></article>
   </section>
 
@@ -429,14 +546,98 @@
         <li>One Hacker News front-page launch drew about 468 users on day one, then a few dozen a day within a week. Spikes fade without a reason to come back. <a class="src" href="https://www.indiehackers.com/post/front-page-of-hn-the-full-postmortem-traffic-lessons-surprises-cbe9e0a7f6">Indie Hackers</a></li>
       </ul></div>
       <div class="yours"><b>Your answer</b>“I don’t know where they are, my friend.” Reddit, board game groups, gaming TikTok, streamers, friends of friends. The share moment: losing a battle, worse one you started. It has to hit hard and read without context.</div>
+    
+      <div class="note"><label for="n-q19">Your notes: 19. Who are your first thousand captains, and what do they post?</label><textarea id="n-q19" data-note="q19" data-label="19. Who are your first thousand captains, and what do they post?" rows="2"></textarea></div>
     </div></article>
 
     <article class="q" id="q20"><div class="coin">20</div><div class="qbody">
       <h3>What's on your list that I didn't ask about?</h3>
       <p class="ask">A feature, a fear, a partner, a wild idea. Your list outranks mine, and last time the best answers were the ones you wrote in yourself.</p>
       <div class="yours"><b>Your answer</b>Architecture: new worlds generated quickly through a pipeline (art review, narration pass); one ledger the game asks (“which coin does this captain have?”); structured so parallel Claude sessions never collide.</div>
+    
+      <div class="note"><label for="n-q20">Your notes: 20. What's on your list that I didn't ask about?</label><textarea id="n-q20" data-note="q20" data-label="20. What's on your list that I didn't ask about?" rows="2"></textarea></div>
     </div></article>
   </section>
-
-  <footer>Research from four passes on 14 September 2026 covering digital board games, merch and physical editions, accounts and ways to play, and solo-creator business models. Prices and fees are only given where the page was opened; everything else was left out.</footer>
+  <div class="dock">
+    <button class="copy" id="copy">Copy my notes</button>
+    <span class="status" id="status" role="status" aria-live="polite">Saves as you type</span>
+  </div>
 </main>
+
+<script>
+(function () {
+  var KEY = 'voyage-ahead/wyatt-r1';
+  var status = document.getElementById('status');
+  var state = { asks: {}, notes: {} };
+  var canSave = true;
+  try { var raw = localStorage.getItem(KEY); if (raw) state = JSON.parse(raw) || state; } catch (e) { canSave = false; }
+  state.asks = state.asks || {}; state.notes = state.notes || {};
+  function say(msg, warn) { status.textContent = msg; status.className = 'status' + (warn ? ' warn' : ''); }
+  function save() {
+    try { localStorage.setItem(KEY, JSON.stringify(state)); say('Saved'); }
+    catch (e) { canSave = false; say("Can't save here, so copy your notes before you leave", true); }
+  }
+  if (!canSave) say("Can't save here, so copy your notes before you leave", true);
+
+  document.querySelectorAll('.ask-card').forEach(function (card) {
+    var id = card.dataset.ask;
+    var btns = card.querySelectorAll('.opt');
+    function paint() {
+      btns.forEach(function (b) { b.setAttribute('aria-pressed', state.asks[id] === b.dataset.val ? 'true' : 'false'); });
+      card.classList.toggle('answered', !!state.asks[id]);
+    }
+    btns.forEach(function (b) {
+      b.addEventListener('click', function () {
+        state.asks[id] = state.asks[id] === b.dataset.val ? undefined : b.dataset.val;
+        if (!state.asks[id]) delete state.asks[id];
+        paint(); save();
+      });
+    });
+    paint();
+  });
+
+  document.querySelectorAll('textarea[data-note]').forEach(function (t) {
+    var id = t.dataset.note;
+    if (state.notes[id]) t.value = state.notes[id];
+    t.addEventListener('input', function () {
+      if (t.value.trim()) state.notes[id] = t.value; else delete state.notes[id];
+      save();
+    });
+  });
+
+  function text() {
+    var lines = [];
+    var cards = document.querySelectorAll('.ask-card');
+    var answered = [];
+    cards.forEach(function (c) { if (state.asks[c.dataset.ask]) answered.push(c); });
+    if (answered.length) {
+      lines.push('ANSWERS');
+      answered.forEach(function (c) { lines.push('- ' + c.querySelector('h3').textContent + ' -> ' + state.asks[c.dataset.ask]); });
+      lines.push('');
+    }
+    var notes = [];
+    document.querySelectorAll('textarea[data-note]').forEach(function (t) {
+      if (t.value.trim()) notes.push('- ' + t.dataset.label + ':\n  ' + t.value.trim().replace(/\n/g, '\n  '));
+    });
+    if (notes.length) { lines.push('NOTES'); lines = lines.concat(notes); }
+    return lines.length ? 'Voyage Ahead (future-plans interview)\n\n' + lines.join('\n') : '';
+  }
+
+  document.getElementById('copy').addEventListener('click', function () {
+    var t = text();
+    if (!t) { say('Nothing to copy yet: pick an answer or write a note'); return; }
+    function fallback() {
+      var ta = document.createElement('textarea');
+      ta.value = t; ta.setAttribute('readonly', ''); ta.style.position = 'fixed'; ta.style.top = '0'; ta.style.left = '0'; ta.style.opacity = '0';
+      document.body.appendChild(ta); ta.focus(); ta.select();
+      var ok = false;
+      try { ok = document.execCommand('copy'); } catch (e) { ok = false; }
+      if (ok) { document.body.removeChild(ta); say('Copied, paste it into chat'); }
+      else { ta.style.opacity = '1'; ta.style.height = '40vh'; ta.style.width = '100%'; ta.style.zIndex = '10'; say("Couldn't copy, so your notes are selected at the top; copy them by hand", true); }
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(t).then(function () { say('Copied, paste it into chat'); }, fallback);
+    } else { fallback(); }
+  });
+})();
+</script>
