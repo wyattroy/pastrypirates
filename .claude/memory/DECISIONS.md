@@ -3166,3 +3166,44 @@ died on the Blade. Rooted off `fileURLToPath(import.meta.url)`.
   **Wy-Blade** (question UI). "Good" read as: the CEO approves AND the trial finds no real game fault.
 - **THEN THE CLOUDFLARE CUTOVER.** *"after all this work, we need to cutover to cloudflare. we're ready. can you create (or update) an
   artifact to walk me through all the steps?"* — docs/CLOUDFLARE-CUTOVER.md and docs/PRD-CLOUDFLARE-CUTOVER.md already exist.
+
+## 2026-09-15 — FUTURE PLANS: 13 AND UP, CLOUT IS EARNED, NO PAID MYSTERY BOXES, PITCH PUBLISHERS FIRST
+
+**Source:** his "Copy my notes" from the Voyage Ahead sheet
+(https://claude.ai/artifact/CffS7stsSzUvzkfR7TrokN), pasted into chat 2026-09-15. The interview's
+full answers: `.planning/his-words/FUTURE-PLANS-INTERVIEW-2026-09-14.md`. None of this is built. His
+instruction: *"don't do it 'today' — I want you to fold all of this into a PRD today, not execute
+the work."*
+
+**His five answers (recommendation accepted on all five):**
+
+- **Who we design for: 13 and up.** Kids may play, but nothing is built for them.
+- **Money never buys dubloons.** Dubloons are only ever earned. Money buys named items at a clear
+  price.
+- **Earned dubloons buy looks only.** Expansion seas cost money, and crews share them.
+- **The board game: pitch publishers first.** Crowdfund only if nobody bites.
+- **The bought/earned line: yes, with his amendment, which overrides my list:**
+  > *"The only thing I don't like about your plan is the number of things that can be bought — we
+  > need some of them to be earned. Like the flippenator coin that you use, perhaps. That may have to
+  > be earned. We want social capital/klout to have a clear marker in the game."*
+
+  So more of what other players can SEE moves into the earned column, and the Flippinator coin is
+  the first candidate.
+
+**His rulings on the economy, verbatim:**
+
+- *"No paid mystery boxes."*
+- *"I'm okay with people playing all day to earn doubloons."* **This withdraws my daily-cap
+  suggestion.**
+- *"They should be able to give their doubloons to each other."*
+- *"I like the idea of every voyage you win earning you a mystery box to upgrade your bakery!"*
+- He asked, and a verified answer is owed: *"What is the legal grey zone if you earn mystery boxes by
+  playing but you can also trade away the goods from your mystery boxes to other players for
+  doubloons? I guess if the doubloons cannot be bought then that's still OK."*
+
+**Tension to design around, not re-ask:** all-day earning, giftable dubloons and tradable box goods
+together can create a market for dubloons in real money outside the game, even though the game never
+sells them. The PRD takes this on.
+
+**Scope:** the architecture proposal (a folder per world, one ledger of what each captain owns,
+native wrappers) and ALL the streaming and screenshot leads go into a PRD. Nothing is executed.

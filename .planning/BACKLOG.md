@@ -1690,10 +1690,20 @@ cutover come first. He calls that "the first level of success".
 | F-8 | "Who are your first thousand captains? I don't know where they are, my friend. I would love your help." | Folded into F-3 and F-4; a launch-channel plan is still to write |
 | F-9 | The screenshot moment: losing a battle, worse one you started, "needs to really hit" and read without context | ➜ **for the game feel work**, not this branch |
 
-### Open, and his to settle
+### Settled 2026-09-15 (his sheet answers; verbatim in DECISIONS.md)
 
-- **Kids.** In answer 5 he said "a lot of kids are going to play this"; in answer 11, "too
-  sophisticated for children under 13". This decides how accounts, purchases, dubloons-for-dollars
-  and mystery boxes may work. First follow-up question.
-- Can earned dubloons buy expansions, or only looks?
-- Paid mystery boxes. **Checked 2026-09-15:** Apple and Google require the odds to be shown; Belgium (2018) treats paid boxes as gambling; the UK wants a parent's consent for children; the US FTC's Genshin settlement (Jan 2025) bans sales to under-16s without a parent. Recommendation: boxes you earn by playing, never boxes you pay for, and money never buys dubloons. Parked until a lawyer has looked.
+- **13 and up.** Money never buys dubloons. Dubloons buy looks, not seas. Pitch publishers first.
+- **The bought/earned line holds, with MORE earned:** things others can see, like the Flippinator
+  coin, may have to be earned. *"We want social capital/klout to have a clear marker in the game."*
+- **No paid mystery boxes.** Every voyage you win earns a mystery box for your bakery. Grinding all
+  day is fine (the daily cap is withdrawn). Players may gift dubloons to each other.
+- **F-10 — THE PRD.** *"Fold all of this into a PRD today, not execute the work."* It covers the
+  architecture (F-6, F-7), every streaming and screenshot lead (F-3, F-4), and the economy. Status:
+  being written 2026-09-15, link to follow here.
+
+### Still open
+
+- **The legal grey zone** of earned boxes whose goods trade for dubloons, when dubloons are giftable
+  and never sold. Research running 2026-09-15.
+- **Which visible items are earned-only.** The Flippinator coin is his first candidate; the PRD
+  proposes the rest.
