@@ -1,20 +1,20 @@
-# Sea trial v2 — build `2026.09.13.5` (tree `7c60cee5e2dd`)
+# Sea trial v2 — build `2026.09.15.2` (tree `1cb83adec3e6`)
 
-**FAILED** — 10 of 10 voyage(s) sailed  ·  2026-09-13T21:40:04.587Z  ·  26 min  ·  gear **FULL**  ·  sailed on **win32 (Wy-Blade)**
+**FAILED** — 10 of 10 voyage(s) sailed  ·  2026-09-15T06:33:43.153Z  ·  19 min  ·  gear **FULL**  ·  sailed on **win32 (Wy-Blade)**
 
 > ### WHAT THIS VERDICT MEANS
 >
-> **no game fault was measured. Read the split before acting on anything.**
+> **2 leg(s) hit a REAL game fault. Fix those; the rest of the red below is noise.**
 >
 > | | count | act on it? |
 > |---|---|---|
-> | **real game faults** - a player is affected | **0** | **YES** |
-> | judge findings - a WITNESS, not a verdict (QA-PROCESS s6) | 5 | open the screenshot, then check docs/INTENDED-BEHAVIOUR.md |
+> | **real game faults** - a player is affected | **2** | **YES** |
+> | judge findings - a WITNESS, not a verdict (QA-PROCESS s6) | 3 | open the screenshot, then check docs/INTENDED-BEHAVIOUR.md |
 > | never exercised / never judged - UNTESTED, not broken | 5 | no - this is the NOT-RUN column, for actions |
-> | seen only during an animation - the report says so itself | 1 | no |
+> | seen only during an animation - the report says so itself | 0 | no |
 > | browser-free checks (npm test) | green | - |
 
-> Gear chosen because: nothing uncommitted, so this reads what is AHEAD OF origin/main: assets/ingredients/dairy.png, assets/ingredients/holes/dairy.png, assets/ingredients/holes/sugar.webp, assets/ingredients/sugar.png, assets/plaque/crate-hollow.webp, assets/plaque/crate.webp, index.html, src/ui/board.js, src/ui/stage.js, src/ui/util.js
+> Gear chosen because: nothing uncommitted, so this reads what is AHEAD OF origin/main: index.html, package.json, rules.html, sfx/abacus-click.mp3, sfx/award-whoosh.mp3, sfx/card-swish.mp3, sfx/cork-pop.mp3, sfx/crate-chime.mp3, sfx/crate-marimba.mp3, sfx/crate-squawk.mp3, src/engine/index.js, src/orchestrator.js, src/shared/index.js, src/shared/words.js, src/ui/audio.js, src/ui/bakeoff.js, src/ui/board.js, src/ui/course.js, src/ui/flow.js, src/ui/lobby.js, src/ui/panel.js, src/ui/pilot.js, src/ui/popin.js, src/ui/press.js, src/ui/pulsebeacon.js, src/ui/recipe.js, src/ui/stage.js, src/ui/util.js
 >
 > **Depth: FULL. The mechanical picker said FULL.** The depth was DERIVED from the files that changed. Nothing was overridden.
 >
@@ -36,59 +36,49 @@
 ## The voyages, in full
 
 ```
-== solo-desktop: PASS
-[1482s]    coverage: yarrgh:1/1  nah:1/2  pound cake:0/2  cinnamon dutch baby:1/1  cinnamon dutch babybake :1/1  start:1/1  sail square:16/16  trade:6/15  muse#:5/15  speckled eggs:1/7  vanilla beans:1/6  coins only:3/6  slider:6/6  offer it:6/6  menu:0/1  call flaky jack:1/1  call crustbeard:1/2  fresh milk:3/5  arrgh:1/1  attack #:3/3  flip coin:5/5  toasty wheat:3/5  flaky jack:1/1  walk away:0/2  dock:1/1  cacao pods:1/1  hot cinnamon:1/2  fire again #:1/1  break off:0/1  call dough hook:0/1  dough hook:1/1
-[1482s] 
+== solo-desktop: FAIL
+[1043s]    ✗ vision judge FAILED 1 of 28 screen(s) it looked at — OPEN THESE; the judge's words are its guess at why, and it is wrong often enough that they are not quotable (T-019)
+       · solo-desktop-002-settled.png — faint ghost text ('...pick yer recipe:' and 'tap a recipe to squ...') bleeding through onto the board/map where no dialog belongs; right-hand panel is completely empty despite this being the recipe-pi
+[1043s]    coverage: yarrgh:1/1  nah:0/1  mexican chocolate pots:0/2  pound cake:1/1  pound cakebake this:0/1  pound cakebake this comm:1/0  start:1/1  sail square:35/36  muse#:9/21  menu:0/1  trade:9/20  cacao pods:4/15  coins:3/9  slider:9/9  offer it:9/9  dough hook:1/1  walk away:0/2  call flaky jack:1/1  call crustbeard:0/2  sugar cane:2/10  fresh milk:3/8  speckled eggs:2/8  toasty wheat:4/7  hot cinnamon:2/6  flaky jack:1/1  attack #:3/3  flip coin:3/3  arrgh:1/1  vanilla beans:1/3  call dough hook:1/1  accept:1/1  counter:0/1  deny:0/1
+[1043s] 
 == solo-phone: FAIL
-[1482s]    ✗ offered but never exercised: vanilla beans
-[1482s]    coverage: yarrgh:1/1  nah:1/3  caramel slice:1/1  pound cake:0/2  caramel slicebake this:0/1  caramel slicebake this c:1/0  start:1/1  sail square:13/13  dock:2/3  muse#:4/11  flip coin:2/2  buy #:1/2  menu:0/1  menu open:1/0  menu close:1/0  trade:5/10  speckled eggs:1/6  fresh milk:1/5  coins only:2/5  slider:4/4  offer it:5/5  dough hook:1/1  walk away:0/2  toasty wheat:3/7  hot cinnamon:1/4  slider disabled:1/1  flaky jack:1/1  sugar cane:1/3  cacao pods:1/3  vanilla beans:0/3  call crustbeard:1/1  call dough hook:0/1
-[1482s] 
+[1043s]    ✗ offered but never exercised: walk away
+[1043s]    coverage: yarrgh:1/1  nah:0/1  mayan cocoa soufflé:0/2  pound cake:1/1  pound cakebake this:0/1  pound cakebake this comm:1/0  start:1/1  sail square:27/29  trade:8/14  muse#:7/15  sugar cane:2/8  hot cinnamon:1/8  coins:7/8  slider:7/7  offer it:8/8  crustbeard#:1/1  walk away:0/3  menu:0/1  menu open:1/0  menu close:1/0  flip coin:1/1  call flaky jack:1/2  call crustbeard:1/2  fresh milk:3/8  speckled eggs:1/6  slider disabled:1/1  vanilla beans:1/6  arrgh:1/1  cacao pods:1/2  dough hook:1/2  accept:1/1  counter:0/1  deny:0/1  crustbeard:1/1
+[1043s] 
 == solo-tablet: FAIL
-[1482s]    ✗ vision judge FAILED 3 of 25 screen(s) it looked at — OPEN THESE; the judge's words are its guess at why, and it is wrong often enough that they are not quotable (T-019)
-       · solo-tablet-011-settled.png — Davy Scones' own captain row shows a solid black box where the empty-hold crate silhouette should be (should be a faint/pale crate, not solid black)
-       · solo-tablet-012-settled.png — Davy Scones' own captain row shows a solid black box where the empty-hold crate silhouette should be (should be a faint/pale crate, not solid black)
-       · solo-tablet-024-settled.png — Davy Scones row in captains panel shows a solid black/opaque rectangle instead of ingredient icons or the faint empty-crate silhouette
-[1482s]    coverage: yarrgh:1/1  nah:0/1  cinnamon snaps:0/2  mexican chocolate torte:1/1  mexican chocolate torteb:1/1  start:1/1  sail square:16/16  trade:8/16  muse#:7/16  cacao pods:1/8  coins only:4/8  slider:8/8  offer it:8/8  menu:0/1  menu open:1/0  menu close:1/0  toasty wheat:3/7  speckled eggs:3/9  hot cinnamon:2/7  dough hook:1/2  walk away:1/3  vanilla beans:1/6  flaky jack#:1/1  call crustbeard:1/1  call dough hook:0/2  accept:1/1  counter:0/1  deny:0/1  arrgh:1/1  fresh milk:2/2  call flaky jack:1/1  attack #:1/1  flip coin:1/1
-[1482s] 
+[1043s]    ✗ 1 structural check failure(s): no-cover-ask×1 — first: control covering the question it answers: "sailCell" over "Davy Scones: tap to sail"
+[1043s]    coverage: yarrgh:1/1  nah:1/3  cinnamon sponge cake:0/2  pound cake:1/1  pound cakebake this:0/1  pound cakebake this comm:1/0  start:1/1  sail square:27/28  dock:2/2  muse#:7/17  flip coin:2/2  buy #:1/2  menu:0/1  menu open:1/0  menu close:1/0  trade:8/15  fresh milk:3/10  speckled eggs:2/8  vanilla beans:1/9  coins:3/8  slider:7/7  offer it:8/8  dough hook:2/3  walk away:1/4  hot cinnamon:2/8  slider disabled:1/1  sugar cane:3/8  cacao pods:1/6  call dough hook:1/1  call crustbeard:0/1  dough hook#:1/1  arrgh:1/1  toasty wheat:1/1
+[1043s] 
 == passplay-phone: FAIL
-[1482s]    ✗ vision judge FAILED 1 of 36 screen(s) it looked at — OPEN THESE; the judge's words are its guess at why, and it is wrong often enough that they are not quotable (T-019)
-       · passplay-phone-013-settled.png — battle text 'Davy Scones shows HEADS — Flaky Jack must' is truncated mid-sentence at the card's bottom edge
-[1482s]    coverage: yarrgh:1/1  nah:3/5  mexican chocolate torte:1/1  molten chocolate lava ca:0/2  mexican chocolate torteb:1/1  at the helm:35/35  chocolate fudge torte:1/1  french pots de crème:0/2  chocolate fudge tortebak:1/1  start:1/1  sail square:50/50  attack #:1/2  trade:16/34  muse#:16/34  call davy scones:1/1  call flaky jack:0/1  flip coin:2/2  toasty wheat:4/18  coins only:6/13  slider:12/12  offer it:13/13  accept:2/5  counter:1/4  deny:2/6  davy scones:1/1  walk away:1/6  menu:0/1  menu open:1/0  menu close:1/0  hot cinnamon:3/16  dough hook:2/3  slider disabled:5/5  coin:1/1  ask it:1/1  dock:1/1  buy #:1/1  fresh milk:6/19  peg leg meg:1/1  flaky jack#:0/1  vanilla beans:3/11  cacao pods:3/10  arrgh:1/1  speckled eggs:7/7  dough hook#:1/1
-[1482s] 
-== passplay-desktop: FAIL
-[1482s]    ✗ vision judge FAILED 6 of 28 screen(s) it looked at — OPEN THESE; the judge's words are its guess at why, and it is wrong often enough that they are not quotable (T-019)
-       · passplay-desktop-016-settled.png — dark/black rectangular block in Peg Leg Meg's row of the captains panel is clipped by the row's rounded right corner, unlike the clean parchment-icon shown on the other three rows
-       · passplay-desktop-017-settled.png — same dark/black rectangular block clipped at the right edge of Peg Leg Meg's row in the captains panel
-       · passplay-desktop-018-settled.png — same dark/black rectangular block clipped at the right edge of Peg Leg Meg's row in the captains panel
-       · passplay-desktop-019-settled.png — same dark/black rectangular block clipped at the right edge of Peg Leg Meg's row in the captains panel
-       · passplay-desktop-020-settled.png — same dark/black rectangular block clipped at the right edge of Peg Leg Meg's row in the captains panel
-       · passplay-desktop-021-settled.png — solid black/broken icon box on the right of the Peg Leg Meg row, inconsistent with the clear thumbnail icons shown on the other three rows
-[1482s]    coverage: yarrgh:1/1  nah:11/12  cinnamon snaps:0/2  cocoa cloud soufflé:2/2  cocoa cloud soufflébake :2/2  at the helm:28/28  chocolate fudge torte:0/2  start:1/1  sail square:33/33  muse#:13/28  menu:0/1  trade:14/26  toasty wheat:4/16  vanilla beans:3/15  coins only:2/3  slider:3/3  offer it:3/3  flaky jack:2/4  walk away:2/6  attack #:1/1  call peg leg meg:1/1  call dough hook:0/1  flip coin:2/2  fire again #:1/1  break off:0/1  dough hook:2/2  hot cinnamon:7/11  slider disabled:11/11  fresh milk:4/8  speckled eggs:2/4  sugar cane:6/9
-[1482s] 
+[1043s]    ✗ 1 structural check failure(s): no-cover-ask×1 — first: control covering the question it answers: "Dough Hook" over "Fer yer  Cacao Pods the table "
+[1043s]    coverage: yarrgh:1/1  nah:0/2  dark chocolate cream puf:0/2  french pots de crème:1/1  french pots de crèmebake:1/1  at the helm:26/26  caramel slice:0/2  cinnamon sponge cake:1/1  cinnamon sponge cakebake:1/1  start:1/1  sail square:28/28  trade:12/26  muse#:12/26  speckled eggs:2/12  coins:6/12  slider:12/12  offer it:12/12  menu:0/1  menu open:1/0  menu close:1/0  toasty wheat:4/13  fresh milk:2/10  dock:1/1  flip coin:2/2  buy #:1/1  vanilla beans:1/7  flaky jack:1/1  walk away:1/4  attack #:1/1  call davy scones:1/1  call flaky jack:0/1  sugar cane:2/6  cacao pods:5/9  dough hook:1/2  arrgh:1/1  hot cinnamon:2/2  dough hook#:1/1
+[1043s] 
+== passplay-desktop: PASS
+[1043s]    coverage: yarrgh:1/1  nah:0/1  molten chocolate lava ca:0/2  spiced cocoa shortbread:1/1  spiced cocoa shortbreadb:1/1  at the helm:31/31  cinnamon snaps:0/2  cinnamonsugar churros:1/1  cinnamonsugar churrosbak:1/1  start:1/1  sail square:36/36  muse#:15/30  menu:0/1  trade:15/26  fresh milk:9/25  speckled eggs:4/16  coins:8/15  slider:9/9  offer it:15/15  dough hook:1/1  walk away:0/2  flaky jack:1/1  slider disabled:6/6  accept:1/1  counter:0/1  deny:0/1  sugar cane:3/9  toasty wheat:2/6  hot cinnamon:1/3  cacao pods:1/2  vanilla beans:2/4
+[1043s] 
 == crew-desktop: FAIL
-[1482s]    ✗ offered but never exercised: walk away
-[1482s]    ✗ vision judge FAILED 1 of 51 screen(s) it looked at — OPEN THESE; the judge's words are its guess at why, and it is wrong often enough that they are not quotable (T-019)
-       · crew-desktop-host-002-settled.png — faint 'pick yer recipe:' prompt text is rendered clipped/obscured behind the egg island artwork instead of in a visible bubble; faint 'tap a recipe to see its route' tooltip text is clipped/obscured b
-[1482s]    coverage: yarrgh:1/1  nah:0/1  crispy cocoa snaps:1/1  chocolate genoise sponge:0/2  crispy cocoa snapsbake t:1/1  start:1/1  sail square:21/21  trade:10/21  muse#:10/21  toasty wheat:4/12  coins only:8/10  slider:10/10  offer it:10/10  flaky jack#:1/1  walk away:0/3  accept:2/4  counter:1/4  deny:1/5  menu:0/1  chat:1/1  chat open:1/0  chat close:1/0  test#:1/1  coin:1/1  ask it:1/1  call flaky jack:1/1  call dough hook:0/1  arrgh:1/1  speckled eggs:2/7  dough hook:1/1  hot cinnamon:1/6  attack #:1/1  flip coin:1/1  vanilla beans:1/5  slider disabled:1/1  cacao pods:2/4  sugar cane:2/3
-[1482s] 
+[1043s]    ✗ offered but never exercised: vanilla beans
+[1043s]    coverage: yarrgh:1/1  nah:0/1  mexican chocolate torte:0/2  mexican chocolate pots:1/1  mexican chocolate potsba:1/1  start:1/1  sail square:23/23  trade:7/15  muse#:7/15  fresh milk:1/6  cacao pods:1/6  coins:6/6  slider:6/6  offer it:6/6  menu:0/1  chat:1/1  chat open:1/0  chat close:1/0  call test#:1/2  call flaky jack:1/2  hot cinnamon:1/5  speckled eggs:1/4  vanilla beans:1/4  dough hook:1/2  walk away:1/2  accept:1/1  counter:0/1  deny:0/1  sugar cane:1/3  attack #:1/1  flip coin:1/1
+[1043s] 
 == crew-phone: FAIL
-[1482s]    ✗ offered but never exercised: deny
-[1482s]    ✗ vision judge FAILED 1 of 43 screen(s) it looked at — OPEN THESE; the judge's words are its guess at why, and it is wrong often enough that they are not quotable (T-019)
-       · crew-phone-guest-001-settled.png — two boat avatars in the top ribbon render as flat blank white/grey circles instead of showing a boat icon
-[1482s]    coverage: yarrgh:1/1  nah:0/1  cocoa cloud soufflé:1/1  dark chocolate cream puf:0/2  cocoa cloud soufflébake :1/1  start:1/1  sail square:20/20  muse#:10/20  menu:0/1  menu open:1/0  menu close:1/0  chat:1/1  chat open:1/0  chat close:1/0  trade:10/18  toasty wheat:4/12  coins only:4/10  slider:11/11  offer it:10/10  flaky jack:1/1  walk away:1/5  accept:1/3  counter:1/2  deny:1/4  sugar cane:2/10  dough hook:2/3  test#:1/1  flaky jack#:0/1  cacao pods:2/6  arrgh:1/1  speckled eggs:2/5  hot cinnamon:5/9  coin:1/1  ask it:1/1  fresh milk:1/1
-[1482s] 
-== solo-desktop-wk: FAIL
-[1482s]    ✗ offered but never exercised: walk away
-[1482s]    ✗ 1 observation(s) seen only DURING an animation — not failures, read them in the log
-[1482s]    coverage: yarrgh:1/1  nah:0/1  caramel slice:1/1  french pots de crème:0/2  caramel slicebake this:0/1  caramel slicebake this c:1/0  start:1/1  sail square:16/16  attack #:2/2  trade:7/15  muse#:6/15  flip coin:5/5  fire again #:1/1  break off:0/1  menu:0/1  call crustbeard:1/1  call dough hook:1/2  fresh milk:2/12  speckled eggs:2/8  coins only:2/7  slider:7/7  offer it:7/7  arrgh:1/1  cacao pods:2/6  crustbeard:1/1  walk away:0/3  sugar cane:3/7  hot cinnamon:2/8  flaky jack:1/1  dough hook:1/1  toasty wheat:2/2  call flaky jack:0/1
-[1482s] 
-== solo-phone-wk: PASS
-[1482s]    coverage: yarrgh:1/1  nah:2/5  mexican chocolate pots:1/1  cinnamon snaps:0/2  mexican chocolate potsba:1/1  start:1/1  sail square:21/21  muse#:7/19  menu:0/1  menu open:1/0  menu close:1/0  trade:8/18  fresh milk:4/10  coins only:3/8  slider:8/8  offer it:8/8  hot cinnamon:5/12  dough hook:1/1  walk away:0/2  sugar cane:2/5  call flaky jack:1/2  call crustbeard:1/3  flip coin:5/5  flee:1/1  stand yer ground:0/1  arrgh:1/1  speckled eggs:1/3  dock:4/4  buy #:1/1  #:1/1  toasty wheat:2/3  cacao pods:0/1  vanilla beans:1/2  flaky jack:1/1  call dough hook:1/1
-[1482s] 
+[1043s]    ✗ offered but never exercised: vanilla beans
+[1043s]    ✗ offered but never exercised: vanilla beans, deny
+[1043s]    ✗ vision judge FAILED 1 of 39 screen(s) it looked at — OPEN THESE; the judge's words are its guess at why, and it is wrong often enough that they are not quotable (T-019)
+       · crew-phone-guest-014-settled.png — second message bubble ('test1 has no other cargo — ye can ask for coin, or deny.') is rendered semi-transparent, letting the anchor/dock artwork bleed through and reduce text legibility, inconsistent 
+[1043s]    coverage: yarrgh:1/1  nah:1/3  mexican chocolate torte:0/2  cinnamon sponge cake:1/1  cinnamon sponge cakebake:1/1  start:1/1  sail square:13/13  dock:2/2  muse#:3/9  flip coin:2/2  buy #:1/2  menu:0/1  menu open:1/0  menu close:1/0  chat:1/1  chat open:1/0  chat close:1/0  accept:1/1  counter:0/1  deny:0/1  trade:4/8  cacao pods:2/5  vanilla beans:0/3  coins:2/4  slider:4/4  offer it:4/4  test#:1/1  walk away:0/2  speckled eggs:2/5  dough hook:1/1  arrgh:1/1  fresh milk:1/2  sugar cane:1/2  hot cinnamon:0/1
+[1043s] 
+== solo-desktop-wk: PASS
+[1043s]    coverage: yarrgh:1/1  nah:1/4  pound cake:0/2  spiced cocoa shortbread:1/1  spiced cocoa shortbreadb:1/1  start:1/1  sail square:32/33  dock:3/4  muse#:6/17  flip coin:5/5  buy #:2/3  menu:0/1  trade:7/16  fresh milk:2/7  sugar cane:3/13  coins:2/7  slider:7/7  offer it:7/7  toasty wheat:2/6  cacao pods:1/6  call crustbeard:1/2  call dough hook:1/2  speckled eggs:2/9  vanilla beans:1/5  dough hook:1/1  walk away:0/1  arrgh:1/1  attack #:1/1  hot cinnamon:1/2
+[1043s] 
+== solo-phone-wk: FAIL
+[1043s]    ✗ offered but never exercised: vanilla beans
+[1043s]    coverage: yarrgh:1/1  nah:0/1  crispy cocoa snaps:0/2  snickerdoodle bites:1/1  snickerdoodle bitesbake :1/1  start:1/1  sail square:30/31  trade:7/14  muse#:7/15  fresh milk:1/7  cacao pods:1/7  coins:5/7  slider:6/6  offer it:7/7  menu:0/1  menu open:1/0  menu close:1/0  speckled eggs:2/6  vanilla beans:0/4  crustbeard:1/1  walk away:0/2  sugar cane:2/4  hot cinnamon:1/4  flaky jack:1/1  call crustbeard:1/1  call dough hook:0/1  toasty wheat:2/3  attack #:1/1  flip coin:1/1  arrgh:1/1  slider disabled:1/1
+[1043s] 
 == solo-tablet-wk: FAIL
-[1482s]    ✗ offered but never exercised: deny
-[1482s]    coverage: yarrgh:1/1  nah:0/2  pound cake:1/1  cinnamonchocolate fudge:0/2  pound cakebake this:0/1  pound cakebake this comm:1/0  start:1/1  sail square:19/19  trade:7/14  muse#:6/14  sugar cane:3/10  cacao pods:1/8  hot cinnamon:1/6  coins only:3/7  slider:8/8  offer it:7/7  flaky jack:2/3  walk away:1/4  menu:0/1  menu open:1/0  menu close:1/0  accept:1/2  counter:1/2  deny:0/3  toasty wheat:4/10  dough hook#:1/1  vanilla beans:1/6  call crustbeard:1/1  call flaky jack:0/1  arrgh:1/1  coin:0/1  ask it:1/1  speckled eggs:2/3  dock:1/1  flip coin:1/1  buy #:1/1
-[1482s] 
+[1043s]    ✗ vision judge FAILED 1 of 24 screen(s) it looked at — OPEN THESE; the judge's words are its guess at why, and it is wrong often enough that they are not quotable (T-019)
+       · solo-tablet-wk-024-settled.png — faint ghosted/doubled text bleeding through behind the Bakeries/HEADS stat rows, appears to be the previous screen's recipe panel text showing through
+[1043s]    coverage: yarrgh:1/1  nah:1/3  cinnamon sponge cake:0/2  vanilla bean crème brûlé:2/2  start:1/1  sail square:21/21  dock:2/4  muse#:6/15  flip coin:4/4  buy #:1/1  menu:0/1  menu open:1/0  menu close:1/0  trade:6/14  fresh milk:1/7  sugar cane:1/6  coins:2/6  slider:6/6  offer it:6/6  dough hook:1/1  walk away:1/4  hot cinnamon:3/5  flaky jack:2/3  toasty wheat:2/4  speckled eggs:1/4  attack #:1/1  arrgh:1/1  vanilla beans:2/4
+[1043s] 
 RESULT: FAIL
 ```
 
