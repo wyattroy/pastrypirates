@@ -1698,12 +1698,14 @@ cutover come first. He calls that "the first level of success".
 - **No paid mystery boxes.** Every voyage you win earns a mystery box for your bakery. Grinding all
   day is fine (the daily cap is withdrawn). Players may gift dubloons to each other.
 - **F-10 — THE PRD.** *"Fold all of this into a PRD today, not execute the work."* It covers the
-  architecture (F-6, F-7), every streaming and screenshot lead (F-3, F-4), and the economy. Status:
-  being written 2026-09-15, link to follow here.
+  architecture (F-6, F-7), every streaming and screenshot lead (F-3, F-4), and the economy. **Written 2026-09-15:** `docs/PRD-AFTER-LAUNCH.html`, published at
+  https://claude.ai/artifact/6DGyHdVj4SShy3tZumPNQn. Four open questions sit at its top.
 
 ### Still open
 
-- **The legal grey zone** of earned boxes whose goods trade for dubloons, when dubloons are giftable
-  and never sold. Research running 2026-09-15.
+- **The legal grey zone: researched 2026-09-15, in the PRD.** Low risk as he ruled it. Belgium does not
+  count a currency nobody can buy as a stake, and the UK says items that can't be cashed out are
+  "unlikely to be caught". The grey edge is TRADING prizes: the Dutch test treats a transferable item as
+  having a money value. His call, asked in the PRD: can box prizes change hands?
 - **Which visible items are earned-only.** The Flippinator coin is his first candidate; the PRD
   proposes the rest.
