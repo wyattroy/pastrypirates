@@ -1870,44 +1870,8 @@ function stageFlash(msg, ms, holdMs, variants, opts){
     b.style.width = "max-content";
     b.style.maxWidth = CAP() + "px";
     let bh = 0, bw = 0, bhAt = -1e9;   // HOT-PHONE: offset* are layout reads — remeasure ~2x/s, not 60
-    /* EVERYTHING A BUBBLE MUST NOT STAND ON, WEIGHTED — the list and its weights are explained where a captain's bubble uses them
-       (D-38, below). One list, so a captain's line and a table-wide line can never disagree about what may be covered. */
-    const obstacles = () => [[".sailCell", 1000], [".apBtn,.btlBtn,#apStay", 60], [".apMsg", 40], [".apSub,.apSliderWrap", 15]]
-      .flatMap(([sel, w]) => [...document.querySelectorAll(sel)]
-        .filter(e => e !== b && !b.contains(e) && e.getBoundingClientRect().width > 4)
-        .map(e => ({ r: swellRect(e, fixedRect(e)), w })));   // the PEAK box, as the hint does
-    /* ⭐ A TABLE-WIDE LINE KEEPS OFF THE SAIL SQUARES TOO — Wyatt, 2026-09-14: "Fix the sail square hidden under the day bubble".
-       D-38's one exception — "sailing squares, which you have to click and you cannot click them if they are covered by
-       something" — was only ever enforced for a bubble tied to a captain. A line about the whole table ("Day 1: Wind NORTH.
-       Tomorrow: WEST.") stood at its CSS spot, top-centre, whatever was under it. Wy-Blade's trial photographed it over two
-       squares not yet lit; MEASURED at 390x844 on a voyage's first sail prompt, the same bubble stood on a LIT square for 7
-       frames as the squares popped in, and on unlit ones for 11.
-       It weighs the same obstacles with the same weights, and it only moves when the spot it stands on costs something: with
-       nothing to click beneath it, a table-wide line stays exactly where it has always sat. It moves by `translate`, which
-       composes with the CSS centring, and it goes home the moment the squares are gone. */
-    const placeAmbient = () => {
-      if (!document.querySelector(".sailCell")){ if (b._amb){ b.style.translate = ""; b._amb = null; } return; }
-      const OB = obstacles();
-      const at = b._amb || [0, 0], r = fixedRect(b);
-      if (!(r.width > 2 && r.height > 2)) return;
-      const home = { left: r.left - at[0], top: r.top - at[1], w: r.width, h: r.height };
-      const band = boardBand();
-      const cost = (dx, dy) => { const x = home.left + dx, y = home.top + dy;
-        return OB.reduce((n, o) => n + ((x < o.r.right && x + home.w > o.r.left && y < o.r.bottom && y + home.h > o.r.top) ? o.w : 0), 0); };
-      if (cost(at[0], at[1]) === 0) return;               // where it stands is clear: a line that covers nothing is never shuffled
-      const ys = [0, band.bottom - 4 - home.h - home.top, band.top + 4 - home.top, (band.top + band.bottom - home.h) / 2 - home.top];
-      const xLo = band.left + 4 - home.left, xHi = band.right - 4 - home.w - home.left, xs = [0, xLo, xHi];
-      for (let k = 1; k <= 5; k++) xs.push(xLo + (xHi - xLo) * k / 6);
-      let best = null;
-      for (const dy of ys) for (const dx of xs){
-        const c0 = cost(dx, dy), move = Math.hypot(dx, dy);   // among equally clear spots, the nearest to where it sits
-        if (!best || c0 < best[2] || (c0 === best[2] && move < best[3])) best = [dx, dy, c0, move];
-      }
-      b._amb = [Math.round(best[0]), Math.round(best[1])];
-      b.style.translate = `${b._amb[0]}px ${b._amb[1]}px`;
-    };
     const place = () => {
-      if (subj == null){ placeAmbient(); return; }   // ambient: its CSS spot, unless that spot is on something to click
+      if (subj == null) return;                      // ambient: CSS position
       const u = boatUXY(subj); if (!u) return;
       const [sx, sy] = toScreen(u[0], u[1]);
       const band = boardBand();
@@ -1971,7 +1935,10 @@ function stageFlash(msg, ms, holdMs, variants, opts){
          it." Two changes to this search were shipped on run-to-run counts that night and both
          were reverted; the trials read 22 -> 26 -> 31 on the same ten legs. §5e of
          docs/DRIVING-THE-GAME.md poses the state; two screenshots settle it in minutes. */
-      const OBST = obstacles();   // the PEAK boxes, shared with a table-wide line (placeAmbient)
+      const OBST = [[".sailCell", 1000], [".apBtn,.btlBtn,#apStay", 60], [".apMsg", 40], [".apSub,.apSliderWrap", 15]]
+        .flatMap(([sel, w]) => [...document.querySelectorAll(sel)]
+          .filter(e => e !== b && !b.contains(e) && e.getBoundingClientRect().width > 4)
+          .map(e => ({ r: swellRect(e, fixedRect(e)), w })));   // the PEAK box, as the hint does
       if (OBST.length){
         const cost = (x, y) => OBST.reduce((n, o) =>
           n + ((x < o.r.right && x + W > o.r.left && y < o.r.bottom && y + bh > o.r.top) ? o.w : 0), 0);

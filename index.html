@@ -2444,8 +2444,7 @@
     font-weight:600; color:#1f2d33; transition:opacity .35s; }
   .pp4Bub.ambient { left:50%; transform:translateX(-50%); top:calc(74px + env(safe-area-inset-top));
     max-width:min(320px,86vw); background:rgba(9,42,52,.87); color:#fff; border-color:rgba(255,255,255,.25); }
-  /* a bubble FADING OUT no longer catches a tap meant for the square beneath it (Wyatt, 2026-09-14, the day bubble over a sail square) */
-  .pp4Bub.out { opacity:0; pointer-events:none; }
+  .pp4Bub.out { opacity:0; }
   /* item 4: below its ship, the tail points UP at the boat it belongs to */
   .pp4Bub.below .pp4Tail { top:-9px; bottom:auto; transform:rotate(225deg); }   /* 45 + 180: the base tail is already rotated 45, so a bare 180 would square it off */
   .pp4Tail { position:absolute; bottom:-9px; width:15px; height:15px; background:#fffdf2;

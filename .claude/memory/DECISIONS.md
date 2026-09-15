@@ -3127,3 +3127,10 @@ died on the Blade. Rooted off `fileURLToPath(import.meta.url)`.
   notes to the Victory Card Proposal artifact and session -- did you read those?"*: the page's notes, yes; the session ("Victory Card
   proposals", branch `sep14-victory-card`) had already built the toggle-and-dials page and is waiting on his score question and dial
   settings. His rulings were relayed to it; he has not said which session builds the in-game card.
+- **A NARRATION BUBBLE OVER A SAIL SQUARE IS NOT A PROBLEM — AND THE SEA TRIAL MUST STOP FLAGGING IT.** *"this is NOT a problem: [the day
+  bubble over a sail square] That message disappears after a few seconds and can be tapped to dismiss. I need you to write a durable record
+  of that so the sea trial stops flagging it."* — overruling my report that a replay had caught the day bubble over a lit square for a
+  tenth of a second "so it was a real problem". Recorded in docs/INTENDED-BEHAVIOUR.md (section 2 table AND the vision judge's accepted
+  list), and scripts/lib/checks.mjs rules 2 and 6 exempt a sail square whose cover is a narration bubble; a real cover still fails.
+  → and the placement change is UNDONE, his pick in the question UI: *"Undo the move"*. A table-wide bubble (the day's wind line) sits
+  top-centre again whatever is under it, and a fading bubble no longer lets a tap through — exactly as before commit 971e4995.
