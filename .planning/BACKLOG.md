@@ -1614,3 +1614,86 @@ replaced with his explicit width, not just mirrored.
       itself (`assets/plaque/crate.webp`), darkened so the planks and posts still read, never regenerated; shown to him in the
       captain's box at his phone's size and the laptop window beside today's before it ships. The islands' ingredient
       silhouettes are not part of this.
+
+---
+
+## 🧭 FUTURE PLANS — from the 2026-09-14 interview
+
+His words, verbatim: `.planning/his-words/FUTURE-PLANS-INTERVIEW-2026-09-14.md`. The questions and
+the research behind them: https://claude.ai/code/artifact/5e7a7947-702f-4f81-b510-4d1fc9a19353
+**Cite these; do not re-ask.** None of this is before launch. The launch bar and the Cloudflare
+cutover come first. He calls that "the first level of success".
+
+### His rulings
+
+- **The ladder of success, in his order:** (1) stable on Cloudflare, playable by anyone, strong
+  code base; (2) launched, hundreds of daily players; (3) thousands of daily players and some
+  donations; (4) a licence or a real revenue model. Money target: it pays its own Firebase bill,
+  then **$4,000/month** to him, then enough to pay a helper.
+- **Always free to play. Sell expansions and looks, never power.** No pay-to-win. No selling data.
+  No charging to play with friends. No subscriptions ("cheesy").
+- **Ads: morally opposed.** "You're giving Pastry Pirates your precious attention." He would only
+  consider them if nothing else works, and only where they steal no attention (loading, waiting
+  for a friend's turn). Nothing may lag the game.
+- **Mystery boxes: "could be cool."** ⚠ Not yet ruled. Paid mystery boxes carry legal rules in some
+  countries, and those rules are being verified now; see the open items.
+- **One buyer carries the crew.** A captain's expansion is played by the whole crew, like Jackbox or
+  Colonist. The owner's exclusive look is the advert for it.
+- **Worlds as expansions:** Pasta Pirates (Mediterranean), Planetary Pirates (space), Sushi Pirates
+  (Japanese sea), a winter or night sea. Each brings its own captains, ships, flags, islands,
+  ingredients and recipes. Music packs yes; sound packs he's unsure. Also pets, pet outfits, bakery
+  decor, ovens, custom Flippinator coins, sails you can draw on.
+- **Bought looks carry no clout; earned things do.** Trophies and recipes (won by baking them) are
+  always earned. He asked for my proposal on where the line falls; it's on the page.
+- **Dubloons left at the end of a voyage become yours to spend**, so a kid can slowly earn what
+  others buy. His example: $1 buys 100 dubloons.
+- **The cookie button is a short-term test.** It should grow into a supporter flag or a name in the
+  credits (like Lichess's patron wings), which is clout you get for supporting.
+- **Accounts: never required to play.** Invite a sign-in at the END of a voyage, to save progress
+  and spend points. An account keeps: win count, recipes won (sellable in your bakery), recipes
+  seen but not won, trophies, unlocked looks, coins, boats, pets, purchases on every device, and a
+  friends list with visits to friends' bakeries. A voyage log is not needed.
+- **Chat only between people who know each other.** Strangers get no chat, only the board plus
+  something like a high-five. No content moderation, ever.
+- **Ways to play he wants:** a Daily Voyage or recipe of the day, played like a puzzle; a public
+  leaderboard; an emoji share grid; daily challenges made from the mechanics (all bots against you,
+  an archipelago maze, a needle to thread); "Find me a crew" with strangers matched by rank;
+  campaign or story voyages; a five-minute blitz; 2-vs-2 crews; spectating and streaming; a map
+  painter that places the islands.
+- **Ways to play he does not want:** ships with powers, or any rule change. "The current rule set is
+  gospel." Slow voyages over days are low priority unless a strong business case appears.
+- **Platforms:** Steam, iOS and Google Play are in scope. Native feels better and works offline
+  ("when you're flying").
+- **Selling or licensing:** open to both, **not under ~$100,000**. More willing to license the
+  PHYSICAL game than the digital one. Netflix Games: yes.
+- **Physical:** the wooden board is a handmade premium edition in small numbers, and the first draft
+  of a cheaper boxed game. No print-and-play (too many pieces). Open to Kickstarter. No capital for
+  a manufacturing run.
+- **Merch:** digital first. Physical only through no-stock shops, ideally set up by a hired helper.
+  Art reference: *Root*. Captains aren't cute; pets and animals are.
+- **Food:** yes to an official cookbook, a social channel baking every in-game recipe, a
+  bake-your-recipe contest with in-game prizes, and a real bakery sponsoring an island for a day.
+- **What he wants his time on:** design and whimsy. Money should one day pay for someone to do the
+  "CEO-style work" of taxes and logistics.
+
+### Work he asked for, and where it stands
+
+| # | His ask | Status |
+|---|---|---|
+| F-1 | "What should that pipeline be about the physical board, and whether it's viable" / ways to market without upfront capital | Research running 2026-09-15; the report goes on the page |
+| F-2 | "Go talk to that session about how I'm planning on scoring the voyages" | **Done.** The victory card score is per voyage and per captain, luck-free (flips and storms pay nothing), and not yet a rating. Parked for accounts: the slipway, "New best voyage!", "3 of 21 recipes baked". Sheet: https://claude.ai/code/artifact/a7e8dae4-42d9-4f01-891a-ef2c782f091f |
+| F-3 | "A brainstorm around viral ways of spreading" | First pass done and on the page. The two leads: a caption that explains a stolen crate on screen plus a "Ye sank yerself" card; and the Daily Voyage, then its emoji grid (the grid needs the daily sea to work). The brainstorm with him is still to come |
+| F-4 | "Scope out what would make Pastry Pirates more streamable" | First pass done: streamer mode (hide the room code), a readable-on-stream pass, high-five stickers only, audience voting (large), a Discord Activity (large). On the page |
+| F-5 | Where bought ends and earned begins | Proposal on the page; awaiting his verdict |
+| F-6 | Worlds generatable through a pipeline (art review, narration pass); a ledger the game asks; parallel sessions without merge conflicts | Proposal on the page: one folder per world, which the game reads and never names; one "entitlements and inventory" record per captain, written only by a trusted server. First step, with no visible change: move today's sea into the first world folder. **Not measured against the code yet** |
+| F-7 | Steam / iOS / Google Play, playable offline | On the page: Capacitor (iPhone and Android) and Tauri or Electron (Steam) keep one set of game files, and solo play works offline. Apple lets a web purchase unlock in the app if the app sells it too (3.1.3(b)). Steam's rule on web purchases is not verified |
+| F-8 | "Who are your first thousand captains? I don't know where they are, my friend. I would love your help." | Folded into F-3 and F-4; a launch-channel plan is still to write |
+| F-9 | The screenshot moment: losing a battle, worse one you started, "needs to really hit" and read without context | ➜ **for the game feel work**, not this branch |
+
+### Open, and his to settle
+
+- **Kids.** In answer 5 he said "a lot of kids are going to play this"; in answer 11, "too
+  sophisticated for children under 13". This decides how accounts, purchases, dubloons-for-dollars
+  and mystery boxes may work. First follow-up question.
+- Can earned dubloons buy expansions, or only looks?
+- Paid mystery boxes. **Checked 2026-09-15:** Apple and Google require the odds to be shown; Belgium (2018) treats paid boxes as gambling; the UK wants a parent's consent for children; the US FTC's Genshin settlement (Jan 2025) bans sales to under-16s without a parent. Recommendation: boxes you earn by playing, never boxes you pay for, and money never buys dubloons. Parked until a lawyer has looked.

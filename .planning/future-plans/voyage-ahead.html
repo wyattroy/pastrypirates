@@ -70,6 +70,22 @@
   .others ul { margin: 0; padding-left: 1rem; display: grid; gap: .25rem; }
   .src { font-size: .8rem; white-space: nowrap; }
 
+  .yours { border-left: 3px solid var(--gold); padding: .2rem 0 .2rem .9rem; font-size: .95rem; }
+  .yours b { display: block; font-size: .7rem; letter-spacing: .12em; text-transform: uppercase; color: var(--gold-deep); margin-bottom: .15rem; }
+  .told { background: var(--surface); border: 2px solid var(--ink); border-radius: 16px; padding: 1.4rem 1.3rem; display: grid; gap: 1.2rem; }
+  .told h2 { font-family: var(--display); font-size: 1.6rem; margin: 0; }
+  .told h3 { font-size: .75rem; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; color: var(--teal); margin: 0 0 .4rem; }
+  .told p, .told ol, .told ul { margin: 0; }
+  .told ol, .told ul { padding-left: 1.2rem; display: grid; gap: .3rem; }
+  .split { display: grid; grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr)); gap: .8rem; }
+  .split > div { background: var(--note); border-radius: 10px; padding: .8rem .95rem; }
+  .split h4 { margin: 0 0 .35rem; font-size: .95rem; }
+  .split ul { font-size: .9rem; }
+  .state { display: inline-block; font-size: .72rem; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; padding: .05rem .45rem; border-radius: 999px; margin-right: .35rem; vertical-align: 1px; }
+  .done { background: var(--teal); color: var(--surface); }
+  .running { background: var(--gold); color: var(--gold-ink); }
+  .yourcall { border: 1.5px solid var(--ink); color: var(--ink); }
+  .next { background: var(--note); border-radius: 10px; padding: .9rem 1rem; }
   footer { color: var(--ink-soft); font-size: .85rem; border-top: 1px solid var(--line); padding-top: 1rem; }
 
   @media (max-width: 480px) {
@@ -83,7 +99,7 @@
     <p class="eyebrow">Interview · 14 September 2026 · branch sep14-future-plans</p>
     <h1>The voyage ahead</h1>
     <p class="lede">Twenty questions about where Pastry Pirates sails after launch: money, accounts, ways to play, merch and the real-world board. Each one is built from what comparable games actually do.</p>
-    <p class="how">We'll go one at a time in chat and you answer out loud. If you'd rather dictate a batch, start each answer with its number. Every "others" note links to the page it came from; anything that couldn't be verified was left out.</p>
+    <p class="how">Answered 14 September. Your digest is just below, and your full words are saved in the repo. Follow-ups go one at a time in chat and you answer out loud. If you'd rather dictate a batch, start each answer with its number. Every "others" note links to the page it came from; anything that couldn't be verified was left out.</p>
   </header>
 
   <aside class="settled">
@@ -95,6 +111,86 @@
       <li>Bots and humans always play by identical rules.</li>
     </ul>
   </aside>
+
+
+  <section class="told" id="told" aria-labelledby="told-h">
+    <h2 id="told-h">What you told me</h2>
+    <div>
+      <h3>Your ladder of success</h3>
+      <ol>
+        <li>Stable on Cloudflare, playable by anyone, strong code base. <em>“We’re getting close to that now.”</em></li>
+        <li>Launched, with hundreds of daily players.</li>
+        <li>Thousands of daily players, and some donations.</li>
+        <li>A licence or a real revenue model. It pays its Firebase bill, then <strong>$4,000 a month</strong> to you, then enough to pay a helper.</li>
+      </ol>
+    </div>
+    <div>
+      <h3>You asked for my thoughts: where bought ends and earned begins</h3>
+      <p><strong>Proposed rule: money buys what you wear; voyages earn what you’ve proven.</strong> When someone sees another captain’s ship and wonders “did they pay for that?”, the kind of thing it is should answer the question.</p>
+      <div class="split">
+        <div><h4>Buyable, with money or dubloons</h4><ul>
+          <li>Ship paint, sails you draw on, flags</li>
+          <li>Flippinator coin designs</li>
+          <li>Bakery decor and ovens</li>
+          <li>Pet outfits (your idea: earn the pet, buy its clothes)</li>
+          <li>Music packs</li>
+          <li>Expansion seas, shared with your crew</li>
+        </ul></div>
+        <div><h4>Earned only, never for sale</h4><ul>
+          <li>Recipes: yours once you bake one to a win</li>
+          <li>Trophies and titles</li>
+          <li>Pets, each tied to a feat, e.g. the candycrab for winning through a storm</li>
+          <li>Leaderboard rank and Daily Voyage streaks</li>
+          <li>The cookie flag, the one clout you can pay for, because it says “I backed the maker”, not “I’m good”</li>
+        </ul></div>
+      </div>
+      <p style="margin-top:.7rem">Three risks to design around. <strong>First:</strong> if dubloons can be both bought and earned, they must never buy anything in the earned-only column, or clout becomes buyable. <strong>Second:</strong> a captain could pile up dubloons sailing solo against bots all day, so earnings may need a daily cap. <strong>Third:</strong> paid mystery boxes are the legal hot spot (checked below). The simplest safe version: <strong>money buys named items at a clear price, never dubloons</strong>, and dubloons are only ever earned. That also closes the first risk.</p>
+    </div>
+    <div>
+      <h3>Mystery boxes, checked at the source</h3>
+      <ul>
+        <li><strong>Apple and Google Play</strong> both require showing the odds of every item before purchase. <a class="src" href="https://developer.apple.com/app-store/review/guidelines/">Apple 3.1.1</a> <a class="src" href="https://support.google.com/googleplay/android-developer/answer/9858738">Google Play</a></li>
+        <li><strong>Belgium (2018)</strong> found paid loot boxes to be illegal gambling, including boxes bought with in-game coins that were bought with money. <a class="src" href="https://www.gamingcommission.be/sites/default/files/2021-08/onderzoeksrapport-loot-boxen-Engels-publicatie.pdf">Gaming Commission</a> The Netherlands’ top court overturned its own regulator’s penalty against EA in 2022. <a class="src" href="https://mediawrites.twobirds.com/post/102j3d2/fifa-22-loot-boxes-no-longer-regarded-as-gambling-in-the-netherlands-as-ban-overt">Bird &amp; Bird</a></li>
+        <li><strong>UK (2022):</strong> not gambling law “at this time”, but children shouldn’t be able to buy them without a parent turning it on. <a class="src" href="https://www.gov.uk/government/calls-for-evidence/loot-boxes-in-video-games-call-for-evidence/outcome/government-response-to-the-call-for-evidence-on-loot-boxes-in-video-games">GOV.UK</a></li>
+        <li><strong>US (Jan 2025):</strong> the maker of Genshin Impact paid $20M. It may not sell loot boxes to under-16s without a parent’s consent, and must show odds and what its coins cost in real money. <a class="src" href="https://www.ftc.gov/news-events/news/press-releases/2025/01/genshin-impact-game-developer-will-be-banned-selling-lootboxes-teens-under-16-without-parental">FTC</a></li>
+        <li><strong>So:</strong> the thrill you like is safe as <strong>a mystery box you earn by playing</strong>. Selling them for money waits until a lawyer has looked, and depends on your answer about kids.</li>
+      </ul>
+    </div>
+    <div>
+      <h3>Your architecture question, in plain English</h3>
+      <ul>
+        <li><strong>Each world is a folder.</strong> Pasta Pirates lives in its own folder holding its islands, ingredients, recipes, captains, music, art and words. The game reads whichever folder is chosen and never mentions a world by name. Today’s pastry sea becomes the first folder. The term is “data-driven content packs”.</li>
+        <li><strong>Why sessions stop colliding:</strong> a new world is new files in a new folder, and nobody edits a shared list. The art review and narration pass happen inside that folder.</li>
+        <li><strong>Your ledger is the right idea.</strong> The standard term is “entitlements and inventory”: one record per captain of what they own, have earned, and hold. The game asks one question, e.g. “does anyone in this crew own Sushi Pirates?”, and your crew-sharing rule is just that question.</li>
+        <li><strong>The catch:</strong> anyone can edit what their own browser says. So a captain must never be able to write their own trophies or purchases; a trusted server checks the receipt and writes the ledger. That needs accounts first.</li>
+        <li><strong>Native apps keep one set of game files.</strong> A wrapper puts the game inside an app, with Capacitor for iPhone and Android and Tauri or Electron for Steam, and solo against bots works offline. <a class="src" href="https://capacitorjs.com/docs/config">Capacitor</a> Apple lets a web purchase unlock on iPhone, as long as the iPhone app also sells that item. <a class="src" href="https://developer.apple.com/app-store/review/guidelines/">Apple 3.1.3(b)</a> Whether Steam allows the same is not verified.</li>
+        <li><strong>Order, smallest first:</strong> move today’s sea into a world folder with no visible change → add a tiny second test world without touching shared files → a free cosmetic slot (flip coins) → accounts and the real ledger → earned trophies → the store → the native apps. Paid mystery boxes and buyable dubloons are parked.</li>
+      </ul>
+    </div>
+    <div>
+      <h3>What you asked me to do</h3>
+      <ul>
+        <li><span class="state done">Done</span>Talked to the victory card session about scoring. The score is per voyage and per captain, and deliberately luck-free: dock flips, battle flips and storms pay nothing. That’s exactly what a fair Daily Voyage leaderboard needs. It isn’t a player rating yet. Waiting on accounts: the slipway ship, “New best voyage!” and “3 of 21 recipes baked”. <a href="https://claude.ai/code/artifact/a7e8dae4-42d9-4f01-891a-ef2c782f091f">Victory card sheet</a></li>
+        <li><span class="state done">Done</span>Your rulings and the physical-board pipeline are on the backlog.</li>
+        <li><span class="state done">Done</span>What makes Pastry Pirates streamable and screenshot-worthy, plus first ideas for the viral brainstorm. See below.</li>
+        <li><span class="state running">Researching</span>Bringing the physical game to market without upfront money.</li>
+        <li><span class="state done">Done</span>Architecture in plain English: worlds as folders, one ledger of what each captain owns, Steam, iOS and Google Play with offline play. Below, with mystery boxes checked.</li>
+        <li><span class="state yourcall">Your call</span>The bought vs earned line above.</li>
+      </ul>
+    </div>
+    <div>
+      <h3>Streaming and screenshots: the two strongest leads</h3>
+      <ul>
+        <li><strong>Screenshots that explain themselves.</strong> <em>Nuclear Throne</em>’s co-maker says streamers hate explaining rules; the screen should be “a constant tutorial for anyone watching.” <a class="src" href="https://www.gamedeveloper.com/business/game-development-as-performance-making-i-nuclear-throne-i-on-twitch">Game Developer</a> For Pastry Pirates: after a broadside, a big caption like <strong>STOLEN: 2 Sugar</strong> stays up for a few seconds, plus a shareable <strong>“Ye sank yerself”</strong> card when you lose a fight you started (who started it, who won, what was lost).</li>
+        <li><strong>The Wordle loop needs both halves.</strong> A share button came two weeks after a player first typed the grid by hand. Wordle went from 90 players on 1 Nov 2021 to 2 million a week by 9 Jan 2022. <a class="src" href="https://en.wikipedia.org/wiki/Wordle">Wikipedia</a> The grid does nothing without a shared daily puzzle, so the Daily Voyage comes first and the emoji grid second, with a line of words under it for screen readers. <a class="src" href="https://slate.com/culture/2022/02/wordle-word-game-results-accessibility-twitter.html">Slate</a></li>
+        <li><strong>Also found:</strong> friends playing together is what streamers spread (<em>Among Us</em>: 774K watching at once, Nov 2020 <a class="src" href="https://streamscharts.com/news/phenomena-2020-among-us">Streams Charts</a>). Streamer mode hides the room code (<em>Among Us</em>). A “beat my voyage” link replays your exact sea (<em>Balatro</em> seeds). Discord says over 25% of its monthly users use its built-in apps and Activities. <a class="src" href="https://discord.com/blog/build-where-the-world-plays">Discord</a></li>
+      </ul>
+    </div>
+    <div class="next">
+      <h3>One thing to settle first</h3>
+      <p>In answer 5 you said <em>“a lot of kids are going to play this”</em>; in answer 11, <em>“too sophisticated for children under 13.”</em> Which one you design for decides how sign-ins, purchases, buying dubloons and mystery boxes can work. It’s the first follow-up in chat.</p>
+    </div>
+  </section>
 
   <nav aria-label="Jump to a topic">
     <a href="#shape">The shape of it</a><a href="#money">Money</a><a href="#accounts">Accounts</a><a href="#modes">Ways to play</a><a href="#physical">Merch &amp; the real world</a><a href="#growth">Getting found</a>
@@ -110,6 +206,7 @@
         <li>Wordle had fewer than 100 players at first, then 2 million within weeks. It never charged anything. The New York Times bought it for "low seven figures". <a class="src" href="https://www.cnbc.com/2022/01/31/the-new-york-times-is-buying-wordle.html">CNBC</a></li>
         <li>Lichess is free forever to millions, and donations pay for its servers and one full-time developer. <a class="src" href="https://lichess.org/patron">lichess.org</a></li>
       </ul></div>
+      <div class="yours"><b>Your answer</b>Thousands of players, enough to live off, then enough to hire. Success is a ladder of steps, not one finish line. Big dreams: “the new Settlers of Catan”, selling it for low seven figures, royalties.</div>
     </div></article>
 
     <article class="q" id="q2"><div class="coin">2</div><div class="qbody">
@@ -120,6 +217,7 @@
         <li>Stripe is cheaper per sale, but you stay the seller. Its full tax-filing service starts at $90 a month. <a class="src" href="https://stripe.com/tax/pricing">Stripe</a></li>
         <li>EU tax on digital sales applies even to a US seller. <a class="src" href="https://vat-one-stop-shop.ec.europa.eu/one-stop-shop/declare-and-pay-oss_en">EU</a></li>
       </ul></div>
+      <div class="yours"><b>Your answer</b>A hobby now; a side business or company next. Floor: it pays its own Firebase bill. Target: $4,000 a month. Happy to pay tax, but the paperwork should run itself so you can design. <em>(Paddle, in one line: a company that sells on your behalf, so worldwide sales tax is its job, not yours. The term is “merchant of record”.)</em></div>
     </div></article>
   </section>
 
@@ -135,6 +233,7 @@
         <li>Research consistently finds that players accept paying for looks and resent paying for power. <a class="src" href="https://link.springer.com/article/10.1186/s43093-025-00700-w">Springer</a></li>
         <li>On phones, Gartic Phone players complain that ads lag the game. <a class="src" href="https://apps.apple.com/us/app/gartic-phone/id6788498566">App Store</a></li>
       </ul></div>
+      <div class="yours"><b>Your answer</b>Never: pay to win, selling data, charging to play with friends. Ads: “morally opposed”, only if nothing else works, and only where they steal no attention (loading, waiting for a friend). Mystery boxes: could be cool. Free to play forever. Bought looks carry no clout; earned things do.</div>
     </div></article>
 
     <article class="q" id="q4"><div class="coin">4</div><div class="qbody">
@@ -145,6 +244,7 @@
         <li>Colonist: "to play with your friends only 1 player needs a Membership." <a class="src" href="https://colonist.io/store">Colonist</a></li>
         <li>Board Game Arena: one premium player at the table unlocks a premium game. <a class="src" href="https://forum.boardgamearena.com/viewtopic.php?t=35510">BGA forum</a></li>
       </ul></div>
+      <div class="yours"><b>Your answer</b>Yes, exactly Jackbox and Colonist. Friends get “treated” to the pack, and the owner’s pasta hat makes them want it.</div>
     </div></article>
 
     <article class="q" id="q5"><div class="coin">5</div><div class="qbody">
@@ -155,6 +255,7 @@
         <li>Ticket to Ride sells new maps from $3.99 to $34.99. <a class="src" href="https://store.steampowered.com/app/2477010/">Steam</a></li>
         <li>Colonist sells colours, avatars and extra maps. Catan Universe sells avatar outfits and pets. <a class="src" href="https://colonist.io/store">Colonist</a></li>
       </ul></div>
+      <div class="yours"><b>Your answer</b>World expansions: Pasta Pirates (Mediterranean), Planetary Pirates (space), Sushi Pirates, a winter or night sea, each with captains, ships, flags, islands, ingredients and recipes. Music packs yes; sound packs unsure. Pets, outfits, bakery decor, ovens. Dubloons left at the end of a voyage become yours to spend, so a kid can slowly earn what others buy.</div>
     </div></article>
 
     <article class="q" id="q6"><div class="coin">6</div><div class="qbody">
@@ -165,6 +266,7 @@
         <li>Board Game Arena Premium is 36 a year. Their own announcement says some members use none of the perks and treat it as a donation. <a class="src" href="https://forum.boardgamearena.com/viewtopic.php?p=141374">BGA</a></li>
         <li>Lichess supporters get "Patron wings" on their profile, and nothing is ever locked. <a class="src" href="https://lichess.org/patron">Lichess</a></li>
       </ul></div>
+      <div class="yours"><b>Your answer</b>The cookie button is a short-term test. Yes to a supporter flag and a name in the credits. No subscriptions (“cheesy”). The base game stays free, with expansions sold on top.</div>
     </div></article>
 
     <article class="q" id="q7"><div class="coin">7</div><div class="qbody">
@@ -176,6 +278,7 @@
         <li>Steam costs $100 per game. The App Store costs $99 a year, takes a 15% cut, and rejects apps that are just "a repackaged website". <a class="src" href="https://developer.apple.com/app-store/review/guidelines/">Apple</a></li>
         <li>Colonist runs inside Discord as a game friends play during a voice call. <a class="src" href="https://blog.colonist.io/play-colonist-on-discord/">Colonist</a></li>
       </ul></div>
+      <div class="yours"><b>Your answer</b>Steam, iOS and Google Play are in scope. Native feels better and works offline, “when you’re flying”.</div>
     </div></article>
 
     <article class="q" id="q8"><div class="coin">8</div><div class="qbody">
@@ -185,6 +288,7 @@
         <li>New board-game designers usually earn about 5% royalties, with $500–$2,000 up front. Stonemaier pays $10,000 up front, and the publisher decides what changes. <a class="src" href="https://stonemaiergames.com/game-designer-contracts-and-stonemaier-games/">Stonemaier</a></li>
         <li>Exploding Kittens has a version inside Netflix Games. <a class="src" href="https://www.netflix.com/games/81518722">Netflix</a></li>
       </ul></div>
+      <div class="yours"><b>Your answer</b>Open to licensing or selling, but not under ~$100,000. More willing to license the physical board than the digital game. Netflix Games: yes. You asked for the physical-board pipeline on the backlog.</div>
     </div></article>
   </section>
 
@@ -199,6 +303,7 @@
         <li>Among Us guests get preset chat and random names; an account unlocks typed chat and a chosen name. <a class="src" href="https://www.innersloth.com/info-on-accounts/">Innersloth</a></li>
         <li>Games usually put ratings, history, custom names, saved progress and purchases behind a sign-in.</li>
       </ul></div>
+      <div class="yours"><b>Your answer</b>Keep: win count, recipes won (sellable in your bakery), recipes seen but not won, trophies, looks, coins, boats, pets, purchases on every device, a friends list, and visits to friends’ bakeries. A voyage log isn’t needed.</div>
     </div></article>
 
     <article class="q" id="q10"><div class="coin">10</div><div class="qbody">
@@ -210,6 +315,7 @@
         <li>Lichess guests play, but only unrated games. <a class="src" href="https://lichess.org/forum/lichess-feedback/playing-with-anonymous">Lichess</a></li>
         <li>Firebase, which the game already uses, can quietly give every player a guest account. They can attach Google or email later and keep everything. <a class="src" href="https://firebase.google.com/docs/auth/web/anonymous-auth">Firebase</a></li>
       </ul></div>
+      <div class="yours"><b>Your answer</b>Never required to play. Invite a sign-in at the end of a voyage to save progress and spend points. “As little friction as possible to begin playing.”</div>
     </div></article>
 
     <article class="q" id="q11"><div class="coin">11</div><div class="qbody">
@@ -221,6 +327,7 @@
         <li>Jackbox ships a family-friendly filter, extended timers and subtitles. <a class="src" href="https://www.jackboxgames.com/blog/streaming-moderation-accessibility-features-jackbox-party-pack-eight">Jackbox</a></li>
         <li>US rule in plain terms. <a class="src" href="https://www.ftc.gov/business-guidance/resources/complying-coppa-frequently-asked-questions">FTC</a> <a class="src" href="https://ico.org.uk/for-organisations/uk-gdpr-guidance-and-resources/childrens-information/childrens-code-guidance-and-resources/introduction-to-the-childrens-code/">UK ICO</a></li>
       </ul></div>
+      <div class="yours"><b>Your answer</b>Too sophisticated for under-13s, and an art redesign is coming. Chat only among people who know each other; strangers get the board plus something like a high-five. No moderation.</div>
     </div></article>
   </section>
 
@@ -235,6 +342,7 @@
         <li>Dominion gives one free daily puzzle. Chess.com gives three. <a class="src" href="https://store.steampowered.com/app/1131620/Dominion/">Steam</a></li>
         <li>The game already builds the same board every time from the same seed, so this is the cheapest mode on the list.</li>
       </ul></div>
+      <div class="yours"><b>Your answer</b>Yes: a Daily Voyage or recipe of the day, played like a puzzle, with a leaderboard and an emoji grid. Daily challenges from the mechanics: all bots against you, an archipelago maze. “This is the stuff I find fun, not the taxes.”</div>
     </div></article>
 
     <article class="q" id="q13"><div class="coin">13</div><div class="qbody">
@@ -245,6 +353,7 @@
         <li>Jackbox has no matchmaking at all: you bring your own friends and your own voice call. <a class="src" href="https://www.jackboxgames.com/how-to-play">Jackbox</a></li>
         <li>Ranked play needs enough people online at once, and it brings cheating reports.</li>
       </ul></div>
+      <div class="yours"><b>Your answer</b>Strangers too: “Find me a crew”, matched by rank, with no chat.</div>
     </div></article>
 
     <article class="q" id="q14"><div class="coin">14</div><div class="qbody">
@@ -254,6 +363,7 @@
         <li>Board Game Arena runs games at 1–2 moves a day with email reminders, and says over 98% of them finish. <a class="src" href="https://en.doc.boardgamearena.com/Turn_based_FAQ">BGA</a></li>
         <li>Since iOS 16.4, a web game saved to an iPhone home screen can send notifications. <a class="src" href="https://webkit.org/blog/13878/web-push-for-web-apps-on-ios-and-ipados/">WebKit</a></li>
       </ul></div>
+      <div class="yours"><b>Your answer</b>Low priority. Playing over days breaks your memory of where you were going and what the wind was doing. It would need a strong business case.</div>
     </div></article>
 
     <article class="q" id="q15"><div class="coin">15</div><div class="qbody">
@@ -264,6 +374,7 @@
         <li>Spectators: Jackbox lets up to 10,000 watch a game. Also replays of a finished voyage.</li>
         <li>House rules, extra-long timers, and colourblind support, which Colonist players have asked for.</li>
       </ul></div>
+      <div class="yours"><b>Your answer</b>Campaign voyages, a five-minute blitz, 2-vs-2 (trade matters more), streaming and spectating, and a map painter that places the islands. Never ships with powers or rule changes: “the current rule set is gospel.”</div>
     </div></article>
   </section>
 
@@ -279,6 +390,7 @@
         <li>Shipping is where campaigns lose money; for one designer, some countries cost over half the game's price. <a class="src" href="https://www.efulfillmentservice.com/2025/04/kickstarter-board-game-fulfillment-a-complete-guide-for-creators/">guide</a></li>
         <li>Cards Against Humanity gives away a free printable version and still sells the box. The Game Crafter prints one copy at a time. <a class="src" href="https://www.thegamecrafter.com/make/pricing">TGC</a></li>
       </ul></div>
+      <div class="yours"><b>Your answer</b>Both: a handmade premium edition in small numbers, and the first draft of a cheaper boxed game. No print-and-play (too many pieces). Open to Kickstarter. You asked for low-capital ways to market.</div>
     </div></article>
 
     <article class="q" id="q17"><div class="coin">17</div><div class="qbody">
@@ -289,6 +401,7 @@
         <li>Redbubble pays the artist 20% by default. <a class="src" href="https://help.redbubble.com/hc/en-us/articles/202270799-How-is-my-payment-calculated">Redbubble</a></li>
         <li>Makeship makes a plush only if 200 fans preorder within 21 days. <a class="src" href="https://www.makeship.com/how-it-works">Makeship</a></li>
       </ul></div>
+      <div class="yours"><b>Your answer</b>Root is the art reference. Pets and animals are cute; captains aren’t yet. Digital merch excites you far more than physical, which should come through no-stock shops set up by a hired helper.</div>
     </div></article>
 
     <article class="q" id="q18"><div class="coin">18</div><div class="qbody">
@@ -300,6 +413,7 @@
         <li>Catan, Ticket to Ride and Candy Land have official cookbooks. <a class="src" href="https://www.simonandschuster.com/series/Board-Game-Cookbooks">S&amp;S</a></li>
         <li>No documented bakery partnership with an indie game turned up. That's open water.</li>
       </ul></div>
+      <div class="yours"><b>Your answer</b>Yes to all of it: an official cookbook, a social channel baking every recipe, a bake-your-recipe contest with in-game prizes, and a bakery sponsoring an island for a day.</div>
     </div></article>
   </section>
 
@@ -314,11 +428,13 @@
         <li>Wordle jumped to 80,000 players in a day after one blog post and a newsletter mention. <a class="src" href="https://techcrunch.com/2022/01/12/josh-wardle-interview-wordle/">TechCrunch</a></li>
         <li>One Hacker News front-page launch drew about 468 users on day one, then a few dozen a day within a week. Spikes fade without a reason to come back. <a class="src" href="https://www.indiehackers.com/post/front-page-of-hn-the-full-postmortem-traffic-lessons-surprises-cbe9e0a7f6">Indie Hackers</a></li>
       </ul></div>
+      <div class="yours"><b>Your answer</b>“I don’t know where they are, my friend.” Reddit, board game groups, gaming TikTok, streamers, friends of friends. The share moment: losing a battle, worse one you started. It has to hit hard and read without context.</div>
     </div></article>
 
     <article class="q" id="q20"><div class="coin">20</div><div class="qbody">
       <h3>What's on your list that I didn't ask about?</h3>
       <p class="ask">A feature, a fear, a partner, a wild idea. Your list outranks mine, and last time the best answers were the ones you wrote in yourself.</p>
+      <div class="yours"><b>Your answer</b>Architecture: new worlds generated quickly through a pipeline (art review, narration pass); one ledger the game asks (“which coin does this captain have?”); structured so parallel Claude sessions never collide.</div>
     </div></article>
   </section>
 
