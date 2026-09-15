@@ -22,7 +22,7 @@ const STEMS = {
   "abacus-click":  ["tick", "b", "c.sounds.tick(a,o,0,0,1)", 0.12],
   "crate-marimba": ["lids", "b", `for(let k=0;k<${MARIMBA_SLOTS};k++) c.sounds.lid(a,o,k*${MARIMBA_SLOT_S}+${MARIMBA_LEAD_S},k)`, MARIMBA_SLOTS * MARIMBA_SLOT_S],
   "crate-chime":   ["verdict", "a", "c.sounds.right(a,o,0)", 0.9],
-  "crate-thud":    ["verdict", "a", "c.sounds.wrong(a,o,0)", 0.5],
+  "crate-squawk":  ["verdict", "b", "c.sounds.wrong(a,o,0)", 0.5],   // his 2026-09-14 change: the wrong crate squawks
   "award-whoosh":  ["deal", "b", "c.sounds.deal(a,o,0,0)", 0.45],
 };
 const PROFILE = path.join(process.env.TMPDIR || "/tmp", "pp-render-voyage-sounds");
@@ -32,7 +32,9 @@ const out = path.join(HERE, "voyage-sounds-wav");
 fs.mkdirSync(out, { recursive: true });
 try {
   await C.send("Page.navigate", { url: pathToFileURL(path.join(HERE, "sounds-of-the-voyage.html")).href }); await sleep(2500);
+  const only = process.argv.slice(2);   // name stems to render just those
   for (const [stem, [mid, cid, call, secs]] of Object.entries(STEMS)) {
+    if (only.length && !only.includes(stem)) continue;
     const b64 = await C.ev(`(async()=>{
       const m=MOMENTS.find(x=>x.id===${JSON.stringify(mid)}), c=m.cands.find(x=>x.id===${JSON.stringify(cid)}), sr=48000;
       const a=new OfflineAudioContext(1,Math.ceil(sr*${secs}),sr), o=a.createGain(); o.gain.value=c.gain*${PAGE_VOLUME}; o.connect(a.destination);

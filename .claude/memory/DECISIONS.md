@@ -3137,3 +3137,32 @@ died on the Blade. Rooted off `fileURLToPath(import.meta.url)`.
 - **THE SEE-THROUGH END OF VOYAGE CARD ON TABLET IS FINE.** His checklist answer to "should it be solid?": *"This looks fine as is."* (and
   the card is being replaced by the victory card work anyway). On the same sheet, on "build the seven victory ideas as a toggle page?":
   *"I wrote comments elsewhere -- read those first."*
+
+**2026-09-14 (late) — his verdicts on the checklist for 2026.09.14.4-staging@b083f577, and what he asked for with them:**
+
+- LOOKS RIGHT: the board settles in, buttons squish, cards swish · the route draws itself, the card flies into the box · storms · the
+  confetti for the first home (*"Make the confetti linger 50% longer"*) · the lids' marimba and the chime · the end card arriving · a bubble
+  over a sail square is fine.
+- **THE BOAT BOBS FOR THE WHOLE TURN.** *"I don't see the boat bobbing -- i'd love for it to keep bobbing for your whole turn."* Built as an
+  HTML copy while the boat sits still — bobbing the SVG boat measured 60 layouts/s at phone size (BOARD-RENDERING §5).
+- **SAIL SQUARES POP IN 50% SLOWER.** *"The sail squares should pop up 50% slower so it's more noticeable."*
+- **THE COIN FLIP — his screen recording, frame by frame.** *"When the coin in the flip stage lands, it makes the coin disappear before the
+  stage itself disappears, leaving an empty flippenator again. Also, the coin's motion out towards the viewer should be more accentuated,
+  as if it's flipping up out of the screen towards them."* Then: *"here's the coin flip bug -- watch it frame by frame and fix all the
+  problems"*.
+- **COINS.** *"if you earn 3 coins, only 3 coins should fly to the hold ... every coin you earn should fly over -- including from working the
+  docks ... the coins should enter your hold the moment you earn them -- not at the end of your turn AFTER you've bought the ingredient ...
+  they happen sequentially and both require player decisions, so they should be displayed that way. the treasure should always fly from the
+  island into your hold -- i think it does this, but a little fast."* And the click was not heard.
+- **CRATES FLY AS CRATES.** *"the crates themselves should ALSO swap between players, not just the ingredient icons ... Please also do the same
+  thing when a crate is purchased off an island".*
+- **SPEED LINES LINGER 50% LONGER.** *"I want the speed lines to linger 50% longer"*
+- **THE BATTLE BOX IS REMOVED ENTIRELY.** *"THe battle box covered this up. I want the battle box removed entirely."* — with his earlier note
+  on how: the flip stage for the captain flipping, and the board showing the two ships battling.
+- **THE BAKE-OFF'S WRONG CRATE SQUAWKS, AND EVERY GUESS TICKS.** *"I want the "wrong" sound to be a squawk during the bakeoff"* · *"I want a
+  "tick" sound (same as the coin tick up/down sound?) when a player makes their guesses for the bakeoff"*. Question UI: the squawk is
+  *"the page's squawk"* — NOT a re-download of the macaw recording he picked on 2026-08-19.
+- **THE SEQUENCE.** *"make these changes, get CEO's approval, then run a sea trial and merge it to main if it's good"* — the sea trial on
+  **Wy-Blade** (question UI). "Good" read as: the CEO approves AND the trial finds no real game fault.
+- **THEN THE CLOUDFLARE CUTOVER.** *"after all this work, we need to cutover to cloudflare. we're ready. can you create (or update) an
+  artifact to walk me through all the steps?"* — docs/CLOUDFLARE-CUTOVER.md and docs/PRD-CLOUDFLARE-CUTOVER.md already exist.

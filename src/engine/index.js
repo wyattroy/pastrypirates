@@ -1077,6 +1077,12 @@ class Game{
     p.firstFlip.add(k);p.dockedNow.add(k);p.justDocked=true;
     const h=this.flip(p,"dock");   // recorded as a coinflip event NOW — before the buy, before the dock summary
     p.coins+=h?this.cfg.dockHeads:this.cfg.dockTails;
+    /* THE COINS ARE RECORDED THE MOMENT THEY ARE EARNED — Wyatt, 2026-09-14: "the coins should enter your hold the moment you
+       earn them -- not at the end of your turn AFTER you've bought the ingredient ... they happen sequentially and both require
+       player decisions, so they should be displayed that way." A human's dock already recorded a `purse` here (src/ui/flow.js
+       humanDock); a bot's did not, so its earnings reached every screen only with the dock summary, alongside what it spent.
+       Same event, same place, for both — after the payment, so its snapshot holds the new purse (the doPass ordering note). */
+    this.ev({t:"purse",p:p.idx,coins:h?this.cfg.dockHeads:this.cfg.dockTails,why:h?"treasure":"dockhand"});
     const price=this.cratePrice(ing);
     // a bot buys when it needs the crate and can afford today's price — or, if it trades for a
     // living, when the crate is leverage somebody else at the table plainly needs (rule 4 fodder)
@@ -1134,7 +1140,7 @@ class Game{
   // field, not on this line.
   doPass(p){
     p.coins+=this.cfg.passCoin;
-    this.ev({t:"pass",p:p.idx,sea:this.nextSeaCreature(p)});
+    this.ev({t:"pass",p:p.idx,sea:this.nextSeaCreature(p),coins:this.cfg.passCoin});   // `coins`: what flies to the purse (board.js treasureBurst)
   }
   // NARR-04: record this round's wind and return how many rounds running it has held that
   // direction. Called once per round, right after the direction is rolled.

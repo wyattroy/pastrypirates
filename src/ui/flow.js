@@ -665,7 +665,7 @@ export function sailHighlightRect(c,cellPx,svg){
 /* THE POP IS CSS (sailPop in index.html), started by a per-square --sailPopDelay — measured, a script animation left 2-5
    squares of every window showing at full for their first frame before its hidden start applied; a CSS animation with a
    backwards fill is resolved with the square's very first style, so nothing shows before its turn. */
-const SAIL_CASCADE_MS=250, SAIL_PRESS_MS=180;
+const SAIL_CASCADE_MS=375, SAIL_PRESS_MS=180;   // 250 -> 375 with the pop itself (index.html sailPop .33s): Wyatt, 2026-09-14, "The sail squares should pop up 50% slower so it's more noticeable"
 const sailReduced=()=>typeof matchMedia==="function"&&matchMedia("(prefers-reduced-motion: reduce)").matches;
 function pressSailSquare(r){
   if(sailReduced()||typeof r.animate!=="function")return;
@@ -1922,7 +1922,7 @@ export async function humanDock(player,port){
      .purse) and logs nothing — its whole job is to make the panel tell the truth. Every other coin
      change in the game emits its event in the same breath as the mutation; this one could not,
      because a prompt sits in between. */
-  g.ev({t:"purse",p:player.idx});
+  g.ev({t:"purse",p:player.idx,coins:h?g.cfg.dockHeads:g.cfg.dockTails,why:h?"treasure":"dockhand"});   // `coins`: every one earned flies to the purse, now (board.js treasureBurst)
   liveRender(); // the purse changed — show it before the buy prompt prices anything against it
   let buy=null;
   if(g.cfg.dockBuy&&price!==null){

@@ -932,6 +932,11 @@
   /* treasure coins and a bought crate fly between the board and the captains box in FIXED position (board.js) */
   .ppTreasure, .ppCrateFly { position: fixed; z-index: 60; pointer-events: none; will-change: transform, opacity; object-fit: contain;
     filter: drop-shadow(0 2px 3px rgba(0,0,0,.35)); }
+  /* the active captain's boat bobbing for its turn, as HTML so it costs no layout (board.js bobShip) */
+  .ppBobBoat { position: absolute; pointer-events: none; will-change: transform; object-fit: contain; }
+  /* a crate in flight is the crate with its ingredient on it (board.js flyingCrate) */
+  .ppCrateBox { background: url(assets/plaque/crate.webp) center/100% 100% no-repeat; display: grid; place-items: center; }
+  .ppCrateBox img { width: 74%; height: 74%; object-fit: contain; }
   .ppPoof { position: fixed; z-index: 59; pointer-events: none; border-radius: 50%; opacity: 0;
     background: radial-gradient(rgba(255,255,255,.85), rgba(255,255,255,0) 70%); will-change: transform, opacity; }
   .ppStreak { position: absolute; border-radius: 99px; background: rgba(255,255,255,.9); opacity: 0; will-change: transform, opacity; }
@@ -1193,7 +1198,7 @@
      background. cqw units keep the geometry identical to the 640-unit board. */
   .sailCell { position: absolute; box-sizing: border-box; pointer-events: auto; cursor: pointer;
     background: #ffc23a; border-radius: 6px; opacity: .5;
-    animation: sailBounce 1.15s ease-in-out infinite, sailPop .22s ease-out backwards;
+    animation: sailBounce 1.15s ease-in-out infinite, sailPop .33s ease-out backwards;   /* .22s -> .33s: his 2026-09-14 "50% slower so it's more noticeable" */
     transition: opacity .12s ease, filter .12s ease; }
   /* THE SQUARES POP IN FROM THE BOAT OUTWARD — his game feel audit, PASSED (2026-09-13). LISTED LAST so its hidden start
      wins over the bounce until each square's own --sailPopDelay (renderPickPrompt, by distance from the boat); `scale`,
@@ -2500,7 +2505,11 @@
   .pp4CerTitle img, .pp4CerStakes img { width:18px; height:18px; vertical-align:-3px; }
   /* his game feel audit: the landed word stamps in under the coin, and a dust ring leaves the coin (stage.js coinLandsWithWeight) */
   .pp4CerStamp { font-weight:900; font-size:clamp(26px,8vw,40px); letter-spacing:2px;
-    text-align:center; text-shadow:0 3px 10px rgba(0,0,0,.6); }
+    text-align:center; text-shadow:0 3px 10px rgba(0,0,0,.6);
+    /* placed over the "Tap the coin" line's own box (stage.js coinLandsWithWeight), so the stage never reflows as it lands */
+    position:absolute; left:0; right:0; translate:0 -50%; pointer-events:none; }
+  /* the throw lifts the coin out of its socket, so the socket stops clipping it for that long (stage.js coinSinksAndLaunches) */
+  #pp4CerSlot.pp4Lift .flipPlank { overflow:visible; }
   .pp4CerStamp.heads { color:#ffd76b; }
   .pp4CerStamp.tails { color:#c9d4dc; }
   #pp4CerSlot { position:relative; }

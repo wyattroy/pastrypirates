@@ -2205,18 +2205,35 @@ const CER_VEIL_WAIT_CAP_MS = CER_FALLBACK_MS + CER_REVEAL_MS;
    spin (FLIP_SPIN_MS), so the flip still lands on the same frame its sound's landing blip peaks. `translate`/`scale`, so
    they compose with the spin's own rotateX. The two stings named in the audit are sounds, and come with the sound page. */
 const COIN_SINK = 0.12, COIN_SQUASH = 0.2, STAMP_MS = 380, NUDGE_PX = 2, NUDGE_MS = 150, DUST_MS = 620;
+/* …AND IT COMES UP OUT OF THE SCREEN — Wyatt, 2026-09-14: "the coin's motion out towards the viewer should be more accentuated,
+   as if it's flipping up out of the screen towards them." His recording showed the coin turning in place: at every edge-on
+   frame the socket showed empty behind it. So the launch now GROWS the coin to COIN_LIFT of its size at the top of the throw,
+   lifts it COIN_RISE of its height, and throws a deeper, softer shadow while it is up — and the socket stops clipping it for
+   the length of the throw. */
+const COIN_LIFT = 1.7, COIN_RISE = 0.22;
 const cerReduced = () => typeof matchMedia === "function" && matchMedia("(prefers-reduced-motion: reduce)").matches;
 function coinSinksAndLaunches(){
   const c = $("flipCoinWrap");
   if (!c || cerReduced() || typeof c.animate !== "function") return;
-  const v = $("pp4Veil"); if (v) v.querySelectorAll(".pp4CerStamp").forEach(s => s.remove());
-  c.animate([
-    { translate: "0 0", scale: "1" },
-    { translate: `0 ${COIN_SINK * 100}%`, scale: `${1 + COIN_SQUASH} ${1 - COIN_SQUASH}`, offset: .16 },
-    { translate: `0 ${-COIN_SINK * 110}%`, scale: "0.94 1.06", offset: .42 },
-    { translate: `0 ${-COIN_SINK * 45}%`, scale: "1", offset: .72 },
-    { translate: "0 0", scale: "1" },
+  cerClearStamp();
+  const slot = $("pp4CerSlot"); if (slot) slot.classList.add("pp4Lift");
+  const up = 1 + (COIN_LIFT - 1) * .6;
+  const a = c.animate([
+    { translate: "0 0", scale: "1", filter: "drop-shadow(0 4px 5px rgba(0,0,0,.45))" },
+    { translate: `0 ${COIN_SINK * 100}%`, scale: `${1 + COIN_SQUASH} ${1 - COIN_SQUASH}`, filter: "drop-shadow(0 2px 3px rgba(0,0,0,.5))", offset: .14 },
+    { translate: `0 ${-COIN_RISE * 100}%`, scale: `${COIN_LIFT}`, filter: "drop-shadow(0 38px 26px rgba(0,0,0,.38))", offset: .45 },
+    { translate: `0 ${-COIN_RISE * 55}%`, scale: `${up}`, filter: "drop-shadow(0 22px 16px rgba(0,0,0,.42))", offset: .74 },
+    { translate: "0 0", scale: "1", filter: "drop-shadow(0 4px 5px rgba(0,0,0,.45))" },
   ], { duration: FLIP_SPIN_MS, easing: "ease-in-out", id: "coin-sink" });
+  a.onfinish = a.oncancel = () => { const s2 = $("pp4CerSlot"); if (s2) s2.classList.remove("pp4Lift"); };
+}
+/* THE STAMP TAKES THE PLACE OF "TAP THE COIN" — his recording showed TAILS stamped straight over "Tap the coin, captain — let fate
+   decide.", which nothing hid once the coin had been tapped. The stamp now stands where that line stands (placed over its box, so
+   nothing else on the stage moves) and the line hides while it does; both come back the moment the coin is armed again. */
+function cerClearStamp(){
+  const v = $("pp4Veil"); if (!v) return;
+  v.querySelectorAll(".pp4CerStamp").forEach(s => s.remove());
+  const sub = v.querySelector(".pp4CerSub"); if (sub) sub.style.visibility = "";
 }
 function coinLandsWithWeight(heads){
   const c = $("flipCoinWrap"), v = $("pp4Veil");
@@ -2237,10 +2254,12 @@ function coinLandsWithWeight(heads){
     const a = dust.animate([{ opacity: .75, scale: "0.7" }, { opacity: 0, scale: "1.55" }], { duration: DUST_MS, easing: "ease-out", fill: "both" });
     a.onfinish = a.oncancel = () => dust.remove();
   }
-  // the word stamps in, where the tap-the-coin line stood
+  // the word stamps in, where the tap-the-coin line stood — over that line's own box, and the line hides (cerClearStamp's note)
   let stamp = v.querySelector(".pp4CerStamp");
-  if (!stamp){ stamp = document.createElement("div"); v.insertBefore(stamp, v.querySelector(".pp4CerSub")); }
+  if (!stamp){ stamp = document.createElement("div"); v.appendChild(stamp); }
   stamp.className = "pp4CerStamp " + (heads ? "heads" : "tails");
+  const sub = v.querySelector(".pp4CerSub");
+  if (sub){ stamp.style.top = (sub.offsetTop + sub.offsetHeight / 2) + "px"; sub.style.visibility = "hidden"; }
   stamp.textContent = sayText(heads ? "flip.stampHeads" : "flip.stampTails", {});
   stamp.animate([{ opacity: 0, scale: "1.3" }, { opacity: 1, scale: "0.96", offset: .6 }, { opacity: 1, scale: "1" }],
     { duration: STAMP_MS, easing: "ease-out", fill: "both", id: "coin-stamp" });
@@ -2283,6 +2302,12 @@ function flipArmed(el, onClick){
   if (!onClick){
     // disarmed: the tap landed and the spin is starting — hold the stage and watch for the face
     const veil = $("pp4Veil");
+    /* …ONLY IF THE COIN WAS ARMED. His recording: the next question's housekeeping disarm, 850ms after TAILS had landed, came
+       through here too — it re-ran the launch (taking the stamp away) and started a SECOND watcher, which saw the landed face
+       and "landed" the coin again: a second dust ring and TAILS stamping back in over an empty socket. A coin that is not armed
+       was not tapped; there is nothing to launch and nothing new to watch. */
+    const coin = $("flipCoinWrap");
+    if (veil && coin && !coin.classList.contains("active")) return true;
     if (veil){ veil.classList.add("resolving"); coinSinksAndLaunches(); cerWatchResult(); }
     return true;
   }
@@ -2299,6 +2324,7 @@ function flipArmed(el, onClick){
     });
   }
   veil.classList.remove("resolving");
+  cerClearStamp();   // armed again: the last flip's word leaves, and "Tap the coin" is back
   // …and before the first paint, not on the next tick: the slow gear is 125ms away, which is long
   // enough for the ceremony to be seen once in the wrong place (Group G fault 1).
   cerBandTick();
@@ -2326,27 +2352,20 @@ function flipArmed(el, onClick){
     // that settles a quarter of all fights. Read straight off the battle card's own wind badge
     // rather than re-deriving the geometry, so the card and the ceremony can never disagree about
     // who holds the wind. Built with DOM nodes, not innerHTML: the captain's name is player-typed.
-    const btl = document.querySelector("#actionPanel .btl");
-    if (!fm && btl){
-      const dwTag = btl.querySelector(".windTag.dw");
-      /* READ THE MARKED COLUMN, NOT THE BADGE'S NEIGHBOURHOOD. This was
-         `dwTag.parentElement.querySelector(".who")`, and `dwTag.parentElement` is `.btl-wind` —
-         a div that holds the badge and nothing else (src/orchestrator.js). `.who` lives two
-         branches away inside `.btl-col`, so this returned null on EVERY downwind battle and the
-         `else` below told the player "Crosswind" over a downwind fight. Measured and photographed:
-         judge-1914Z-shots/solo-tablet-wk-018.png says CROSSWIND, and -018-settled.png, the same
-         leg seconds later, says DAVY SCONES FIRES DOWNWIND.
-         renderBattle now stamps that column `.btl-col.dw` from the same `dw` that writes the
-         badge, so the card and the ceremony read ONE value and cannot disagree — which is what
-         the comment above always claimed and did not have.
-         Gate: scripts/qa/flip_ceremony_names_the_wind_check.mjs (RED before this line changed). */
-      const who = dwTag ? btl.querySelector(".btl-col.dw .who") : null;
+    /* THE WIND'S RULE FOR A TIE, READ FROM THE GAME — the battle box it used to be read off is gone (2026-09-14). S.battle holds the
+       two fighters this stage frames (window.__pp4.battle), and the engine's own downwindSide says who holds the wind, so the stage
+       and the bubble that opens the fight (orchestrator.js renderBattle) ask the same function and cannot disagree.
+       Built with DOM nodes, not innerHTML: the captain's name is player-typed. */
+    if (!fm && S.battle && appState.game){
+      const g = appState.game, A = g.players[S.battle[0]], D = g.players[S.battle[1]];
+      const dw = A && D && g.downwindSide ? g.downwindSide(A, D) : null;
+      const holder = dw === "a" ? A : dw === "d" ? D : null;
       t.textContent = sayText("ceremony.broadside",{});
       st.textContent = "";
-      if (who){
+      if (holder){
         const b = document.createElement("b");
-        b.textContent = who.textContent.trim();
-        b.style.color = who.style.color || "";      // the captain's own boat colour, as everywhere else
+        b.textContent = pname(holder.idx);
+        b.style.color = HEXCOL[holder.idx] || "";      // the captain's own boat colour, as everywhere else
         st.appendChild(b);
         // @copy misc.ceremony.windstakes — APPROVED as written, Wyatt 2026-08-14
         st.appendChild(document.createTextNode(" "+sayText("ceremony.downwind",{})));

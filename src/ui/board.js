@@ -597,15 +597,53 @@ export function drawBoard(){
    boat at the same moment. The boat's PICTURE bobs (CSS `translate` on its <image>), never its group: the group's
    transform is where the boat sits on the board and carries the sailing glide. A one-shot, so its SVG cost is a moment,
    not the continuous cost BOARD-RENDERING §5 forbids. */
+/* ⭐⭐ AND IT KEEPS BOBBING FOR THE WHOLE TURN — Wyatt, 2026-09-14: "I don't see the boat bobbing -- i'd love for it to keep bobbing
+   for your whole turn." A one-shot bob at the turn's first frame was lost under the camera's own move to the boat. It is now a slow
+   swell from the captain's turn event to the next captain's (or the voyage's end), on every screen, one boat at a time.
+   ⚠ IT BOBS IN HTML, NOT IN THE SVG, AND THAT WAS MEASURED. Bobbing the boat's own SVG picture for a whole turn cost 60 LAYOUTS A
+   SECOND at his phone size with a phone-class CPU (10/s without it) — the continuous SVG cost BOARD-RENDERING §5 exists to forbid.
+   So while the boat sits still, a copy of its picture bobs in #dockCoinHost (a camera layer just over the boats, composited: no
+   layout) and the SVG picture hides; the instant the boat's drawn position changes, or anything animates its SVG picture (the sail's
+   lean, the arrival's dip, the storm's rock, a cannon's kick, a loser's wobble), the SVG picture is the one shown and those play
+   exactly as they always did. The copy follows the boat's drawn place, so a camera move carries both together. */
 export const SHIP_BOB = 0.1;        // of a square, up
-export const SHIP_BOB_MS = 560;
+export const SHIP_BOB_MS = 1400;    // one swell, down and back
+let turnBob=null;
+export function stopTurnBob(){
+  if(!turnBob)return;
+  cancelAnimationFrame(turnBob.raf);
+  try{ turnBob.anim.cancel(); }catch(e){}
+  turnBob.pic.remove();
+  if(turnBob.im)turnBob.im.style.visibility="";
+  turnBob=null;
+}
 export function bobShip(seat){
-  const g=shipEls[seat], im=g&&g.querySelector("image");
-  if(!im||typeof im.animate!=="function"||!cell)return;
+  stopTurnBob();
+  const g=shipEls[seat], im=g&&g.querySelector("image"), host=$("dockCoinHost");
+  if(!im||!host||!cell||typeof im.animate!=="function")return;
   if(typeof matchMedia==="function"&&matchMedia("(prefers-reduced-motion: reduce)").matches)return;
-  const up=cell*SHIP_BOB;
-  im.animate([{translate:"0px 0px"},{translate:`0px ${(-up).toFixed(2)}px`,offset:.35},{translate:"0px 0px",offset:.7},
-    {translate:`0px ${(-up/3).toFixed(2)}px`,offset:.85},{translate:"0px 0px"}],{duration:SHIP_BOB_MS,easing:"ease-in-out"});
+  const pic=document.createElement("img");
+  pic.className="ppBobBoat";pic.alt="";pic.src=im.getAttribute("href")||"";
+  pic.style.width=pic.style.height=CQfx(cell);pic.style.visibility="hidden";
+  host.appendChild(pic);
+  const anim=pic.animate([{translate:"0 0"},{translate:`0 ${CQfx(-cell*SHIP_BOB)}`,offset:.5},{translate:"0 0"}],
+    {duration:SHIP_BOB_MS,iterations:Infinity,easing:"ease-in-out",id:"turn-bob"});
+  const me={seat,g,im,pic,anim,raf:0};
+  turnBob=me;
+  let last=null,showing=false;
+  const step=()=>{
+    if(turnBob!==me)return;
+    if(shipEls[seat]!==g||!g.isConnected){ bobShip(seat); return; }      // the board was redrawn: bob the new boat
+    const p=drawnShipPoint(seat);
+    const moved=!p||!last||Math.abs(p[0]-last[0])>0.01||Math.abs(p[1]-last[1])>0.01;
+    if(p&&moved){ pic.style.left=CQfx(p[0]-cell/2); pic.style.top=CQfx(p[1]-cell/2); }
+    const show=!!p&&!moved&&g.style.visibility!=="hidden"&&im.getAnimations().length===0;
+    if(show!==showing){ showing=show; pic.style.visibility=show?"visible":"hidden"; im.style.visibility=show?"hidden":""; }
+    if(show)pic.style.opacity=g.style.opacity||"";
+    last=p;
+    me.raf=requestAnimationFrame(step);
+  };
+  me.raf=requestAnimationFrame(step);
 }
 /* ⭐ THE BOAT SAILS: A WIND-UP, A WAKE, AND A SPLASH WHEN IT ARRIVES — all three PASSED on his game feel audit (2026-09-13),
    as proposed: "A short rock backward, then it surges forward — the classic wind-up that makes movement feel powered." ·
@@ -681,7 +719,7 @@ function followHull(seat,every,drop){
    every screen sees every ride. Each streak lies along the direction the hull is travelling (a static `rotate`), and fades
    and shortens behind it. His separate note, that every wind-sailing cue should be yellow-gold, belongs to the sailing
    project on the backlog; these stay white like the rest of the water until that is built. */
-export const STREAK_EVERY=0.22, STREAK_MS=520;
+export const STREAK_EVERY=0.22, STREAK_MS=780;   // 520 -> 780: Wyatt, 2026-09-14, "I want the speed lines to linger 50% longer"
 export function rideStreaks(seat){
   if(fxReduced()||!shipEls[seat]||!cell)return;
   followHull(seat,STREAK_EVERY,(host,at,angle)=>{
@@ -699,7 +737,7 @@ export function rideStreaks(seat){
    Called from THE ONE event consumer on the voyage's FIRST `ovens` event — a captain home with a full hold, lighting the
    ovens — read off the event list, so a reload or a guest joining late never throws it twice. Paper in that captain's
    colour, gold and cream, from their boat. */
-export const CONFETTI_PIECES=36, CONFETTI_MS=2000;
+export const CONFETTI_PIECES=36, CONFETTI_MS=3000;   // 2000 -> 3000: Wyatt, 2026-09-14, "Make the confetti linger 50% longer"
 export function firstHomeConfetti(e){
   if(fxReduced()||!e||e.t!=="ovens"||!appState.game||!shipEls[e.p])return;
   const evs=appState.game.events;
@@ -1966,6 +2004,8 @@ export function showSeatCoins(seat,coins){
   const every=Math.max(12,Math.min(COIN_ROLL_STEP_MS,COIN_ROLL_MAX_MS/Math.abs(coins-from))),dir=Math.sign(coins-from);
   const tick=()=>{
     if(!n.isConnected)return;
+    // a hold set AFTER this roll was scheduled still holds it — the earned coins wait for the flip stage to come down (treasureBurst)
+    if(performance.now()<(r.holdUntil||0)){r.timer=setTimeout(tick,r.holdUntil-performance.now());return;}
     const cur=parseInt(n.textContent,10);
     if(!Number.isFinite(cur)||cur===coins){n.textContent=coins;return;}
     n.textContent=cur+dir;
@@ -1980,7 +2020,16 @@ export function showSeatCoins(seat,coins){
    Called from THE ONE event consumer on a `dock` event, so every screen shows every captain's dock. They fly in FIXED
    position between two things drawn in different places — the board and the captains box — so both ends are measured as
    drawn and brought into the one fixed space (fixedOrigin, util.js) before a single number is taken between them. */
-const TREASURE_COINS=6, TREASURE_MS=780, CRATE_FLY_MS=620;
+/* 780 -> 1170ms and a wider stagger: Wyatt, 2026-09-14, "the treasure should always fly from the island into your hold -- i think it
+   does this, but a little fast." TREASURE_GAP_MS spaces the coins so each can be counted in. */
+const TREASURE_MS=1170, TREASURE_GAP_MS=90, TREASURE_MAX=20, CRATE_FLY_MS=620;
+/* THE FLIP STAGE COMES DOWN FIRST. A captain's own dock earns its coins while the stage still stands over the board; coins flying
+   under it would land in a purse nobody can see. Waits at most the stage's own longest stand (stage.js CER_VEIL_WAIT_CAP_MS). */
+function whenFlipStageGone(capMs=7100){
+  return new Promise(res=>{ const t0=performance.now();
+    const look=()=>{ if(!document.body.classList.contains("pp4Cer")||performance.now()-t0>capMs)res(); else setTimeout(look,50); };
+    look(); });
+}
 function fixedPointOfBoard(svg,x,y){
   const ctm=svg&&svg.getScreenCTM();if(!ctm)return null;
   const pt=svg.createSVGPoint();pt.x=x;pt.y=y;
@@ -1988,8 +2037,11 @@ function fixedPointOfBoard(svg,x,y){
   return [p.x-o.x,p.y-o.y];
 }
 function capShowing(){const cap=$("pp4Cap");return !(cap&&cap.style.visibility==="hidden");}
-export function treasureBurst(seat){
+export async function treasureBurst(seat,coins){
   if(fxReduced()||!shipEls[seat])return;
+  const n=Math.max(1,Math.min(TREASURE_MAX,Math.round(coins||1)));
+  holdCoinRoll(seat,60000);                         // the count waits for its coins…
+  await whenFlipStageGone();
   const ships=$("boardShips")||$("board");
   const m=/translate\(([-\d.]+)px,\s*([-\d.]+)px\)/.exec(shipEls[seat].style.transform||"");
   const from=m&&fixedPointOfBoard(ships,parseFloat(m[1]),parseFloat(m[2]));if(!from)return;
@@ -1997,20 +2049,23 @@ export function treasureBurst(seat){
   let to=null;
   if(icon&&capShowing()){const r=icon.getBoundingClientRect(),o=fixedOrigin();if(r.width>1)to=[r.left+r.width/2-o.x,r.top+r.height/2-o.y];}
   const ctm=ships.getScreenCTM(),size=Math.max(12,cell*(ctm?ctm.a:1)*0.42);
-  for(let k=0;k<TREASURE_COINS;k++){
+  if(!from||!to)holdCoinRoll(seat,0);
+  for(let k=0;k<n;k++){
     const im=document.createElement("img");
     im.src=COIN_IMG;im.alt="";im.className="ppTreasure";
     Object.assign(im.style,{left:(from[0]-size/2)+"px",top:(from[1]-size/2)+"px",width:size+"px",height:size+"px"});
     document.body.appendChild(im);
-    const spread=(k-(TREASURE_COINS-1)/2)*size*0.55,up=size*(2.2+((k*37)%5)*0.25);
+    const spread=(k-(n-1)/2)*size*0.55,up=size*(2.2+((k*37)%5)*0.25);
     const end=to?[to[0]-from[0],to[1]-from[1]]:[spread*1.4,-up*1.6];
     const a=im.animate([{translate:"0px 0px",scale:"0.4",opacity:0},
       {translate:`${spread.toFixed(1)}px ${(-up).toFixed(1)}px`,scale:"1.05",opacity:1,offset:.4},
       {translate:`${end[0].toFixed(1)}px ${end[1].toFixed(1)}px`,scale:to?"0.55":"0.7",opacity:to?1:0}],
-      {duration:TREASURE_MS,delay:k*55,easing:"cubic-bezier(.3,.7,.4,1)",fill:"both",id:"treasure"});
+      {duration:TREASURE_MS,delay:k*TREASURE_GAP_MS,easing:"cubic-bezier(.3,.7,.4,1)",fill:"both",id:"treasure"});
     a.onfinish=a.oncancel=()=>im.remove();
   }
-  if(to)holdCoinRoll(seat,TREASURE_MS*0.8+TREASURE_COINS*55);
+  const flight=TREASURE_MS+(n-1)*TREASURE_GAP_MS;
+  holdCoinRoll(seat,to?TREASURE_MS*0.8:0);          // …and rolls up as they arrive
+  await new Promise(r=>setTimeout(r,flight));
 }
 /* ⭐ THE TWO CRATES SWAP IN ARCS — PASSED on his game feel audit (2026-09-13), as proposed: "Your crate and theirs cross over
    each other between the two rows, and both land with a squash." Same shape as the crate flight home: each side's crate is
@@ -2021,6 +2076,15 @@ const SWAP_MS=680;
 function chipIn(seat,src){
   const el=$("chips"+seat);if(!el||!src)return null;
   return [...el.querySelectorAll(".chip")].filter(c=>{const i=c.querySelector("img");return i&&i.getAttribute("src")===src;}).pop()||null;
+}
+/* THE CRATE FLIES, NOT JUST WHAT IS ON IT — Wyatt, 2026-09-14: "the crates themselves should ALSO swap between players, not just the
+   ingredient icons; use the crate icons too. Please also do the same thing when a crate is purchased off an island -- the ingredient
+   ON the crate should move into the hold, not just the ingredient on its own." The flying copy is the approved crate with the
+   ingredient sitting on it, the way every hold draws them. */
+function flyingCrate(src){
+  const d=document.createElement("div");d.className="ppCrateFly ppCrateBox";
+  const im=document.createElement("img");im.src=src;im.alt="";d.appendChild(im);
+  return d;
 }
 function fixedBox(el){const r=el.getBoundingClientRect();if(r.width<1)return null;const o=fixedOrigin();return {x:r.left-o.x,y:r.top-o.y,w:r.width,h:r.height};}
 export function tradeSwapFrom(e){
@@ -2038,7 +2102,7 @@ export function tradeSwapTo(legs){
     const chip=chipIn(leg.to,leg.src),to=chip&&fixedBox(chip);
     if(!to)continue;
     chip.style.visibility="hidden";
-    const im=document.createElement("img");im.src=leg.src;im.alt="";im.className="ppCrateFly";
+    const im=flyingCrate(leg.src);
     Object.assign(im.style,{left:leg.from.x+"px",top:leg.from.y+"px",width:leg.from.w+"px",height:leg.from.h+"px"});
     document.body.appendChild(im);
     const dx=(to.x+to.w/2)-(leg.from.x+leg.from.w/2),dy=(to.y+to.h/2)-(leg.from.y+leg.from.h/2);
@@ -2076,7 +2140,7 @@ export function crateFlightTo(f,seat){
   const cr=chip.getBoundingClientRect();if(cr.width<1)return;
   const o=fixedOrigin(),tx=cr.left-o.x+cr.width/2,ty=cr.top-o.y+cr.height/2;
   chip.style.visibility="hidden";
-  const im=document.createElement("img");im.src=src;im.alt="";im.className="ppCrateFly";
+  const im=flyingCrate(src);
   Object.assign(im.style,{left:f.rect.x+"px",top:f.rect.y+"px",width:f.rect.w+"px",height:f.rect.h+"px"});
   document.body.appendChild(im);
   const dx=tx-cx,dy=ty-cy,s=Math.max(.3,Math.min(2,cr.width/f.rect.w));
@@ -2987,5 +3051,12 @@ export function setFlipActive(onClick){
   // so a disarmed coin kept the caption "FLIP" over a blank chip (playtest 22). The coin that has
   // just been TAPPED goes straight to the spin instead — see localAsk, which owns that distinction:
   // this function is called to disarm on every ordinary prompt as well, where a spin would be a lie.
-  else{el.classList.remove("active");el.style.backgroundImage="";el.textContent="";el.onclick=null;}
+  /* …BUT NEVER A FACE THE FLIP STAGE IS STILL SHOWING — Wyatt's screen recording, 2026-09-14: "When the coin in the flip stage
+     lands, it makes the coin disappear before the stage itself disappears, leaving an empty flippenator again." Frame by frame:
+     TAILS landed at 2.2s, and at 3.07s the NEXT question ("Buy a crate?") disarmed the coin through this line, blanking it 330ms
+     before the stage came down — the one route ceremonyHoldsTheCoin() never covered. A coin that was not armed has nothing to
+     disarm, and while the stage stands its face is the stage's to clear (cerTeardown). A real tap disarms an ARMED coin, and
+     that still clears it for the spin. */
+  else{const wasArmed=el.classList.contains("active");el.classList.remove("active");el.onclick=null;
+    if(!(ceremonyHoldsTheCoin()&&!wasArmed)){el.style.backgroundImage="";el.textContent="";}}
 }
