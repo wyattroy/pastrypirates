@@ -3368,3 +3368,15 @@ tomorrow's sea overnight, rejecting a seed that cannot be baked or that one seat
 - **SHIPPED FROM THE SAME AUDIT (build 2026.09.16.1):** the bots' buy decision is now written once (`wantsCrate`, held by
   `scripts/qa/one_buy_decider_check.mjs`), and `coinTurns` prices a dubloon at what the dock actually pays. Measured over
   1000 voyages: offers put to the table 11.38 → 9.06 a voyage, deals struck 0.93 → 1.06, win share flat.
+
+- **VOYAGES GO TO FIREBASE, AND A BOT IS ASKED ABOUT EVERY HUMAN TURN — HIS RULING, 2026-09-16:** *"this is silly -- we tell
+  people we record games in the privacy policy. send them to firebase."* — overruling the CEO audit's advice not to send solo
+  logs anywhere. The policy says: *"Anonymised move data — what happened on the board — so I can see where the game is confusing
+  or unfair and fix it."* And of the audit's proposal: *"i like this idea though: 'ask the bot's planner what it would have done
+  on each of your turns — a list of the exact moments the bots disagree with a winning human, in the game's own words.'"*
+  FOUND, NOT BUILT: every finished voyage (solo and crew) had already been going to `gamelogs/<ts>` for weeks — 588 logs — the
+  audit missed it. None held a seed, so none can be asked about: the map is drawn from the seed.
+  BUILT (build 2026.09.16.2): the log now carries `seed`, `cfg` and `host`; `scripts/voyage_disagreements.mjs` rebuilds each
+  voyage's board and asks the bot brain at every human turn and every human dock. Proven at 100% against real bot plans, now a gate.
+  TEST VOYAGES STILL WRITE, per his 2026-08-21 ruling; `host` makes them certainly separable (a sea trial plays on localhost).
+  REAL PLAYERS' DATA arrives only once this build reaches production, which is his call.
