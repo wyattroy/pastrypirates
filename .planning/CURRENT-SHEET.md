@@ -8,7 +8,7 @@ fifteen that already exist.
 here is the one that is wrong.
 
 SHEET: https://claude.ai/code/artifact/a1623d69-328c-417e-920f-8a99782ebce2
-BUILD: 2026.09.15.2-staging@607e4fe9
+BUILD: 2026.09.15.3-staging@a6eb873d
 
 ## The others, so nobody re-makes them
 
@@ -30,3 +30,4 @@ BUILD: 2026.09.15.2-staging@607e4fe9
 - The Voyage Ahead (2026-09-14, the future-plans interview: 20 questions with research, his answer under each, four open questions with answer buttons at the top, a notes box per section; his marks in localStorage `voyage-ahead/wyatt-r1`, or pasted from Copy my notes) — https://claude.ai/code/artifact/5e7a7947-702f-4f81-b510-4d1fc9a19353
 - Cloudflare Cutover Runbook (2026-09-15 re-measured: every step from DNSSEC off to teardown, Done/Problem and a note per step, Squarespace's and Cloudflare's current menu labels; his marks in `steps/<id>`) — https://claude.ai/artifact/HgGTWrpKkxb1bswaH9SY3P
 - Pastry Pirates After Launch (the PRD from the future-plans interview, 2026-09-15: goals ladder, economy, accounts and ledger, worlds as folders, ways to play, all 14 growth leads, platforms, board game, order, not-doing; 4 open questions at top, a notes box per section; his marks in localStorage `after-launch-prd/wyatt-r1`, or pasted from Copy my notes) — https://claude.ai/artifact/6DGyHdVj4SShy3tZumPNQn
+- Game Feel Tuner (2026-09-15, his ask four times over: dials for the coins, the crates, the sail squares, the cannon's recoil/smoke/shake, the speed lines and confetti; three coin "chink" sounds and three "coins leaving the purse" candidates to pick; his numbers in `feel/wyatt`) — https://claude.ai/artifact/N62YXT3Bg9SBfruWTJi1s3

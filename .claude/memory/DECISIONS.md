@@ -3314,3 +3314,27 @@ tomorrow's sea overnight, rejecting a seed that cannot be baked or that one seat
 - **THE GREYED-OUT STAGE MUST COVER THE WHOLE WINDOW ON TABLET.** *"currently, i see a border along the left and right sides of the screen
   that are not darkened."*
 - **A SWISH AS THE CRATES ARE SHUFFLED.**
+
+- **BOTS PLAY AS INTELLIGENTLY AS POSSIBLE — AND A CHEAP CRATE BEATS A COIN. HIS CORRECTION OF ME, 2026-09-15:** *"it is NOT the design
+  -- the design is that the bots play AS INTELLIGENTLY AS POSSIBLE -- as intellignetly as a skilled human. a bot would know that holding
+  a resource, especially a cheap resource is always better than holding the coin -- it can be insurange, trade bait, it is even half of a
+  black market crate they may need later. I want the CEO to audit the bot's strategy and algorithm and suggest ways to make them
+  measurably smarter. If you need, build in a watcher that records solo games too so you can learn how actual humans (who win games)
+  play."* — overruling my report that a bot declining a crate it can afford is the design working. It is not: `needs()` (recipe minus
+  hold) is too narrow a test for a buy. A spare crate is insurance, trade bait, and half a black-market payment.
+  WHAT THIS CHANGES: the audit's finding stands as a MEASUREMENT (13% of docks are a captain who could pay and didn't, all of them
+  because the crate is not on the recipe or they hold one already) but its verdict — "design, not a bug" — is overruled. The narration
+  line that says a captain left a crate is still worth having for the times a bot genuinely should decline; it is not the fix.
+
+- **TWO CAPTAINS' COINS CAN NEVER BE IN THE AIR AT ONCE — AND I GUESSED INSTEAD OF READING. HIS CORRECTION, 2026-09-15:** *"this is never
+  possible in the game, whcih you would know if you read the rules before guessing: 'so the extras are almost certainly other captains'
+  coins flying into their own purses at the same time as yours.' my guess: the coins are moving so fast that they jump discernably
+  between frames, becasue they have no motion blur; solution may be to move them slower, or one at a time for multiple coin hauls"*
+  Turns are sequential, so the overlap my probe saw was an artifact of POSING a dock out of turn — never real play. His hypothesis is
+  what to measure: the coins step too far between frames. Three coins are staggered 90ms inside a 1170ms flight, so all three ARE
+  airborne together by design; the dials for the spacing and the speed are on his Game Feel Tuner.
+
+- **COINS MUST BE SEEN LEAVING THE PURSE, TOO. 2026-09-15:** *"also we need a "coins taken away" animation from the purse -- sugest 3,
+  and add them to the game feel tuner"* — today spending only ticks the count down with a click. Three candidates built into the tuner
+  for him to choose: SPILL (coins fly out toward what is being paid for, the mirror of the arrival), DROP (coins fall out of the count
+  and tumble off the row), SCATTER (the count knocks back and coins puff outward and shrink away).
