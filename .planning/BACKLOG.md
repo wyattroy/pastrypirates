@@ -1701,6 +1701,26 @@ cutover come first. He calls that "the first level of success".
   architecture (F-6, F-7), every streaming and screenshot lead (F-3, F-4), and the economy. **Written 2026-09-15:** `docs/PRD-AFTER-LAUNCH.html`, published at
   https://claude.ai/artifact/6DGyHdVj4SShy3tZumPNQn. Four open questions sit at its top.
 
+### Added 2026-09-15 by his notes
+
+- **⛵ LAUNCH DATE: 1 OCTOBER 2026** (phase 1). A second expansion sea starts the moment we launch.
+- **No trading, no gifting** — he withdrew gifting himself. Everything is earned or bought.
+- **A coin per sea, tiers earned inside it.** My guard, awaiting his eye: the bought sea's plain coin
+  must LOOK plain, or an expensive sea reads as skill.
+- **The pet trails the boat** and wears pirate clothes.
+- **Every voyage offers a recipe ye don't own, and says so.** The engine already deals TWO recipe
+  choices (`src/engine/index.js:272`), so only WHICH two changes. Needs accounts to remember.
+- **THE DAILY RECIPE** replaces the daily voyage: one recipe for everyone, ranked by the victory card
+  score, with the sea trial's bots vetting tomorrow's seed overnight. Puzzles move to campaign.
+- **Back burner:** viewers vote, voyage recap, Discord.
+- **Board game:** waitlist on the end card (his word); he makes the sell sheet and video. **Pitch
+  today: Pandasaurus, AEG, Gamewright** (all open, all want a sell sheet + 2–3 min video).
+  ⚠ **His four-seat rule shuts Stonemaier and Calliope on player count alone** — a design question,
+  his call. UK Games Expo (June 2027) runs free 5-minute publisher pitches by application.
+- **The contest is scoped** (skill-judged, free entry, photos only, 13+, one hashtag and one form,
+  one judging evening). The rules page's 15 required lines are listed in the PRD.
+- **Cookbook: next year**, his timing.
+
 ### Still open
 
 - **The legal grey zone: researched 2026-09-15, in the PRD.** Low risk as he ruled it. Belgium does not
