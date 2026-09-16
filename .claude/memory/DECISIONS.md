@@ -3207,3 +3207,21 @@ sells them. The PRD takes this on.
 
 **Scope:** the architecture proposal (a folder per world, one ledger of what each captain owns,
 native wrappers) and ALL the streaming and screenshot leads go into a PRD. Nothing is executed.
+
+## 2026-09-15 — THE BOX AND THE DUBLOON: GIFTS GO TO FRIENDS, PRIZES STAY PUT, THE BOX SHOWS ITS ODDS
+
+**Source:** his "Copy my notes" from the After Launch PRD
+(https://claude.ai/artifact/6DGyHdVj4SShy3tZumPNQn), pasted into chat 2026-09-15. Three of its four
+questions are answered; all three took the recommendation.
+
+- **Dubloons may be given to friends ye have sailed with, with a daily limit.** Not to anyone, not
+  only to the crew in the voyage ye are in.
+- **A win box's prizes stay with the captain who won them. Only dubloons change hands.** This is the
+  choice that removes the legal grey edge: the Dutch test treats an item as having a money value the
+  moment it can be transferred, and prizes that cannot move can never form a market outside the game.
+- **A win box shows what it can hold, and how rare each prize is** — even though the box is free and
+  no rule requires it.
+
+**Still open, and he asked for evidence first:** which things other captains can SEE must be
+earned-only (the Flippinator coin is his candidate). He asked what other games do about the line
+between bought and earned. Research 2026-09-15; the answer goes on the PRD and here.
