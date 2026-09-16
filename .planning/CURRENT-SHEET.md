@@ -8,7 +8,7 @@ fifteen that already exist.
 here is the one that is wrong.
 
 SHEET: https://claude.ai/code/artifact/a1623d69-328c-417e-920f-8a99782ebce2
-BUILD: 2026.09.15.3-staging@a6eb873d
+BUILD: 2026.09.15.5-staging@e1ec0e5d
 
 ## The others, so nobody re-makes them
 
@@ -31,3 +31,14 @@ BUILD: 2026.09.15.3-staging@a6eb873d
 - Cloudflare Cutover Runbook (2026-09-15 re-measured: every step from DNSSEC off to teardown, Done/Problem and a note per step, Squarespace's and Cloudflare's current menu labels; his marks in `steps/<id>`) — https://claude.ai/artifact/HgGTWrpKkxb1bswaH9SY3P
 - Pastry Pirates After Launch (the PRD from the future-plans interview, 2026-09-15: goals ladder, economy, accounts and ledger, worlds as folders, ways to play, all 14 growth leads, platforms, board game, order, not-doing; 4 open questions at top, a notes box per section; his marks in localStorage `after-launch-prd/wyatt-r1`, or pasted from Copy my notes) — https://claude.ai/artifact/6DGyHdVj4SShy3tZumPNQn
 - Game Feel Tuner (2026-09-15, his ask four times over: dials for the coins, the crates, the sail squares, the cannon's recoil/smoke/shake, the speed lines and confetti; three coin "chink" sounds and three "coins leaving the purse" candidates to pick; his numbers in `feel/wyatt`) — https://claude.ai/artifact/N62YXT3Bg9SBfruWTJi1s3
+
+## Build 2026.09.15.5 — staging, 2026-09-15 (waiting on his verdict)
+- **The coins**: one at a time (1400ms flight, 700ms apart, stagger capped), the count steps per landing, a chink per coin
+  (his three candidates are slots in `sfx/coin-chink.mp3`; A is in), elastic landings for coins and both flying crates.
+- **Coins leaving the purse**: all three candidates built, SPILL in the game (`SPEND_STYLE` in `src/ui/board.js`).
+- **The sail squares**: another 50% slower (pop .5s, cascade 560ms).
+- **The docks**: a dock that buys nothing says so, naming the one reason a player can see.
+- Sheet v38 https://claude.ai/artifact/LvqytfTYCwssQzTcmNFped · Tuner v3 https://claude.ai/artifact/N62YXT3Bg9SBfruWTJi1s3
+- **Still his**: the chink pick, the coins-leaving pick, whether a dock's decline names the island, every tuner number,
+  Cloudflare step 0, and the merge to main (production is still 2026.09.13.5).
+- **In flight**: the CEO's bot-strategy audit (head-to-head ladders measuring whether holding a cheap crate beats the coin).
