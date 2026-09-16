@@ -3380,3 +3380,9 @@ tomorrow's sea overnight, rejecting a seed that cannot be baked or that one seat
   voyage's board and asks the bot brain at every human turn and every human dock. Proven at 100% against real bot plans, now a gate.
   TEST VOYAGES STILL WRITE, per his 2026-08-21 ruling; `host` makes them certainly separable (a sea trial plays on localhost).
   REAL PLAYERS' DATA arrives only once this build reaches production, which is his call.
+
+- **VOYAGE LOGS RECORD NO NAMES — HIS PICK, 2026-09-16:** asked *"What should the voyage logs do with names from now on?"*, he chose
+  **"Stop recording names (Recommended)"**. Nothing read them (events name captains by seat; `bots` says which seats were people),
+  reading logs to learn how winners play meant handling names children typed, and the privacy page promises *"Anonymised move
+  data"*. The 588 older logs keep theirs; the analyzer only fetches logs written after a date it is given. Known consequence, told
+  to him: stats.html's "Captains seen" list stops growing and fades out as older logs leave its 14-day window.
