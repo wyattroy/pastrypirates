@@ -2252,10 +2252,18 @@ function coinSinksAndLaunches(){
 /* THE STAMP TAKES THE PLACE OF "TAP THE COIN" — his recording showed TAILS stamped straight over "Tap the coin, captain — let fate
    decide.", which nothing hid once the coin had been tapped. The stamp now stands where that line stands (placed over its box, so
    nothing else on the stage moves) and the line hides while it does; both come back the moment the coin is armed again. */
+/* ⭐ WHICH WORDS THE FLIP STAGE SHOWS — DECIDED IN ONE PLACE, FROM ONE PHASE. Wyatt, 2026-09-16: "during flippenator flips, the TAILS or
+   HEADS text that appears at the end is written on top of other text. the other text shouldn't be there, or should be removed first."
+   The stage carries three lines of words — the prompt over the coin (.pp4CerTitle), the stakes or the wind's rule (.pp4CerStakes), and
+   "Tap the coin" (.pp4CerSub) — and whether each showed was decided in three places: this file showed "Tap the coin" (cerClearStamp) and hid
+   it under the landing word (coinLandsWithWeight), and index.html faded it while the coin spun. The prompt and the stakes were decided
+   NOWHERE, so the big word stamped straight over the stakes line. Now the stage has a phase — "ask", "spinning", "verdict" — set only
+   here, and index.html's one [data-cer] block says what every line does in each (scripts/qa/flip_stage_words_one_place_check.mjs). */
+function cerPhase(v, phase){ if (v) v.dataset.cer = phase; }
 function cerClearStamp(){
   const v = $("pp4Veil"); if (!v) return;
   v.querySelectorAll(".pp4CerStamp").forEach(s => s.remove());
-  const sub = v.querySelector(".pp4CerSub"); if (sub) sub.style.visibility = "";
+  cerPhase(v, "ask");
 }
 function coinLandsWithWeight(heads){
   const c = $("flipCoinWrap"), v = $("pp4Veil");
@@ -2281,7 +2289,8 @@ function coinLandsWithWeight(heads){
   if (!stamp){ stamp = document.createElement("div"); v.appendChild(stamp); }
   stamp.className = "pp4CerStamp " + (heads ? "heads" : "tails");
   const sub = v.querySelector(".pp4CerSub");
-  if (sub){ stamp.style.top = (sub.offsetTop + sub.offsetHeight / 2) + "px"; sub.style.visibility = "hidden"; }
+  if (sub) stamp.style.top = (sub.offsetTop + sub.offsetHeight / 2) + "px";
+  cerPhase(v, "verdict");   // every other line leaves before the word lands (index.html [data-cer="verdict"])
   stamp.textContent = sayText(heads ? "flip.stampHeads" : "flip.stampTails", {});
   stamp.animate([{ opacity: 0, scale: "1.3" }, { opacity: 1, scale: "0.96", offset: .6 }, { opacity: 1, scale: "1" }],
     { duration: STAMP_MS, easing: "ease-out", fill: "both", id: "coin-stamp" });
@@ -2330,7 +2339,7 @@ function flipArmed(el, onClick){
        was not tapped; there is nothing to launch and nothing new to watch. */
     const coin = $("flipCoinWrap");
     if (veil && coin && !coin.classList.contains("active")) return true;
-    if (veil){ veil.classList.add("resolving"); coinSinksAndLaunches(); cerWatchResult(); }
+    if (veil){ cerPhase(veil, "spinning"); coinSinksAndLaunches(); cerWatchResult(); }
     return true;
   }
   let veil = $("pp4Veil");
@@ -2345,7 +2354,6 @@ function flipArmed(el, onClick){
       if (coin && coin.onclick){ ev.stopPropagation(); coin.onclick(); }
     });
   }
-  veil.classList.remove("resolving");
   cerClearStamp();   // armed again: the last flip's word leaves, and "Tap the coin" is back
   // …and before the first paint, not on the next tick: the slow gear is 125ms away, which is long
   // enough for the ceremony to be seen once in the wrong place (Group G fault 1).

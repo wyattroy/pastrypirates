@@ -154,7 +154,6 @@ import {
   assignBadges, pname, pn, buildPlayerRows, applyCaptainOrder, SHIP_GLIDE_MS, vwPx, vhPx, say, seat, fixedOrigin,
   fitHold,   // 2026-09-11: every hold on one line (his check-9 note)
   fitRecipeName,   // 2026-09-12: the recipe's name at the largest size that fits its card
-  tableHasYou,     // 2026-09-16: whether the plaque carries a recipe band — the one rule its shape and its content both ask
 } from "./util.js";
 import { deriveActiveSeat } from "../shared/storyboard.js";
 import { mayRevealRecipe, offersRecipeCheck } from "../shared/visibility.js";
@@ -2492,7 +2491,7 @@ export function render(){
      band that came and went at every pass-and-play reveal and hand-over would breathe the board up
      and down by its own height each time. Blank is visibility:hidden — nothing drawn, which is the
      secrecy duty — not display:none. Only a table with no "you" (spectating bots) has no band. */
-  if(band){ band.hidden=!tableHasYou(); band.classList.toggle("bandEmpty",!bandHtml); }   // the same one rule buildPlayerRows set the plaque's shape by
+  if(band)band.classList.toggle("bandEmpty",!bandHtml);   // whether the band is there at all is buildPlayerRows' call (util.js); render only fills it in
   // active-player ring + captain's-box highlight: whose turn is it as of this event?
   /* T-09 (Wyatt, 2026-08-26, with a host/guest screenshot pair): "the bakeoff SHOULD be happening
      for guest because it's their turn -- but Dough hook (who just played) is still displayed as the

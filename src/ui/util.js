@@ -143,7 +143,7 @@ export function applyCaptainOrder(active){
 // bare read with a plain import, no seam needed.
 export function buildPlayerRows(){
   const $=id=>document.getElementById(id); // this file's first DOM read — see the header note above
-  let html="";
+  let html="", mineHere=false, humanHere=false;   // does this table have a "you"? — decided below, by the row test that already exists
   const order=seatDisplayOrder();
   for(const i of order){
     const s=(appState.roster&&appState.roster[i])||{};
@@ -159,7 +159,9 @@ export function buildPlayerRows(){
     // F1 (Wyatt-approved 2026-07-29): the LABEL class — this tooltip points AT a row to say "this
     // one is the reader", so it is UI chrome rather than the game speaking, and takes plain "you".
     // See src/ui/lobby.js's renderSeatList for the full rule; ui_contract_check.js gates it.  [UNGATED-IN-4: ui_contract_check.js does not read 4/ — 03-UI-CONTRACT-TRIAGE.md, plan 03-02]
-    const who=s.id ? (i===appState.mySeat?say("captains.youTip",{name:escHtml(s.name)}):escHtml(s.name))
+    const isMe=i===appState.mySeat;
+    if(s.id){ humanHere=true; if(isMe)mineHere=true; }
+    const who=s.id ? (isMe?say("captains.youTip",{name:escHtml(s.name)}):escHtml(s.name))
                    : say("captains.botTip",{strategy:s.strat||appState.game.cfg.strategies[i]});
     const displayName=pname(i);
     html+=`<div class="player-row" id="prow${i}" style="background:${HEXCOL[i]}18;--rowcol:${HEXCOL[i]}" title="${who}">
@@ -174,19 +176,13 @@ export function buildPlayerRows(){
   /* THE PLAQUE'S SHAPE IS SET WITH ITS ROWS, NOT BY THE FIRST REDRAW. Wyatt, 2026-09-16, on the board flinching as the ingredients pop
      in: "diagnose the root cause." Measured at his window (734x920): #capRecipeBand started `hidden` in the page and was only switched
      on by render()'s first full pass, 3 seconds in — after the stage had sized the board — so the plaque grew 45px (228 -> 273), the
-     page outgrew the window (965/920), the column narrowed by the same 45px and the board snapped from 647 to 602 wide. Whether the band
-     is there is a fact about the TABLE (is there a "you" at it?), known the moment these rows are built, so it is set here, from the one
-     rule render() also asks (tableHasYou). render() only ever fills it in. */
+     page outgrew the window (965/920), the column narrowed by the same 45px and the board snapped from 647 to 602 wide.
+     Whether the band is there is a fact about the TABLE — is there a "you" at it, a human seat that is this screen's — and this is the
+     ONE place it is decided, from the row test just above (render() used to decide it again on every redraw; now it only fills the band
+     in). The band carries the decision itself: its `hidden` attribute. */
   const band=$("capRecipeBand");
-  if(band){ band.hidden=!tableHasYou(); if(!band.dataset.src)band.classList.add("bandEmpty"); }
+  if(band){ band.hidden=!(mineHere&&humanHere); if(!band.dataset.src)band.classList.add("bandEmpty"); }
   refreshNameMarquees();
-}
-/* THE VIEWER HAS A SEAT OF THEIR OWN AT THIS TABLE — so the plaque carries their recipe band. A table with no human seat (a bot-vs-bot
-   design test) is a spectator's: no "you", no band. ONE rule, asked by buildPlayerRows (the plaque's shape) and render() (its content). */
-export function tableHasYou(){
-  const g=appState.game;if(!g||!g.players)return false;
-  const humans=g.players.some(p=>p.strategy==="human"), me=appState.mySeat;
-  return humans&&Number.isInteger(me)&&me>=0&&me<g.players.length;
 }
 // D-31: the name-overflow check used to live inline in buildPlayerRows(), which only runs when
 // the TURN ORDER changes (orchestrator.js) — never when the CAPTAINS COLUMN's own width changes,

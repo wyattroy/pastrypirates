@@ -7,9 +7,11 @@
    earned, when that captain's next coin lands (the `treasure` flight's end), every change to that captain's purse number, and every
    chink started. PASSES when, for at least MIN_MUSE muse coins: the number does NOT change between earned and landed; it changes within
    LAG_MS after landing; and a chink starts within LAG_MS after landing. Exit 0/1. */
-import { pathToFileURL } from "node:url";
-const R = new URL("..", import.meta.url).pathname;
-const { serve, launch, attach, killAll, sleep, DRIVER_SRC } = await import(pathToFileURL(R + "scripts/mp_rig.mjs").href);
+import { pathToFileURL, fileURLToPath } from "node:url";
+import path from "node:path";
+// fileURLToPath, never URL.pathname: on Windows .pathname is "/C:/Users/..." and the import doubles the drive (Wy-Blade, 2026-09-16)
+const R = path.join(fileURLToPath(new URL("..", import.meta.url)), path.sep);
+const { serve, launch, attach, killAll, sleep, DRIVER_SRC } = await import(pathToFileURL(path.join(R, "scripts", "mp_rig.mjs")).href);
 const MIN_MUSE = 3, LAG_MS = 50, PLAY_S = 150;
 const url = serve(8879); launch(9879, (process.env.TMPDIR || "/tmp") + "/pp-muse-coin-probe");
 const C = await attach(9879);

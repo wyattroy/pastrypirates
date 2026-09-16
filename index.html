@@ -2462,7 +2462,12 @@
   .pp4CerTop { color:#ffd76b; font-weight:800; font-size:15px; letter-spacing:3px; text-align:center; }
   .pp4CerSub { color:#e8f4ee; font-weight:700; font-style:italic; font-size:14px; text-align:center;
     transition:opacity .3s; }
-  #pp4Veil.resolving .pp4CerSub { opacity:0; }
+  /* WHICH WORDS THE FLIP STAGE SHOWS, IN EACH OF ITS PHASES — the ONE place (stage.js cerPhase sets the phase; nothing else touches a line).
+     ask: every line. spinning: "Tap the coin" fades — the tap has happened. verdict: only the landing word; every line leaves first. */
+  #pp4Veil[data-cer="spinning"] .pp4CerSub { opacity:0; }
+  #pp4Veil[data-cer="verdict"] .pp4CerTitle,
+  #pp4Veil[data-cer="verdict"] .pp4CerStakes,
+  #pp4Veil[data-cer="verdict"] .pp4CerSub { visibility:hidden; }
   /* SIZED, NOT SCALED — W5-1 (Wyatt: "the coin flip is low-res while the rest of the game is
      not"). This carried `transform:scale(2.2)`, and a transform stretches the picture the browser
      already drew; it does not ask for a better one. Multiplying the flippenator's own size tokens
