@@ -5873,7 +5873,32 @@ export function cleanupLegacyTimerKey(store){
   } catch (e) { return false; }
 }
 
+/* ⭐ THE DARK REACHES EVERY EDGE OF THE WINDOW — A LAYER OF ITS OWN, ABOVE THE PAGE. Wyatt, 2026-09-16, on "The dark covers the whole window
+   now": "Nope, see screenshot. there has to be a simpler way -- can you just make a new fullscreen div that's on top of everything else, and
+   put the stage modal on top of that?"
+   The dark used to be #pp4Veil's box-shadow, spread past the stage's box. But #pp4Veil lives inside body, and body.pp4Stage is the capped
+   column — transformed so every fixed box lays out against it, and overflow:hidden — so whatever it paints beyond the column is the
+   browser's to clip, and his Safari clipped it. So, his idea, with one change: a layer that is a child of <html> itself, above the page and
+   inside no column, so nothing can clip it — with a clear window cut exactly where the column stands (a transparent box the column's size,
+   its 100vmax shadow the dark). The stage modal does not have to move: the coin, the words and the stamp stay in the column, where every
+   position they take is measured, and show through the window; the column's own dark is still #pp4Veil. Up only while #pp4Veil is, read off
+   its presence by an observer rather than a second switch anyone must remember (and not a :has() rule — Safari's reactivity gaps with
+   :has() are recorded in index.html). */
+function syncSurround(){
+  let s = document.getElementById("pp4Surround");
+  if (!s){ s = document.createElement("div"); s.id = "pp4Surround"; s.setAttribute("aria-hidden", "true"); document.documentElement.appendChild(s); }
+  const up = !!$("pp4Veil") && document.body.classList.contains("pp4Stage");
+  if (up){ const r = document.body.getBoundingClientRect(); s.style.left = r.left + "px"; s.style.width = r.width + "px"; }
+  s.hidden = !up;
+}
+function watchSurround(){
+  if (typeof MutationObserver === "function") new MutationObserver(syncSurround).observe(document.body, { childList: true, attributes: true, attributeFilter: ["class"] });
+  if (typeof ResizeObserver === "function") new ResizeObserver(syncSurround).observe(document.body);
+  window.addEventListener("resize", syncSurround);
+  syncSurround();
+}
 export function initStage(){
+  watchSurround();   // the full-window dark follows the stage (see syncSurround)
   wirePressSquish();   // every button in the game squishes when pressed (src/ui/press.js) — welcome screen included
   // FIX-01: clear the shared legacy key once per browser, BEFORE the seed below reads anything.
   // Wrapped again here because a browser can throw on merely touching localStorage (Safari private

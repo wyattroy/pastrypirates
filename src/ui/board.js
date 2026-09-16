@@ -154,6 +154,7 @@ import {
   assignBadges, pname, pn, buildPlayerRows, applyCaptainOrder, SHIP_GLIDE_MS, vwPx, vhPx, say, seat, fixedOrigin,
   fitHold,   // 2026-09-11: every hold on one line (his check-9 note)
   fitRecipeName,   // 2026-09-12: the recipe's name at the largest size that fits its card
+  tableHasYou,     // 2026-09-16: whether the plaque carries a recipe band — the one rule its shape and its content both ask
 } from "./util.js";
 import { deriveActiveSeat } from "../shared/storyboard.js";
 import { mayRevealRecipe, offersRecipeCheck } from "../shared/visibility.js";
@@ -2025,51 +2026,83 @@ export function paintShipAt(seat,c){
    is CONVERGE, not add a path: so render() goes through this too, and the pulse, the dataset stamp
    and the markup are one statement rather than two copies drifting.
    `coins` is a NUMBER, and 0 is a real purse — every test in here is explicit, never truthiness. */
-/* ⭐ THE COUNT ROLLS, IT DOES NOT JUMP — PASSED on his game feel audit (2026-09-13), as proposed for both directions: "Coins
-   spray up from the dock and arc into your coin count, which rolls up number by number." · "The price leaves your coin count
-   as a quick tick-down ... instead of the number just changing." The number ticks one at a time toward the new purse
-   (never longer than COIN_ROLL_MAX_MS), and waits while treasure is still in the air (holdCoinRoll). The coin picture is
-   written once and only the number changes, so the roll re-fetches nothing. A replay and reduced motion just set it. */
+/* ⭐ THE COUNT ROLLS, IT DOES NOT JUMP — PASSED on his game feel audit (2026-09-13), for coins LEAVING a purse: "The price leaves your
+   coin count as a quick tick-down ... instead of the number just changing." A number going down ticks one at a time toward the new
+   purse (never longer than COIN_ROLL_MAX_MS). Coins COMING IN never roll — each one arrives (coinArrived, below). A replay and reduced
+   motion just set it. The coin picture is written once and only the number changes, so the roll re-fetches nothing. */
 const COIN_ROLL_STEP_MS=40, COIN_ROLL_MAX_MS=700;
 const coinRolls={};
-/* A SHORTER HOLD WAKES A ROLL ALREADY WAITING ON A LONGER ONE. treasureBurst holds the count for up to a minute the moment coins
-   are earned (they wait for the flip stage), then shortens the hold once they are actually in the air. The roll's next tick was
-   scheduled against the long hold, so without this it slept the full minute: the count never showed the coins just earned, and
-   "Buy a crate?" asked him to spend a purse the count said he did not have (measured on a posed dock, phone and laptop,
-   2026-09-15). A hold that is lengthened needs nothing — the tick re-checks it when it wakes. */
-export function holdCoinRoll(seat,ms){
-  const r=coinRolls[seat]=coinRolls[seat]||{};
-  r.holdUntil=performance.now()+ms;
-  if(r.tick){clearTimeout(r.timer);r.timer=setTimeout(r.tick,Math.max(0,ms));}
+/* ⭐⭐ A PURSE SHOWS WHAT IS IN IT, NOT WHAT IS STILL FLYING TO IT — AND A COIN ARRIVING IS ONE EVENT, WHOEVER SENT IT.
+   Wyatt, 2026-09-16: "THe coin sound earned from Muse should happen when the coin LANDS in the hold, not when it is earned ... This
+   should be done architecutrally with an event fired by the coin arriving in the hold, regardless of where the coin came from -- i
+   noticed that the sound enters at the correct time when docking; this suggests that once again you've made a stupid patchy fix
+   instead of fixing it at the root."
+   He was right, and the patch he meant was mine from the same afternoon. The number on a purse was drawn from the game's total the
+   moment a coin was EARNED, and each way of earning then tried to HOLD that number back until its own coins landed: a dock's treasure
+   held it one way, a trade's coins another, and a muse coin — whose flight waits for its line — not at all, until a third special
+   case was bolted on for it. Three copies of one rule, and the next way of earning would have needed a fourth.
+   Now nothing is held. ON_THE_WAY counts, per captain, the coins announced but not yet landed; a purse SHOWS its true total less that
+   (purseShows); every earning in the game passes through ONE door (payInto), which puts its coins on the way BEFORE the board is drawn
+   and flies them when they may fly; and every coin that lands — from a boat, from another captain's purse, from anywhere added later —
+   calls ONE event (coinArrived), which takes it off the way, puts it on the number and chinks. A coin that cannot fly (reduced motion,
+   no purse on screen) arrives at once through the same event, and whatever a flight does, its batch is arrived in full when the flight
+   is over (payInto's `finally`), so a purse can never be left short. scripts/qa/every_coin_flies_check.mjs holds all of it. */
+const ON_THE_WAY={};
+const purseShows=(seat,coins)=>coins-(ON_THE_WAY[seat]||0);
+export function coinArrived(seat,count=1){
+  if(!(count>0))return;
+  ON_THE_WAY[seat]=Math.max(0,(ON_THE_WAY[seat]||0)-count);
+  const el=$("coins"+seat),n=el&&el.querySelector(".coinN");
+  if(n&&el.dataset.coins!==undefined){
+    const r=coinRolls[seat];if(r){clearTimeout(r.timer);r.tick=null;}
+    n.textContent=purseShows(seat,+el.dataset.coins);
+    pulseEl(el);
+  }
+  playCoinChink();          // the ONE place a coin going into a purse makes its sound
 }
 export function showSeatCoins(seat,coins){
   const el=$("coins"+seat);
   if(!el)return;
-  const had=el.dataset.coins!==undefined?+el.dataset.coins:null;
-  if(had!==null&&had!==coins)pulseEl(el);
   el.dataset.coins=coins;
+  const show=purseShows(seat,coins);
   const n=el.querySelector(".coinN");
-  if(!n){el.innerHTML=`${iconImg(COIN_IMG)} <span class="coinN">${coins}</span>`;return;}
+  if(!n){el.innerHTML=`${iconImg(COIN_IMG)} <span class="coinN">${show}</span>`;return;}
   const r=coinRolls[seat]=coinRolls[seat]||{};
   clearTimeout(r.timer);
   const from=parseInt(n.textContent,10);
-  if(had===null||!Number.isFinite(from)||from===coins||appState.replaying||fxReduced()){n.textContent=coins;r.tick=null;return;}
-  const every=Math.max(12,Math.min(COIN_ROLL_STEP_MS,COIN_ROLL_MAX_MS/Math.abs(coins-from))),dir=Math.sign(coins-from);
+  if(from===show)return;
+  /* WHO MAY MOVE THIS NUMBER — Wyatt's rule, 2026-09-16: "Nothing else raises the number or plays the chink ... a replay or a freshly
+     drawn purse may set it; a price may tick it down." So: a replay, or a number not drawn yet, is SET; a number going UP is left alone,
+     because the only way up is a coin arriving (coinArrived) — coins still on their way are not on it yet; a number going DOWN ticks. */
+  if(!Number.isFinite(from)||appState.replaying){n.textContent=show;r.tick=null;return;}
+  if(show>from)return;
+  pulseEl(el);
+  if(fxReduced()){n.textContent=show;r.tick=null;return;}
+  const every=Math.max(12,Math.min(COIN_ROLL_STEP_MS,COIN_ROLL_MAX_MS/Math.abs(show-from)));
   const tick=()=>{
     if(!n.isConnected){r.tick=null;return;}
-    // a hold set AFTER this roll was scheduled still holds it — the earned coins wait for the flip stage to come down (treasureBurst)
-    if(performance.now()<(r.holdUntil||0)){r.timer=setTimeout(tick,r.holdUntil-performance.now());return;}
-    const cur=parseInt(n.textContent,10);
-    if(!Number.isFinite(cur)||cur===coins){n.textContent=coins;r.tick=null;return;}
-    n.textContent=cur+dir;
-    /* A COIN GOING IN CHINKS; A COIN GOING OUT TICKS. Wyatt, 2026-09-15: "we want a coin 'chink' sound whenever a coin goes into
-       the purse" — so the chink is here, at the ONE place the purse number ever changes, rather than beside each thing that pays.
-       His 2026-09-14 abacus click keeps the outgoing count and the End of Voyage roll-up. */
-    if(dir>0)playCoinChink();else playCoinTick();
-    if(cur+dir!==coins)r.timer=setTimeout(tick,every);else r.tick=null;
+    const cur=parseInt(n.textContent,10),target=purseShows(seat,+el.dataset.coins);
+    if(!Number.isFinite(cur)||cur<=target){n.textContent=target;r.tick=null;return;}
+    n.textContent=cur-1;
+    playCoinTick();         // a coin going OUT ticks — his 2026-09-14 abacus click
+    if(cur-1!==target)r.timer=setTimeout(tick,every);else r.tick=null;
   };
   r.tick=tick;
-  r.timer=setTimeout(tick,Math.max(0,(r.holdUntil||0)-performance.now()));
+  r.timer=setTimeout(tick,0);
+}
+/* ⭐ THE ONE DOOR EVERY EARNING PASSES THROUGH. `from` is "boat" (the coins fly up off that captain's boat — a dock's treasure, a muse
+   coin, a won call's bounty) or another captain's seat (they cross from that purse — a trade's sale). `after` is a promise the flight
+   waits for (a muse coin waits for the line that explains it). Called by the one event consumer BEFORE render(), so the purse is drawn
+   without these coins; returns once every one of them is in. */
+export function payInto(seat,coins,{from="boat",after=null}={}){
+  coins=Math.round(coins||0);
+  if(!(coins>0)||appState.replaying)return Promise.resolve();     // a replay draws the true total: nothing is in flight
+  ON_THE_WAY[seat]=(ON_THE_WAY[seat]||0)+coins;
+  let left=coins;
+  const land=k=>{const c=Math.min(k,left);if(c>0){left-=c;coinArrived(seat,c);}};
+  const fly=()=>(from==="boat"?flyFromBoat(seat,coins,land):flyAcross(from,seat,coins,land));
+  const flight=after?Promise.resolve(after).then(fly,fly):fly();
+  return flight.catch(()=>{}).finally(()=>land(left));
 }
 /* ⭐ TREASURE BURSTS OUT, AND A BOUGHT CRATE FLIES HOME — PASSED on his game feel audit (2026-09-13), as proposed: "Coins spray
    up from the dock and arc into your coin count" · "It lifts off the island, arcs to your captain's box, and lands on its
@@ -2124,17 +2157,8 @@ export function hopFrames(x,y,h,bounce,squash,{base=1,fade=false}={}){
   return f;
 }
 const bez=(t,u,a,b,c)=>u*u*a+2*u*t*b+t*t*c;   // a quantity eased smoothly from a, past b, to c
-/* ⭐ THE COUNT TICKS THE INSTANT A COIN LANDS. Wyatt, 2026-09-16: "The number should tick up, with the sound, IMMEDIATELY as each coin
-   lands -- currently it's a bit late." It was late: the roll was released when the FIRST coin's animation ended — after its bounce —
-   and then stepped on its own clock, which drifted from the coins still in the air. Now each coin's flight ends exactly where it meets
-   the purse, and that moment adds one to the number and chinks. The roll stays held until the last coin is in; anything left over (a
-   haul bigger than TREASURE_MAX) rolls in after it. */
-function coinLands(seat){
-  const el=$("coins"+seat),n=el&&el.querySelector(".coinN");if(!n)return;
-  const cur=parseInt(n.textContent,10),target=+el.dataset.coins;
-  if(!Number.isFinite(cur)||!Number.isFinite(target)||cur>=target)return;
-  n.textContent=cur+1;playCoinChink();
-}
+/* THE COUNT TICKS THE INSTANT A COIN LANDS — Wyatt, 2026-09-16: "The number should tick up, with the sound, IMMEDIATELY as each coin
+   lands". Each coin's flight ends exactly where it meets the purse, and that moment is coinArrived (above). */
 const COIN_SETTLE_MS=Math.round(TREASURE_MS*0.25);
 /* THE FLIP STAGE COMES DOWN FIRST. A captain's own dock earns its coins while the stage still stands over the board; coins flying
    under it would land in a purse nobody can see. Waits at most the stage's own longest stand (stage.js CER_VEIL_WAIT_CAP_MS). */
@@ -2150,19 +2174,21 @@ function fixedPointOfBoard(svg,x,y){
   return [p.x-o.x,p.y-o.y];
 }
 function capShowing(){const cap=$("pp4Cap");return !(cap&&cap.style.visibility==="hidden");}
-export async function treasureBurst(seat,coins){
-  if(fxReduced()||!shipEls[seat]){holdCoinRoll(seat,0);return;}   // nothing will fly: a count held for these coins (the pass coin's) goes now
-  const n=Math.max(1,Math.min(TREASURE_MAX,Math.round(coins||1)));
-  holdCoinRoll(seat,60000);                         // the count waits for its coins…
+/* The flight up off a boat, for payInto. Each coin that reaches the purse calls `land` with how many coins it carries (a haul bigger
+   than TREASURE_MAX shares its coins across the ones that fly). Returns when they are down; anything it could not land, payInto lands. */
+async function flyFromBoat(seat,coins,land){
+  if(fxReduced()||!shipEls[seat])return;
+  const n=Math.max(1,Math.min(TREASURE_MAX,coins));
   await whenFlipStageGone();
   const ships=$("boardShips")||$("board");
   const m=/translate\(([-\d.]+)px,\s*([-\d.]+)px\)/.exec(shipEls[seat].style.transform||"");
-  const from=m&&fixedPointOfBoard(ships,parseFloat(m[1]),parseFloat(m[2]));if(!from){holdCoinRoll(seat,0);return;}   // never leave the count frozen (CEO, 2026-09-15)
+  const from=m&&fixedPointOfBoard(ships,parseFloat(m[1]),parseFloat(m[2]));if(!from)return;
   const icon=($("coins"+seat)||{querySelector:()=>null}).querySelector("img");
   let to=null;
   if(icon&&capShowing()){const r=icon.getBoundingClientRect(),o=fixedOrigin();if(r.width>1)to=[r.left+r.width/2-o.x,r.top+r.height/2-o.y];}
+  if(!to)return;                                    // no purse on screen to land in: payInto lands them at once
   const ctm=ships.getScreenCTM(),size=Math.max(12,cell*(ctm?ctm.a:1)*0.42),gap=coinGap(n);
-  if(!from||!to)holdCoinRoll(seat,0);
+  const share=Math.floor(coins/n),extra=coins-share*n,end=[to[0]-from[0],to[1]-from[1]];
   const anims=[];
   for(let k=0;k<n;k++){
     const im=document.createElement("img");
@@ -2170,28 +2196,19 @@ export async function treasureBurst(seat,coins){
     Object.assign(im.style,{left:(from[0]-size/2)+"px",top:(from[1]-size/2)+"px",width:size+"px",height:size+"px"});
     document.body.appendChild(im);
     const side=(k-(n-1)/2)*size*0.55,lift=size*COIN_ARC*(1+((k*37)%5)*0.06);   // a little spread and variety, so a haul is not one line
-    const end=to?[to[0]-from[0],to[1]-from[1]]:[side*1.4,-lift*1.6];
-    const a=im.animate(arcFrames(end[0],end[1],{lift:to?lift:0,side:to?side*.5:side,at:(t,u)=>({
-        scale:(to?bez(t,u,.4,1.7,.55):bez(t,u,.4,1.5,.7)).toFixed(3),opacity:Math.min(1,t/.08,to?1:(1-t)/.3).toFixed(3)})}),
+    const a=im.animate(arcFrames(end[0],end[1],{lift,side:side*.5,at:(t,u)=>({scale:bez(t,u,.4,1.7,.55).toFixed(3),opacity:Math.min(1,t/.08).toFixed(3)})}),
       {duration:TREASURE_MS,delay:k*gap,easing:"linear",fill:"both",id:"treasure"});
     a.oncancel=()=>im.remove();
     a.onfinish=()=>{
-      if(to){
-        coinLands(seat);
-        const s=im.animate(hopFrames(end[0].toFixed(1),end[1].toFixed(1),size*.55,COIN_BOUNCE,COIN_SQUASH,{base:.55,fade:true}),
-          {duration:COIN_SETTLE_MS,easing:"linear",fill:"both",id:"treasure-settle"});
-        s.onfinish=s.oncancel=()=>im.remove();
-      }else im.remove();   // no purse on screen to land in: it has already faded out overhead
+      land(k===n-1?share+extra:share);              // THE coin is in: the one arrival event, the number and the chink
+      const st=im.animate(hopFrames(end[0].toFixed(1),end[1].toFixed(1),size*.55,COIN_BOUNCE,COIN_SQUASH,{base:.55,fade:true}),
+        {duration:COIN_SETTLE_MS,easing:"linear",fill:"both",id:"treasure-settle"});
+      st.onfinish=st.oncancel=()=>im.remove();
     };
     anims.push(a);
   }
   const flight=TREASURE_MS+(n-1)*gap;
-  /* THE WAIT IS THE FLIGHT ITSELF, NOT A CLOCK BESIDE IT. On a busy machine the coins start a frame or more after they are created, so a
-     timer of the same length ended before the last coin landed: a heads dock measured "Buy a crate?" 133ms before its third coin
-     arrived (2026-09-15). So the count is held until the LAST coin is in, and this (and through eventDrawn, a dock's question) waits for
-     it too, capped so a stalled page never holds the game. */
-  if(to&&anims.length){holdCoinRoll(seat,flight+1500);const go=()=>holdCoinRoll(seat,0);Promise.all(anims.map(a=>a.finished.catch(()=>{}))).then(go,go);}
-  else holdCoinRoll(seat,0);
+  // the wait is the flights themselves, capped so a stalled page never holds the game (payInto lands whatever did not)
   await Promise.race([Promise.all(anims.map(a=>a.finished.catch(()=>{}))),new Promise(r=>setTimeout(r,flight+1500))]);
 }
 /* ⭐ COINS LEAVING THE PURSE — Wyatt, 2026-09-15: "we need a 'coins taken away' animation from the purse -- suggest 3, and add them to
@@ -2275,12 +2292,13 @@ export function tradeSwapTo(legs){
    do: out of the payer's coin count and into the seller's, one coin per coin. The seller's count waits for them; the payer's drops
    at once, because the coins have already left. Called BEFORE render(), so the hold is in place before the new count is drawn. */
 const ACROSS_MS=900;
-export async function coinsAcross(fromSeat,toSeat,coins){
+async function flyAcross(fromSeat,toSeat,coins,land){
   if(fxReduced()||!capShowing())return;
   const at=s=>{const icon=($("coins"+s)||{querySelector:()=>null}).querySelector("img");if(!icon)return null;
     const r=icon.getBoundingClientRect(),o=fixedOrigin();return r.width>1?{x:r.left+r.width/2-o.x,y:r.top+r.height/2-o.y,w:r.width}:null;};
   const from=at(fromSeat),to=at(toSeat);if(!from||!to)return;
-  const n=Math.max(1,Math.min(TREASURE_MAX,Math.round(coins||1))),size=Math.max(12,from.w*1.15),gap=coinGap(n);
+  const n=Math.max(1,Math.min(TREASURE_MAX,coins)),size=Math.max(12,from.w*1.15),gap=coinGap(n);
+  const share=Math.floor(coins/n),extra=coins-share*n;
   const anims=[];
   const dx=to.x-from.x,dy=to.y-from.y,ox=fixedOrigin().x,cx0=ox+from.x+dx*.5,half=size*.55+6;
   const bow=Math.max(half-cx0,Math.min(window.innerWidth-half-cx0,Math.max(size*2,Math.abs(dy)*0.3)));   // the same clamp: on the glass
@@ -2292,13 +2310,14 @@ export async function coinsAcross(fromSeat,toSeat,coins){
     const a=im.animate(arcFrames(dx,dy,{side:bow,at:(t,u)=>({scale:bez(t,u,.6,1.5,.7).toFixed(3),opacity:Math.min(1,t/.08).toFixed(3)})}),
       {duration:ACROSS_MS,delay:k*gap,easing:"linear",fill:"both",id:"coins-across"});
     a.oncancel=()=>im.remove();
-    a.onfinish=()=>{ coinLands(toSeat);   // the seller's number ticks as each coin arrives, exactly as a dock's does
+    a.onfinish=()=>{
+      land(k===n-1?share+extra:share);              // the same one arrival event a dock's coins use
       const st=im.animate(hopFrames(dx.toFixed(1),dy.toFixed(1),size*.7,COIN_BOUNCE,COIN_SQUASH,{base:.7,fade:true}),{duration:COIN_SETTLE_MS,easing:"linear",fill:"both",id:"treasure-settle"});
-      st.onfinish=st.oncancel=()=>im.remove(); };
+      st.onfinish=st.oncancel=()=>im.remove();
+    };
     anims.push(a);
   }
-  const flight=ACROSS_MS+(n-1)*gap,go=()=>holdCoinRoll(toSeat,0);
-  holdCoinRoll(toSeat,flight+1500);Promise.all(anims.map(a=>a.finished.catch(()=>{}))).then(go,go);   // held until the last coin is in
+  const flight=ACROSS_MS+(n-1)*gap;
   await Promise.race([Promise.all(anims.map(a=>a.finished.catch(()=>{}))),new Promise(r=>setTimeout(r,flight+1500))]);
 }
 /* Measured BEFORE render() greys the crate (its island rect), handed to crateFlightTo AFTER render() has drawn the new chip. */
@@ -2348,7 +2367,7 @@ export function render(){
   const humanIdxs=appState.game.players.map((player,i)=>player.strategy==="human"?i:-1).filter(i=>i>=0);
   const youIdx=humanIdxs.length===1?humanIdxs[0]:-1;
   const spectator=humanIdxs.length===0;
-  let bandHtml="", hasYou=false;   // the viewer's recipe, for #capRecipeBand — filled by the loop, written once after it
+  let bandHtml="";   // the viewer's recipe, for #capRecipeBand — filled by the loop, written once after it
   appState.game.players.forEach((player,i)=>{
     const [x,y]=shipXY(st[i].pos,i,st,cell);
     shipEls[i].style.transform=`translate(${x}px,${y}px)`;
@@ -2406,7 +2425,6 @@ export function render(){
        A SPECTATOR HAS NO "YOU", so a spectator keeps every recipe in its own row, as before. */
     const bandSeat=mine&&!spectator;
     if(bandSeat){
-      hasYou=true;
       const rec=appState.game.players[i].recipe;
       if(canReveal&&rec&&rec.length){
         const bh=[...st[i].ing];
@@ -2474,7 +2492,7 @@ export function render(){
      band that came and went at every pass-and-play reveal and hand-over would breathe the board up
      and down by its own height each time. Blank is visibility:hidden — nothing drawn, which is the
      secrecy duty — not display:none. Only a table with no "you" (spectating bots) has no band. */
-  if(band){ band.hidden=!hasYou; band.classList.toggle("bandEmpty",!bandHtml); }
+  if(band){ band.hidden=!tableHasYou(); band.classList.toggle("bandEmpty",!bandHtml); }   // the same one rule buildPlayerRows set the plaque's shape by
   // active-player ring + captain's-box highlight: whose turn is it as of this event?
   /* T-09 (Wyatt, 2026-08-26, with a host/guest screenshot pair): "the bakeoff SHOULD be happening
      for guest because it's their turn -- but Dough hook (who just played) is still displayed as the

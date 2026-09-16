@@ -3386,3 +3386,20 @@ tomorrow's sea overnight, rejecting a seed that cannot be baked or that one seat
   reading logs to learn how winners play meant handling names children typed, and the privacy page promises *"Anonymised move
   data"*. The 588 older logs keep theirs; the analyzer only fetches logs written after a date it is given. Known consequence, told
   to him: stats.html's "Captains seen" list stops growing and fades out as older logs leave its 14-day window.
+
+- **WHAT "ARCHITECTURAL" MEANS — HIS RULING, 2026-09-16.** After the muse-coin sound arrived when the coin was earned, not when it landed,
+  and I had patched that one source instead of the cause: *"i am sick and tired of typing the word 'architectural' to you -- it's clearly
+  not working."* His instruction, verbatim:
+  > Whenever I say "architectural" (or "fix it at the root", or "not a patch"), do all of this:
+  > a. Name the fact being changed, in the game's words (e.g. "when a coin's number goes up").
+  > b. Count every place in the code that decides that fact. List them with file:line.
+  > c. Make that count ONE: send every existing path through it and delete the copies. Never add a special case beside them.
+  > d. Add a gate that fails if a second copy ever appears, red-proofed.
+  > e. Report back: the fact, the count before and after, and the gate's name.
+  NOT to be added to CLAUDE.md (his words: "Don't add it to CLAUDE.md"). Also recorded as a feedback memory.
+  FIRST APPLICATION, same day — "when a purse's number goes up": 3 places on dev (orchestrator.js:1976 dock/won call, :1981 muse — held
+  nothing, :1982 trade; each with its own holds at board.js:2083-2118 and :2242-2243) -> 1 (board.js coinArrived, reached only through
+  payInto). Gate: scripts/qa/coin_arrival_one_event_check.mjs (7 rules, each red-proofed against the break it guards).
+- **THE TOP BAR DURING A BATTLE GUESS — HIS ANSWER, 2026-09-16:** *"The top bar shows whose turn it is -- which is the active player who
+  decided to attack. this does not need to change during a battle; it should not."* Settled: it stays on the attacker.
+- **THREE COINS READ AS A CROWD — closed, 2026-09-16:** *"The tuner sheet already solves this."* (His numbers: 1200ms flights, 325ms apart.)

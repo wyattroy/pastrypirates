@@ -302,7 +302,7 @@ most — 3 fixed, 1.18 re-plans a voyage — loses the most.** Not shipped.
 it chose and muses a coin, so replacing it with the next-best plan buys nothing the scoreboard can see. The planner's
 error is genuine; vetoing it after the fact is the wrong place to correct it. If this is revisited, price the hail
 inside the whole-turn evaluation from the finishing square, and put that on the ladder — not a veto bolted after it.
-Experiment: `scripts/ladder_dead_trade.mjs` on branch `sep16-dead-trade-ladder` (99c0dd50).
+The experiment's ladder script lives only on branch `sep16-dead-trade-ladder` (commit 99c0dd50), never on dev.
 
 ### An urgency-scaled hunt leash (inert, deleted)
 

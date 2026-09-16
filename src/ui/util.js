@@ -171,7 +171,22 @@ export function buildPlayerRows(){
       </div></div>`;
   }
   $("players").innerHTML=html;
+  /* THE PLAQUE'S SHAPE IS SET WITH ITS ROWS, NOT BY THE FIRST REDRAW. Wyatt, 2026-09-16, on the board flinching as the ingredients pop
+     in: "diagnose the root cause." Measured at his window (734x920): #capRecipeBand started `hidden` in the page and was only switched
+     on by render()'s first full pass, 3 seconds in — after the stage had sized the board — so the plaque grew 45px (228 -> 273), the
+     page outgrew the window (965/920), the column narrowed by the same 45px and the board snapped from 647 to 602 wide. Whether the band
+     is there is a fact about the TABLE (is there a "you" at it?), known the moment these rows are built, so it is set here, from the one
+     rule render() also asks (tableHasYou). render() only ever fills it in. */
+  const band=$("capRecipeBand");
+  if(band){ band.hidden=!tableHasYou(); if(!band.dataset.src)band.classList.add("bandEmpty"); }
   refreshNameMarquees();
+}
+/* THE VIEWER HAS A SEAT OF THEIR OWN AT THIS TABLE — so the plaque carries their recipe band. A table with no human seat (a bot-vs-bot
+   design test) is a spectator's: no "you", no band. ONE rule, asked by buildPlayerRows (the plaque's shape) and render() (its content). */
+export function tableHasYou(){
+  const g=appState.game;if(!g||!g.players)return false;
+  const humans=g.players.some(p=>p.strategy==="human"), me=appState.mySeat;
+  return humans&&Number.isInteger(me)&&me>=0&&me<g.players.length;
 }
 // D-31: the name-overflow check used to live inline in buildPlayerRows(), which only runs when
 // the TURN ORDER changes (orchestrator.js) — never when the CAPTAINS COLUMN's own width changes,

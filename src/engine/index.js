@@ -1074,7 +1074,7 @@ class Game{
   /* A DOCK'S PAYDAY, IN ONE PLACE. The CEO, 2026-09-15: the coins-earned record "is written in two places: engine/index.js for bots
      and flow.js for humans", under a comment claiming one place, which is the fault of the audit before it (docking written twice)
      come back. Both docks now pay here: the purse is credited and the `purse` event recorded in one breath, so its snapshot holds
-     the new purse and every screen flies exactly these coins (orchestrator consumeEvent -> board.js treasureBurst). Wyatt,
+     the new purse and every screen flies exactly these coins (orchestrator consumeEvent -> board.js payInto). Wyatt,
      2026-09-14: "the coins should enter your hold the moment you earn them". Guarded by scripts/qa/every_coin_flies_check.mjs. */
   payDock(p,heads){
     const coins=heads?this.cfg.dockHeads:this.cfg.dockTails;
@@ -1165,7 +1165,7 @@ class Game{
   // field, not on this line.
   doPass(p){
     p.coins+=this.cfg.passCoin;
-    this.ev({t:"pass",p:p.idx,sea:this.nextSeaCreature(p),coins:this.cfg.passCoin});   // `coins`: what flies to the purse (board.js treasureBurst)
+    this.ev({t:"pass",p:p.idx,sea:this.nextSeaCreature(p),coins:this.cfg.passCoin});   // `coins`: what flies to the purse (board.js payInto)
   }
   // NARR-04: record this round's wind and return how many rounds running it has held that
   // direction. Called once per round, right after the direction is rolled.
@@ -1322,7 +1322,7 @@ class Game{
     // learn each other's recipes without ever being shown one.
     this.noteDemand(p,offer.want,1);
     if(offer.giveIng)this.noteDemand(q,offer.giveIng,0.5);
-    this.ev({t:"trade",a:p.idx,b:q.idx,gave:this.offerLabel(offer,extra),got:offer.want,kind:extra?"counter":"open",paid:total});   // `paid`: the coins that cross from a to b fly (board.js coinsAcross)
+    this.ev({t:"trade",a:p.idx,b:q.idx,gave:this.offerLabel(offer,extra),got:offer.want,kind:extra?"counter":"open",paid:total});   // `paid`: the coins that cross from a to b fly (board.js payInto)
     return true;
   }
   /* WHAT A COUNTER ACTUALLY MEANS, in one place — playtest 21 item 7.
