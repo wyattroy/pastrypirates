@@ -292,7 +292,7 @@ trading off the table for that turn. Ladder, 1000 voyages an arm, red-proofed at
 
 | seeds | 1 fixed (seat 0) | 1 fixed (seat 1) | 2 fixed | 3 fixed | mean |
 |---|---|---|---|---|---|
-| dev ×7919 (Mac) | +0.3 | +0.2 | −0.4 | +0.4 | **+0.1** |
+| dev ×7919 (Mac, reproduced exactly on Wy-Blade) | +0.3 | +0.2 | −0.4 | +0.4 | **+0.1** |
 | held out ×104729 (Wy-Blade) | −0.4 | +0.2 | −0.5 | −2.9 | **−0.9** |
 
 Days and trades barely moved (16.57 → 16.56–16.62 days, 1.06 → 1.06–1.09 trades), and **the arm where the fix fires
