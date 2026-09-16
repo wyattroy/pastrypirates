@@ -1916,10 +1916,19 @@ class Game{
   //                               pay 2🌕 to re-fire, same as above; decline → NULL.
   //
   // Prize: one crate, winner's choice, no coin alternative and no place-swap (rule 9d).
+  /* ⭐ A FIGHT TAKES ITS POWDER HERE, AND ONLY HERE — and says so, so every screen can show the coins leave the purse. It was taken in TWO
+     places, this engine's battle() and the animated fight a player watches (orchestrator.js asyncBattleRun), and only this copy recorded
+     it (a `powder` field on its three battle events) — so "coins leaving the purse" for powder (Wyatt, 2026-09-15) never played in a real
+     game. Found 2026-09-16 applying his ruling on "architectural"; scripts/qa/powder_one_place_check.mjs holds it. */
+  payPowder(att){
+    const cost=this.cfg.powder||0;
+    if(cost>0){att.coins-=cost;this.ev({t:"powder",a:att.idx,cost});}
+    return cost;
+  }
   battle(att,def){
     const c=this.cfg;
     if(!this.canAttack(att,def))return null; // empty hold or no powder — never a legal fight
-    if(c.powder)att.coins-=c.powder;
+    this.payPowder(att);
     this.battles++;
     const downwind=this.downwindSide(att,def);
     const rounds=[];
@@ -1950,7 +1959,7 @@ class Game{
             this.tradewind(def);
             fled=true;
             this.recordSkirmish(att,def,null);
-            this.ev({t:"battleflee",a:att.idx,d:def.idx,rounds,flips,downwind,powder:c.powder||0});
+            this.ev({t:"battleflee",a:att.idx,d:def.idx,rounds,flips,downwind});
           }
         }
       }
@@ -1981,7 +1990,7 @@ class Game{
     if(nulled){
       // NULL: the battle ends with no player gaining anything. No spoil, no swap, no caller paid.
       this.recordSkirmish(att,def,null);
-      this.ev({t:"battlenull",a:att.idx,d:def.idx,rounds,flips,downwind,powder:c.powder||0});
+      this.ev({t:"battlenull",a:att.idx,d:def.idx,rounds,flips,downwind});
       return null;
     }
     const lose=win===att?def:att;
@@ -1991,7 +2000,7 @@ class Game{
     // BATL-03 carried into v2 and hardened by rule 9d: nobody moves after a battle. A swap would
     // put the loser in the advantageous square, which is exactly backwards.
     this.recordSkirmish(att,def,lose,spoilIng);
-    this.ev({t:"battle",a:att.idx,d:def.idx,rounds,winner:win.idx,spoil,spoilIng,flips,downwind,powder:c.powder||0});
+    this.ev({t:"battle",a:att.idx,d:def.idx,rounds,winner:win.idx,spoil,spoilIng,flips,downwind});
     return win;
   }
   /* ================= v2 bot AI: planners, not gates =================

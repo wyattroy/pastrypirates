@@ -618,7 +618,7 @@ async function asyncBattleRun(att,def){
   const opening=sayAll("battle.opening",{a:seat(att.idx),d:seat(def.idx)});
   // @copy adhoc.battle.opening
   await flash(opening.html,Math.max(900,stepDelay()),undefined,opening.variants);
-  if(c.powder)att.coins-=c.powder;
+  appState.game.payPowder(att);   // the ONE place a fight's powder is taken, and recorded (engine payPowder)
   appState.game.battles++;
   const bets=await collectSideBets(att,def);
   let a=0,d=0;
@@ -1967,11 +1967,11 @@ export async function consumeEvent(e){
   const earned=(e.t==="purse")?e.coins:(e.t==="sidebet"&&e.won)?e.delta:0;
   /* AND EVERY COIN THAT LEAVES A PURSE TIPS OUT OF IT — Wyatt, 2026-09-15: "we need a 'coins taken away' animation from the purse".
      Read off the event like `earned` above, in this one place, so a bot's purchase and a human's look the same on every screen:
-     a crate bought at a dock (its price), a re-watched bake-off, a battle's powder and each refire. A TRADE IS NOT HERE ON PURPOSE —
+     a crate bought at a dock (its price), a re-watched bake-off, a fight's powder (engine payPowder) and each refire. A TRADE IS NOT HERE ON PURPOSE —
      those coins are not taken away, they cross the table to the other captain, and payInto flies them across (below). */
   const spent=(e.t==="dock"&&e.price>0)?e.price:(e.t==="rewatch"&&e.paid>0)?e.paid
-    :(e.t==="refire"&&e.cost>0)?e.cost:((e.t==="battle"||e.t==="battlenull"||e.t==="battleflee")&&e.powder>0)?e.powder:0;
-  const spender=(e.t==="refire"||e.t==="battle"||e.t==="battlenull"||e.t==="battleflee")?e.a:e.p;
+    :((e.t==="refire"||e.t==="powder")&&e.cost>0)?e.cost:0;
+  const spender=(e.t==="refire"||e.t==="powder")?e.a:e.p;
   if(!appState.replaying&&spent>0&&spender!=null)coinsLeave(spender,spent);
   /* ⭐ EVERY EARNING THROUGH THE ONE DOOR (board.js payInto) — a dock's treasure, a won call's bounty, a muse coin, a trade's sale — BEFORE
      render(), so each purse is drawn without the coins still on their way to it, and each coin's landing is the one arrival event that
