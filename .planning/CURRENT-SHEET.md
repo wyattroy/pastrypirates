@@ -8,7 +8,7 @@ fifteen that already exist.
 here is the one that is wrong.
 
 SHEET: https://claude.ai/code/artifact/a1623d69-328c-417e-920f-8a99782ebce2
-BUILD: 2026.09.15.5-staging@e1ec0e5d
+BUILD: 2026.09.16.1-staging@7fb54490
 
 ## The others, so nobody re-makes them
 
@@ -42,3 +42,6 @@ BUILD: 2026.09.15.5-staging@e1ec0e5d
 - **Still his**: the chink pick, the coins-leaving pick, whether a dock's decline names the island, every tuner number,
   Cloudflare step 0, and the merge to main (production is still 2026.09.13.5).
 - **In flight**: the CEO's bot-strategy audit (head-to-head ladders measuring whether holding a cheap crate beats the coin).
+- **Build 2026.09.16.1** adds the bot work that survived measurement: one buy decision (`wantsCrate` + its gate, 117 now)
+  and the dock rate derived. His cheap-crate rule was built and removed with the numbers written into the engine;
+  the open question for him is whether to make a spare crate *worth* something to the objective (sheet v39).

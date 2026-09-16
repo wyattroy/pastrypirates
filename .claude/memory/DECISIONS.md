@@ -3353,3 +3353,18 @@ tomorrow's sea overnight, rejecting a seed that cannot be baked or that one seat
     one consumer for a crate bought at a dock, a re-watched bake-off, and a fight's powder and refires — never a trade, whose coins
     already cross the table to the other captain.
   - **The sail squares are another 50% slower** — the pop .33 → .5s, the cascade 375 → 560ms — his "still come in too fast".
+
+- **HIS CHEAP-CRATE RULE WAS BUILT, MEASURED AND TAKEN OUT — 2026-09-16, and he is owed the numbers.** His instruction
+  stands (bots play as intelligently as a skilled human), and the CEO's audit agreed with him on a 300-voyage ladder
+  (+0.8 dev seeds, +3.2 held out, buying a spare at a full shelf's floor price). **It does not replicate at 1000 voyages
+  an arm** (+1.0 / −0.7 — noise both sides of zero, red-proofed at +0.0 for an identical brain and −33.8 for a
+  lobotomised one), and the mechanism he named never appears: spares bought 0.03 → 0.50 a voyage, barters struck
+  0.14 → 0.15. Docks where a bot stands at a crate it needs and cannot pay: 2.07 → 2.41 (2.20 with a guard that keeps
+  the next island's money back). **THE FINDING UNDER IT IS THE REAL ONE AND IS NOT YET BUILT:** `tour3`, the bots' whole
+  objective, is a function of `needs()` — recipe minus hold — so an off-recipe crate cannot change it BY CONSTRUCTION
+  and is scored as pure loss however cheap. A buy gate on top cannot fix that; pricing tour3's bare-shelf leg in crates
+  (two spares buy a crate off a dry shelf) would, and then the buy falls out of the valuation rather than a gate, which
+  is what BOT-DESIGN-PRINCIPLES principle 2 asks for. **Asked on the sheet, 2026-09-16: does he want that built?**
+- **SHIPPED FROM THE SAME AUDIT (build 2026.09.16.1):** the bots' buy decision is now written once (`wantsCrate`, held by
+  `scripts/qa/one_buy_decider_check.mjs`), and `coinTurns` prices a dubloon at what the dock actually pays. Measured over
+  1000 voyages: offers put to the table 11.38 → 9.06 a voyage, deals struck 0.93 → 1.06, win share flat.
