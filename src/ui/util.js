@@ -1798,7 +1798,15 @@ export function stepDelay(){return 3000;}
 // text's length — the same "one size fits all" bug as narrateLastEvent()/humanFlip() had, just
 // hitting the most common narration path in the game (every bot action goes through botBeat()).
 // Now narrateCurrent() itself is the thing that paces this beat, via flash()'s length-aware timing.
-export async function botBeat(){netHandlers().onLiveRender();await narrateCurrent();}
+/* A BOT PAUSES TO THINK. Wyatt, 2026-09-15: "Bots need to have a small about (eg 200ms) of "thinking" time between their actions --
+   it's too fast when they dock and flip and crate all back to back." His number. Skipped while replaying (the scrubber must not crawl)
+   and when motion is reduced. */
+export const BOT_THINK_MS=200;
+export async function botBeat(){
+  netHandlers().onLiveRender();
+  await narrateCurrent();
+  if(!appState.replaying)await new Promise(r=>setTimeout(r,BOT_THINK_MS));   // a beat, not an animation — the scrubber is the only thing that skips it
+}
 /* THE ONCE-PER-VOYAGE CEREMONY GATE — ONE PLACE, BOTH NARRATION PATHS (rule 23, his item 7).
    Wyatt: "Did the on-stage narration for the black market appear the first time all ingredients
    were removed from an island? ... it needs to be there. How did it get lost?" It never got lost.

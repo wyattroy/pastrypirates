@@ -3276,3 +3276,41 @@ tomorrow's sea overnight, rejecting a seed that cannot be baked or that one seat
 - **Food:** the bake-every-recipe channel is a yes. The contest needs scoping before he commits. The
   official cookbook is **next year**.
 - **The build order: approved as written.**
+**2026-09-15 — his verdicts on staging 2026.09.15.2-staging@607e4fe9 (the build the sea trial sailed; NOT merged to main because of these):**
+
+- **THE COINS FLY AT THE RIGHT MOMENT, AND STILL FEEL WRONG.** *"The coin does fly in the moment you earn it, but it still feels wrong.
+  It needs to have more bounce to it; also there are still too many coins visible when you earn 3 coins. there should only be 3. I think
+  the coin you get from musing should only fly into your purse AFTER the narration line has finished writing -- because it's explaining
+  where the coin comes from. I also think the "tick" sound of the coin is the wrong sound -- we want a coin "chink" sound whenever a coin
+  goes into the purse. And for 3 or more coins, which should be spaced somewhat apart temporally, we need those clink sounds not to
+  overlap. The coin and crates both should fly more elastically and pleasingly into your part of the captain's box -- add them to my game
+  feel tuner."*
+- **CRATES FLY, TOO FAST.** *"slow them to 50% of their current speed (and add them to the game feel tuner artifact I want you to build)"*
+- **SAIL SQUARES STILL TOO FAST.** *"add them to the game feel tuner"*
+- **SPEED LINES AND CONFETTI LOOK RIGHT** — *"add to the game feel tuner though so i can modify them."*
+- **THE BAKE-OFF SQUAWK AND TICK LOOK RIGHT.**
+- **THE BATTLE, ALMOST RIGHT.** *"the first narration box is showed in white, not dark blue -- so it covers up the attacker's coin flip!
+  1. the battle narrations should be in dark blue. 2. the coin should flip in front of them. 3. I didn't see any smoke, or the ship recoil
+  away from the other ship -- these should all be accentuated 2x. Create an artifact where I can dial in all of these new game feel
+  mechanics as I see fit. 2. There is still a narration box that appears for a moment before the flippenator appears. we can get rid of
+  that. 3. Battle mechanic -- in crosswinds, there should be no reflip option; it's too weird and complicated. if both get heads, there's
+  simply no winner."*
+- **A GAME FEEL TUNER, HIS DELIVERABLE, ASKED FOR FOUR TIMES.** Dials for: the coin flight (bounce, spacing, speed), the crate flights,
+  the sail squares, the speed lines, the confetti, the battle's smoke and recoil.
+
+  His general playtest notes from the same message, not about those items:
+- **A TAP THAT DRAGS THE BOARD MUST NOT SAIL.** *"When the player clicks /taps a sailable yellow square and drags the board, that should
+  not count as them choosing that square to sail to; it should require a second tap to confirm. Many times I've tried to move the board and
+  ended up accidentally moving to the square I tapped purely to move the board."*
+- **STORMS MUST DARKEN THE ACTIVE PLAYER TOO.** *"it seems like the active player may sometimes be drawn OVER the storm. THis should not
+  happen."*
+- **AUDIT THE BOT'S BUYING.** *"dough hook docked at full cream folly, found treasure, had sufficient money to buy a crate, yet didn't.
+  can you audit the bot strategy algorithm again and discern why? and suggest improvements?"*
+- **BOTS NEED A BEAT BETWEEN ACTIONS.** *"Bots need to have a small about (eg 200ms) of "thinking" time between their actions -- it's too
+  fast when they dock and flip and crate all back to back."*
+- **THE BOARD SQUARE GLITCHES ON THE INGREDIENT POP-IN.** *"it starts a lilttle smaller, and then settles to its right side... i noticed
+  it in tablet size."*
+- **BIGGER PICTURES ON THE DOCKING BUTTONS.** *"they can and should take more space, as much as there's room for."*
+- **THE GREYED-OUT STAGE MUST COVER THE WHOLE WINDOW ON TABLET.** *"currently, i see a border along the left and right sides of the screen
+  that are not darkened."*
+- **A SWISH AS THE CRATES ARE SHUFFLED.**
