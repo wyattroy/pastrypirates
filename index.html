@@ -2410,6 +2410,11 @@
      if they ever need taps; the host itself must never eat one. */
   #pp4Fx { position:fixed; left:0; right:0; overflow:hidden; pointer-events:none; z-index:21; }
   #pp4Fx > * { pointer-events:auto; }
+  /* A FIGHT SPEAKS IN DARK BLUE — Wyatt, 2026-09-15: "the battle narrations should be in dark blue". The cream box read as a card
+     laid over the fight; this one reads as weather over the sea, and the small coin turning on the attacker's boat stays legible
+     through the gap it leaves. Set by stageFlash's opts.cls, from orchestrator renderBattle. */
+  .pp4Bub.btl { background:#12323a; color:#eef7f9; }
+  .pp4Bub.btl .score { color:#7fe3b0; }
   .pp4Bub { position:absolute; z-index:26; background:#fffdf2; border:2px solid #177; border-radius:13px;
     padding:9px 12px; box-shadow:0 8px 26px rgba(0,0,0,.33); font-size:14px; line-height:1.45;
     font-weight:600; color:#1f2d33; transition:opacity .35s; }

@@ -1789,6 +1789,10 @@ function stageFlash(msg, ms, holdMs, variants, opts){
      a wait line for a captain sitting at THIS browser is not drawn, because they are getting the
      question itself. Everyone else still reads "…is deciding…". */
   if (waitLineIsSelfAddressed(variants, opts)) return Promise.resolve();
+  /* AN EMPTY LINE IS NO LINE. A seat's variant can be deliberately blank — the captain about to flip gets no narration box, because
+     the flip stage is about to say the same words as its own title (orchestrator battleAsk). Wyatt, 2026-09-15: "There is still a
+     narration box that appears for a moment before the flippenator appears. we can get rid of that." */
+  if (!String(msg == null ? "" : msg).replace(/<[^>]*>/g, "").trim()) return Promise.resolve();
   let subj = S.subject; S.subject = null;
   /* DECIDED BEATS SNIFFED. `subjectSet` means an event was actually read and yielded this subject —
      including a deliberate null for a line about two captains or the whole table. The sniff below
@@ -1853,11 +1857,15 @@ function stageFlash(msg, ms, holdMs, variants, opts){
     // util.js, derived from D-10's own hold, and this call site names no milliseconds at all.
     const hold = narrationHoldMs(msg);
     const b = document.createElement("div");
-    b.className = "pp4Bub" + (subj == null ? " ambient" : "");
-    if (subj != null) b.style.borderColor = HEXCOL[subj] || "#177";
+    /* `opts.cls` — a line that wants its own skin. Today: the fight's lines, in dark blue (Wyatt, 2026-09-15: "the first narration
+       box is showed in white, not dark blue -- so it covers up the attacker's coin flip! 1. the battle narrations should be in dark
+       blue."). The tail follows the bubble rather than the captain's colour, or a dark box would sprout a bright beak. */
+    b.className = "pp4Bub" + (subj == null ? " ambient" : "") + (opts && opts.cls ? " " + opts.cls : "");
+    const tailCol = (opts && opts.cls === "btl") ? "#12323a" : (HEXCOL[subj] || "#177");
+    if (subj != null) b.style.borderColor = (opts && opts.cls === "btl") ? "#0d2830" : (HEXCOL[subj] || "#177");
     // playtest 10 item 7: bubbles bypass panel()'s emojify chokepoint, so ad-hoc narration lines
     // (turn banners, flip results) kept raw ⚪/🌕 emoji instead of the game art. Emojify here.
-    b.innerHTML = `<div class="pp4BubIn">${emojify(String(msg))}</div>` + (subj != null ? `<div class="pp4Tail" style="border-color:${HEXCOL[subj] || "#177"}"></div>` : "");
+    b.innerHTML = `<div class="pp4BubIn">${emojify(String(msg))}</div>` + (subj != null ? `<div class="pp4Tail" style="border-color:${tailCol}"></div>` : "");
     const host = fxHost();
     host.appendChild(b);
     hopParrot();
