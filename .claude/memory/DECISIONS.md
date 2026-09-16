@@ -3338,3 +3338,18 @@ tomorrow's sea overnight, rejecting a seed that cannot be baked or that one seat
   and add them to the game feel tuner"* — today spending only ticks the count down with a click. Three candidates built into the tuner
   for him to choose: SPILL (coins fly out toward what is being paid for, the mirror of the arrival), DROP (coins fall out of the count
   and tumble off the row), SCATTER (the count knocks back and coins puff outward and shrink away).
+
+- **WHAT I BUILT FROM HIS COIN VERDICTS, 2026-09-15 (build 2026.09.15.5).** Acting on the two corrections above, all of it dialable on
+  the Game Feel Tuner so the numbers stay his:
+  - **The flight is slower and one coin at a time.** 1170 → 1400ms, and the gap between coins 90 → 260ms. Three coins no longer share
+    the sky: the next leaves as the one ahead lands, which is his own "one at a time for multiple coin hauls".
+  - **The purse count keeps pace with the coins.** The number used to roll at its own 40ms clip once the first coin landed; it now steps
+    once per ARRIVING coin (`holdCoinRoll`'s new `paceMs`), so a three-coin haul reads as three coins.
+  - **A coin going in CHINKS; a coin going out ticks.** `sfx/coin-chink.mp3` holds his three tuner candidates as three slots; A is what
+    the game opens on and a change of pick is one digit (`CHINK_PICK`). The chink is fired at the ONE place the purse number changes,
+    never beside each thing that pays, and has its own 120ms floor so two can never overlap.
+  - **Coins and crates land elastically** — both carry a little past the purse/chip and spring back, squashing as they go in.
+  - **Coins leaving the purse are built, all three, and SPILL is what it opens on** (`SPEND_STYLE`, one word to change). Fired from the
+    one consumer for a crate bought at a dock, a re-watched bake-off, and a fight's powder and refires — never a trade, whose coins
+    already cross the table to the other captain.
+  - **The sail squares are another 50% slower** — the pop .33 → .5s, the cascade 375 → 560ms — his "still come in too fast".
