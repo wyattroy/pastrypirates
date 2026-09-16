@@ -1896,10 +1896,13 @@ export function eventDrawn(e,capMs=9000){
    typewriter's own rate (stage.js typewriterReveal), not when the line's reading time is up. The 8-second fallback is the safety a
    screen with narration switched off needs: a coin must never be lost because nobody spoke. */
 const AFTER_LINE = new Map();
+/* The longest a thing waiting on a narration line will wait — a screen with narration off never writes one. The purse holds its count
+   a little past this (orchestrator.js, the pass coin), so the two are one number. */
+export const AFTER_LINE_CAP_MS = 8000;
 export function afterLine(e, fn){
   if(!e || typeof fn !== "function") return;
   AFTER_LINE.set(e, fn);
-  setTimeout(() => runAfterLine(e), 8000);
+  setTimeout(() => runAfterLine(e), AFTER_LINE_CAP_MS);
 }
 function runAfterLine(e){
   const fn = AFTER_LINE.get(e);

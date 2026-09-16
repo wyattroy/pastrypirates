@@ -104,7 +104,7 @@ import {
   bakeoffPrompt, bakeoffReveal, playBakeoffLive,
   benchChoreoMs, BENCH_STUDY_MS, BENCH_BEAT_MS, // A-2: the choreography's own timings, answered by the file that runs them
   appendChatLine, showChatBubble,
-  setFlipActive, setFlipCoin, flipSpinLeftMs, FLIP_LAND_HOLD_MS, boardCell, boardShipEls, drawBoard, render, resetBoardLog, bobShip, sailSetsOff, sailArrives, treasureBurst, coinsLeave, crateFlightFrom, crateFlightTo, tradeSwapFrom, tradeSwapTo, coinsAcross, rideStreaks, firstHomeConfetti, shotLands, loserKnocked, stopTurnBob,
+  setFlipActive, setFlipCoin, flipSpinLeftMs, FLIP_LAND_HOLD_MS, boardCell, boardShipEls, drawBoard, render, resetBoardLog, bobShip, sailSetsOff, sailArrives, treasureBurst, holdCoinRoll, coinsLeave, crateFlightFrom, crateFlightTo, tradeSwapFrom, tradeSwapTo, coinsAcross, rideStreaks, firstHomeConfetti, shotLands, loserKnocked, stopTurnBob,
   seedIdleGameState, syncBoardSizing, watchMutePlacement, victoryConfetti, clearChatBubbles,
   showSeatCoins, // MP-06: the ONE purse renderer, shared with render() (04-01 Task 2)
   battleSnapshot, renderBattleFromSnap,
@@ -128,7 +128,7 @@ import {
   sliderWrapHTML, wireSlider,        // 05-01 Task 3 (MP-08): the ONE coin slider, shared with localAsk
   pn, pname, updateRecipeBanner, describe, seatLocal,
   decisionIsLocal, resolveOpt, applyActiveSeat, raiseLocalPrompt, stepDelay, ask, pickNarrVariant,
-  expectEventDrawing, finishEventDrawing, eventDrawn, afterLine, flipDockCoin,
+  expectEventDrawing, finishEventDrawing, eventDrawn, afterLine, AFTER_LINE_CAP_MS, flipDockCoin,
   sleepMs, BOARD_LAST_LOOK_MS,
   mountKofi, openKofi, // KOFI-01: the embedded Ko-Fi panel and its modal opener
   coinShortfall, // G6: the shared coin re-validation, reached through the barrel (module_graph_check tiering)
@@ -1978,7 +1978,12 @@ export async function consumeEvent(e){
      2026-09-15: "the coin you get from musing should only fly into your purse AFTER the narration line has finished writing --
      because it's explaining where the coin comes from." Not awaited here, or the line could never start: the narrator waits on this
      consumer finishing the event. */
-  if(!appState.replaying&&e.t==="pass"&&e.coins>0)afterLine(e,()=>treasureBurst(e.p,e.coins));
+  /* …AND ITS COUNT WAITS WITH IT. The coin waits for its line, so the purse must too: render() below would otherwise roll the number up
+     the moment the line STARTS writing — measured 2026-09-16, about 2.2 seconds before the coin landed — and his note the same day was
+     that the number must tick "IMMEDIATELY as each coin lands". Held here, before render(); treasureBurst takes the hold over when the
+     line lets the coin go, and releases it as the coin lands. Held a little past afterLine's own 8-second safety, so a line that never
+     finishes still lets the count through. */
+  if(!appState.replaying&&e.t==="pass"&&e.coins>0){holdCoinRoll(e.p,AFTER_LINE_CAP_MS+1000);afterLine(e,()=>treasureBurst(e.p,e.coins));}
   const paidFlight=(!appState.replaying&&e.t==="trade"&&e.paid>0)?coinsAcross(e.a,e.b,e.paid):null;
   render();
   if(buyFlight)crateFlightTo(buyFlight,e.p);

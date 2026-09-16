@@ -893,13 +893,18 @@
   .ppCrateBox img { width: 74%; height: 74%; object-fit: contain; }
   .ppPoof { position: fixed; z-index: 59; pointer-events: none; border-radius: 50%; opacity: 0;
     background: radial-gradient(rgba(255,255,255,.85), rgba(255,255,255,0) 70%); will-change: transform, opacity; }
-  .ppStreak { position: absolute; border-radius: 99px; background: rgba(255,255,255,.9); opacity: 0; will-change: transform, opacity; }
+  /* a speed line's HEAD is its right end, on the hull; it turns about that end and fades back along its body (board.js rideStreaks) —
+     Wyatt, 2026-09-16: "the gradient should be most opaque nearest to the boat" */
+  .ppStreak { position: absolute; border-radius: 99px; opacity: 0; will-change: transform, opacity; transform-origin: 100% 50%;
+    background: linear-gradient(90deg, rgba(255,255,255,0), rgba(255,255,255,.55) 45%, rgba(255,255,255,.95)); }
   /* first-home confetti flies in FIXED position too, over the narration bubble (board.js firstHomeConfetti) */
   .ppConfetti { position: fixed; z-index: 60; pointer-events: none; border-radius: 1px; opacity: 0; will-change: transform, opacity; }
   /* a landed shot and a won battle (board.js shotLands / loserKnocked): smoke at the firing bow, a white flash over the struck hull and
      a crate tumbling off the loser, all OVER the boats in #dockCoinHost; the crate's splash ring stays on the water in #popHost */
-  .ppSmoke { position: absolute; border-radius: 50%; opacity: 0; pointer-events: none; will-change: transform, opacity;
-    background: radial-gradient(rgba(252,252,250,1) 0 28%, rgba(196,196,192,.92) 50%, rgba(120,120,118,.45) 62%, rgba(120,120,118,0) 72%); }
+  /* one puff of several (board.js smokePuffs): an off-centre soft core and a feathered grey edge, so overlapping puffs of different
+     sizes read as a torn cloud rather than a ball; the grey still reads against sand */
+  .ppSmokePuff { position: absolute; border-radius: 50%; opacity: 0; pointer-events: none; will-change: transform, opacity;
+    background: radial-gradient(circle at 42% 40%, rgba(250,250,247,.95) 0%, rgba(222,221,216,.85) 30%, rgba(170,169,164,.45) 55%, rgba(150,150,146,0) 71%); }
   .ppHitFlash { position: absolute; border-radius: 50%; opacity: 0; pointer-events: none; will-change: transform, opacity;
     background: radial-gradient(rgba(255,255,255,1) 35%, rgba(255,255,255,0) 70%); }
   .ppCrateSplash { position: absolute; opacity: 0; pointer-events: none; will-change: transform, opacity; object-fit: contain;
@@ -1162,7 +1167,7 @@
      background. cqw units keep the geometry identical to the 640-unit board. */
   .sailCell { position: absolute; box-sizing: border-box; pointer-events: auto; cursor: pointer;
     background: #ffc23a; border-radius: 6px; opacity: .5;
-    animation: sailBounce 1.15s ease-in-out infinite, sailPop .5s ease-out backwards;   /* .22s -> .33s -> .5s: his 2026-09-14 "50% slower so it's more noticeable", then 2026-09-15 "still come in too fast" — another 50%. His dial for it is on the Game Feel Tuner. */
+    animation: sailBounce 1.15s ease-in-out infinite, sailPop var(--sailPopMs, 440ms) ease-out backwards;   /* ONE number for the whole wave, set per square by flow.js SAIL_POP_MS — see there */
     transition: opacity .12s ease, filter .12s ease; }
   /* THE SQUARES POP IN FROM THE BOAT OUTWARD — his game feel audit, PASSED (2026-09-13). LISTED LAST so its hidden start
      wins over the bounce until each square's own --sailPopDelay (renderPickPrompt, by distance from the boat); `scale`,
