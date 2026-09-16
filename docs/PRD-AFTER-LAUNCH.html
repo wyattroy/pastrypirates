@@ -103,43 +103,21 @@
 
   <section id="settle" aria-labelledby="settle-h">
     <h2 id="settle-h">To settle</h2>
+    <ul style="background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:.85rem 1rem .85rem 2.2rem;font-size:.94rem">
+      <li><strong>Settled 15 Sep:</strong> dubloons may be given to friends you’ve sailed with, with a daily limit.</li>
+      <li><strong>Settled 15 Sep:</strong> a win box’s prizes stay with the captain who won them; only dubloons change hands. This closes the legal grey edge.</li>
+      <li><strong>Settled 15 Sep:</strong> a win box shows what it can hold and how rare each prize is, even though it’s free.</li>
+    </ul>
+
 
     <article class="ask-card" data-ask="visible-earned">
       <h3>Which things other captains can see are earned only?</h3>
-      <p>You said clout needs <em>"a clear marker in the game,"</em> and the Flippinator coin might have to be earned. Proposed marker: <strong>what sails with you into a voyage is earned; what lives at home is bought.</strong> Every captain at the table sees your coin, your flag and your pet, so those are the clout. Your bakery and your ship's paint are how you decorate, so those can be bought.</p>
+      <p><strong>The rule every game in the research follows: never sell what signals skill; sell what signals taste.</strong> Your Flippinator is the one object the whole table watches on every flip, which makes it the highest-status thing a captain owns. League of Legends never sells its ranked-season skins and has never re-released one; Blizzard promised its skill mounts would never reach the store; Overwatch’s gold guns cost 3,000 competitive points and no money at all.</p>
+      <p><strong>And one look, reserved.</strong> Earned things get a hand-drawn gold edge and a small idle animation; bought things get colour and pattern and never animate. Hearthstone, Destiny and Overwatch all do a version of this. Sell the gold once and gold means nothing.</p>
       <div class="opts">
-        <button class="opt" data-val="Sails with you = earned (coin, flag, pet); home and paint = bought">Sails with you = earned (coin, flag, pet); home and paint = bought<span class="rec">Recommended</span></button>
+        <button class="opt" data-val="Coin faces, flags and pets are earned; paint, sails, decor, outfits and music are bought">Coin faces, flags and pets are earned; paint, sails, bakery decor, pet outfits and music are bought<span class="rec">Recommended</span></button>
         <button class="opt" data-val="Only the coin is earned">Only the coin is earned; everything else can be bought</button>
-        <button class="opt" data-val="Everything visible is earned; money buys only seas and music">Everything visible is earned; money buys only seas and music</button>
-      </div>
-    </article>
-
-    <article class="ask-card" data-ask="gifting">
-      <h3>Who can a captain give dubloons to?</h3>
-      <p id="gift-context">Free gifting is what lets a dubloon get a real-money price outside the game (someone sells 10,000 dubloons for $5). Limiting who you can give to keeps your “give to each other” without making dubloons easy to sell. Limits on new accounts are what Steam uses to stop this.</p>
-      <div class="opts">
-        <button class="opt" data-val="Friends you've sailed with, with a daily gift limit">Friends you’ve sailed with, with a daily gift limit<span class="rec">Recommended</span></button>
-        <button class="opt" data-val="Anyone, any amount">Anyone, any amount</button>
-        <button class="opt" data-val="Crewmates in the same voyage only">Only crewmates in the voyage you’re sailing</button>
-      </div>
-    </article>
-
-    <article class="ask-card" data-ask="box-trading">
-      <h3>Can a win box’s prizes change hands?</h3>
-      <p>This is the one choice that moves the legal risk most. The Dutch regulator’s test ignores whether you paid: an item has a money value <em>“the moment it is transferable,”</em> because it can then be sold (<a href="https://kansspelautoriteit.nl/sites/default/files/onderzoek_naar_loot_boxes_-_een_buit_of_een_last_-_nl.pdf">KSA 2018</a>). If prizes stay with whoever won them, that disappears and no outside market can form. Giving dubloons can stay either way.</p>
-      <div class="opts">
-        <button class="opt" data-val="Prizes stay with the winner; only dubloons can be given">Prizes stay with the winner; only dubloons can be given<span class="rec">Recommended</span></button>
-        <button class="opt" data-val="Common prizes can be traded; the rarest stay with the winner">Common prizes can be traded; the rarest stay with the winner</button>
-        <button class="opt" data-val="Every prize can be traded for dubloons">Every prize can be traded for dubloons, as I first said</button>
-      </div>
-    </article>
-
-    <article class="ask-card" data-ask="box-contents">
-      <h3>Does a win box show what could be inside?</h3>
-      <p>Your win boxes are free, so no odds are legally required for them. Showing the possible prizes anyway builds trust, and it’s what Apple and Google require for paid boxes, if a store ever asks.</p>
-      <div class="opts">
-        <button class="opt" data-val="Yes, show the possible prizes and how rare each is">Yes, show the possible prizes and how rare each is<span class="rec">Recommended</span></button>
-        <button class="opt" data-val="Keep it a surprise">Keep it a surprise</button>
+        <button class="opt" data-val="Everything seen in a voyage is earned; money buys only seas, bakery decor and music">Everything seen in a voyage is earned; money buys only seas, bakery things and music</button>
       </div>
     </article>
     <div class="note"><label for="n-settle">Your notes: To settle</label><textarea id="n-settle" data-note="settle" data-label="To settle" rows="2"></textarea></div>
@@ -183,7 +161,7 @@
         <li>Recipes: yours once you bake one to a win, and then you can sell it in your bakery</li>
         <li>Trophies: the game already awards 10 per voyage, like <em>The Cutlass of a Thousand Notches</em>, and accounts turn them into a cabinet</li>
         <li>Rank, Daily Voyage streaks, the slipway ship</li>
-        <li>The cookie flag: the one bought marker, because it says “I backed the maker”</li>
+        <li>The cookie flag: the one bought marker, because it says “I backed the maker”, not “I’m good”. Lichess does exactly this with its patron wings</li>
       </ul></div>
       <div><h4>Bought or spent: at home</h4><ul>
         <li>Expansion seas: <strong>money only</strong>, shared with your crew</li>
@@ -196,9 +174,21 @@
     <ul>
       <li><strong>Earned:</strong> the dubloons left in your hold at the end of a voyage are banked. Grinding all day is allowed.</li>
       <li><strong>Spent:</strong> on looks at home. Dubloons need things to spend on, and new decor every season, or the pile grows until prices mean nothing.</li>
-      <li><strong>Given:</strong> captains can give dubloons to each other (limits under “To settle”).</li>
+      <li><strong>Given:</strong> to friends you’ve sailed with, with a daily limit. A win box’s prizes never change hands.</li>
       <li><strong>Never bought, never cashed out.</strong> The terms of service ban selling dubloons or items for real money.</li>
     </ul>
+    <h3>How a player can tell earned from bought, in one glance</h3>
+    <p>Six devices other games use, and what each would be here. If a captain has to open a menu to tell, the marker has failed.</p>
+    <ul>
+      <li><strong>One reserved look.</strong> A gold-leaf edge and a gentle idle movement, on earned things only. Bought things never animate. <a class="src" href="https://hearthstone-archive.fandom.com/wiki/Golden_card">Hearthstone</a></li>
+      <li><strong>Colour says where it came from.</strong> Rocket League’s titles are crimson for rank, green for tournaments, so the source reads instantly. <a class="src" href="https://rocketleague.fandom.com/wiki/Title">Rocket League</a></li>
+      <li><strong>A date, stamped on.</strong> “Won, Sept 2026” makes a thing unfakeable and tells a story; “rare” is just a price tag.</li>
+      <li><strong>Marks that fade.</strong> Destiny’s Trials glow lasts a week, so it says <em>right now</em>, not <em>once</em>. A streak lantern beside your name that dims after a missed day does the same. <a class="src" href="https://gamerant.com/destiny-2-trials-of-osiris-armor-glow-color-yellow-red-white-flawless/">Destiny 2</a></li>
+      <li><strong>Two shelves, never mixed.</strong> “Earned at sea” and “From the chandlery” in the bakery, clearly labelled.</li>
+      <li><strong>The counter shows while it fills.</strong> “7 of 10 trophies this voyage”, the way Hearthstone counts toward 500 wins under the portrait.</li>
+    </ul>
+    <p>Two more worth stealing. <strong>Never re-award a retired thing</strong>: if a sea closes, its trophy closes with it. And <strong>mark generosity, not only winning</strong> — Destiny gives a special glow for carrying someone to their first win; here, a mark for the captain who hosted a table where a newcomer sailed their first voyage.</p>
+    <p><strong>When the line blurs it costs real money.</strong> Diablo Immortal holds the lowest user score in Metacritic’s history after players worked out what full power cost (<a class="src" href="https://www.videogameschronicle.com/news/diablo-immortal-now-has-the-lowest-user-score-in-metacritic-history/">VGC</a>). A skill mount merely <em>appearing</em> in WoW’s shop on a test server forced Blizzard to promise it never would (<a class="src" href="https://gamerant.com/world-of-warcraft-prestige-items-raid-mounts-not-on-trading-post/">Game Rant</a>). Nobody riots about selling hats.</p>
     <h3>The legal question you asked</h3>
     <div id="legal" style="display:grid;gap:.5rem">
       <p style="margin:0"><strong>Verdict: low risk as you ruled it, with one grey edge. This is research, not legal advice.</strong></p>

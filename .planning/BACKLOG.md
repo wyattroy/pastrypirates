@@ -1707,5 +1707,11 @@ cutover come first. He calls that "the first level of success".
   count a currency nobody can buy as a stake, and the UK says items that can't be cashed out are
   "unlikely to be caught". The grey edge is TRADING prizes: the Dutch test treats a transferable item as
   having a money value. His call, asked in the PRD: can box prizes change hands?
-- **Which visible items are earned-only.** The Flippinator coin is his first candidate; the PRD
-  proposes the rest.
+- **Which visible items are earned-only — RESEARCHED 2026-09-15, his call still open.** The rule every
+  game studied follows: never sell what signals skill, sell what signals taste. League of Legends has
+  never re-released a ranked-season skin; Blizzard promised its skill mounts would never be sold;
+  Overwatch's gold guns cost competitive points and no money. **Recommendation in the PRD:** coin
+  faces, flags and pets are earned; paint, sails, bakery decor, pet outfits and music are bought. Plus
+  ONE reserved look for earned things (gold edge + a gentle idle movement; bought things never
+  animate), a date stamped on each, a streak mark that fades, two labelled shelves in the bakery, and
+  no retired trophy ever re-awarded.
