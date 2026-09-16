@@ -3225,3 +3225,54 @@ questions are answered; all three took the recommendation.
 **Still open, and he asked for evidence first:** which things other captains can SEE must be
 earned-only (the Flippinator coin is his candidate). He asked what other games do about the line
 between bought and earned. Research 2026-09-15; the answer goes on the PRD and here.
+
+## 2026-09-15 — ⛵ THE LAUNCH DATE IS 1 OCTOBER 2026, AND FOUR RULINGS ON THE ECONOMY
+
+**Source:** his notes on the After Launch PRD (https://claude.ai/artifact/6DGyHdVj4SShy3tZumPNQn),
+pasted into chat 2026-09-15.
+
+### THE DATE
+
+> *"phase 1 I want to set a date for: October 1."*
+
+**Phase 1 is launch.** Every other plan is sequenced against that date. He also ruled: **work on a
+second expansion sea begins immediately after launch**, not after the audience rungs — *"We should
+immediately begin work on phase 4 then, creating a second expansion sea."* And **cookies should be
+bought in the "loved" rung**, i.e. donations are live and watched from launch day.
+
+### THE ECONOMY
+
+- **NO TRADING AND NO GIFTING. This withdraws this morning's gifting ruling, on his own second
+  thought:** *"the easiest thing is just to remove gifting doubloons between players — that way,
+  everything in your world is stuff you either earned, or bought. it's your world. clean, simple,
+  no trading."* Nothing transferable also ends the loot-box grey edge outright.
+- **A coin with every sea, and its tiers earned inside that sea:** *"each new set you have comes with
+  its own flippenator coin; and there are different tiers of flippenator coin depending on how well
+  you've accomplished that set. so the coin itself is earned WITHIN a bought pack."* **The guard I
+  added, and it needs his eye:** the plain coin that comes with a bought sea must LOOK plain — no
+  gold edge, no movement — or an expensive sea starts to read as a skill.
+- **The pet trails your boat** as you sail, and can be dressed in pirate clothes.
+- **Every voyage must offer a recipe the captain does not own yet, and say so on the card.** Cheap,
+  because the engine already deals each captain TWO recipes to choose between (`recipeChoices:[a,b]`
+  in `src/engine/index.js:272`), built from a seeded handful of ingredients and matched to the
+  21-recipe book. Only WHICH two changes. Remembering the cookbook needs accounts.
+
+### THE DAILY
+
+He rejected "the same sea for everyone" as the hook, and rejected hand-designing a puzzle a day:
+*"designing a new game every day is easy for wordle, but not for this game… Unless.... everyone is
+given ONE recipe that they must bake, and ranked on a leaderboard for their skill at it. THAT could
+work."* **So the daily is THE DAILY RECIPE:** one recipe handed to everyone, no choosing, ranked by
+the victory card score. **Nobody designs it:** the date makes the seed, and the sea trial's bots play
+tomorrow's sea overnight, rejecting a seed that cannot be baked or that one seat runs away with.
+**The puzzle ideas (all bots against you, an archipelago maze, a needle to thread) MOVE TO CAMPAIGN.**
+
+### THE REST
+
+- **Back burner:** viewers vote, the voyage recap, and playing inside Discord. Every other growth
+  idea is in.
+- **The board game:** the end-card sign-up is a **waitlist** (his word). He makes the sell sheet and
+  video himself — *"I can make this easily."* The publisher shortlist and how to reach them: mine.
+- **Food:** the bake-every-recipe channel is a yes. The contest needs scoping before he commits. The
+  official cookbook is **next year**.
+- **The build order: approved as written.**
