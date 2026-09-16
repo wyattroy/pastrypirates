@@ -204,14 +204,17 @@ better by making **more** of them has failed, however good the offers are.
 
 Current, after 2026-08-14: **0.75 hails a game, 23.0% of them struck** (was 3.25 at 5.7%).
 
-**MEASURED AGAIN 2026-09-15 and it had drifted: 2.33 hails a voyage** — the invariant above was being
-breached daily and nothing said so. The cause was the same rotted constant as everything else in that
-audit: `coinTurns` priced a dubloon at a dock paying 4 a turn when the game pays 2, so a bot short of
-coins reached for a deal instead of a dock. With the rate derived from cfg the CEO measured it back down
-to **1.68 a voyage for the same number of deals struck** (its figures, on its own 300-voyage ladder; the
-ladder I re-ran to check the two changes stacked counts deals struck, not hails, so 1.68 is its number and
-not a second measurement of mine). Whoever moves this number again re-measures the hails in the same
-commit — that is what this line is for.
+**MEASURED AGAIN 2026-09-15/16, and the anti-spam invariant had drifted.** The CEO's bot audit found the cause:
+`coinTurns` priced a dubloon at a dock paying 4 a turn when this game has paid 2 since 2026-08-21, so a bot short
+of coins reached for a deal instead of a dock. With the rate derived from cfg, measured over 1000 voyages on my
+own count (offers actually PUT TO THE TABLE, not evaluations):
+
+    offers put to the table   11.38  ->  9.06 a voyage        deals struck   0.93  ->  1.06 a voyage
+
+Twenty percent fewer interruptions and MORE trading — which is this principle's whole claim, stated again in
+numbers. (The audit's own figures were 2.33 -> 1.68 hails on a different counting basis; same direction, same
+size.) Win share over the same 1000 voyages: flat, inside the noise. Whoever moves this number again re-measures
+both columns in the same commit — that is what this line is for.
 
 ---
 

@@ -2078,26 +2078,32 @@ class Game{
                     shelf is the bot's commonest disaster: every voyage ends with at least one.
      Affordability is NOT asked here, on purpose: a needed crate off a dry shelf can be bartered for with two
      crates and no coins at all (blackMarketPick), and that decision belongs to the caller that can act.
-     ⚠️ `planning` IS THE ONE PLACE THE TWO CALLERS DIFFER, AND IT IS A DESIGN STATEMENT, NOT A LEAK. A spare is
-     worth taking at a berth you are ALREADY STANDING AT; it is not worth sailing to. docs/WINNING-STRATEGY.md has
-     said so since it was written — "Do not shop for leverage. Take a spare only when it falls into your lap." —
-     and the ladder says the same thing in numbers: with the spare folded into the route planner's valuation as
-     well, the bots route toward cheap crates and the OLD brain beats the new one by 2.6 (dev seeds) and 1.8 (held
-     out), red-proofed at +0.0 for an identical brain and -33.8 for a lobotomised one. So the planner asks what it
-     would take on the way to somewhere it already wants to be, and the dock takes the bargain when it is there. */
-  wantsCrate(p,ing,price,planning){
+     ⛔ HIS CHEAP-CRATE RULE WAS BUILT HERE AND TAKEN OUT AGAIN, 2026-09-16, and the graveyard is the point.
+     Wyatt, 2026-09-15: "a bot would know that holding a resource, especially a cheap resource is always better
+     than holding the coin -- it can be insurange, trade bait, it is even half of a black market crate they may
+     need later." The CEO's audit measured his rule as a win at the floor price (+0.8 dev seeds, +3.2 held out,
+     300 voyages an arm). IT DOES NOT REPLICATE. At 1000 voyages an arm, on the same ladder run backwards and
+     red-proofed (+0.0 for an identical brain, -33.8 for a lobotomised one), his rule and the dock-rate fix
+     together came out at +1.0 / -0.7 — noise, either side of zero. And the mechanism he named did not appear:
+        spare crates bought   0.03 -> 0.50 a voyage        barters struck   0.14 -> 0.15 a voyage
+     The spares are bought and never become the black-market payment they were bought for; guarding the rule so
+     it can never spend the next island's money halves the cost (2.41 -> 2.20 docks a voyage standing at a crate
+     it cannot pay for, against 2.07 today) and halves the spares with it, and still moves no barters.
+     WHY, AND THIS IS THE REAL FINDING: the bot's objective is tour3, which is a function of needs() — recipe
+     minus hold. An off-recipe crate cannot change that number BY CONSTRUCTION, so a spare is scored as pure
+     loss of coins and zero gain no matter how cheap it was. A buy gate bolted on top does not fix that; it
+     just makes the bot spend money its own objective says was wasted. The honest fix is to let the objective
+     SEE a spare — price tour3's bare-shelf leg in crates as well as coins, so two spares in the hold genuinely
+     shorten the route — and then the buy falls out of the valuation, which is what principle 2 asks for.
+     Wyatt has the numbers; whoever builds that reads this paragraph first. */
+  wantsCrate(p,ing,price){
     if(!this.cfg.dockBuy||price===null||price===undefined)return "";
     if(this.needs(p).includes(ing))return "needs";
     const bias=PERSONALITY[p.strategy];
     if(this.cfg.merchant&&bias&&bias.hoardBias>=1.4&&
        this.players.some(q=>q!==p&&this.inPlay(q)&&this.likelyNeeds(q,ing)))return "leverage";
-    if(!planning&&this.shelfFull(ing)&&price<=this.floorPrice())return "cheap";
     return "";
   }
-  /* A shelf charges `crateBase` minus what is left on it, so its cheapest price is a full shelf — derived from
-     the board both ways, never a price written down. */
-  floorPrice(){return Math.max(1,(this.cfg.crateBase||6)-(this.cfg.crates||0));}
-  shelfFull(ing){const c=this.cfg.crates||0;return c>0&&(this.tokens[ing]||0)>=c;}
   // Sailing time from a to b under a given wind. v2 rule 1: 4 squares a turn unless the route has
   // to bite into the wind, in which case 2. Bots plan against the wind they can SEE — this round's
   // for the leg they're on, and the committed forecast for the leg after it (rule 6d: never wrong).
@@ -2771,7 +2777,7 @@ class Game{
         for(const pay of [heads,tails]){
           const purse=p.coins+pay;
           const buys=this.cfg.dockBuy&&price!==null&&purse>=price;
-          const take=buys&&!!this.wantsCrate(p,port,price,true);   // the SAME question doDock will play — asked as a PLAN (see wantsCrate)
+          const take=buys&&!!this.wantsCrate(p,port,price);   // the SAME question doDock will play, asked in the ONE place it lives
           const myT=this.turnsToWin3If(p,{cell,gain:take?port:null,
                                           coins:purse-(take?price:0)},ctx);
           // my purchase empties a shelf slot rivals may have been counting on — their race moves.

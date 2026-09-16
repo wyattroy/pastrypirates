@@ -124,13 +124,15 @@ But buying a spare costs a **whole dock turn**, and the leverage it buys is wort
 is break-even before the risk that nobody bites. **Do not shop for leverage.** Take a spare only when
 it falls into your lap.
 
-**And a berth you are already standing at IS your lap.** Wyatt, 2026-09-15: *"a bot would know that
-holding a resource, especially a cheap resource is always better than holding the coin -- it can be
-insurange, trade bait, it is even half of a black market crate they may need later."* Measured on the
-ladder (CEO audit, same day): taking the spare at **any** price loses 2.3 points — it eats the money
-the next island needs and voyages get longer — but taking it at the **floor price**, on a dock turn
-already being spent, wins on both seed families (+0.8 dev, +3.2 held out). The rule above was written
-about *sailing to* an island for a spare; this is the case it never considered. Both are true.
+**And it holds even for a berth you are already standing at — measured, 2026-09-16.** Wyatt's instinct was the
+opposite: *"a bot would know that holding a resource, especially a cheap resource is always better than holding
+the coin -- it can be insurange, trade bait, it is even half of a black market crate they may need later."* A CEO
+audit measured his rule as a win at the floor price (+0.8 / +3.2 over 300 voyages an arm). **It did not replicate
+at 1000 voyages an arm** (+1.0 / −0.7 — noise both sides of zero, on a ladder red-proofed at +0.0 for an identical
+brain and −33.8 for a lobotomised one), and the mechanism he named never appeared: spare crates bought went 0.03
+→ 0.50 a voyage while barters struck stayed at 0.14 → 0.15. The spares are bought and never spent. The rule is not
+in the game; the finding under it — that the bot's objective cannot see an off-recipe crate at all — is what to fix
+instead, and `src/engine/index.js` `wantsCrate` carries the note.
 
 ### Income is not a goal
 

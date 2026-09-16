@@ -51,3 +51,33 @@ bot and the winning human disagree, in the game's own nouns.
 ONE answer to "does this captain take this crate?", called by `doDock` (what a bot plays) and by the planner's berth branch (what a
 bot evaluates). Verified stacked on the ladder run backwards (the reverted brain against the shipped one), which the audit itself
 had not tested.
+
+### Replication, 2026-09-16 — the CTO's re-run of the same ladder, at 1000 voyages an arm
+
+**The audit's two "DO IT" rows do not replicate, and I did not ship them as given.** Same ladder, run backwards
+(the OLD brain in the flagged seats, the shipped one elsewhere), red-proofed at +0.0 for an identical brain and
+−33.8 for a lobotomised one:
+
+| | 200 an arm | **1000 an arm** |
+|---|---|---|
+| both changes, dev seeds ×7919 | old brain +2.6 | **old brain +1.0** |
+| both changes, held out ×104729 | old brain +1.8 | **new brain +0.7** |
+
+The effect shrinks toward zero as the sample grows, both directions — which is what noise does. The audit's +3.2
+was the same size on a smaller sample.
+
+**What the audit promised a player would see, measured (1000 voyages, whole table):**
+
+| | today | + cheap crate | + cheap crate, guarded | + both changes |
+|---|---|---|---|---|
+| bot stands at an island it needs and cannot pay | **2.07 a voyage** | 2.41 | 2.20 | 2.51 |
+| spare crates bought | 0.03 | 0.50 | 0.24 | 0.50 |
+| barters struck | 0.14 | 0.15 | 0.15 | 0.12 |
+
+So the spares are bought and never become the black-market payment they were bought for, and the symptom the audit
+opened with — arriving unable to pay — gets *worse*, not better. **SHIPPED: the dock-rate fix** (win share flat,
+but offers put to the table fall 11.38 → 9.06 a voyage while deals struck rise 0.93 → 1.06 — measured on my own
+count) **and the convergence** (`wantsCrate`, one decider, now held by `scripts/qa/one_buy_decider_check.mjs`).
+**NOT SHIPPED: his cheap-crate rule**, with the numbers above written into the engine beside where it would go.
+**The audit's real finding stands and is the next piece of work:** the objective (`tour3`) is a function of
+`needs()`, so an off-recipe crate is worth structurally zero — a spare can never pay until the objective can see it.
