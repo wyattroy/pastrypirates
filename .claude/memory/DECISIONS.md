@@ -3403,3 +3403,10 @@ tomorrow's sea overnight, rejecting a seed that cannot be baked or that one seat
 - **THE TOP BAR DURING A BATTLE GUESS — HIS ANSWER, 2026-09-16:** *"The top bar shows whose turn it is -- which is the active player who
   decided to attack. this does not need to change during a battle; it should not."* Settled: it stays on the attacker.
 - **THREE COINS READ AS A CROWD — closed, 2026-09-16:** *"The tuner sheet already solves this."* (His numbers: 1200ms flights, 325ms apart.)
+- **THE 404 PAGE'S WORDS — AGREED, 2026-09-16:** keep "That page be lost at sea." and "Sail back to port" (built on the Cloudflare
+  pre-flight branch; they reach players with that merge).
+- **THE VOYAGE ANALYZER LEARNS FROM HIS STAGING PLAYTESTS, AND ONLY FROM WINNERS — 2026-09-16:** *"is it watching my playtests on staging to?
+  it should be! i'm very good at this game, and it should learn from me. Also, it should only try to learn from humans who win."*
+  scripts/voyage_disagreements.mjs now counts live and staging voyages by default (never localhost probes or the gate's pid) and asks only
+  voyages a human won. NOTE for him: it does not change the bots by itself — it lists where a winning human and the bot brain disagree;
+  turning that list into a smarter bot is the next piece of work (and his "easy to diabolical" skill setting after it).

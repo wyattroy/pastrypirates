@@ -12,7 +12,7 @@ import path from "node:path";
 // fileURLToPath, never URL.pathname: on Windows .pathname is "/C:/Users/..." and the import doubles the drive (Wy-Blade, 2026-09-16)
 const R = path.join(fileURLToPath(new URL("..", import.meta.url)), path.sep);
 const { serve, launch, attach, killAll, sleep, DRIVER_SRC } = await import(pathToFileURL(path.join(R, "scripts", "mp_rig.mjs")).href);
-const MIN_MUSE = 3, LAG_MS = 50, PLAY_S = 150;
+const MIN_MUSE = 3, LAG_MS = 50, PLAY_S = +(process.env.PLAY_S || 300);   // 150s caught only 2 muse coins on Wy-Blade (2026-09-16)
 const url = serve(8879); launch(9879, (process.env.TMPDIR || "/tmp") + "/pp-muse-coin-probe");
 const C = await attach(9879);
 let exit = 1;

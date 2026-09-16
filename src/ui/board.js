@@ -807,12 +807,16 @@ function smokePuffs(host,at,ux,uy,size,ms,seed){
     const jx=(rnd(k+10)-.5)*size*.22,jy=(rnd(k+20)-.5)*size*.22;
     d.style.left=CQfx(at[0]+jx-r/2);d.style.top=CQfx(at[1]+jy-r/2);d.style.width=d.style.height=CQfx(r);
     host.appendChild(d);
-    const drift=size*(0.2+rnd(k+30)*0.45),across=(rnd(k+40)-.5)*size*.55,rise=size*(0.1+rnd(k+50)*0.22);
+    /* IT BILLOWS WHERE THE GUN IS, AND HOLDS ITS BODY. Measured 2026-09-16 at his window with a forced hit: the first cut drifted each puff up
+       to two-thirds of the cloud's size along the line of fire and faded it from its first moment, so what a player saw was a wisp past the
+       TARGET that was mostly gone a quarter-second in — his "there was no smoke during battles". So a puff now swells in place, moves at most
+       a third of the cloud along the line of fire, keeps nine-tenths of its opacity for half its life, and only then thins away. */
+    const drift=size*(0.08+rnd(k+30)*0.25),across=(rnd(k+40)-.5)*size*.4,rise=size*(0.06+rnd(k+50)*0.16);
     const tx=ux*drift-uy*across,ty=uy*drift+ux*across-rise;
-    const life=ms*(0.65+rnd(k+60)*0.35),delay=ms*rnd(k+70)*0.1;
-    const m=d.animate([{translate:"0px 0px",scale:"0.3"},{translate:`${CQfx(tx)} ${CQfx(ty)}`,scale:(1.2+rnd(k+80)*0.45).toFixed(2)}],
-      {duration:life,delay,easing:"cubic-bezier(.15,.7,.35,1)",fill:"both",id:"cannon-smoke"});
-    d.animate([{opacity:0},{opacity:(0.75+rnd(k+90)*0.2).toFixed(2),offset:.12},{opacity:0}],{duration:life,delay,easing:"ease-in",fill:"both"});
+    const life=ms*(0.75+rnd(k+60)*0.25),delay=ms*rnd(k+70)*0.08,peak=0.85+rnd(k+90)*0.12;
+    const m=d.animate([{translate:"0px 0px",scale:"0.35"},{translate:`${CQfx(tx)} ${CQfx(ty)}`,scale:(1.15+rnd(k+80)*0.35).toFixed(2)}],
+      {duration:life,delay,easing:"cubic-bezier(.12,.75,.3,1)",fill:"both",id:"cannon-smoke"});
+    d.animate([{opacity:0},{opacity:peak.toFixed(2),offset:.1},{opacity:(peak*.9).toFixed(2),offset:.5},{opacity:0}],{duration:life,delay,easing:"linear",fill:"both"});
     m.onfinish=m.oncancel=()=>d.remove();
   }
 }
