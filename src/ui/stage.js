@@ -518,7 +518,7 @@ function boatUXY(i){
 // belongs here — BOARD-RENDERING §3 calls adding it "the step that gets forgotten", and #rimHost
 // was forgotten exactly this way: the current stayed parked on the full-board layout while the
 // water zoomed away beneath it. A LIST, not named consts, for the same reason.
-const CAM_HTML_LAYERS = ["rippleHost", "sailHost", "rimHost", "courseHost", "dockCoinHost", "popHost"];   // popHost: the ingredients popping onto the islands (popin.js)
+const CAM_HTML_LAYERS = ["rippleHost", "sailHost", "rimHost", "courseHost", "dockCoinHost", "popHost", "bobHost"];   // popHost: the ingredients popping onto the islands (popin.js)
 let ribHCache = 48, ribHAt = -1e9, lastVB = "", lastRipT = "";
 /* THE TOP BAND — where the board's top edge goes: the bottom of the ribbon, or of the wind pill
    when that sits lower (playtest 17, Wyatt: "the wind/forecast pip covers the top of the trade
@@ -534,6 +534,20 @@ function bandChanged(){
   ribHAt = -1e9;
   if (!S.active) return;
   if (topBandPx() !== before){ lastVB = ""; computeStageGeometry(); camFrame(); }
+}
+/* ⭐ THE PLAQUE UNDER THE BOARD IS PART OF THE BOARD'S SIZE, AND IT ARRIVES ONE FRAME AFTER THE BOARD IS MEASURED. Wyatt,
+   2026-09-15: "The board square still glitches during the intial ingredients popping in -- it starts a lilttle smaller, and then
+   settles to its right side... i noticed it in tablet size." Measured at 768x1024: buildStage sizes the board while #pp4Cap is 228
+   tall (its recipe band still hidden, 0 pictures); the voyage's first render() writes the band 20ms later and the plaque becomes
+   273. Nothing watched the plaque — the observer below watched only the ribbon and the pill — so the board stayed 31px too wide
+   until the 900ms geometry clock caught it, which is the snap he saw: 31px narrower and the left edge sliding 15.5px right, a
+   third of the way through the pop-in. Same shape as bandChanged above, one row down. */
+function capChanged(){
+  if (!S.active) return;
+  const cap = $("pp4Cap"); if (!cap) return;
+  const h = cap.scrollHeight;
+  if (Math.abs(h - (S.capSeen || 0)) <= 1) return;
+  S.capSeen = h; lastVB = ""; computeStageGeometry(); camFrame();
 }
 function topBandPx(){
   if (performance.now() - ribHAt > 500){
@@ -3390,6 +3404,10 @@ function buildStage(){
     if (!S.bandWatch) S.bandWatch = new ResizeObserver(() => requestAnimationFrame(bandChanged));
     S.bandWatch.disconnect();
     for (const id of ["pp4Ribbon", "pp4Pill"]){ const el = $(id); if (el) S.bandWatch.observe(el); }
+    /* …and the plaque UNDER the board, for the same reason and with the same one-frame-later rule — see capChanged(). */
+    if (!S.capWatch) S.capWatch = new ResizeObserver(() => requestAnimationFrame(capChanged));
+    S.capWatch.disconnect();
+    const capEl = $("pp4Cap"); if (capEl) S.capWatch.observe(capEl);
   }
   settleBoardIn(wrap);
   if (!S.geomBound){
