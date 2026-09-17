@@ -122,8 +122,12 @@ function rules(files) {
       [days === 1 && has(day, /this\.round\s*\+\+/), `the day is counted ${days} time(s) — only Game.beginDay may`],
       [missing.length === 0, `${missing.join(" and ")} do(es) not begin each day through Game.beginDay`],
       behave(() => {
-        const g = table(C, 4, 104729); g.beginVoyage(); g.cfg.storm = 1;
-        g.next = { dir: "E", storm: true }; g.stormStreak = 1;                     // today a storm, tomorrow's roll a second one running
+        /* REPOINTED 2026-09-17 (architecture item 44): this pose used to count TOMORROW's roll as the second storm (cfg.storm 1, the
+           count written by the draw) — the very read-after-draw fault item 44 fixed. The count is today's now, kept by advanceWind
+           before tomorrow is drawn, so the pose is yesterday's storm running into today's, with tomorrow's roll calm.
+           scripts/qa/storm_continues_one_place_check.mjs holds the count itself. */
+        const g = table(C, 4, 104729); g.beginVoyage(); g.cfg.storm = 0;
+        g.next = { dir: "E", storm: true }; g.stormStreak = 1;                     // yesterday a storm, today's forecast a second one running
         const d1 = g.beginDay(), e1 = g.events[g.events.length - 1];
         g.cfg.storm = 0; g.next = { dir: "N", storm: false }; g.stormStreak = 0;     // a calm day
         g.beginDay(); const e2 = g.events[g.events.length - 1];
@@ -211,7 +215,7 @@ const MUTANTS = [
   [1, "the purse rule flattened (every captain the same purse)",
     broken(SHARED, "function startingPurse(cfg,place){ return cfg.startCoins+place; }", "function startingPurse(cfg,place){ return cfg.startCoins; }")],
   [2, "`streak` dropped from Game.beginDay's record",
-    broken(ENG, "streak:storm?this.stormStreak:0,", "")],
+    broken(ENG, "streak:this.stormStreak,", "")],
   [2, "the live voyage counting the day, advancing the wind and writing newround itself again",
     broken(ORCH, "  while(!ended&&appState.game.beginDay()){\n    liveRender();", OLD_LIVE_DAY)],
   [3, "the cap typed as a bare number inside beginDay",

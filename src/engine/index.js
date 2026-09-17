@@ -11,11 +11,13 @@ import { newBake, scrambleBench, shuffleSlots, scoreAttempt, applyResult, botGue
 
 // notes/edits #1a: roll a storm for the round, but never allow a 3rd in a row. Always consumes
 // exactly one g.r() so the seeded RNG sequence stays identical live vs. host-refresh replay.
+/* It READS the storms running and writes nothing (architecture item 44, 2026-09-17). It used to write the count
+   too — and it draws TOMORROW's weather, so by the time the day's record read the count it already held tomorrow:
+   the first of two storms in a row said "Storm's now blowin'" and the second "Storm's blowin'". The count is kept
+   once, in Game.advanceWind, the moment the forecast becomes today; the roll and the cap it reads are unchanged. */
 function rollStorm(g){
   const roll=g.r()<g.cfg.storm;
-  const storm=(g.stormStreak||0)>=2?false:roll;
-  g.stormStreak=storm?(g.stormStreak||0)+1:0;
-  return storm;
+  return (g.stormStreak||0)>=2?false:roll;
 }
 /* THE DAY CAP — the most days a voyage may run before it ends with whoever is crowned by then (nobody, if
    nobody has baked). ONE named number (architecture item 2, 2026-09-16): it was typed as a bare 150 three
@@ -314,10 +316,10 @@ class Game{
     // v2 bot AI: public evidence of what each captain has been chasing (see noteDemand/demandFor).
     // Never contains anybody's recipe — only actions the whole table watched happen.
     this.demand=this.players.map(()=>({}));
-    this.stormStreak=0; // notes/edits #1a: consecutive-storm counter — caps storms at 2 back-to-back
+    this.stormStreak=0; // notes/edits #1a: storm days running, TODAY included (0 on a calm day) — kept only by advanceWind; caps storms at 2 back-to-back
     // notes/edits NARR-04: how many rounds running the wind has held one direction (1 = first round
-    // of it). Separate from stormStreak, which exists to CAP repeat storms — this one is purely
-    // narration and counts calm rounds too.
+    // of it). Separate from stormStreak, which counts storm days (to CAP repeat storms, and to tell a new storm
+    // from a continuing one) — this one is purely narration and counts calm rounds too.
     this.windStreak=0;this.windPrev=null;
   }
   r(){this.randCalls++;return this.rng();}
@@ -3307,6 +3309,11 @@ class Game{
     if(!this.next)this.next=this.drawWeather();
     const cur=this.next;
     this.windNow=cur.dir;this.stormNow=cur.storm;
+    /* ⭐ WHETHER TODAY'S STORM IS A NEW ONE OR A CONTINUING ONE — counted HERE, once, before tomorrow is drawn
+       (architecture item 44, 2026-09-17): the storm days running, today included — 1 a new storm, 2 one going
+       on from yesterday, 0 a calm day. Tomorrow's roll below only READS it (the cap: never a third in a row), and
+       the day's record (beginDay) carries it to every screen. */
+    this.stormStreak=cur.storm?(this.stormStreak||0)+1:0;
     this.next=this.drawWeather();
     this.windNext=this.next.dir;this.stormNext=this.next.storm;
     // v1's second perpendicular gust is gone (rule 7): a storm is one direction, one distance.
@@ -3316,8 +3323,9 @@ class Game{
   /* ⭐ HOW EACH DAY BEGINS — ONE STEP, CALLED BY EVERY VOYAGE (architecture item 2, 2026-09-16).
      Returns null once the voyage has run DAY_CAP days (the voyage then ends); otherwise the day is counted,
      the forecast wind becomes today's (advanceWind), and the day-start record is written — `newround` with
-     the wind, `streak` (storms running, read by the narration's "the storm's still ragin'" line), the wind's
-     own streak, and tomorrow's forecast. Returns today's {wind, storm}; the caller runs the storm (headless
+     the wind, `streak` (the storm days running, today included, as advanceWind counted them before tomorrow was
+     drawn — 2 or more is a storm going on from yesterday, read by the narration's "now/still blowin'" lines), the
+     wind's own streak, and tomorrow's forecast. Returns today's {wind, storm}; the caller runs the storm (headless
      at once, live with its pictures).
      It used to be written three times with a bare 150 in each: playBakeoff, playClassic and runLiveNet —
      and only the live record carried `streak`. The ENGINE FOLLOWS THE LIVE GAME: the record's fields, their
@@ -3326,7 +3334,7 @@ class Game{
     if(this.round>=DAY_CAP)return null;
     this.round++;
     const {dir:wind,storm}=this.advanceWind();
-    this.ev({t:"newround",dir:wind,streak:storm?this.stormStreak:0,windStreak:this.noteWind(wind),next:this.forecastWind(),nextStorm:this.stormNext}); // NARR-04
+    this.ev({t:"newround",dir:wind,streak:this.stormStreak,windStreak:this.noteWind(wind),next:this.forecastWind(),nextStorm:this.stormNext}); // NARR-04
     return {wind,storm};
   }
   /* v2 rule 7: ONE storm event for the whole table, at the top of the round, before anybody acts.
