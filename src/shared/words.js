@@ -286,6 +286,10 @@ export const WORDS = {
   "counter.coin": "💰 Coin instead",
   "counter.coinShort": "💰 Coin",
   "counter.noCoin": "{p} {p:has|have} no coin at all — it must be an ingredient.",
+  /* architecture item 20, 2026-09-17: "Coin instead" greyed because the asker's whole purse is already in the offer (the slider's number
+     is coin in all, his ruling of 2e9e06b1, so there is no total above it) — drafted in the voice of the line above and of
+     "no coin left to sweeten the deal"; his to rewrite. The captain is derived. */
+  "counter.allOffered": "{p} {p:has|have} already offered every coin aboard — it must be an ingredient.",
   "counter.ask": "{q}: what o' {whose} will ye have instead?",
   "counter.noCargo": "{p} {p:has|have} no other cargo — ye can ask for coin, or deny.",
   "counter.asking": "{q}: ye're ASKIN' {what} for yer {want}",

@@ -137,6 +137,16 @@ object ready for `settleTrade`, so the label a captain reads and the trade that 
 the same call and cannot drift. `want` never changes — a counter haggles over the price, never over
 which crate is being sold.
 
+**How much coin a counter may ask for is `Game.counterRoom(asker, offer, askIng)`, and only there**
+(architecture item 20, 2026-09-17). It answers in **coin IN ALL** — the number a captain drags, by
+Wyatt's ruling (2e9e06b1: *"i cannot ask for all that he has — i should be able to slide the slider
+up to 8, no?"*): a coins-only counter from one coin more than the offer up to the asker's whole
+purse, a crate counter from none up to the whole purse, or `null` when no such counter exists (the
+whole purse is already offered). `askFor` stays additive: the screen hands the engine the total minus
+`room.base`. `canTakeAnswer` reads it, and a bot's `"toodear"` asks `canTakeAnswer` — so the bot
+answering and the asker taking cannot disagree. Guarded by
+`scripts/qa/counter_ceiling_one_place_check.mjs`.
+
 ---
 
 ## 3. THE PIPELINE
@@ -202,7 +212,8 @@ Then, in order:
    and ask for that instead, when it covers the gap. Preferred over coin because a crate a bot needs
    is worth whole turns of sailing while coins are worth a fraction of one.
 3. **Coin counter** — the shortfall converted back out of turns.
-4. **`toodear`** — deny when even the coin price is beyond the asker's purse.
+4. **`toodear`** — deny when the asker could not take that coin counter (`canTakeAnswer`, which reads
+   `counterRoom`: the offer plus the ask must fit the asker's purse).
 
 ### 3.4 Settlement — `settleTrade`
 
@@ -243,7 +254,8 @@ cost extra taps, and on a touch screen every extra step is paid for twice:
 
 ```
 what of THEIRS will ye have instead (their hold, tappable — cargo is public)
-  → how much coin on top (SLIDER, optional; a crate counter may take none)
+  → how much coin IN ALL (SLIDER, optional; a crate counter may take none) — its range is
+    Game.counterRoom; "Coin instead" is greyed when the asker has already offered every coin aboard
 ```
 
 The coins from the original offer are **cleared**: *"instead"* means instead, and no money rides
@@ -398,7 +410,7 @@ time — **4,884 dead turns** in 300 games. Ask the exact question the action wi
 
 Engine — `src/engine/index.js`:
 `holdersOf` · `whyNoTrade` / `canOpenTrade` (whether a captain may open a trade at all, and why not — architecture item 13) · `offerValueTurns` · `estimateCrateCost` · `crateCostTurns` · `respondToOffer` ·
-`collectResponses` · `settleTrade` · `counterTerms` · `offerLabel` · `rememberRefusal` ·
+`collectResponses` · `settleTrade` · `counterTerms` · `counterRoom` (the most coin a counter may ask for — architecture item 20) · `offerLabel` · `rememberRefusal` ·
 `refusedFlagWanted` · `worthReAsking` · `offerWorthTurns` · `openingBid` · `worthHailing` ·
 `composeOffer` · `botOpenOffer` · `hailAudience` · `canTakeAnswer` · `resolveHail` · `chooseAnswer` ·
 `rememberHail` · `tryTrade`

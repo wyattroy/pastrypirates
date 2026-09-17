@@ -1338,8 +1338,10 @@ class Game{
       if(bestIng&&bestVal*bias>=shortTurns)return {q,kind:"counter",askIng:bestIng,askFor:0};
     }
     const askFor=Math.max(1,Math.ceil(shortTurns*PLAN.coinsPerDockTurn));
-    if(asker&&askFor>asker.coins-(offer.giveCoins||0))return {q,kind:"deny",why:"toodear"};
-    return {q,kind:"counter",askFor};
+    const counter={q,kind:"counter",askFor};
+    // too dear: a counter the asker could not take — asked of canTakeAnswer, the very test the asker's side applies (counterRoom)
+    if(asker&&!this.canTakeAnswer(asker,offer,counter))return {q,kind:"deny",why:"toodear"};
+    return counter;
   }
   // Every answer to an open offer, in seat order, from the captains the hail is put to (hailAudience).
   // The asker sees all of them at once (rule 4a) — human captains are skipped here and prompted by
@@ -1751,13 +1753,34 @@ class Game{
     return this.holdersOf(offer.want,p).filter(q=>aud?aud.includes(q.idx):this.worthReAsking(p,q,offer.want,offer));
   }
   // An answer the asker could act on: every yes, and a counter it can honour on the counter's OWN
-  // terms — a crate counter may cost no coin at all, so coin alone is never the test.
+  // terms — a crate counter may cost no coin at all, so coin alone is never the test. The coin a counter may ask for is counterRoom's.
   canTakeAnswer(p,offer,r){
     if(!r)return false;
     if(r.kind==="accept")return true;
     if(r.kind!=="counter")return false;
-    const t=this.counterTerms(offer,r);
-    return (t.giveCoins||0)<=p.coins&&(!t.giveIng||p.ing.includes(t.giveIng));
+    const room=this.counterRoom(p,offer,r.askIng),paid=this.counterTerms(offer,r).giveCoins||0;
+    return !!room&&paid>=room.min&&paid<=room.max;
+  }
+  /* ⭐ THE MOST COIN A COUNTER-OFFER MAY ASK FOR — decided here, once (architecture item 20, 2026-09-17).
+     `askIng` is the crate the counter asks for instead, or null for a coins-only counter. Returns the coin the counter may come to
+     IN ALL — the number a captain drags — as {base, min, max}, or null when no such counter can be made:
+       coins-only  one coin more than the offer, up to the asker's whole purse. `base` is the coin already offered, which that total
+                   includes: a counter's own shape is still askFor ON TOP (counterTerms adds it), so a screen hands the engine
+                   total − base, and settling is untouched.
+       a crate     "instead" means instead — counterTerms clears the give side — so from no coin up to the whole purse; base 0.
+       null        the asker is not carrying the crate the counter would take, or (coins-only) every coin aboard is already offered.
+     HIS RULING — the number dragged is coin in all. Countering Dough Hook's 8🌕 with the slider stuck at 6 (2e9e06b1, 2026-08-14): "i
+     cannot ask for all that he has — i should be able to slide the slider up to 8, no?"
+     It was decided in four places that disagreed: respondToOffer refused a bot's ask above purse − offered; counterOffer let a person
+     drag the WHOLE purse on top of the offer, so a drag to the end was always refused; the Counter button and its "no coin left to
+     sweeten the deal" line used purse − offered while the Coin button one tap later was live on the whole purse; and canTakeAnswer
+     judged the full terms. Now canTakeAnswer reads this, respondToOffer asks canTakeAnswer, and every screen reads this.
+     Guarded by scripts/qa/counter_ceiling_one_place_check.mjs. */
+  counterRoom(asker,offer,askIng){
+    const t=this.counterTerms(offer,{kind:"counter",askIng,askFor:0});   // what the counter hands over before it asks for any coin
+    if(t.giveIng&&!asker.ing.includes(t.giveIng))return null;
+    const base=t.giveCoins||0,min=base+(askIng==null?1:0),max=asker.coins;   // asking no more than the offer is accepting it
+    return min<=max?{base,min,max}:null;
   }
   /* resolveHail(p, offer, responses, pick) -> {struck, why}
      `pick` is the answer the asker chose, or null to walk away — or LEFT OUT, when nobody is choosing

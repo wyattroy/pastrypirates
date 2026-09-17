@@ -2143,13 +2143,16 @@ async function counterOffer(q,player,offer){
   const g=appState.game;
   // what THEY are carrying, minus the crate already on the table — offering it back is not a counter
   const theirs=[...new Set(player.ing)].filter(i=>i!==offer.giveIng);
-  const room=Math.max(0,player.coins);
+  // whether a coins-only counter exists at all — the engine's answer (Game.counterRoom), the same one the Counter button and its
+  // "no coin left to sweeten the deal" line read in humanAnswersHail, so the two screens cannot disagree
+  const coinRoom=g.counterRoom(player,offer,null);
   for(;;){
     if(appState.turnExpired)return null;
     const opts=theirs.map(i=>crateOpt(player.ing,i));
-    // coin-only is still a legal counter — it is what the old flow could do, kept rather than lost
-    opts.push({label:say("counter.coin",{}),short:say("counter.coinShort",{}),value:"__coinsonly__",disabled:room<1,
-      why:sayText("counter.noCoin",{p:seat(player.idx)},q.idx)});
+    // coin-only is still a legal counter — it is what the old flow could do, kept rather than lost. Greyed when the asker has no
+    // coin at all, or has already offered every coin aboard (architecture item 20)
+    opts.push({label:say("counter.coin",{}),short:say("counter.coinShort",{}),value:"__coinsonly__",disabled:!coinRoom,
+      why:sayText(offer.giveCoins?"counter.allOffered":"counter.noCoin",{p:seat(player.idx)},q.idx)});
     opts.push({label:say("button.deny",{icon:iconImg(CANCEL_X_IMG)}),value:"__deny__"});
     opts.push({label:say("button.back",{}),back:true,value:"__back__"});
     // @copy prompt.trade.counterwant — APPROVED as written, Wyatt 2026-08-14 ("draft copy is fine")
@@ -2164,34 +2167,26 @@ async function counterOffer(q,player,offer){
     if(pick==null||pick==="__back__")return "__back__";
     if(pick==="__deny__")return "deny";
     const askIng=(pick==="__coinsonly__")?null:pick;
-    /* ...and how much coin on top, if any. A crate counter may take none at all, so the floor is 0.
+    /* ...and how much coin, if any — the room is the engine's (Game.counterRoom). A crate counter may take none at all, so its floor
+       is 0; a coins-only counter asks at least one coin more than the offer.
 
-       THE CEILING IS THEIR PURSE, NOT A NUMBER. playtest 21 (Wyatt, countering Dough Hook's 8🌕
-       with the slider stuck at 6): "i cannot ask for all that he has — i should be able to slide
-       the slider up to 8, no?" He should, and the 6 was answering a question nobody is asking any
-       more. It dates from the ±1 STEPPER (d63d14f, "circles adjust one coin at a time"), where the
-       ceiling was really a limit on how many taps a price could cost. A slider has no such cost,
-       and the constant outlived the control it was protecting.
-
-       It also broke both trade invariants at once (docs/TRADE-SYSTEM.md):
-         I4, nothing that prices a trade may be a constant — there is no 6-coin rule anywhere in
-             RULES-V2, and a purse ranges over an order of magnitude across a voyage;
-         I3, bots and humans have the same affordances — openingBid bounds a bot's bid by
-             `player.coins - reserve`, its whole purse, so the cap applied to the human alone. */
-    const minC=askIng?0:1;
-    const maxC=room;
-    if(maxC<minC){
-      if(askIng)return {askIng,askCoins:0};
-      continue;                                  // coin-only asked for but there is none — re-pick
-    }
+       THE NUMBER DRAGGED IS COIN IN ALL, AND THE CEILING IS THEIR WHOLE PURSE. playtest 21 (Wyatt, countering Dough Hook's 8🌕 with
+       the slider stuck at 6, 2e9e06b1): "i cannot ask for all that he has — i should be able to slide the slider up to 8, no?" The 6
+       dated from the ±1 STEPPER (d63d14f), and breaking it fixed I4 (no constant prices a trade) and I3 (openingBid lets a bot bid
+       its whole purse). But the slider then ran to the whole purse ON TOP of what was offered, so "ye're ASKIN' 40" from a captain
+       with 40 who had offered 1 settled as 41 and was always refused (architecture item 20, measured on a phone). The pill reads as
+       a total — "Coin instead" — so the slider IS the total: it runs the room, and coinSlider hands back the coin above room.base,
+       which is the counter's own shape (askFor on top, Game.counterTerms). */
+    const room=askIng?g.counterRoom(player,offer,askIng):coinRoom;
+    if(!room)continue;                           // no such counter can be made — re-pick
     const bits=n=>[askIng?ilabelImg(askIng):null,n?say("coin.amount",{n}):null].filter(Boolean).join(" + ");
     // @copy prompt.trade.countercoins — APPROVED as written, Wyatt 2026-08-14 ("draft copy is fine")
     const n=await coinSlider(q.idx,
       k=>say("counter.asking",{q:pn(q.idx),what:bits(k)||say("trade.nothin",{}),want:ilabelImg(offer.want)}),
-      minC,minC,maxC,say("counter.go",{}));
+      room.min,room.min,room.max,say("counter.go",{}),null,null,room.base);
     if(n==null)return null;
     if(n==="__back__")continue;                  // BACK MEANS BACK — return to the crate picker
-    return {askIng,askCoins:n};
+    return {askIng,askCoins:n};                  // coin ON TOP of room.base — what the engine settles
   }
 }
 /* A CONFIRMED QUANTITY IS ITS OWN DECISION, AND ask() ONLY EVER LOGS WHICH BUTTON WAS PRESSED.
@@ -2228,7 +2223,11 @@ function logQuantity(n){
    {i,n} unpack. That means the ONE logQuantity() call below fires for a remote drag exactly as it
    does for a local one, and for the first time the decision log's LENGTH does not depend on how the
    trade was routed: an N-coin counter cost N+2 entries on the stepper and costs 2 either way now. */
-async function coinSlider(seat,msgFor,start,min,max,confirmLabel,extraOpt,declineLabel){
+async function coinSlider(seat,msgFor,start,min,max,confirmLabel,extraOpt,declineLabel,base){
+  /* `base` — coin already on the table that the dragged number INCLUDES (a coins-only counter's offer: Game.counterRoom, architecture
+     item 20). The captain drags coin in all; the log and the caller get the number above base — the counter's own shape — so a
+     recorded counter replays in the units it was always recorded in. */
+  base=base||0;
   if(max<=min){
     /* W6-1 (Wyatt): "'Would ye offer any coin on top?' appears with NO SLIDER when the player has no
        money left. Expectation: the slider appears greyed out, and the button reads 'Nah' instead of
@@ -2258,7 +2257,7 @@ async function coinSlider(seat,msgFor,start,min,max,confirmLabel,extraOpt,declin
     opts.push({label:say("button.back",{}),back:true,value:"__back__"});
     const v0=await ask(seat,msgFor(min),opts,null,null,{slider:{min,max:min,start:min,ref:{value:min},fmt:msgFor,aria:"Coins",disabled:true}});
     if(appState.turnExpired)return null;
-    if(v0==="ok")return logQuantity(min);
+    if(v0==="ok")return logQuantity(min-base);
     if(v0==="__back__"||v0==null)return "__back__";
     return v0;
   }
@@ -2269,11 +2268,11 @@ async function coinSlider(seat,msgFor,start,min,max,confirmLabel,extraOpt,declin
   const v=await ask(seat,msgFor(start),opts,null,null,{slider:{min,max,start,ref,fmt:msgFor,aria:"Coins"}});
   if(appState.turnExpired)return null;
   if(v==="ok"){
-    const n=logQuantity(Math.max(min,Math.min(max,ref.value)));
+    const n=logQuantity(Math.max(min,Math.min(max,ref.value))-base);
     // clamped AGAIN on the way out, against the range THIS call was given: the number coming back
     // may be a replayed one, and a save made when the purse was richer must not spend coins the
     // captain does not have now
-    return Math.max(min,Math.min(max,n));
+    return Math.max(min-base,Math.min(max-base,n));
   }
   if(v==="__back__"||v==null)return "__back__";
   return v;
@@ -2958,8 +2957,9 @@ async function humanAnswersHail(q,asker,offer){
   //      two meanings, which is the consistency rule this project keeps. Back now returns to
   //      this prompt, and only "✗ Deny" denies.
   //
-  // `room` is what the offerer has spare AFTER the coins already in the offer.
-  const room=Math.max(0,asker.coins-offer.giveCoins);
+  // Whether a coins-only counter exists at all — none when every coin aboard is already offered. The engine's answer
+  // (Game.counterRoom, architecture item 20), read by the Counter button, the line under it, and the Coin button inside the counter.
+  const coinRoom=appState.game.counterRoom(asker,offer,null);
   for(;;){
     if(appState.turnExpired)return null;
     const v=await ask(q.idx,say("trade.offered",{q:pn(q.idx),p:seat(asker.idx),offer:offerDisplay,want:ilabelImg(offer.want)},q.idx),[
@@ -2968,11 +2968,11 @@ async function humanAnswersHail(q,asker,offer){
       // crates instead. So it is live whenever they hold anything at all to give, not only
       // when they have coin spare, and the label says what it now does.
       {label:say("trade.counter",{}),short:say("trade.counterShort",{}),value:"counter",
-        disabled:room<1&&![...new Set(asker.ing)].some(i=>i!==offer.giveIng),
+        disabled:!coinRoom&&![...new Set(asker.ing)].some(i=>i!==offer.giveIng),
         why:sayText("trade.nothingElse",{p:seat(asker.idx)},q.idx)},
       {label:say("button.deny",{icon:iconImg(CANCEL_X_IMG)}),value:"deny"}],null,
       // @copy adhoc.trade.nocointosweeten — APPROVED as written, Wyatt 2026-08-14
-      room<1?say("trade.noSweetener",{p:seat(asker.idx)},q.idx):null);
+      !coinRoom?say("trade.noSweetener",{p:seat(asker.idx)},q.idx):null);
     // CR-02 layer 1, the important one: expireShotClock forces default index 0 — which here
     // is Accept. Without this guard a captain who merely ran out of time is recorded as
     // agreeing. Re-checked at the top of the loop too, so a Back cannot outlive the clock.
