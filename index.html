@@ -706,6 +706,13 @@
      were going to be replaced by the next card anyway. scripts/qa/seen_buttons_take_taps_check.mjs holds it. */
   #actionPanel.pendingReveal .bkoIntroBtns { visibility: visible; opacity: .4; }
   .bkoIntroBtns { transition: opacity .2s ease; }
+  /* ⭐ AND THE BUTTON STEPS ASIDE WHILE THE CRATES SHUFFLE — Wyatt, 2026-09-17: AGREED, hide "Ready to bake!" then; it is spent and
+     offers a tap that does nothing until the crates stop, and it comes back as "Bake it!".
+     WHY A CLASS AND WHY !important: two reveal rules below force `visibility: visible !important` on any .apBtn once the card's words
+     have typed (#pp4Prompt.radial and #pp4Prompt.pp4Center, the blank-space-lag fix). An inline style loses to them, measured on
+     Wy-Blade's phone pose: hidden for three samples while the words were still typing, then drawn again for the rest of the shuffle.
+     This selector carries one class more than those two, so it wins wherever it sits in the file. */
+  #pp4Prompt #actionPanel .apBtns .apBtn.bkoAway { visibility: hidden !important; }
   /* .ahoyGlow is assigned in THE ATTENTION VOCABULARY block (end of this stylesheet) — it used
      to carry its own private @keyframes ahoyglow, the second of three hand-rolled copies of the
      same orange ring. One definition now: pp4Glow. */
