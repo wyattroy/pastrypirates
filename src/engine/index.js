@@ -1864,12 +1864,21 @@ class Game{
   // v2 rule 9/13 prize: ONE CRATE, winner's choice. No coin alternative, and no place-swap — a
   // swap would hand the loser the advantageous square (Wyatt, 2026-08-04). A ship with no crates
   // cannot be attacked at all (rule 13e), so `lose.ing` is never empty by the time we get here.
-  awardSpoil(win,lose){
+  /* WHICH CRATE A WINNER WHO IS NOT ASKED TAKES — a bot, or a captain with only one kind of crate to choose from. ONE place, and the
+     bots' planner prices a fight with this same call. It was written three times (this engine's fight, the fight a player watches, and
+     the planner "mirroring" it), and the watched fight's copy had lost the middle step: measured 2026-09-16, 46 of 3166 winner/loser
+     pairings took a different crate in the game people play than in the game bots are tuned on. Pure — it moves nothing. */
+  botSpoilPick(win,lose){
     if(!lose.ing.length)return null;
     const wanted=lose.ing.filter(i=>this.needs(win).includes(i));
     // no recipe need of its own? take what somebody else at the table plainly wants — leverage
     const leverage=lose.ing.filter(i=>this.players.some(q=>q!==win&&q!==lose&&this.inPlay(q)&&this.likelyNeeds(q,i)));
-    const pick=(wanted[0]!==undefined)?wanted[0]:(leverage[0]!==undefined?leverage[0]:lose.ing[0]);
+    return (wanted[0]!==undefined)?wanted[0]:(leverage[0]!==undefined?leverage[0]:lose.ing[0]);
+  }
+  /* THE CRATE CHANGES HANDS HERE, AND ONLY HERE — whoever chose it (a human's plunder pick, or botSpoilPick). A pick the loser does
+     not hold moves nothing and returns null. */
+  takeSpoil(win,lose,pick){
+    if(pick==null||!lose.ing.includes(pick))return null;
     lose.ing.splice(lose.ing.indexOf(pick),1);win.ing.push(pick);
     // the whole table just watched the winner choose that crate — public evidence of what it wants
     this.noteDemand(win,pick,1);
@@ -1919,12 +1928,11 @@ class Game{
   //
   //   heads vs tails            → the heads ship wins outright
   //   both heads, one downwind  → the downwind ship wins (the wind carries the shot home)
-  //   both heads, crosswind     → cannonballs collide. The ATTACKER may pay 2🌕 to re-fire ALONE
-  //                               against the defender's standing heads, repeatable as often as
-  //                               they can pay. Decline and the battle ends NULL — nobody gains.
+  //   both heads, crosswind     → cannonballs collide, and the fight is over with NO WINNER — no
+  //                               re-fire (Wyatt, 2026-09-15; see refireOffered).
   //   both tails                → both shots went wild. The defender may flee, FREE, under the
   //                               ordinary v2 sail rules. Stand their ground and the attacker may
-  //                               pay 2🌕 to re-fire, same as above; decline → NULL.
+  //                               pay 2🌕 to re-fire ALONE, as often as they can pay; decline → NULL.
   //
   // Prize: one crate, winner's choice, no coin alternative and no place-swap (rule 9d).
   /* ⭐ A FIGHT TAKES ITS POWDER HERE, AND ONLY HERE — and says so, so every screen can show the coins leave the purse. It was taken in TWO
@@ -1936,82 +1944,143 @@ class Game{
     if(cost>0){att.coins-=cost;this.ev({t:"powder",a:att.idx,cost});}
     return cost;
   }
-  battle(att,def){
-    const c=this.cfg;
+  /* ⭐ THE FIGHT IS WRITTEN ONCE — AS STEPS, AND BOTH FIGHTS CALL THEM (architecture item 1, 2026-09-16).
+     There were two fights. This engine's battle() ran only in headless voyages (every bot ladder); the fight a player actually plays
+     is src/orchestrator.js asyncBattleRun, which carried its own copy of every rule. The copies had drifted four times, and the fourth
+     was his ruling: "in crosswinds, there should be no reflip option… if both get heads, there's simply no winner" (2026-09-15) reached
+     only this copy, so every real game still offered "Fire again". Now each RULE of a fight is one step below, the shape payPowder
+     already had. battle() is the headless driver (bot choosers); asyncBattleRun keeps only pacing, animation and asking.
+     WHAT STAYS WRITTEN TWICE, said here so nobody mistakes it for done: the ORDER of the steps and the re-fire loop itself, one in each
+     runner. Making that one needs a generator both runners drive, which has never been tried.
+     A fight is a plain object — {att, def, downwind, rounds, why, winner, fled} — made by beginBattle and handed to every step.
+     scripts/qa/one_fight_rules_check.mjs holds it. */
+  // The fight begins: a legal target, the powder paid, the battle counted, and the wind read once (positions never change mid-fight).
+  beginBattle(att,def){
     if(!this.canAttack(att,def))return null; // empty hold or no powder — never a legal fight
     this.payPowder(att);
     this.battles++;
-    const downwind=this.downwindSide(att,def);
-    const rounds=[];
-    let flips=0,win=null,fled=false,nulled=false;
-    // ---- THE round. Both cannons speak once. ----
-    const ah=this.flip(att,"battle"),dh=this.flip(def,"battle");flips+=2;   // recorded, as the live battle's flips are (orchestrator hFlip/bFlip)
-    let scorer=null;
-    if(ah&&dh){
-      if(downwind==="a"){win=att;scorer="a";}
-      else if(downwind==="d"){win=def;scorer="d";}
-      // crosswind: the cannonballs collide. Falls through to the re-fire below.
-    }else if(ah){win=att;scorer="a";}
-    else if(dh){win=def;scorer="d";}
-    rounds.push([ah?1:0,dh?1:0,0,scorer]);
-    if(!win){
-      // ---- both tails: the defender's FREE escape (rules 9a + 2c) ----
-      if(!ah&&!dh){
-        // a bot slips away when the wind is against it (it loses the next both-heads) or when it
-        // is carrying a crate it cannot afford to lose; otherwise it stands and takes its chances
-        // "carrying a crate it cannot afford to lose" = a RECIPE crate it holds no spare of.
-        // NOT `needs(def).includes(i)`: needs() is the recipe MINUS what you already hold, so
-        // testing held crates against it is always false and the defender would never flee.
-        const holdingCritical=def.ing.some(i=>def.recipe&&def.recipe.includes(i)&&this.cnt(def.ing,i)<=1);
-        if(downwind==="a"||holdingCritical){
-          const cells=this.reachableFrom(def);
-          if(cells.length){
-            def.pos=cells.reduce((best,cc)=>man(cc,att.pos)>man(best,att.pos)?cc:best,cells[0]);
-            this.tradewind(def);
-            fled=true;
-            this.recordSkirmish(att,def,null);
-            this.ev({t:"battleflee",a:att.idx,d:def.idx,rounds,flips,downwind});
-          }
-        }
-      }
-      // ---- the attacker's paid re-fire (rule 9b, extended by rule 9a to the both-tails case).
-      // The defender's cannon is spent for this exchange; the attacker buys a fresh broadside for
-      // 2🌕 and fires ALONE. Heads and the shot lands — attacker wins. Tails and they may pay
-      // again, as often as they can afford it. Decline at any point and the battle ends NULL:
-      // no crate, no coins, no caller paid, and the powder already spent stays spent. ----
-      /* NO RE-FIRE IN A CROSSWIND. Wyatt, 2026-09-15: "in crosswinds, there should be no reflip option; it's too weird and
-         complicated. if both get heads, there's simply no winner." Two heads with nobody downwind ends the fight NULL on the spot:
-         no crate, no coins, no caller paid. The powder already spent stays spent, his ruling when asked (the same as any null
-         battle today). A both-TAILS round still buys a fresh broadside — that is rule 9b and he did not touch it. */
-      const crossTie=!downwind&&rounds.length===1&&rounds[0][0]===1&&rounds[0][1]===1;
-      if(!fled&&crossTie)nulled=true;
-      if(!fled&&!crossTie){
-        const refire=c.refire||0;
-        while(!win){
-          if(!refire||att.coins<refire||!this.wantsRefire(att,def,downwind,rounds.length)){nulled=true;break;}
-          att.coins-=refire;
-          this.ev({t:"refire",a:att.idx,d:def.idx,cost:refire});
-          const rh=this.flip(att,"battle");flips++;
-          rounds.push([rh?1:0,null,0,rh?"a":null]);
-          if(rh)win=att;
-        }
-      }
+    return {att,def,downwind:this.downwindSide(att,def),rounds:[],why:null,winner:null,fled:false};
+  }
+  /* WHO WINS A ROUND OF SHOTS, AND WHY — decided here and nowhere else, and the screen reads `why` rather than re-deriving it:
+       "hit"     one heads, one tails — the heads ship's shot lands
+       "wind"    both heads, one ship downwind — the wind carries its shot home
+       "collide" both heads in a crosswind — the cannonballs collide
+       "miss"    both tails — both shots go wild
+     A landed shot is recorded as it lands (shotLands: the cannon, the kick, the flash and the shake on every screen). `by`, not `p`:
+     a shot is not a turn, and `p` would hand the active-captain highlight to the shooter for the length of the fight. */
+  resolveRound(fight,ah,dh){
+    let scorer=null,why;
+    if(ah&&dh){if(fight.downwind){scorer=fight.downwind;why="wind";}else why="collide";}
+    else if(ah||dh){scorer=ah?"a":"d";why="hit";}
+    else why="miss";
+    fight.rounds.push([ah?1:0,dh?1:0,0,scorer]);
+    return this.landRound(fight,scorer,why);
+  }
+  // A re-fire is the attacker's cannon alone: heads and it lands, tails and it misses.
+  resolveRefire(fight,rh){
+    const scorer=rh?"a":null;
+    fight.rounds.push([rh?1:0,null,0,scorer]);
+    return this.landRound(fight,scorer,rh?"hit":"miss");
+  }
+  landRound(fight,scorer,why){
+    fight.why=why;
+    if(scorer){
+      fight.winner=scorer==="a"?fight.att:fight.def;
+      this.ev({t:"shotLands",by:fight.winner.idx,a:fight.att.idx,d:fight.def.idx});
     }
-    if(fled)return null;
-    if(nulled){
-      // NULL: the battle ends with no player gaining anything. No spoil, no swap, no caller paid.
-      this.recordSkirmish(att,def,null);
-      this.ev({t:"battlenull",a:att.idx,d:def.idx,rounds,flips,downwind});
+    return {scorer,why};
+  }
+  // How many coins this fight has flipped: two for the opening round, one for each re-fire. Counted from the rounds, never kept beside them.
+  fightFlips(fight){return fight.rounds.reduce((n,r)=>n+(r[1]==null?1:2),0);}
+  /* MAY THE ATTACKER PAY TO FIRE AGAIN — the one place this is decided, for a bot and a human alike.
+     NO RE-FIRE IN A CROSSWIND. Wyatt, 2026-09-15: "in crosswinds, there should be no reflip option; it's too weird and complicated. if
+     both get heads, there's simply no winner." A collision ends the fight NULL on the spot: no crate, no coins, no caller paid, and the
+     powder already spent stays spent (his ruling when asked — the same as any null battle). A both-TAILS round that the defender stood
+     through still buys a fresh broadside — that is rule 9b and he did not touch it. And the attacker must be able to pay. */
+  refireOffered(fight){
+    const cost=this.cfg.refire||0;
+    if(!cost||fight.winner||fight.fled)return false;
+    if(fight.why==="collide")return false;
+    return fight.att.coins>=cost;
+  }
+  // The re-fire's price leaves the purse here, and says so — the same shape as payPowder, so every screen can show the coins leave.
+  payRefire(fight){
+    const cost=this.cfg.refire||0;
+    fight.att.coins-=cost;
+    this.ev({t:"refire",a:fight.att.idx,d:fight.def.idx,cost});
+    return cost;
+  }
+  /* WHEN A DEFENDER MAY FLEE: both shots went wild in the opening round (rules 9a + 2c — fleeing is free), and there is somewhere to go. */
+  mayFlee(fight){
+    return !fight.fled&&fight.rounds.length===1&&fight.why==="miss"&&this.fleeSquares(fight.def).length>0;
+  }
+  /* WHERE A FLEEING SHIP MAY GO: the ordinary v2 sail (4 squares, 2 if the route touches upwind), and the rim IS a legal square — a
+     fleeing ship may ride the trade winds, which the W9 ride animates. The headless fight used to forbid the rim here while the fight
+     people play allowed it: measured 2026-09-16, 483 of 1842 fights put a fleeing bot on a different square. */
+  fleeSquares(def){
+    return [...this.sailStates(def,{throughRim:true}).keys()].map(k=>k.split(",").map(Number));
+  }
+  /* WHETHER A BOT FLEES: when the wind is against it (it would lose the next both-heads) or when it carries a crate it cannot afford to
+     lose — a RECIPE crate it holds no spare of. NOT `needs(def).includes(i)`: needs() is the recipe MINUS what ye already hold, so
+     testing held crates against it is always false and the defender never flees (it fled 0 times in 3000 sims; HARD-WON-LESSONS). */
+  botWantsFlee(fight){
+    const def=fight.def;
+    return fight.downwind==="a"||def.ing.some(i=>def.recipe&&def.recipe.includes(i)&&this.cnt(def.ing,i)<=1);
+  }
+  // WHICH SQUARE A FLEEING BOT TAKES: the one furthest from its attacker.
+  botFleeSquare(fight,cells){
+    const at=fight.att.pos;
+    return cells.reduce((best,cc)=>man(cc,at)>man(best,at)?cc:best,cells[0]);
+  }
+  /* THE FLEE, RECORDED — for a human's chosen square and a bot's alike. A flee is very nearly a full sail, so it carries the route the
+     sail search really takes (mean 3.93 squares over 600 posed flees; 13.3% of straight lines crossed an island), and the event names
+     the captain who fled (`p`), because ev() bakes the drawn route against o.state[o.p].
+     AND IT IS RECORDED AT THE DESTINATION, BEFORE THE TRADE WINDS TAKE IT. Recorded after the sweep, the last snapshot before it still
+     held the pre-battle square, and a ship that fled into the channel got no ride on either tier — it simply appeared at the whirlpool.
+     `dest` null (a human who chose to stay where they are) flees without moving. */
+  flee(fight,dest){
+    const {att,def}=fight;
+    const route=dest?[[...def.pos],...this.sailPath(def,dest,{throughRim:true})]:null;
+    if(dest)def.pos=dest;
+    fight.fled=true;
+    this.recordSkirmish(att,def,null);
+    const evFlee=this.ev({t:"battleflee",p:def.idx,a:att.idx,d:def.idx,rounds:fight.rounds,flips:this.fightFlips(fight),downwind:fight.downwind,route});
+    const evWind=dest?this.tradewind(def):false;
+    return {evFlee,evWind};
+  }
+  // NULL: the battle ends with no player gaining anything. No spoil, no swap, no caller paid.
+  nullBattle(fight){
+    this.recordSkirmish(fight.att,fight.def,null);
+    return this.ev({t:"battlenull",a:fight.att.idx,d:fight.def.idx,rounds:fight.rounds,flips:this.fightFlips(fight),downwind:fight.downwind});
+  }
+  /* A WON FIGHT: the count, the crate (`pick` — the human winner's choice, or botSpoilPick), the skirmish remembered, and the event.
+     `why` rides the event so the line can say WHY a two-heads tie went the way it did (playtest 20). BATL-03 carried into v2 and
+     hardened by rule 9d: nobody moves after a battle — a swap would put the loser in the advantageous square. */
+  winBattle(fight,pick){
+    const {att,def}=fight,win=fight.winner,lose=win===att?def:att;
+    if(win===att)this.attWins++;
+    const spoilIng=this.takeSpoil(win,lose,pick);
+    const spoil=spoilIng?ilabelImg(spoilIng):"nothing";
+    this.recordSkirmish(att,def,lose,spoilIng);
+    return this.ev({t:"battle",a:att.idx,d:def.idx,rounds:fight.rounds,winner:win.idx,spoil,spoilIng,flips:this.fightFlips(fight),downwind:fight.downwind,why:fight.why});
+  }
+  /* THE HEADLESS FIGHT — every bot ladder and matrix. The same steps the fight a player watches calls; only the choosers differ, and
+     they are the bots' own (botWantsFlee, botFleeSquare, wantsRefire, botSpoilPick). */
+  battle(att,def){
+    const fight=this.beginBattle(att,def);
+    if(!fight)return null;
+    this.resolveRound(fight,this.flip(att,"battle"),this.flip(def,"battle"));   // recorded, as the watched fight's flips are
+    if(this.mayFlee(fight)&&this.botWantsFlee(fight)){
+      this.flee(fight,this.botFleeSquare(fight,this.fleeSquares(def)));
       return null;
     }
-    const lose=win===att?def:att;
-    if(win===att)this.attWins++;
-    const spoilIng=this.awardSpoil(win,lose);
-    const spoil=spoilIng?ilabelImg(spoilIng):"nothing";
-    // BATL-03 carried into v2 and hardened by rule 9d: nobody moves after a battle. A swap would
-    // put the loser in the advantageous square, which is exactly backwards.
-    this.recordSkirmish(att,def,lose,spoilIng);
-    this.ev({t:"battle",a:att.idx,d:def.idx,rounds,winner:win.idx,spoil,spoilIng,flips,downwind});
+    while(this.refireOffered(fight)&&this.wantsRefire(att,def,fight.downwind,fight.rounds.length)){
+      this.payRefire(fight);
+      this.resolveRefire(fight,this.flip(att,"battle"));
+    }
+    if(!fight.winner){this.nullBattle(fight);return null;}
+    const win=fight.winner;
+    this.winBattle(fight,this.botSpoilPick(win,win===att?def:att));
     return win;
   }
   /* ================= v2 bot AI: planners, not gates =================
@@ -2839,10 +2908,8 @@ class Game{
         const rematch=PLAN.rematchEscalate*this.recentFights(p,q);
         const revenge=(grudge&&grudge.against===q.idx&&grudge.expires>=this.round)?0.6:0;
         const drag=rematch-revenge;
-        // the crate the winner actually takes, mirroring awardSpoil's own pick order
-        const wanted=q.ing.filter(i=>this.needs(p).includes(i));
-        const lever=q.ing.filter(i=>this.players.some(x=>x!==p&&x!==q&&this.inPlay(x)&&this.likelyNeeds(x,i)));
-        const spoil=wanted[0]!==undefined?wanted[0]:(lever[0]!==undefined?lever[0]:q.ing[0]);
+        // the crate the winner actually takes — the fight's own pick, asked, not mirrored
+        const spoil=this.botSpoilPick(p,q);
         // stand: I sailed here and paid powder, coins landed nowhere
         const standT=this.turnsToWin3If(p,{cell,coins:purse},ctx)+drag;
         const sFlee=this.raceScore3(standT,ctx.plans);
@@ -2864,7 +2931,8 @@ class Game{
            a rusher feels it deeper. The probabilities stay honest. */
         const feltLose=sFlee-(sFlee-sLose)/bias.fightBias;
         const v=pWin*sWin+pFlee*sFlee+pLose*feltLose;
-        consider({cell,type:"attack",target:q,value:v,why:wanted.length?"opportunity":"denial",
+        // botSpoilPick takes a crate I need whenever the target holds one, so "the pick is on my recipe" is "they hold what I need"
+        consider({cell,type:"attack",target:q,value:v,why:(spoil!=null&&this.needs(p).includes(spoil))?"opportunity":"denial",
                   detail:{downwind,pWin,pLose:+pLose.toFixed(2),spoil,
                           sWin:+sWin.toFixed(4),sFlee:+sFlee.toFixed(4),sLose:+sLose.toFixed(4),
                           rematch:+rematch.toFixed(2)}});

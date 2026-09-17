@@ -31,14 +31,15 @@ if (!fn) {
   // Isolate the stretch from the flee flag's declaration down to the function's end, so the
   // assertion is about THIS function's flee handling and cannot accidentally match settleSideBets
   // calls that belong to the nulled/win exits elsewhere in the same file.
-  const fleeIdx = fn.search(/if\(fled\)(\{|return)/);
+  // re-anchored 2026-09-16 (architecture item 1): `fled` now lives on the fight object the engine's beginBattle returns (F.fled)
+  const fleeIdx = fn.search(/if\((?:F\.)?fled\)(\{|return)/);
   const tail = fleeIdx === -1 ? "" : fn.slice(fleeIdx);
   if (!tail) {
     fail("the flee exit (`if(fled)...`) is gone or reshaped — re-anchor this check against src/orchestrator.js's current text before trusting either verdict");
   } else {
     // The fix must settle the bets ON THE FLEE PATH ITSELF, before the function leaves — not
     // merely call settleSideBets somewhere later in the file, which the fled captain never reaches.
-    const fleeGuard = (tail.match(/if\(fled\)\{[\s\S]*?\}|if\(fled\)return;/) || [""])[0];
+    const fleeGuard = (tail.match(/if\((?:F\.)?fled\)\{[\s\S]*?\}|if\((?:F\.)?fled\)return;/) || [""])[0];
     const settlesOnFlee = /settleSideBets\(\s*bets\s*,\s*null\s*\)/.test(fleeGuard);
     const stillReturns = /return;\s*\}?\s*$/.test(fleeGuard);
     if (settlesOnFlee && stillReturns) {

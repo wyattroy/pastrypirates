@@ -619,9 +619,8 @@ const EVENT_NARRATION={
        through untouched (the config-dead raider spoil, queued for deletion in DETERMINISM-RERECORD-NEXT.md). */
     const spoilText=e.spoilIng?ilabelImg(e.spoilIng):(/ coins/.test(e.spoil)?fmtItem(e.spoil):e.spoil);
     /* playtest 20: rule 9 gives a two-heads tie to the DOWNWIND ship, and roughly one battle in four ends that
-       way — so the line says why. The deciding round is the last one that scored (`downwind` rides the event). */
-    const decidedRound=e.rounds&&e.rounds.filter(r=>r&&r[3]).pop();
-    const wonOnWind=!!(e.downwind&&decidedRound&&decidedRound[0]===1&&decidedRound[1]===1&&decidedRound[3]===e.downwind);
+       way — so the line says why. WHY is the engine's answer, carried on the event (engine resolveRound's `why`),
+       never re-derived here from the rounds: this line used to work it out a second time (architecture item 1). */
     /* playtest 20 (Wyatt: "losers of a battle without a crate don't always give 'all they have'"): an empty hold
        means the winner leaves with nothing, and the line says so — detected on the DATA, so a future coin prize
        cannot silently inherit it. Checked before the wind: "where did my crate go" is the question a loser asks. */
@@ -630,7 +629,7 @@ const EVENT_NARRATION={
        "gives up all they have" branches — v2 rule 9d makes the prize a crate, full stop, so a coin prize could no
        longer reach a player. Who reads "ye" or "yer" is words.js's business, from the seats named here. */
     const facts={winner:seat(e.winner),loser:seat(loser),spoil:spoilText};
-    const txt=say(tookNothing?"battle.nothing":wonOnWind?"battle.downwind":"battle.takes",facts,viewerSeat);
+    const txt=say(tookNothing?"battle.nothing":e.why==="wind"?"battle.downwind":"battle.takes",facts,viewerSeat);
     return {cls:"battle",
       txt,
       pops:[[[(x1+x2)/2,Math.min(y1,y2)-cellPx*.15],"⚔️",true],[at(loser),"💸"],[at(e.winner),sp||"💰",false,spImg]]};
@@ -923,7 +922,7 @@ export function computeAwards(){
     // v2.1 (Wyatt, 2026-08-06: recalculate the lucky streak "over the course of the whole game").
     // MEASURED FIRST: the walk was already whole-game — `streak` is never reset between turns — but
     // it was BLIND TO `battlenull`, and that is where the reported symptom came from. A null battle
-    // (v2 rule 9: the crosswind stand-off nobody paid to break, and every declined re-fire) carries
+    // (v2 rule 9: a crosswind collision, which ends with no winner, and every declined re-fire) carries
     // its flips in `rounds` exactly like the other two outcomes, and they were being dropped.
     // Across 40 headless games that lost 74 of 816 flips — 9% — and the badge undercounted somebody's
     // streak in 4 of them. Always downward, which is why it read as "this only counted one turn".

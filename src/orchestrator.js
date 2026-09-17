@@ -74,7 +74,7 @@ import { Game, roundCfg, rollStorm } from "./engine/index.js";
 import { applyResult } from "./engine/bakeoff.js";
 import { say, sayAll, sayText, seat } from "./ui/util.js";   // every word from src/shared/words.js
 import {
-  PERP, DIRS, HEXCOL, CROWN_IMG, CLOSE_X_IMG, FLAME_IMG, unusedDefaultName, seatHeldName, applyNameClaim, iconImg, man,
+  PERP, DIRS, HEXCOL, CROWN_IMG, CLOSE_X_IMG, FLAME_IMG, unusedDefaultName, seatHeldName, applyNameClaim, iconImg,
   ilabelImg, ovensNowEnabled, bake2Enabled, endCardEnabled,
   rulesFacts, // A-7: the one source of every number the How-to-Play page teaches
   subjectOf,  // Q-18: the ONE rule both seats run — never a decision one seat ships to the other
@@ -110,7 +110,7 @@ import {
   showSeatCoins, // MP-06: the ONE purse renderer, shared with render() (04-01 Task 2)
   battleSnapshot, renderBattleFromSnap,
   collectSideBets, settleSideBets, netIntroBarrier, showAhoyIntro, showTurnOrderIntro,
-  reachable, pickCell, localAsk, pilotGate, armStormGate, pilotOpeningFork, takeTurn, runStormLive, renderPickPrompt, renderAskPrompt, clearSailWindow, draftDispatch, wireRestoreFail,
+  pickCell, localAsk, pilotGate, armStormGate, pilotOpeningFork, takeTurn, runStormLive, renderPickPrompt, renderAskPrompt, clearSailWindow, draftDispatch, wireRestoreFail,
   startPassAndPlay, startSinglePlayer,
   endReplay, animateRimSweepIfAny, animateSailRoute, stormCamForEvent, publishNow,
   showHome, showRoom, showGameView, renderSeatList, wireWelcome, buildPlayerRows, hideBootLoader,
@@ -576,12 +576,14 @@ export function battleAsk(player,o,msg,opts,colors){
 
      heads vs tails            → the heads ship wins outright
      both heads, one downwind  → the downwind ship wins, the wind carries the shot home
-     both heads, crosswind     → the cannonballs collide. The ATTACKER may pay 2🌕 to load a fresh
-                                 broadside and fire ALONE — heads and it lands, tails and they may
-                                 pay again, as often as they can afford it. Decline → NULL.
+     both heads, crosswind     → the cannonballs collide, and the fight is over with NO WINNER. No
+                                 re-fire — Wyatt, 2026-09-15: "in crosswinds, there should be no
+                                 reflip option… if both get heads, there's simply no winner."
      both tails                → both shots went wild. The defender may slip away FREE (rule 2's
                                  "fleeing is free"), sailing under the ordinary v2 rules. Stand
-                                 their ground and the attacker gets the same paid re-fire.
+                                 their ground and the ATTACKER may pay 2🌕 to load a fresh broadside
+                                 and fire ALONE — heads and it lands, tails and they may pay again,
+                                 as often as they can afford it. Decline → NULL.
 
    A NULL battle ends with nobody gaining anything — no crate, no coins, no caller paid, and the
    powder already spent stays spent. That is the real risk in attacking.
@@ -589,6 +591,13 @@ export function battleAsk(player,o,msg,opts,colors){
    Prize: ONE CRATE, winner's choice. No coin alternative and no place-swap — a swap would hand
    the loser the advantageous square (Wyatt, 2026-08-04). A ship with an empty hold cannot be
    attacked at all, so there is always a crate to take.
+
+   ⭐ NONE OF THOSE RULES IS DECIDED IN THIS FILE (architecture item 1, 2026-09-16). This fight used to carry its own copy of every
+   one of them, beside the engine's headless battle(), and the copies drifted — his crosswind ruling reached only the engine, so every
+   real game still offered "Fire again". Each rule is now one engine step that both fights call: beginBattle, resolveRound /
+   resolveRefire (who scored and WHY), refireOffered + payRefire, mayFlee / fleeSquares / botWantsFlee / botFleeSquare / flee,
+   botSpoilPick, nullBattle / winBattle. What stays here is pacing, animation and asking — plus, like the engine's driver, the ORDER
+   of the steps and the re-fire loop (see the engine's note). scripts/qa/one_fight_rules_check.mjs holds it.
 
    `need` is gone along with the scoreboard race: the battle-UI's a/d counters now only ever read
    0 or 1, and exist so the shared battlePublish() scoreboard keeps working unchanged. */
@@ -619,14 +628,10 @@ async function asyncBattleRun(att,def){
   const opening=sayAll("battle.opening",{a:seat(att.idx),d:seat(def.idx)});
   // @copy adhoc.battle.opening
   await flash(opening.html,Math.max(900,stepDelay()),undefined,opening.variants);
-  appState.game.payPowder(att);   // the ONE place a fight's powder is taken, and recorded (engine payPowder)
-  appState.game.battles++;
+  // the engine begins the fight: powder paid (and recorded), the battle counted, the wind read once — engine beginBattle
+  const F=appState.game.beginBattle(att,def);
   const bets=await collectSideBets(att,def);
   let a=0,d=0;
-  // purely geometric, and it never changes mid-battle because v2 has no swap
-  const downwind=appState.game.downwindSide(att,def);
-  let fled=false,nulled=false;
-  const rounds=[];
   const hA=att.strategy==="human",hD=def.strategy==="human";
   let round=0;
   const nm=pn;
@@ -688,131 +693,83 @@ async function asyncBattleRun(att,def){
     result:{id:ah?"battle.showsHeads":"battle.showsTails",facts:{a:seat(att.idx),d:seat(def.idx)}}}));
   await sleep(beat);
   const dh=hD?await hFlip("d",def,say("battle.defend",{a:seat(att.idx)},def.idx),{atState:ah?"H":"T"}):await bFlip("d",def,{atState:ah?"H":"T"});
-  // ---- resolve ----
-  let scorer=null,rmsg,winner=null;
-  if(ah&&dh){
-    if(downwind){
-      scorer=downwind;
-      if(downwind==="a"){a++;winner=att;}else{d++;winner=def;}
-      // @copy misc.battleline.bothheadsdownwind
-      rmsg={id:"battle.downwindHits",facts:{w:seat(downwind==="a"?att.idx:def.idx)},cls:"score"};
-    // @copy misc.battleline.bothheadscrosswind
-    }else rmsg=`<span class="cancel">${say("battle.crosswindMiss",{})}</span>`;
-  }else if(ah||dh){
-    scorer=ah?"a":"d";
-    if(ah){a++;winner=att;}else{d++;winner=def;}
-    const hitName=ah?nm(att.idx):nm(def.idx);
+  // ---- resolve: the engine says who scored and WHY (engine resolveRound); this only chooses the words for it ----
+  const {scorer,why}=appState.game.resolveRound(F,ah,dh);
+  if(scorer==="a")a++;else if(scorer==="d")d++;
+  const scorerIdx=scorer==="a"?att.idx:def.idx;
+  /* ⚠ A READY-MADE NAME, UNCHANGED FROM BEFORE ARCHITECTURE ITEM 1 (it was `hitName` then too): "battle.hit" is handed nm(), so the
+     scorer's own screen reads its name, never "ye". scripts/qa/words_one_place_check.mjs rule 4 cannot see a name passed through a
+     variable — found when this line was briefly inlined on 2026-09-16. Handing it seat() would change what a player reads, which that
+     item did not name; it is left as it was and reported. */
+  const hitName=nm(scorerIdx);
+  const rmsg=
+    // @copy misc.battleline.bothheadsdownwind
+    why==="wind"?{id:"battle.downwindHits",facts:{w:seat(scorerIdx)},cls:"score"}
     // @copy misc.battleline.hitlands
-    rmsg=`<span class="score">${say("battle.hit",{name:hitName})}</span>`;
-  }
-  // @copy misc.battleline.bothmiss
-  else rmsg=`<span class="cancel">${say("battle.bothMiss",{})}</span>`;
-  rounds.push([ah?1:0,dh?1:0,0,scorer]);
-  /* T-073 — THE CANNON, AND IT FIRES ON THE HIT, NOT ON THE BATTLE. (Since 2026-09-14 it fires from the shotLands record
-     just below — the reasoning here is unchanged, only the place the sound is played moved.)
-     His ruling: "cannon sound happens only when a shot lands". `scorer` is non-null exactly when a
-     shot got through, so it is the test the engine already computes — and guarding on it keeps the
-     cannon SILENT on the two outcomes where nothing lands: both captains missing, and both firing
-     heads in a crosswind, where the line directly below says "the cannonballs collide". A cannon
-     over that sentence would contradict the game's own words.
-
-     NO DELAY IS ADDED, and that is measured, not assumed. He asked for it to come clear of the
-     second coin flip, "eg. 100ms after". By this line the coin stem (965ms) finished 630ms ago:
-     FLIP_SPIN_MS (795) + FLIP_LAND_HOLD_MS (800) have both elapsed since playFlip() fired at the
-     spin paint. Adding a sleep here would restate two constants that already produce the gap, and
-     would go wrong silently the day either of them is tuned. */
-  /* THE HIT IS RECORDED AS IT LANDS, and everything a hit does follows from that record, on every screen: the cannon (audio.js
-     EVENT_SOUND.shotLands — moved here 2026-09-14, when it turned out a crew guest never heard it, because this line used to
-     play it on the fight's own device only) and the kick, flash and shake (board.js shotLands, his game feel audit). `by`,
-     not `p`: a shot is not a turn, and `p` would hand the active-captain highlight to the shooter for the length of the fight. */
-  if(scorer){appState.game.ev({t:"shotLands",by:scorer==="a"?att.idx:def.idx,a:att.idx,d:def.idx});liveRender();}
+    :why==="hit"?`<span class="score">${say("battle.hit",{name:hitName})}</span>`
+    // @copy misc.battleline.bothheadscrosswind
+    :why==="collide"?`<span class="cancel">${say("battle.crosswindMiss",{})}</span>`
+    // @copy misc.battleline.bothmiss
+    :`<span class="cancel">${say("battle.bothMiss",{})}</span>`;
+  /* T-073 — THE CANNON, AND IT FIRES ON THE HIT, NOT ON THE BATTLE. His ruling: "cannon sound happens only when a shot lands". The
+     engine records a landed shot as `shotLands` (engine resolveRound) exactly when a shot got through, so the cannon stays SILENT on the
+     two outcomes where nothing lands — both captains missing, and a crosswind collision, where the line says "the cannonballs collide".
+     NO DELAY IS ADDED, and that is measured, not assumed. He asked for it to come clear of the second coin flip, "eg. 100ms after". By
+     this line the coin stem (965ms) finished 630ms ago: FLIP_SPIN_MS (795) + FLIP_LAND_HOLD_MS (800) have both elapsed since playFlip()
+     fired at the spin paint. Adding a sleep here would restate two constants that already produce the gap. */
+  if(scorer)liveRender();
   battlePublish(base({atState:ah?"H":"T",dfState:dh?"H":"T",live:null,winCoin:scorer,result:rmsg}));
   await sleep(hold);
 
-  if(!winner){
-    // ---- both tails: the defender's FREE escape (rules 9a + 2c) ----
-    if(!ah&&!dh){
-      const cells=reachable(def);
-      if(cells.length){
-        let flee;
-        // @copy prompt.battle.flee
-        if(hD){applyActiveSeat(def.idx);flee=await ask(say("battle.fleeAsk",{name:nm(def.idx)}),
-          [{label:say("battle.flee",{}),value:true},{label:say("battle.stand",{}),value:false}]);}
-        // a bot slips away when the wind is against it (it loses the next both-heads) or when it is
-        // carrying a crate it cannot afford to lose — the same test the headless battle() applies
-        // same test as the headless battle() — a RECIPE crate held with no spare. needs() excludes
-        // what you already hold, so testing against it can never match (it never fled in 3000 sims).
-        else flee=(downwind==="a")||def.ing.some(i=>def.recipe&&def.recipe.includes(i)&&appState.game.cnt(def.ing,i)<=1);
-        if(flee){
-          const dest=hD?await pickCell(def,cells):cells.reduce((best,cc)=>man(cc,att.pos)>man(best,att.pos)?cc:best,cells[0]);
-          /* A FLEE IS VERY NEARLY A FULL SAIL, and it was the one move the route fix never reached.
-             Measured over 600 posed flees on 25 seeded boards: mean 3.93 squares, max 4, every
-             single one further than one square, and 13.3% of them drawn along a straight line that
-             crosses an island — the same picture playtest 21 item 6 was raised about. It now asks
-             the same sailPath the chosen sail asks, puts the squares on the SAME presentation lane
-             (o.route -> Game.bakeDraw -> o.draw), and the ONE walker walks them on every tier.
-             THE EVENT ALSO NEEDS A SEAT. Game.ev bakes the drawn route against o.state[o.p], so a
-             route on an event that names only `a` and `d` bakes to null however carefully it was
-             computed. `player` is the captain the move belongs to — the one who fled.
-             AND IT IS RECORDED AT THE DESTINATION, BEFORE THE TRADE WINDS TAKE IT. The flee used to
-             be recorded after the sweep, so the last snapshot before the sweep still held the
-             PRE-BATTLE square, onRim(from) was false, and a ship that fled into the channel got no
-             ride ON EITHER TIER — it simply appeared at the whirlpool. The emit and the sweep sit
-             on one line because that order is the whole point of them: record where the ship
-             actually got to, THEN let the current carry it on. */
-          const fleeFrom=[...def.pos],fleeRoute=dest?[fleeFrom,...appState.game.sailPath(def,dest,{throughRim:true})]:null;
-          if(dest)def.pos=dest;
-          fled=true;
-          appState.game.recordSkirmish(att,def,null);
-          const evFlee=appState.game.ev({t:"battleflee",p:def.idx,a:att.idx,d:def.idx,rounds,downwind,route:fleeRoute}),evWind=dest?appState.game.tradewind(def):null;
-          /* W9: the table is told BEFORE this tier draws — publishNow() is the broadcast half
-             only, so no other browser sits on a frozen board for the length of this flee.
-             ⭐ AND THEN IT WAITS ON THE DRAIN, not on the rides. Both events exist by now, and
-             consumeEvent walks each of them in order — the flee's own sail and the rim ride it
-             may trigger — while making their sounds first. This used to await the two rides
-             itself and drain afterwards, which is the same inversion the turn loops carried:
-             the boat moved while its event sat unread. One line, and the display is owned
-             entirely by the one consumer. */
-          publishNow();
-          await liveRender();
-        }
-      }
+  // ---- both tails: the defender's FREE escape (rules 9a + 2c). May they, and where to, are the engine's; a human is asked ----
+  if(appState.game.mayFlee(F)){
+    let flee;
+    // @copy prompt.battle.flee
+    if(hD){applyActiveSeat(def.idx);flee=await ask(say("battle.fleeAsk",{name:nm(def.idx)}),
+      [{label:say("battle.flee",{}),value:true},{label:say("battle.stand",{}),value:false}]);}
+    else flee=appState.game.botWantsFlee(F);
+    if(flee){
+      const cells=appState.game.fleeSquares(def);
+      const dest=hD?await pickCell(def,cells):appState.game.botFleeSquare(F,cells);
+      appState.game.flee(F,dest);   // move, record, the event with its route, THEN the trade winds — engine flee
+      /* W9: the table is told BEFORE this tier draws — publishNow() is the broadcast half
+         only, so no other browser sits on a frozen board for the length of this flee.
+         ⭐ AND THEN IT WAITS ON THE DRAIN, not on the rides. Both events exist by now, and
+         consumeEvent walks each of them in order — the flee's own sail and the rim ride it
+         may trigger — while making their sounds first. One line, and the display is owned
+         entirely by the one consumer. */
+      publishNow();
+      await liveRender();
     }
-    // ---- the attacker's paid re-fire (rule 9b, extended to both-tails by rule 9a) ----
-    if(!fled){
-      const refire=c.refire||0;
-      while(!winner){
-        let again=false;
-        if(refire&&att.coins>=refire){
-          if(hA){
-            applyActiveSeat(att.idx);
-            // @copy prompt.battle.refire
-            again=await ask(say("battle.refireAsk",{name:nm(att.idx),n:refire}),
-              // ITEM 1 (Wyatt, 2026-08-20): brackets off the money buttons. Found by the rule-8 consistency
-              // sweep, NOT by his report — the other three live in ui/flow.js and this one is easy to miss.
-              [{label:say("battle.fireAgain",{n:refire}),value:true},{label:say("battle.breakOff",{}),value:false}]);
-            if(appState.turnExpired)again=false;
-          }else again=appState.game.wantsRefire(att,def,downwind,rounds.length);
-        }
-        // D-40 safety net: re-read the purse after the await rather than trusting the gate above
-        if(!again||att.coins<refire){nulled=true;break;}
-        att.coins-=refire;
-        appState.game.ev({t:"refire",a:att.idx,d:def.idx,cost:refire});
-        liveRender();
-        round++;
-        const rh=hA?await hFlip("a",att,say("battle.fireAgainFlip",{}),{dfState:dh?"H":"T"}):await bFlip("a",att,{dfState:dh?"H":"T"});
-        rounds.push([rh?1:0,null,0,rh?"a":null]);
-        if(rh){a++;winner=att;
-          appState.game.ev({t:"shotLands",by:att.idx,a:att.idx,d:def.idx});liveRender();   // the re-fire landed: same kick, flash and shake
-          // @copy misc.battleline.refirehits
-          battlePublish(base({atState:"H",dfState:dh?"H":"T",live:null,winCoin:"a",result:{id:"battle.refireHits",facts:{a:seat(att.idx)},cls:"score"}}));
-        }else{
-          // @copy misc.battleline.refiremisses
-          battlePublish(base({atState:"T",dfState:dh?"H":"T",live:null,result:`<span class="cancel">${say("battle.refireMiss",{})}</span>`}));
-        }
-        await sleep(hold);
-      }
+  }
+  // ---- the attacker's paid re-fire (rule 9b). Whether it is OFFERED — his crosswind ruling and the purse — is the engine's alone
+  //      (engine refireOffered); whether the attacker WANTS it is asked here ----
+  while(appState.game.refireOffered(F)){
+    let again;
+    if(hA){
+      applyActiveSeat(att.idx);
+      // @copy prompt.battle.refire
+      again=await ask(say("battle.refireAsk",{name:nm(att.idx),n:c.refire}),
+        // ITEM 1 (Wyatt, 2026-08-20): brackets off the money buttons. Found by the rule-8 consistency
+        // sweep, NOT by his report — the other three live in ui/flow.js and this one is easy to miss.
+        [{label:say("battle.fireAgain",{n:c.refire}),value:true},{label:say("battle.breakOff",{}),value:false}]);
+      if(appState.turnExpired)again=false;
+    }else again=appState.game.wantsRefire(att,def,F.downwind,F.rounds.length);
+    // D-40 safety net: the offer is asked of the engine again after the await, rather than trusted from before it
+    if(!again||!appState.game.refireOffered(F))break;
+    appState.game.payRefire(F);   // the price leaves the purse, and says so — engine payRefire
+    liveRender();
+    round++;
+    const rh=hA?await hFlip("a",att,say("battle.fireAgainFlip",{}),{dfState:dh?"H":"T"}):await bFlip("a",att,{dfState:dh?"H":"T"});
+    if(appState.game.resolveRefire(F,rh).scorer){a++;
+      liveRender();   // the re-fire landed: the engine recorded shotLands — same kick, flash and shake
+      // @copy misc.battleline.refirehits
+      battlePublish(base({atState:"H",dfState:dh?"H":"T",live:null,winCoin:"a",result:{id:"battle.refireHits",facts:{a:seat(att.idx)},cls:"score"}}));
+    }else{
+      // @copy misc.battleline.refiremisses
+      battlePublish(base({atState:"T",dfState:dh?"H":"T",live:null,result:`<span class="cancel">${say("battle.refireMiss",{})}</span>`}));
     }
+    await sleep(hold);
   }
   // THE SAME RETIREMENT EVERY OTHER CAPTAIN GETS (T-04). This was a bare panel(""), which is what
   // made the host's teardown and a watcher's two separate pieces of code — the condition rule 23
@@ -825,42 +782,25 @@ async function asyncBattleRun(att,def){
   // bets — a NULL battle and a decided win both already tell every caller what happened. A flee
   // has no winner either, so it gets the same NULL settlement: no bounty for anyone, but a caller
   // is told their call resolved rather than left silent.
-  if(fled){await settleSideBets(bets,null);return;}
-  if(nulled){
-    // rule 9: NULL — the battle ends with no player gaining anything, and no caller is paid.
-    appState.game.recordSkirmish(att,def,null);
-    appState.game.ev({t:"battlenull",a:att.idx,d:def.idx,rounds,downwind});
+  if(F.fled){await settleSideBets(bets,null);return;}
+  if(!F.winner){
+    // rule 9: NULL — the battle ends with no player gaining anything, and no caller is paid (engine nullBattle)
+    appState.game.nullBattle(F);
     liveRender();
     await narrateLastEvent();
     await settleSideBets(bets,null);
     return null;
   }
-  const win=winner,lose=win===att?def:att;
-  if(win===att)appState.game.attWins++;
-  // v2 rule 9d: the prize is a crate, full stop. The loser no longer chooses to pay in coin, so
-  // the whole "pay with 5🌕 or a crate" prompt is gone — the only choice left is the WINNER's,
-  // picking which crate to take.
+  const win=F.winner,lose=win===att?def:att;
+  // v2 rule 9d: the prize is a crate, full stop — the only choice left is the WINNER's, picking which crate to take. A human with more
+  // than one kind to choose from is asked; anyone else takes the engine's pick (engine botSpoilPick). The crate moves in engine winBattle.
   let pick;
   const uniq=[...new Set(lose.ing)];
   if(win.strategy==="human"&&uniq.length>1){applyActiveSeat(win.idx);
     // @copy prompt.battle.winnerplunder
     pick=await ask(say("battle.plunder",{name:pn(win.idx)}),uniq.map(i=>({label:ilabelImg(i),value:i})));}
-  else{const w2=lose.ing.filter(i=>appState.game.needs(win).includes(i));pick=w2[0]||lose.ing[0];}
-  let spoil=null,spoilIng=null;
-  if(pick!=null&&lose.ing.includes(pick)){
-    lose.ing.splice(lose.ing.indexOf(pick),1);win.ing.push(pick);
-    spoil=ilabelImg(pick);spoilIng=pick;
-    // the whole table watched the winner choose — public evidence of what they are after
-    appState.game.noteDemand(win,pick,1);
-  }
-  // BATL-03, hardened by rule 9d: nobody moves after a battle.
-  appState.game.recordSkirmish(att,def,lose,spoilIng);
-  // playtest 20: `downwind` rides the event so the narration can say WHY a two-heads tie went the
-  // way it did. The engine's own emit has always carried it (src/engine/index.js); this live path
-  // dropped it, which is why the durable line could only ever say "wins 1-0" — see the battle
-  // narration builder in src/ui/util.js. Display-only, and /4 is outside the determinism corpus
-  // (scripts/lib/load_engine.js loads the ROOT src/engine), so no fixture is touched.  [ROOT-TREE-CITATION: load_engine.js reads the root tree on purpose — true as written]
-  appState.game.ev({t:"battle",a:att.idx,d:def.idx,rounds,winner:win.idx,spoil,spoilIng,spoilChosen:false,downwind});
+  else pick=appState.game.botSpoilPick(win,lose);
+  appState.game.winBattle(F,pick);
   liveRender();
   // narrate the outcome now — settlement pushes further events right after this, and callers only
   // narrate the *last* event once asyncBattle returns
