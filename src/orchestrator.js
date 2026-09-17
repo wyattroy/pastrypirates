@@ -947,28 +947,11 @@ export async function recipeDraftNet(){
   if(!appState.replaying)updateRecipeBanner();
   await liveRender();                       // drain the recipeSet event(s) this choice just produced
   if(stowedGate){ const g=stowedGate; stowedGate=null; await g; }   // let it be read before sailing on
-  /* ── "WHERE DID MY RECIPE GO?" — his own ask, 2026-09-02 ────────────────────────────────────
-     THE ONE LADDER THAT ADDS A LINE WHERE THE GAME SAYS NOTHING TODAY. It earns the exception
-     because the answer to the question is "look down there", and nothing currently points down
-     there. Its bottom rung is SILENCE rather than today's copy, so a veteran's game is still
-     byte-identical — pilotSpeaks() is false at the bottom rung and this whole block does nothing.
-     AND THE CAPTAINS BOX FLASHES ONCE as the line lands: a sentence saying `below` and a box that
-     blinks are the same instruction twice, and the second one works without being read. */
-  if(!appState.replaying)for(const player of appState.game.players){
-    if(player.strategy!=="human"||!decisionIsLocal(player.idx))continue;
-    /* ⭐ NOW A CARD THE CAPTAIN DISMISSES, not a narration that takes itself away — his item 4.
-       ASKED BEFORE ANYTHING IS SPENT: pilotSpeaks() decides whether this moment is worth
-       interrupting at all, so a veteran never flashes the captains box for a line nobody is
-       going to read.
-       THE PER-SEAT `variants` ARGUMENT IS GONE WITH THE flash(), and that is a correction rather
-       than a loss: it existed to send a name-less copy of this line to the OTHER seats' screens,
-       which is a per-device tutorial line being broadcast to devices that did not ask for it and
-       may be further along their own ladders. pilotGate is local by construction. */
-    if(!pilotSpeaks("recipe.stowed"))break;
-    flashCaptainsBox();
-    await pilotGate("recipe.stowed",t=>t.replace("{name}",pn(player.idx)));
-    break;                       // one showing per device: the box is the same box for all seats
-  }
+  /* (A SECOND "yer recipe's stowed below" STOOD HERE — this loop's own copy of the card and the captains-box blink, left
+     behind in fbf0993e when the consumer's copy was written. Architecture item 11, 2026-09-17: measured on a first-time solo
+     phone, the consumer's card and then this loop's card, two blinks, two of the ladder's three lines gone in one voyage.
+     Its one rule — ONE SHOWING PER DEVICE, the box is the same box for every seat — went into consumeEvent with it. This
+     loop decides nothing about the card now; it only waits for the one the consumer made.) */
 }
 /* The blink itself. A class the CSS owns for one animation, removed when it ends, so nothing is
    left on the element to go stale — and nothing here animates width/height/top/left. */
@@ -1581,6 +1564,9 @@ export function watchDraftPrompt(){
    device the recipe belongs to; recipeDraftNet awaits it so the host's loop does not sail on before
    it has been read. Null on a guest's own timeline, which is correct: nothing there to pace. */
 let stowedGate=null;
+/* The voyage this device has already shown that card for — ONE SHOWING PER DEVICE (see consumeEvent's recipeSet). The
+   voyage itself, not a true/false, so the next voyage in the same page is taught again. */
+let stowedShownFor=null;
 // remote: render the game purely from the broadcast event feed
 /* ═════════ THE ONE EVENT CONSUMER (W1, 2026-08-28) ═════════
    Wyatt: "fix all the described architecture so both host and guest listen to one game activity
@@ -1671,7 +1657,17 @@ export async function consumeEvent(e){
     armStormGate(pilotGate("storm.hit").catch(()=>{}));
   }
   if(e.t==="recipeSet"&&window.__pp4&&window.__pp4.recipePicked)window.__pp4.recipePicked();
-  if(e.t==="recipeSet"&&decisionIsLocal(e.p)&&!appState.replaying&&pilotSpeaks("recipe.stowed")){
+  /* ⭐ ONE SHOWING PER DEVICE — architecture item 11, 2026-09-17. The card and the blink are decided HERE and nowhere else:
+     the host's draft loop kept its own copy until today, so a first-time solo captain got this card, tapped Aye aye, and
+     got a second one with a second blink. That copy's one rule comes with it: the captains box is the same box for every
+     seat at this device, so the FIRST recipe that is this device's own gets the card and the rest get nothing. Measured
+     before: a pass-and-play table of three drew three cards in one tick — two overwritten unseen — and spent the whole
+     ladder in one voyage; a crew device, handed each pick twice (item 10's second pipe), drew it twice too.
+     THE BLINK, AND WHY IT IS HERE (his own ask, 2026-09-02, "where did my recipe go?"): a sentence saying `below` and a
+     box that blinks are the same instruction twice, and the second one works without being read. pilotSpeaks() is asked
+     BEFORE anything is spent, so a veteran — whose bottom rung is silence — is never interrupted and nothing blinks. */
+  if(e.t==="recipeSet"&&decisionIsLocal(e.p)&&!appState.replaying&&stowedShownFor!==appState.game&&pilotSpeaks("recipe.stowed")){
+    stowedShownFor=appState.game;
     flashCaptainsBox();
     /* ⚠ CREATED HERE, AWAITED BY THE FLOW — and the difference matters, measured. Awaiting it here
        would block the EVENT DRAIN, which on a guest is the whole game's feed; not pacing it at all
