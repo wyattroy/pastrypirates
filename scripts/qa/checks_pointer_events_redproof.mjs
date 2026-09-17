@@ -34,6 +34,24 @@
  *
  *     D. a sail square under a narration bubble        -> sail-clickable and not-occluded PASS  (his ruling)
  *     E. a sail square under anything else (a lid)     -> both still FAIL                        (the bar)
+ *
+ * ============================================================================
+ *  And the third, 2026-09-17: no-cover-ask now asks WHICH OF THE TWO IS ON TOP
+ * ============================================================================
+ * Rule 6b fired on any rect-vs-rect overlap between a control and the prompt's own words, with no
+ * paint test and no hit test, and named the control as the culprit by assumption. On six legs of
+ * the Tier-1 trial (commit 8495d101) that read "sailCell over '<captain>: tap to sail'" — backwards:
+ * #pp4Prompt is z-index 30 and #sailHost is z-index 2, so the cream bubble PAINTS OVER the gold
+ * square (14-79% of it, median 70%), and the square stays fully tappable because the radial prompt
+ * is pointer-events:none — 40 of 40 probe points returned div.sailCell, 4 of 4 real taps sailed the
+ * boat from inside the words' rect, 4 of 4 drags separated them.
+ *
+ * Wyatt's rule, the fence in docs/INTENDED-BEHAVIOUR.md §0, verbatim: "the failing rule is 'unless
+ * it hides a button that the player cannot access by either waiting for 0.5 seconds or shifting the
+ * screen themselves (eg. dragging the board)'".
+ *
+ *     F. a button painted over the question's words    -> no-cover-ask still FAILS               (the bar)
+ *     G. the measured real case: the words painted over a still-tappable sail square -> PASSES   (his rule)
  */
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -155,6 +173,57 @@ try {
   lid.sail === 1 && lid.sailClickable.ok === false && lid.notOccluded.ok === false
     ? pass("E: a sail square under anything else IS still reported by both rules — the check still bites")
     : fail(`E: THE SAIL CHECK HAS BEEN GUTTED — a square under an opaque lid is no longer reported (${JSON.stringify(lid)})`);
+
+  /* F and G — no-cover-ask. Same pattern: one page per case, the REAL MEASURE and the REAL
+     structuralChecks, so what is proved here is what the sea trial runs. */
+  const askCase = async (html) => {
+    await C.ev(`(() => { document.body.style.margin = '0';
+      document.body.innerHTML = ${JSON.stringify(html)};
+      return document.querySelectorAll('.apMsg').length; })()`);
+    await sleep(500);                                  // past the square's own pop-in, so it is painted when measured
+    const m = JSON.parse(await C.ev(`JSON.stringify(${MEASURE})`));
+    const out = structuralChecks(m);
+    return { m, rule: out.find(x => x.rule === "no-cover-ask") || { ok: null, what: "rule not run" },
+             occ: out.find(x => x.rule === "not-occluded") || { ok: null },
+             sail: out.find(x => x.rule === "sail-clickable") || { ok: null } };
+  };
+
+  const WORDS = `<div class="apMsg" id="ask" style="position:absolute;left:20px;top:70px;width:300px;height:44px;background:#fffdf2;border:2px solid #177;font-size:15px">Cap'n Ada: tap to sail</div>`;
+  const covered = await askCase(`<div style="position:relative;width:400px;height:400px">${WORDS}
+    <button class="apBtn" id="lid" style="position:absolute;left:60px;top:76px;width:180px;height:32px;background:#c33;color:#fff;z-index:5">Sail</button></div>`);
+  console.log("  (raw F) " + JSON.stringify({ meet: covered.m.meetings, rule: covered.rule }));
+  covered.m.meetings && covered.m.meetings.length === 1 && covered.m.meetings[0].paints === "control"
+    ? pass("F: the instrument measured the button as the thing painted on top")
+    : fail(`F: the pair was not measured — everything below it is meaningless (${JSON.stringify(covered.m.meetings)})`);
+  covered.rule.ok === false && /covers/.test(covered.rule.what) && /Sail/.test(covered.rule.what)
+    ? pass("F: a button painted over the question IS still reported, and the message names it — " + covered.rule.what)
+    : fail(`F: NO-COVER-ASK HAS BEEN GUTTED — a button drawn on the question is no longer reported (${covered.rule.what})`);
+
+  /* G reproduces the measured stacking exactly: the sail host at z-index 2 inside the board, the
+     prompt fixed at z-index 30 and pointer-events:none, the words over the square. */
+  const real = await askCase(`<div style="position:relative;width:400px;height:400px">
+    <div id="host" style="position:absolute;inset:0;z-index:2;pointer-events:none">
+      <div class="sailCell" id="sq" style="position:absolute;left:120px;top:60px;width:64px;height:64px;background:#e8b93a;pointer-events:auto"></div></div>
+    <div id="prompt" style="position:fixed;left:0;top:0;width:400px;height:400px;z-index:30;pointer-events:none">${WORDS}</div></div>`);
+  console.log("  (raw G) " + JSON.stringify({ meet: real.m.meetings, hits: real.m.interactive.map(e => e.tag + " " + e.hits + "/" + e.hitPts), rule: real.rule }));
+  real.m.meetings && real.m.meetings.length === 1 && real.m.meetings[0].paints === "ask" && real.m.interactive.length === 1
+    ? pass("G: the instrument measured the pair, and the WORDS are the thing painted on top (z-index 30 over 2)")
+    : fail(`G: the pair was not measured — a green verdict below would be vacuous (${JSON.stringify(real.m.meetings)})`);
+  real.m.interactive.length === 1 && real.m.interactive[0].hits === real.m.interactive[0].hitPts
+    ? pass(`G: the square under the words still answers a tap at every probe point (${real.m.interactive[0].hits}/${real.m.interactive[0].hitPts})`)
+    : fail(`G: the square is not reachable in the fixture — it does not reproduce the measured case (${JSON.stringify(real.m.interactive.map(e => e.hits))})`);
+  real.rule.ok && /paints over/.test(real.rule.what) && /still tappable/.test(real.rule.what)
+    ? pass("G: the bubble over a tappable sail square is NOT reported, and the pass line names what is on top — " + real.rule.what)
+    : fail(`G: the measured real case is STILL reported — ${real.rule.what}`);
+  real.occ.ok && real.sail.ok
+    ? pass("G: not-occluded and sail-clickable are unmoved by this change")
+    : fail(`G: another rule changed its answer — not-occluded ${real.occ.ok}, sail-clickable ${real.sail.ok}`);
+
+  /* And the rule proved here must be the rule checks.mjs runs — the same bar as the string test above. */
+  const src2 = (await import("node:fs")).readFileSync(path.join(REPO, "scripts/lib/checks.mjs"), "utf8");
+  /ask\.style\.pointerEvents = 'auto'/.test(src2) && /meet\.paints === 'control'/.test(src2)
+    ? pass("checks.mjs still measures which of the two is painted on top, and rule 6b still reads it")
+    : fail("checks.mjs no longer measures paint order for the ask — F and G are testing nothing");
 
   console.log(bad ? `\nFAILED — ${bad} problem(s)` : "\nPASSED — the fix took, and the check still bites");
   process.exitCode = bad ? 1 : 0;
