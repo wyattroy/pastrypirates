@@ -3499,3 +3499,23 @@ tomorrow's sea overnight, rejecting a seed that cannot be baked or that one seat
 - **AWARDS NEST, THEN SWIPE** — read as: the nesting stays; the poke-out idea is replaced by the swipe (awards swipe off left; swipe the score card right to see them again).
 - **THE SCORE GAINS FOUR ROWS** — a perfect bake-off (solved first try) earns a huge bonus, two tries half of it; 10 points per doubloon; points per recipe idea from musing; "Traded like a Good Friendly Pirate", 20 per trade.
 - **RELAYED FROM HIS MAC SESSION, same day** (asked there with the question UI): the victory card ideas REPLACE the end of voyage card — "not a toggle page"; the sequence is board first (crown, podium), then the card (bake, awards, so close, set sail again); the podium ranks non-winners in CLOSENESS ORDER — baked first, then most bake-off crates right, then most recipe ingredients held, then nearest Tortuga, then most coins; the voyage replay stays out (backlog); crew rematch is sails up + 5s countdown, host can go early. This supersedes the weighted podium dials above where they disagree — flagged to him.
+
+**2026-09-16 — HIS VICTORY CARD TUNER MARKS, ROUND 3** (verbatim, from the sheet's Copy my notes). *"this looks awesome. one more round, then you can write the prd."*
+
+    ANSWER — The voyage score, with yer four additions — does it judge strategy now?: Close — my dials and note say what to change — Hmm -- I actually don't trust my numbers -- can you rebalance them? Players who WIN should get at least double the points as players who don't win -- winning is really hard. remove the musing points entirely.
+        points: per recipe crate held 40, for lighting yer ovens 100, per bake-off crate named right 40, perfect bake-off 400, for winning 500, per day ahead of the navigator 30, per doubloon 10, per recipe idea from musing 0, per trade 20
+    PROBLEM — 1. The crown comes down: Fix the confetti so it actually falls parabollically with gravity, not this jerky horrible thing. — dims 45%, lean-in 205%, crown falls 750ms, crown 140%, shake 9px, letter gap 60ms, overshoot 165%, confetti 55, hold 900ms
+    PASSED — 2. The podium at Tortuga — closeness order; weights 5/8/2/5; moves up 50px, rises 600ms, top tier 65px, boats 520ms apart, how close on
+    NOTE — 3. The winning bake: can't see the oven steam puff because white on white. Make it grey or blue? — steam on, rise 600ms, size 100%, ingredient gap 140ms, seal 100%, "3 of 21" on, hold 1400ms
+    PROBLEM — 4. Polly's awards show: When the awards get small, make them fill the vertical room, like tall columns, so that the text can still be read. — 4 awards, drum 650ms, flip 440ms, hold big 1400ms, shrink 500ms, climb 2 st, winner's 115%, all stay 1500ms, swipe 380ms, Polly bobs
+    PROBLEM — 6. The treasure tally: When the lines move up to make space for new ones,, animate them up -- don't just appear them up. — row gap 740ms, roll 550ms, grows taller 0px, rows in view 4, shake 9px, New best on, hold 1200ms
+    PASSED — 7. So close — dashed gold ring, before the bake, exact headline, pulse 900ms, how close on, what ye needed next on, hold 1800ms
+    PASSED — 8. Set sail again — "Anchors up, play again!" then "Setting sail…", dock with the card, sail 450ms, bots at once, countdown 5s, host early on
+
+- **A WINNER ALWAYS SCORES AT LEAST DOUBLE A NON-WINNER** — "winning is really hard". He does not trust his own point numbers and asked for a rebalance.
+- **NO POINTS FOR MUSING.**
+- **CONFETTI FALLS WITH GRAVITY** — a real arc, not keyframed jerks.
+- **THE STEAM PUFF IS GREY/BLUE**, visible on the white card.
+- **SMALL AWARDS ARE TALL COLUMNS** filling the card's height so their words stay readable.
+- **SCORE LINES SLIDE UP** to make room for the next one.
+- **NEXT: THE PRD** after this round.
