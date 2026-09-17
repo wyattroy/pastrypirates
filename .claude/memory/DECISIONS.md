@@ -3454,3 +3454,7 @@ tomorrow's sea overnight, rejecting a seed that cannot be baked or that one seat
     spacing clocks 2 → 1 (audio.js playSpaced) · sound_spacing_one_place_check.
   - **THE COIN CHINK — HIS PICK, 2026-09-16:** *"the chink I pick: A"* — Silver, one bright coin ringing. sfx/coin-chink.mp3 re-rendered
     with the three round-2 coins (slots now 0.5s); audio.js CHINK_PICK 0. Layering re-measured: one 0.38, any haul 0.38, two at once 0.75.
+- **THE BAKE-OFF HINT DURING THE SHUFFLE — HIS ANSWER, 2026-09-17:** asked about the line under the bench still reading "Study the order.
+  Start the shuffle when yer ready." while the crates crossed: *"yes, change the hint during the shuffle"*. The first shuffle now says
+  "Watch closely — keep yer eyes on the crates!" (bake.shuffling, my draft — his to reword); a paid re-watch keeps "Watch closely — the
+  crates move again."
