@@ -1,7 +1,7 @@
 # Architecture audit — every game fact decided in more than one place
 
 **Wy-Blade, 2026-09-16 · branch `sep16-architecture-cleanup` · audited at `c7833097` (= dev = staging 2026.09.16.4) · read and measure only: no code changed.**
-**STATUS: DRAFT BEFORE CEO REVIEW.** The CEO's verdict and the corrections it asks for are recorded at the end of this file once it has run.
+**STATUS: CEO-REVIEWED 2026-09-16.** A fresh CEO opened the cited lines for all 13 Tier 1 items and 12 others and found every item it opened real (item 16 only partly). Its seven corrections are applied in this file and listed at the end, with its verdict.
 
 ## His ask, verbatim
 > "get the Wy:Blade to run a full audit of all architectural inconsistencies to create an itemized, CEO-verified list of how to clean them up. then verify it, and have it do this work in a separate branch off yours. end with a sea trial to make sure it did not break anything, and report to me your findings."
@@ -26,9 +26,9 @@
 
 | Tier | What a player would notice | Items |
 |---|---|---|
-| **1** | Something on screen is wrong or different today, or one of his rulings never reached the game players play | 1–13 |
+| **1** | Something on screen is wrong or different today, or one of his rulings never reached the game players play | 1–11, 13 |
 | **2** | Bots are tuned and measured on a different game from the one people play | 14–16 |
-| **3** | A player would notice rarely, or only on one kind of screen | 17–25 |
+| **3** | A player would notice rarely, or only on one kind of screen | 12 (moved here by the CEO), 17–25 |
 | **4** | Nothing today — copies that agree now and will drift the next time one is changed | 26–42 |
 
 Items 1 and 2 are ranked first at Mac: Dev's request: both decide whether any bot result means anything.
@@ -63,13 +63,13 @@ Items 1 and 2 are ranked first at Mac: Dev's request: both decide whether any bo
 - **Which fight runs where:** solo, pass-and-play and crew host run `src/orchestrator.js:605 asyncBattleRun` (from `flow.js:2890` when a human attacks, `:3247` when a bot attacks); a crew guest computes nothing and watches it. `src/engine/index.js:1928 battle()` runs only in headless voyages (`Game.takeTurn:3013-3014`) — every bot ladder and matrix. The copies have drifted four times: the live `battle` event dropped `downwind` (`orchestrator.js:857-861`); the route fix reached the sail but not the flee (`w9_rim_sweep_flee_check.mjs:13`); the flee `needs()` bug had to be fixed in both (`611d0908`); the crosswind ruling `5e2654de` changed only the engine.
 - **a. FACTS — one fight, one item** (Mac: Dev: "one fight, not three patches"):
   1. **May the attacker pay to fire again, and when** — his ruling (DECISIONS.md:3296): *"in crosswinds, there should be no reflip option… if both get heads, there's simply no winner"* — and the re-fire's price leaving the purse.
-  2. **Where a fleeing ship may go, whether a bot flees, and how the flee is recorded.**
+  2. **When a defender may flee, where a fleeing ship may go, whether a bot flees, and how the flee is recorded.**
   3. **Which crate the winner takes.**
   4. **Who wins a round of shots, and why** (heads beats tails; two heads to the downwind ship; otherwise collide or miss), and whether a shot landed.
   5. **The fight's bookkeeping and ending event** (battle count, attacker wins, the skirmish remembered, `battle`/`battlenull`/`battleflee` and their fields).
 - **b. PLACES:**
   1. Re-fire offer — count 2, one missing the rule: `engine:1975-1980` (`crossTie … nulled=true`, then `!refire||att.coins<refire`) vs `orchestrator.js:781-797` (`while(!winner)` … `if(refire&&att.coins>=refire){ … ask("battle.refireAsk") / wantsRefire`, no crosswind test, affordability again at `:797`). Payment — count 2: `engine:1981-1982` and `orchestrator.js:798-799` (`att.coins-=refire; ev({t:"refire"})`, the powder shape; CEO-REVIEWS.md:58). The comment at `orchestrator.js:578-580` still describes the old rule; `rules.html:122` reads as still allowing it.
-  2. Flee — count 2 each: squares `engine:1956` `reachableFrom(def)` (no rim, `:706`) vs `orchestrator.js:734, 746` `reachable(def)` (rim allowed, `flow.js:361`); the bot's decision `engine:1954-1955` vs `orchestrator.js:744`; the record `engine:1958-1962` (`tradewind` before a `battleflee` with no `p`/`route`) vs `orchestrator.js:762-766` (the event with `p`+`route` first).
+  2. Flee — count 2 each: when a defender may flee (both tails) `engine:1948` vs `orchestrator.js:733`; squares `engine:1956` `reachableFrom(def)` (no rim, `:706`) vs `orchestrator.js:734, 746` `reachable(def)` (rim allowed, `flow.js:361`); the bot's decision `engine:1954-1955` vs `orchestrator.js:744`; the record `engine:1958-1962` (`tradewind` before a `battleflee` with no `p`/`route`) vs `orchestrator.js:762-766` (the event with `p`+`route` first).
   3. Plunder — count 3: `engine:1856-1872` `awardSpoil` (needed → wanted by another captain → first; un-finishes a raided baker); `engine:2828-2830` (the bot planner mirroring it); `orchestrator.js:847` `pick=w2[0]||lose.ing[0]` (no "wanted by another" step) with its own crate move `:849-854` (no un-finish; unreachable today, since `done` is set only by a winning bake that ends the voyage).
   4. Round result — count 3: `engine:1939-1945` (+`:1984`); `orchestrator.js:691-709` (+`:803-805`; says `battle.downwindHits` at `:692-697`); `util.js:620-625` re-derives "won on the wind" (`wonOnWind`) and says `battle.downwind`. `shotLands` is emitted only at `orchestrator.js:727, :805`.
   5. Bookkeeping — count 2: `engine:1932, 1961-1962, 1992-1993, 1997, 2002-2003` vs `orchestrator.js:622, 765-766, 830-831, 838, 856, 862`; the fields already differ (engine `flips`, live `spoilChosen:false`; nothing in `src` reads either).
@@ -77,22 +77,24 @@ Items 1 and 2 are ranked first at Mac: Dev's request: both decide whether any bo
   - `Game.beginBattle(att,def)` — legality, `payPowder`, the battle count, the `engage` event (item 4).
   - `Game.resolveRound(att,def,ah,dh,downwind)` / `Game.resolveRefire(att,def,rh)` — return `{scorer, why:"hit"|"wind"|"collide"|"miss"}`, push the round, emit `shotLands`. The bubble and `util.js` read `why` (whether one explaining bubble or two stays is his taste).
   - `Game.refireOffered(att,def,downwind,rounds)` — **the one place the fact "may the attacker pay to fire again" is decided** (the crosswind rule and affordability); `Game.payRefire(att,def)`.
-  - `Game.fleeSquares(def)` (rim allowed, as W9's ride animates), `Game.botWantsFlee(att,def,downwind)`, `Game.botFleeSquare(att,def,cells)`, `Game.flee(att,def,dest,rounds,downwind)` (move, record, event with `p`+`route`, then `tradewind`).
+  - `Game.mayFlee(rounds)` (when a defender may flee: both tails — the kind of rule his crosswind ruling was), `Game.fleeSquares(def)` (rim allowed, as W9's ride animates), `Game.botWantsFlee(att,def,downwind)`, `Game.botFleeSquare(att,def,cells)`, `Game.flee(att,def,dest,rounds,downwind)` (move, record, event with `p`+`route`, then `tradewind`).
   - `Game.botSpoilPick(win,lose)` (pure) and `Game.takeSpoil(win,lose,pick)`; a human's choice goes to `takeSpoil`.
   - `Game.nullBattle(…)` and `Game.winBattle(win,lose,pick,…)`.
   - `battle()` becomes the headless driver (bot choosers); `asyncBattleRun` keeps only pacing, animation and asking. **No second crosswind check is added beside the orchestrator's loop.** Its resolution, re-fire gate and payment, flee formula, crate move, counters and ending events are deleted, along with `util.js:621-622` and `engine:2828-2830`. The comment at `orchestrator.js:578` is corrected to the current rule; `rules.html:122` follows the rule.
+  - **What stays copied after this item — said here, not only in the summary (CEO correction 7):** the re-fire *loop* itself (`orchestrator.js:783`, `engine:1979`) and the order of the fight's steps remain written in both runners; every rule inside them becomes one engine step. Converging the order needs a generator both runners drive, which has never been tried.
+  - **Candidate the CEO found (read, not run) — fold in here, or into item 6:** "the tap starts the spin" is written once and missing twice. The ordinary flip spins the instant it is tapped (`flow.js:221, :231`, "THE TAP IS THE FLIP"); both fight-flip taps skip it — the host's own screen (`orchestrator.js:547-549`; the spin follows at `:651`) and a guest's (`:2070-2071`, which waits for the host's round trip, `:169-171`). The flip stage may hide it.
 - **Before the fix (Mac: Dev's requirement):** pose it in a browser on Wy-Blade at 375×812 — the same seed, a crosswind fight, both coins forced to heads — and screenshot the "Fire again" prompt appearing. After the fix, the matching screenshot shows it gone. The before picture proves the bug on the played path; the after picture proves the check can see it.
 - **d. GATE:** `scripts/qa/one_fight_rules_check.mjs` (comments stripped), each rule red-proofed:
   1. `refireOffered` holds the crosswind test and affordability; no `coins [<>]= refire` test and no two-heads-no-wind test exist outside it; `battle(` and `asyncBattleRun(` both call it; behavioural: a posed crosswind double-heads → false, a posed both-tails with a full purse → true. *Red:* the orchestrator's `refire&&att.coins>=refire` restored; the crosswind clause deleted from `refireOffered`.
   2. `.coins -= refire` and `t:"refire"` only in `payRefire`. *Red:* `att.coins-=refire` pasted back into the orchestrator.
-  3. Neither fight names `reachable(`/`reachableFrom(` for a flee; `t:"battleflee"` only in `Game.flee`, before `tradewind(`; the recipe-crate flee test only in `botWantsFlee`. *Red:* `battle()` back on `reachableFrom(def)`; `orchestrator.js:744` inline again.
+  3. The both-tails flee condition is written only in `mayFlee`; neither fight names `reachable(`/`reachableFrom(` for a flee; `t:"battleflee"` only in `Game.flee`, before `tradewind(`; the recipe-crate flee test only in `botWantsFlee`. *Red:* `battle()` back on `reachableFrom(def)`; `orchestrator.js:744` inline again.
   4. A spoil's `ing.splice(` only in `takeSpoil`; the pick order only in `botSpoilPick`, called by the planner and both fights; behavioural: a posed loser holding a crate another captain wants → that crate. *Red:* `orchestrator.js:847` restored.
   5. The `ah&&dh`/`downwind==="a"` resolution and `rounds.push(` only in `resolveRound`/`resolveRefire`; `t:"shotLands"` only in the engine; no `wonOnWind` in `util.js`. *Red:* the orchestrator resolving `if(ah&&dh)` itself.
   6. `battles++`, `attWins++`, `recordSkirmish(` and `t:"battle"|"battlenull"` never in `orchestrator.js`. *Red:* the orchestrator emitting `battlenull` itself.
   - `rules_claims_match_engine_check.mjs` is repointed at the methods both fights now call.
-- **e. COUNT BEFORE → AFTER:** re-fire offer 2 (one missing the rule) → 1 · re-fire payment 2 → 1 · flee squares 2 → 1 · flee decision 2 → 1 · flee record 2 → 1 · plunder pick 3 → 1 · round result 3 → 1 · bookkeeping 2 → 1.
+- **e. COUNT BEFORE → AFTER:** re-fire offer 2 (one missing the rule) → 1 · re-fire payment 2 → 1 · flee condition 2 → 1 · flee squares 2 → 1 · flee decision 2 → 1 · flee record 2 → 1 · plunder pick 3 → 1 · round result 3 → 1 · bookkeeping 2 → 1.
 - **PLAYER WOULD NOTICE:**
-  - **His ruling is missing from every real game:** a human attacker in a crosswind double-heads is asked "Fire again −2🌕" though the fight's own line says the cannonballs collide. **Measured (reproduced on Wy-Blade):** the engine copy, with a bot forced to want a re-fire, emits `powder,battlenull` and no `refire`. **Read (Wy-Blade and the Mac):** the real fight's loop has no crosswind test. **Measured (simulator):** 61 crosswind ties in 400 voyages; the attacker could pay in 49, a bot would in 33. The browser screenshot is still to be taken (see "Before the fix").
+  - **His ruling is missing from every real game:** a human attacker in a crosswind double-heads is asked "Fire again −2🌕" though the fight's own line says the cannonballs collide. **Measured (reproduced on Wy-Blade):** the engine copy, with a bot forced to want a re-fire, emits `powder,battlenull` and no `refire`. **Read (Wy-Blade and the Mac):** the real fight's loop has no crosswind test. **Measured by the rules auditor (simulator; not re-run by Wy-Blade):** 61 crosswind ties in 400 voyages; the attacker could pay in 49, a bot would in 33. The browser screenshot is still to be taken (see "Before the fix").
   - **Bots are tuned on a fight nobody plays. Measured and reproduced:** in 400 bot-only voyages (1842 fights) the two copies pick a different flee square in 483 (26.2%), every one the real fight's square on the rim; the winner's crate differs in 46 of 3166 pairings (1.5%). `rules_claims_match_engine_check.mjs` proves the fight's rules on copies real games never run.
   - **Inferred:** two bubbles explain the same two-heads tie; headless voyages have no `shotLands`.
 - **RISK** medium-high (the random-draw order moves; the live fight is choreographed and networked; the posed browser pictures and a two-window look are required) · **SIZE** L (engine ~+100/−60, orchestrator.js ~−120, util.js; one gate ~150 lines) · **CONFIDENCE** high (two full copies read line by line; four rules already differ; the ruling landed in one).
@@ -107,7 +109,7 @@ Items 1 and 2 are ranked first at Mac: Dev's request: both decide whether any bo
   - Crowning — count 2: `engine:3316-3326` (`resolveEnd`) and `orchestrator.js:1473-1490`.
   - Crow's-nest calls exist only in the live loop (`flow.js:3603-3655`).
   - `rules.html:113` tells players "3 gold coins".
-- **c. ONE PLACE:** engine `Game.beginVoyage(order)` (shuffle + starting purses), `Game.beginDay()` (wind, `newround` with `streak`, storm flag, cap) and `resolveEnd()`; `play()` and `runLiveNet` both call them. **His call:** keep the stagger (and the rules page says so) or drop it.
+- **c. ONE PLACE:** engine `Game.beginVoyage(order)` (shuffle + starting purses), `Game.beginDay()` (wind, `newround` with `streak`, storm flag, cap) and `resolveEnd()`; `play()` (its `playBakeoff` loop), `playClassic` (`engine:3260-3263`, which holds one of the three day caps) and `runLiveNet` all call them. **His call:** keep the stagger (and the rules page says so) or drop it.
 - **d. GATE:** `scripts/qa/one_voyage_start_check.mjs` — (1) `startCoins` read in one engine method; (2) `t:"newround"` emitted once in `src/`; (3) no literal `150` day cap outside the engine constant; (4) behavioural: after `beginVoyage` purses follow the one rule, and an engine day-start carries `streak`. Red-proof: paste `order.forEach((i,pos)=>{…startCoins+pos})` back into the orchestrator (1); drop `streak` from `beginDay` (4).
 - **e. COUNT BEFORE → AFTER:** starting purses 2 → 1 · day-start record 2 → 1 · day cap 3 → 1 · crowning 2 → 1.
 - **PLAYER WOULD NOTICE:** **measured** — the engine's voyage starts at [3,3,3,3] at the first `newround` on seeds 7919, 104729, 12345 (Wy-Blade), and the Mac measured 0 crow's-nest calls in an engine voyage; the live game gives 3/4/5/6. The rules page contradicts the game. Every bot ladder (`bot_ladder*.js`, `bot_matrix*.js`, `ladder_dead_trade.mjs`, `ladder_spares.mjs`) measures equal purses and no calls; the Mac treats all ladder results as provisional until this is one.
@@ -177,7 +179,7 @@ Items 1 and 2 are ranked first at Mac: Dev's request: both decide whether any bo
 - **c. ONE PLACE:** engine `Game.sailTo(p,dest,{from})` validates against `sailStates({throughRim:true})`, writes the position, emits `sail` with the route from that one search, then runs `tradewind`. All callers use it; delete their inline position writes, `ev({t:"sail"})` calls and `sailPath` calls. (`Game.flee`, item 1, moves through it.)
 - **d. GATE:** `scripts/qa/one_sail_move_check.mjs` — (1) `t:"sail"` emitted only in `sailTo`; (2) `sailPath(` called only inside the engine; (3) no `pos=dest` in UI or orchestrator; (4) behavioural: every simulator `sail` of 3+ squares carries `draw.route`. Red-proof: `sailTo` on `throughRim:false` (4); the old humanTurn sail lines pasted back (1, 3).
 - **e. COUNT BEFORE → AFTER:** route requests 5 → 1 · legality paths 2 → 1.
-- **PLAYER WOULD NOTICE:** **measured** in 200 simulator voyages: 1024 of 11,543 bot moves (8.9%) enter the current, and all 1024 are recorded with no route; asked the human way, all 1024 get one. **Inferred:** `present()` (`shared/storyboard.js:162-163`) draws nothing for a route-less sail, so a bot riding into the trade winds jumps instead of sailing — the live bot path uses the same `throughRim:false`. The comment at `flow.js:574-577` ("bots skip the rim") stopped being true on 2026-08-13.
+- **PLAYER WOULD NOTICE:** **measured by the rules auditor (not re-run by Wy-Blade)** in 200 simulator voyages: 1024 of 11,543 bot moves (8.9%) enter the current, and all 1024 are recorded with no route; asked the human way, all 1024 get one. **Inferred:** `present()` (`shared/storyboard.js:162-163`) draws nothing for a route-less sail, so a bot riding into the trade winds jumps instead of sailing — the live bot path uses the same `throughRim:false`. The comment at `flow.js:574-577` ("bots skip the rim") stopped being true on 2026-08-13.
 - **RISK** medium (sail animation; host/guest ordering) · **SIZE** M (3 files, ~40 lines + gate) · **CONFIDENCE** high.
 
 ### 8. What a crew guest's screen shows while a fight is on
@@ -210,39 +212,29 @@ Items 1 and 2 are ranked first at Mac: Dev's request: both decide whether any bo
 - **c. ONE PLACE:** `consumeEvent`'s guest branch applies `e.recipe` on `recipeSet` and refreshes the banner there. Delete `watchRecipes`, `netWatchRecipes`, `netSetRecipes` and the `recipes:null` slot in `startGame`. Graveyard: the same fold `54ede43a` did for sailing order; the objection in `fbf0993e` ("the recovery path uses the same door") is met — a guest's feed replays past events on attach, and a host reload re-runs the draft from the decision log.
 - **d. GATE:** `scripts/qa/recipe_one_pipe_check.mjs` — (1) `setRecipe(` has one caller outside the engine; (2) no `recipes` writer or watcher; (3) `consumeEvent` applies `e.recipe`; (4) `updateRecipeBanner(` only from the consumer. Red-proof: re-add the old `watchRecipes` body (1, 2).
 - **e. COUNT BEFORE → AFTER:** 2 pipes → 1.
-- **PLAYER WOULD NOTICE (inferred):** a Firebase write fires its own listener, so the host's pick is applied and published twice — every device may raise "yer recipe's stowed below" twice and spend two tutorial rungs on it; a guest's engine invents unnumbered `recipeSet` events (the same double-apply is why `_crew_turn_order_check` asserts "exactly one turnOrder event", `54ede43a`).
+- **PLAYER WOULD NOTICE (inferred):** a Firebase write fires its own listener, so the host's pick is applied and published twice — every device may raise "yer recipe's stowed below" twice and spend two tutorial rungs on it — **unproven, and it contradicts item 11's "A guest gets one"** (CEO correction 4): take a two-tab look (host and guest) before starting this item; a guest's engine invents unnumbered `recipeSet` events (the same double-apply is why `_crew_turn_order_check` asserts "exactly one turnOrder event", `54ede43a`).
 - **RISK** medium (host-reload replay event counts) · **SIZE** S-M (orchestrator.js, net/*, `net_contract_check` 15→14; ~35 lines removed) · **CONFIDENCE** high for the two pipes; medium-high for the doubled event.
 
 ### 11. When "yer recipe's stowed below" is shown
 *Found by: door auditor. Adjacent to item 10 (which can double it on every device); this is a second, separate copy on the host and in solo.*
 - **a. FACT:** when the recipe-stowed lesson card (and the captains-box blink) is shown.
 - **b. PLACES — count 2:** `src/orchestrator.js:1848-1859` (`consumeEvent` on `recipeSet`: `pilotSpeaks("recipe.stowed")` → `flashCaptainsBox()` → `pilotGate(…)`) and `src/orchestrator.js:1067-1081` (`recipeDraftNet`, the host loop, after awaiting that same card at `:1059`). Commit `fbf0993e` (2026-09-09) said "It is one line, here, in the one event consumer" and deleted the guest's copy but left the host loop's.
-- **c. ONE PLACE:** the consumer. Delete `orchestrator.js:1060-1081`.
-- **d. GATE:** `scripts/qa/recipe_stowed_one_place_check.mjs` — `pilotGate("recipe.stowed"` and `flashCaptainsBox(` each appear exactly once, inside `consumeEvent`. Red-proof: today's tree fails it; plus a mutant re-adding the block.
+- **c. ONE PLACE:** the consumer — **carrying the host loop's "one card per device" rule into it** (the `break` at `orchestrator.js:1080`; the consumer's copy at `:1849` has none), so a pass-and-play table with several humans spends one lesson rung, not one per human (CEO correction 1). Then delete `orchestrator.js:1060-1081`.
+- **d. GATE:** `scripts/qa/recipe_stowed_one_place_check.mjs` — `pilotGate("recipe.stowed"` and `flashCaptainsBox(` each appear exactly once, inside `consumeEvent`, and that copy carries the once-per-device rule; behavioural: a posed pass-and-play table with three humans spends one lesson rung. Red-proof: today's tree fails it; a mutant re-adding the block; a consumer copy without the once-per-device rule.
 - **e. COUNT BEFORE → AFTER:** 2 → 1.
-- **PLAYER WOULD NOTICE (inferred):** `pilotGate` advances the lesson count (`pilot.js:157`) on a 3-line ladder (`words.js:614`), so a first-time solo or host captain gets the long card, taps Aye aye, then a second shorter card and a second blink — and the lesson runs out a voyage early. A guest gets one.
+- **PLAYER WOULD NOTICE (inferred):** `pilotGate` advances the lesson count (`pilot.js:157`) on a 3-line ladder (`words.js:614`), so a first-time solo or host captain gets the long card, taps Aye aye, then a second shorter card and a second blink — and the lesson runs out a voyage early. A guest gets one — which item 10 contradicts (see there; CEO correction 4).
 - **RISK** low · **SIZE** S (1 file, −20 lines) · **CONFIDENCE** high.
-
-### 12. When the dotted course leaves the sea
-*Found by: door auditor.*
-- **a. FACT:** the dotted course is shown only on its captain's turn (his rulings 2026-09-10 and 2026-09-11: gone "the moment your boat starts animatedly sailing").
-- **b. PLACES — count 2:** `src/ui/flow.js:2944` (`takeTurn`: `forgetCourse()`, the computing machine only, every turn start) and `src/orchestrator.js:1897-1898` (`consumeEvent`: `if(moves)forgetCourse()`, every device, only on events carrying a route). (`flow.js:703/796`, the parrot-off teardown, is a different rule.)
-- **c. ONE PLACE:** `consumeEvent` forgets the course on `turn` as well as on moves. Delete `flow.js:2944`.
-- **d. GATE:** `scripts/qa/course_down_one_place_check.mjs` — no `forgetCourse(` in `takeTurn`/`humanTurn`/`botTurn`, and `consumeEvent` calls it on `turn` and on moves. Red-proof: `forgetCourse();` back at the top of `takeTurn`.
-- **e. COUNT BEFORE → AFTER:** 2 → 1.
-- **PLAYER WOULD NOTICE (inferred):** a crew guest who ends a turn with Stay put (no sail event) keeps their dotted line on the sea through the next captain's turn until someone sails; the host's clears at once.
-- **RISK** low · **SIZE** S (2 lines + gate) · **CONFIDENCE** high.
 
 ### 13. Whether ye may attack or trade, and the reason the button gives when ye may not
 *Found by: facts, rules, fight auditors.*
 - **a. FACT:** whether a captain may attack a ship (in range, the target not baking at Tortuga, powder money, a crate aboard) or open a trade (someone still on the board holds cargo), and why not.
 - **b. PLACES:**
-  - Attack — count 3 decisions of the reason, 6 range tests, 5 affordability tests: engine `canAttack :1897-1904` (baking target, powder, empty hold; no range test); `flow.js:2574` targets with no in-play filter; `flow.js:2575` and `:2875` re-test powder; `flow.js:2650-2651` picks the reason by elimination (powder, else `act.emptyHolds`). Range also at `flow.js:3246`, `engine:3013, :974, :1834, :1813-1815`; affordability also at `engine:1808, :2196`.
+  - Attack — count 3 decisions of the reason, 5 range tests, 4 affordability tests (counted without the dead `strikeFrom`, `engine:1806-1818`, reached only from `scripts/bot_ladder.js` — CEO correction 3): engine `canAttack :1897-1904` (baking target, powder, empty hold; no range test); `flow.js:2574` targets with no in-play filter; `flow.js:2575` and `:2875` re-test powder; `flow.js:2650-2651` picks the reason by elimination (powder, else `act.emptyHolds`). Range also at `flow.js:3246`, `engine:3013, :974, :1834`; affordability also at `engine:2196`.
   - Trade — count 2-3: engine `holdersOf :1210-1212` (`inPlay`, excludes bakers); `flow.js:2600` `canTrade` checks `!q.done&&q.ing.length>0` (counts a baker's crates); "has something to offer" re-tested `flow.js:2599, :2311`.
   - In play: crow's-nest callers `flow.js:3605` use `!player.done`; engine `tradeOpp :975` is used only by the rules gate.
 - **c. ONE PLACE:** engine `Game.attackTargets(p)` (range + `canAttack`) with `Game.whyNoAttack(att,def)`, and `Game.canOpenTrade(p)` with its reason; the menu greys the buttons and picks the words only from the returned reason (a new "sanctuary" line is his wording); crow's-nest callers filtered by `inPlay`. **His call:** may a captain who is baking still make crow's-nest calls?
 - **d. GATE:** `scripts/qa/action_reasons_from_engine_check.mjs` — (1) `flow.js` has no powder comparison, no `.done`/`.ing.length` trade filter, and no `players.filter` for targets/traders/callers without `inPlay`; (2) behavioural: a captain beside a baker with a full hold gets "sanctuary"; a table whose only crates are aboard a baker gets "no cargo". Red-proof: restore `flow.js:2574`'s filter or `:2575`'s powder test (1); let `canTrade` count bakers (2).
-- **e. COUNT BEFORE → AFTER:** attack reason 3 → 1 · range 6 → 1 · affordability 5 → 1 · trade eligibility 3 → 1.
+- **e. COUNT BEFORE → AFTER:** attack reason 3 → 1 · range 5 → 1 · affordability 4 → 1 · trade eligibility 3 → 1.
 - **PLAYER WOULD NOTICE (inferred):** beside a captain baking at Tortuga, Attack is greyed with "Their holds are empty — there's nothin' aboard worth takin'" to a captain holding five crates; when the only cargo on the water is aboard a baker, Trade is enabled and tapping it bounces with "No one has cargo to trade for." The comment at `flow.js:2571-2573` still says ovens don't protect.
 - **RISK** low · **SIZE** S-M (2 files, ~30 lines + gate) · **CONFIDENCE** high.
 
@@ -255,7 +247,7 @@ Items 1 and 2 are ranked first at Mac: Dev's request: both decide whether any bo
 - **c. ONE PLACE:** the hail returns `{spoken,struck}` and one rule in the turn executor decides what `spoken` costs, for all three. **His call:** "spoken ends the turn" everywhere, or everyone may still dock or muse after a refusal (levelling humans up).
 - **d. GATE:** `scripts/qa/spoken_hail_one_rule_check.mjs` — (1) the simulator turn, `botTurn` and `humanAct` read the same flag; (2) behavioural: across 50 simulator voyages the one rule holds for every `openoffer`. Red-proof: restore `if(plan.type==="trade"&&this.tryTrade(p))return;`.
 - **e. COUNT BEFORE → AFTER:** 3 → 1.
-- **PLAYER WOULD NOTICE:** **measured** in 200 simulator voyages: 195 of 416 hails struck no deal, and every one of those bots then docked (32) or mused (163) in the same turn — in the live game both humans and bots end the turn. The ladder's economy and the guarded hails-per-game number are measured on the more generous rule; re-measure both after converging (TRADE-SYSTEM §9).
+- **PLAYER WOULD NOTICE:** **measured by the rules auditor (not re-run by Wy-Blade)** in 200 simulator voyages: 195 of 416 hails struck no deal, and every one of those bots then docked (32) or mused (163) in the same turn — in the live game both humans and bots end the turn. The ladder's economy and the guarded hails-per-game number are measured on the more generous rule; re-measure both after converging (TRADE-SYSTEM §9).
 - **RISK** medium (bot economy) · **SIZE** S (2 files, ~15 lines) · **CONFIDENCE** high.
 
 ### 15. A bot's trade hail: who is asked, which answer it takes, what the answerer sees
@@ -265,20 +257,30 @@ Items 1 and 2 are ranked first at Mac: Dev's request: both decide whether any bo
 - **c. ONE PLACE:** engine `Game.resolveHail(p,offer,responses)` (audience, memory, choosing for a bot asker, settling, a `parley` event with its reason) called by both runners; one `humanAnswersHail(q,asker,offer)` in flow.js; the narration table words `parley` by reason for every captain. Delete `botOpenTradeLive`'s settle block, the second prompt copy, the typed `1.1` and the four `sayFlash("trade.…")` outcome calls.
 - **d. GATE:** `scripts/qa/one_hail_check.mjs` — (1) `rememberRefusal(` only in `resolveHail`; (2) the counter-pricing loop exists once; (3) `say("trade.offered"` appears once; (4) no numeric literal in `src/ui` or `src/orchestrator.js` equals a `PLAN` value in a pricing expression; (5) no `sayFlash("trade.` outcome ids in flow.js, and the narration table has a `parley` entry reading its reason. Red-proof: `for(const q of g.holdersOf(offer.want,player))` pasted back (1); `1.1` back (4); `sayFlash("trade.walksAway")` back (5).
 - **e. COUNT BEFORE → AFTER:** audience 2 → 1 · refusal memory 2 → 1 · answer choice and pricing 2 → 1 · answering prompt 2 → 1 · fall-through words 2 → 1.
-- **PLAYER WOULD NOTICE:** **measured (simulator):** 3 of 416 bot hails would prompt a holder the bot had excluded (4 extra prompts) — rare, but the "swat it away" noise TRADE-SYSTEM invariant I1 guards. **Inferred:** a bot's failed hail ends in silence where a human's says why. The hail count is a guarded number (HARD-WON-LESSONS §5) — re-measure hails per game.
+- **PLAYER WOULD NOTICE:** **measured by the rules auditor (simulator; not re-run by Wy-Blade):** 3 of 416 bot hails would prompt a holder the bot had excluded (4 extra prompts) — rare, but the "swat it away" noise TRADE-SYSTEM invariant I1 guards. **Inferred:** a bot's failed hail ends in silence where a human's says why. The hail count is a guarded number (HARD-WON-LESSONS §5) — re-measure hails per game.
 - **RISK** medium · **SIZE** M (engine +40, flow.js −80, util.js; gate) · **CONFIDENCE** high.
 
-### 16. The bot brain's odds of winning, fleeing or losing a fight
+### 16. The bot brain's odds of winning, fleeing or losing a fight — PARTLY: a typed number, not a copy (CEO correction 3)
 *Found by: fight auditor. Belongs with the smarter-bots session's work; listed so it is not lost.*
 - **a. FACT:** the chance a fight ends won, fled or lost, as the bot brain prices it.
-- **b. PLACES — count 3:** `engine:2822` `const pWin=downwind?0.5:0.25,pFlee=downwind?0.25:0` (measured 2026-08-09, `8eb1a95d`, before the crosswind ruling); `engine:1812, :1815` (`strikeFrom`, `pWin:0.5/0.25`); and the real rules those numbers stand in for (the fight's steps, item 1).
-- **c. ONE PLACE:** engine `Game.fightOdds(att,def,cell)` computed from item 1's fight steps (heads at 0.5, the extra-shot chain capped by `wantsRefire` and purse); the brain and `strikeFrom` read it; the typed constants are deleted.
-- **d. GATE:** `scripts/qa/fight_odds_derived_check.mjs` — (1) no numeric-literal `pWin`/`pFlee` in the planner or `strikeFrom`; (2) on 4 posed fights `fightOdds` is within 1.5 points of 20,000 engine battles. Red-proof: the typed constant restored while the crosswind rule changes (2).
-- **e. COUNT BEFORE → AFTER:** 3 → 1.
-- **PLAYER WOULD NOTICE:** **measured (auditor):** all 226 crosswind fights and all 90 defender-downwind fights in 400 voyages had a defender holding a crate it cannot lose, so the flee rule flees on two tails in every one — the brain priced fleeing at 0 in all 316 of 1842 fights (17%). Bot strength changes; re-run the win-rate ladder after.
+- **b. PLACES — one typed number, not a second copy:** `engine:2822` `const pWin=downwind?0.5:0.25,pFlee=downwind?0.25:0` (measured 2026-08-09, `8eb1a95d`, before the crosswind ruling), standing in for the rules item 1's fight steps decide. The other typed odds, `engine:1812, :1815`, sit in `strikeFrom`, which is dead (reached only through `chooseTarget`/`chooseAction`, `engine:2295, :2910`, called only by `scripts/bot_ladder.js:56, 65`). A "nothing is a constant" fault rather than a copy.
+- **c. ONE PLACE:** engine `Game.fightOdds(att,def,cell)` computed from item 1's fight steps (heads at 0.5, the extra-shot chain capped by `wantsRefire` and purse); the brain reads it; the typed constant is deleted (`strikeFrom` belongs to the dead-code list).
+- **d. GATE:** `scripts/qa/fight_odds_derived_check.mjs` — (1) no numeric-literal `pWin`/`pFlee` in the planner; (2) on 4 posed fights `fightOdds` is within 1.5 points of 20,000 engine battles. Red-proof: the typed constant restored while the crosswind rule changes (2).
+- **e. COUNT BEFORE → AFTER:** one typed number → derived from the fight's rules.
+- **PLAYER WOULD NOTICE:** **read — what `engine:2822` says, applied to fights the fight auditor counted (not re-run by Wy-Blade):** all 226 crosswind fights and all 90 defender-downwind fights in 400 voyages had a defender holding a crate it cannot lose, so the flee rule flees on two tails in every one — the brain priced fleeing at 0 in all 316 of 1842 fights (17%). Bot strength changes; re-run the win-rate ladder after.
 - **RISK** medium · **SIZE** M (engine ~40 lines) · **CONFIDENCE** high.
 
 # TIER 3 — a player would notice rarely, or on one kind of screen
+
+### 12. When the dotted course leaves the sea *(moved here from Tier 1 by the CEO, correction 2)*
+*Found by: door auditor.*
+- **a. FACT:** the dotted course is shown only on its captain's turn (his rulings 2026-09-10 and 2026-09-11: gone "the moment your boat starts animatedly sailing").
+- **b. PLACES — count 2:** `src/ui/flow.js:2944` (`takeTurn`: `forgetCourse()`, the computing machine only, every turn start) and `src/orchestrator.js:1897-1898` (`consumeEvent`: `if(moves)forgetCourse()`, every device, only on events carrying a route). (`flow.js:703/796`, the parrot-off teardown, is a different rule.)
+- **c. ONE PLACE:** `consumeEvent` forgets the course on `turn` as well as on moves. Delete `flow.js:2944`.
+- **d. GATE:** `scripts/qa/course_down_one_place_check.mjs` — no `forgetCourse(` in `takeTurn`/`humanTurn`/`botTurn`, and `consumeEvent` calls it on `turn` and on moves. Red-proof: `forgetCourse();` back at the top of `takeTurn`.
+- **e. COUNT BEFORE → AFTER:** 2 → 1.
+- **PLAYER WOULD NOTICE (inferred):** a crew guest who ends a turn with Stay put (no sail event) keeps their dotted line on the sea through the next captain's turn until someone sails; the host's clears at once. **Narrow** (the CEO): the other clears run only with the parrot off (`flow.js:703, 796`), so only a crew guest with the parrot on who stays put would ever see it.
+- **RISK** low · **SIZE** S (2 lines + gate) · **CONFIDENCE** high.
 
 ### 17. A bake-off re-watch: when its price leaves the baker's purse, on every screen
 *Found by: forks, door, host/guest auditors (the rules auditor judged the guest copy an allowed display — see "Resolved disagreements").*
@@ -307,7 +309,7 @@ Items 1 and 2 are ranked first at Mac: Dev's request: both decide whether any bo
 - **c. ONE PLACE:** one `afterSail(player)` called by all four (with item 7's `sailTo` it becomes the engine's own `tradewind` step); the engine records the zero-length ride (`{t:"tradewind",p,ride:0}`) and the narration table words it, for bots and humans alike.
 - **d. GATE:** `scripts/qa/after_sail_one_step_check.mjs` — (1) `tradewind(` has one caller in the display code; (2) `"rim.head"` is in no `sayFlash`. Red-proof: inline the wind block back into `botTurn` (1).
 - **e. COUNT BEFORE → AFTER:** 4 → 1.
-- **PLAYER WOULD NOTICE:** **measured by grep:** "rim.head" is said only at `flow.js:3036` — a human who picks Move instead, a bot, or a fleeing captain who lands at the head of the current gets no line.
+- **PLAYER WOULD NOTICE:** **read (a grep, then the lines):** "rim.head" is said only at `flow.js:3036` — a human who picks Move instead, a bot, or a fleeing captain who lands at the head of the current gets no line.
 - **RISK** low · **SIZE** S (~25 lines) · **CONFIDENCE** medium-high.
 
 ### 20. A counter-offer's ceiling: the most coin it may ask for
@@ -445,11 +447,27 @@ Items 1 and 2 are ranked first at Mac: Dev's request: both decide whether any bo
 - **Dead code noticed on the way (out of scope; not proposed):** the board's hidden compass and forecast arrows (`stage.js:32`, `board.js:2625, 2644`); `stage.js:1831` storm `camFull()` (deleted with item 24); `drumroll` still loaded but never played (`audio.js:35`); `lobby.js:421`; the battle box's leftover counters and `waiting` field; `appState.turnExpired`; `chooseAction`/`chooseTarget`/`huntTarget`/`strikeFrom`/`adjOpp` (called only by `scripts/bot_ladder.js` against `v2bakeoff`); `justDocked`/`dockedNow`/`firstFlip` never read by a live rule; `scripts/battle_sim.js` (an abandoned ruleset).
 
 ## Suggested order of work (sequencing is mine; the Mac chooses which items)
-The two that decide whether bot results mean anything first — item 1 opening with its posed browser picture — then the small, clear, player-visible ones, then the wide ones:
+The two that decide whether bot results mean anything first — item 1 opening with its posed browser picture (the CEO: "Item 1 may start now") — then the small, clear, player-visible ones, then the wide ones:
 1 → 2 → 11, 12, 8, 13, 20, 18, 19, 14 → 3 → 4, 9, 25 → 5 → 7 → 15 → 10 → 21, 22, 17 → 16 → 6 → 24 → 23 → tier 4 (27–42) → 26 last.
 `npm test` exit 0 after every item; one commit per item with its a–e; `gates.total` bumped as gates land; the sea trial on the final tip.
 
 ---
 
-## CEO verdict
-*(recorded here after the review runs)*
+## CEO verdict — 2026-09-16, on `1ea8705a`
+
+**Its headline, verbatim:** *A REAL LIST: ALL 13 TOP ITEMS ARE REAL. SEVEN CORRECTIONS BEFORE IT COUNTS AS CEO-VERIFIED; ITEM 1 CAN START NOW*
+
+**Its one sentence for Wyatt, verbatim:** *"The list is honest and its biggest finding is real: in every real game, a human who fires two heads in a crosswind is still offered "Fire again", against your ruling. But seven things in the list need fixing first, including one item (the "recipe stowed" card) whose fix as written would leave a double card in pass-and-play."*
+
+**What it opened itself:** Tier 1 items 1–13 (all); Tiers 2–4 items 14, 15, 16, 17, 18, 19, 20, 22, 29, 31, 38, 40; one sea-trial screenshot (`solo-desktop-013-settled.png`, which shows item 3's split). Every cited line it checked was accurate. Item 16 PARTLY (a typed number); every other item it opened REAL.
+
+**Its seven corrections — all applied in this file:**
+1. Item 11: the "one card per device" rule moves into the one event door, not just a deleted loop. — *applied (item 11 c and d).*
+2. Item 12: moved to Tier 3. — *applied.*
+3. Items 13 and 16: the dead `strikeFrom` copies taken out of the counts; item 16 re-described as a typed number (PARTLY). — *applied.*
+4. Items 10 and 11: the contradiction about what a guest sees stated in both; the two-tab look required before item 10. — *applied.*
+5. Items 1, 7, 14, 15: numbers marked "measured by the rules auditor, not re-run by Wy-Blade"; item 19's grep and item 16's "0 in 316" relabelled as readings. — *applied.*
+6. Item 2: `playClassic` named in the one-place plan. — *applied.*
+7. Item 1: the defender's flee condition named as a step (`Game.mayFlee`), and the re-fire loop and step order stated in the item's own text as copies that stay; the CEO's spin-at-tap find added as a candidate. — *applied.*
+
+**Its other notes, carried:** item 9's "no-narrate form" of the bot's pause is a small special case beside `botBeat` (`util.js:1821-1825`) — make the pause itself not narrate, rather than add a second version; items 20 and 21 are the closest to deserving a higher rank. The full verdict is recorded verbatim at the top of `.claude/CEO-REVIEWS.md` and `.planning/CEO-REVIEWS.md` (the two verdict files it flagged as a process fault).
