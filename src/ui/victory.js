@@ -373,12 +373,15 @@ function pageTally(el, v, c, card) {
   }
   return totalAt + g.reel + extra + g.hold;
 }
+/* a number rolling up like a slot reel. Its timing is the animation frame's own clock; its tick asks audio.js, which
+   spaces the coin tick in ONE place (playSpaced — sound_spacing_one_place_check), so nothing here keeps a sound clock. */
 function reel(el, to, dur, prefix, quiet) {
-  const s = performance.now(); let last = 0;
-  const step = () => { if (!el.isConnected) return; const now = performance.now(), k = Math.min(1, (now - s) / Math.max(1, dur)), e = 1 - Math.pow(1 - k, 3);
-    el.textContent = prefix + Math.round(to * e); if (!quiet && now - last > 90 && k < 1) { last = now; playCoinTick(); }
+  let start = null, shown = null;
+  const step = t => { if (!el.isConnected) return; if (start === null) start = t;
+    const k = Math.min(1, (t - start) / Math.max(1, dur)), v = Math.round(to * (1 - Math.pow(1 - k, 3)));
+    if (v !== shown) { shown = v; el.textContent = prefix + v; if (!quiet && k < 1) playCoinTick(); }
     if (k < 1) requestAnimationFrame(step); };
-  step();
+  requestAnimationFrame(step);
 }
 
 /* -------- set sail again: the Play again button is a dock -------- */
