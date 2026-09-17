@@ -12,7 +12,7 @@ const HERE = path.dirname(fileURLToPath(import.meta.url));
 const REPO = path.resolve(HERE, "../../..");
 const { launch, attach, killAll, sleep } = await import(pathToFileURL(path.join(REPO, "scripts/mp_rig.mjs")).href);
 const PAGE_VOLUME = 0.7;                       // the tuner's own default volume — the level he heard them at
-export const CHINK_SLOT_S = 0.35, CHINK_LEAD_S = 0.03, CHINK_SLOTS = 3;
+export const CHINK_SLOT_S = 0.5, CHINK_LEAD_S = 0.03, CHINK_SLOTS = 3;   // 0.35 until 2026-09-16's Silver, which rings for 0.45s
 const PROFILE = path.join(process.env.TMPDIR || "/tmp", "pp-render-coin-chink");
 launch(9907, PROFILE);
 const C = await attach(9907);
@@ -32,9 +32,18 @@ try {
       const g=a.createGain(); g.gain.value=gain; n.connect(f).connect(g).connect(out); n.start(t); };
     const S=${CHINK_SLOT_S}, L=${CHINK_LEAD_S};
     const A=0*S+L, B=1*S+L, D=2*S+L;
-    /* A — a short bright chink */ ping(A,2350,0.18,"triangle",0.25); ping(A,3520,0.12,"sine",0.12,8); noise(A,0.05,0.05,4000);
-    /* B — a fatter, lower clink */ ping(B,1180,0.26,"triangle",0.3); ping(B,1770,0.16,"sine",0.14); noise(B,0.09,0.08,1500);
-    /* C — two-stage, a coin settling */ ping(D,2650,0.14,"sine",0.2); ping(D+0.055,2180,0.2,"triangle",0.22); noise(D,0.04,0.04,5000);
+    /* ROUND 2 (2026-09-16): "I also don't love the coin chink sound" — three coins built like real coins on his tuner, rendered from its
+       recipe: a struck disc rings at several inharmonic pitches at once (ring), a purse is a low muffled knock (thump). He picked A. */
+    const ring=(t,f0,ratios,amps,decays)=>ratios.forEach((r,i)=>ping(t,f0*r,decays[i],"sine",amps[i],(i*7)%11-5));
+    const thump=(t,dur,gain,lp)=>{ const n=a.createBufferSource(), buf=a.createBuffer(1,Math.ceil(sr*dur),sr), d=buf.getChannelData(0);
+      for(let i=0;i<d.length;i++) d[i]=(Math.random()*2-1)*Math.pow(1-i/d.length,2);
+      n.buffer=buf; const f=a.createBiquadFilter(); f.type="lowpass"; f.frequency.value=lp; const g=a.createGain(); g.gain.value=gain;
+      n.connect(f).connect(g).connect(out); n.start(t); };
+    /* A — Silver: one bright coin, ringing */ ring(A,2650,[1,1.59,2.14,2.65],[.22,.12,.07,.04],[.45,.3,.19,.12]); noise(A,.006,.07,5000);
+    /* B — Into the purse */ ring(B,2150,[1,1.6,2.2],[.2,.1,.05],[.2,.14,.09]); noise(B,.005,.06,3500); thump(B,.05,.5,180);
+                              ring(B+.055,2290,[1,1.62],[.07,.03],[.12,.08]); thump(B+.055,.03,.25,160);
+    /* C — On the pile */ ring(D,1900,[1,1.55,2.3],[.18,.08,.04],[.26,.17,.1]); noise(D,.006,.06,3000);
+                          [45,85,130].forEach((ms,i)=>ring(D+ms/1000,2350+i*140,[1,1.71],[.05-i*.012,.02],[.07,.045]));
     const d=(await a.startRendering()).getChannelData(0), bytes=new Uint8Array(d.length*2); let peak=0;
     for(let i=0;i<d.length;i++){ if(Math.abs(d[i])>peak)peak=Math.abs(d[i]); const v=Math.max(-32768,Math.min(32767,Math.round(d[i]*32767))); bytes[2*i]=v&255; bytes[2*i+1]=(v>>8)&255; }
     let s=""; for(let i=0;i<bytes.length;i+=8192) s+=String.fromCharCode.apply(null,bytes.subarray(i,i+8192));

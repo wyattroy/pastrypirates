@@ -959,9 +959,15 @@ function playCoinTick() { playSpaced("abacus-click", TICK_GAP_MS); }
    (scratch chink_clip.mjs, 2026-09-16): one chink peaks at 0.41 of full scale; three at his 325ms spacing, 0.41; a 20-coin haul at its
    tightest 84ms, 0.41; even 40ms apart, 0.42 — each has decayed to a whisper before the next begins. Two on the same instant, 0.81;
    only THREE on the same instant would clip (1.22), and no path does that: a haul's coins are at least 84ms apart, and at most two
-   purses fill at once (two side-bet winners in a four-seat game). So every chink plays. */
-const CHINK_SLOT_S = 0.35, CHINK_LEAD_S = 0.03, CHINK_SLOTS = 3;
-const CHINK_PICK = 1;          // 0 = A (short and bright), 1 = B (fatter, lower) — his pick, 2 = C (two-stage, a coin settling)
+   purses fill at once (two side-bet winners in a four-seat game). So every chink plays.
+   RE-MEASURED FOR SILVER, 2026-09-16 (scratch chink_clip_silver.mjs, the rendered file at this gain): one chink 0.38; three at his 470ms,
+   five at 400ms, twenty at 84ms and even at 40ms, all 0.38; two on the same instant 0.75; three on the same instant 1.13 — the same
+   picture as B: only a path that lands three coins on one instant would clip, and none does. */
+/* ROUND 2, 2026-09-16: "I also don't love the coin chink sound." Three coins built like real ones went on the tuner — a struck disc
+   ringing at several pitches at once — and he picked: "the chink I pick: A". The file now holds those three, in longer slots (Silver
+   rings for 0.45s). */
+const CHINK_SLOT_S = 0.5, CHINK_LEAD_S = 0.03, CHINK_SLOTS = 3;
+const CHINK_PICK = 0;          // 0 = A, Silver — his pick · 1 = B, Into the purse · 2 = C, On the pile
 function playCoinChink() {
   const s = Math.max(0, Math.min(CHINK_SLOTS - 1, CHINK_PICK));
   play("coin-chink", { from: s * CHINK_SLOT_S + CHINK_LEAD_S - 0.01, dur: CHINK_SLOT_S - CHINK_LEAD_S });

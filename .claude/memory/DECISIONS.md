@@ -3452,3 +3452,5 @@ tomorrow's sea overnight, rejecting a seed that cannot be baked or that one seat
   - **Bake-off crates static, lids dropping again and again — REGRESSION:** 5e2654de (my 09-15 swish) declared the swish's clock below the
     `await runSwaps()` that called it; the shuffle threw before its first crate moved and each watcher rebuilt and re-dropped · sound
     spacing clocks 2 → 1 (audio.js playSpaced) · sound_spacing_one_place_check.
+  - **THE COIN CHINK — HIS PICK, 2026-09-16:** *"the chink I pick: A"* — Silver, one bright coin ringing. sfx/coin-chink.mp3 re-rendered
+    with the three round-2 coins (slots now 0.5s); audio.js CHINK_PICK 0. Layering re-measured: one 0.38, any haul 0.38, two at once 0.75.
