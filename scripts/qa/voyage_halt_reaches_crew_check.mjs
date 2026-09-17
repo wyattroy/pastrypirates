@@ -45,9 +45,9 @@ function rules(files) {
     `haltVoyage is not the one door (records:${/\.halt\(where\)/.test(door)} pushes:${/pushEvents\(\)/.test(door)}), or ${strays.length} call(s) outside the two named sites still draw the box themselves: ${strays.join(", ")}`);
   const consume = body(orch, "export async function consumeEvent(e){");
   rule(/e\.t===?"halted"/.test(consume) && /releaseBench\(\)/.test(consume) && /voyageAground\(/.test(consume) && /releaseBench\(\)/.test(door)
-       && /function releaseBench\(\)\{[^}]*applyBenchSnap\(null\)/.test(orch),
-    "a stopped voyage releases the bench on every screen — the ones that hear it and the one that called it",
-    "a screen is left holding a live bake bench under the wreck box (the host's own, or a watcher's)");
+       && /function releaseBench\(\)\{[^}]*applyBenchSnap\(null\)[\s\S]{0,80}retireBakeCard\(\)/.test(orch),
+    "a stopped voyage releases BOTH kinds of bake-off on every screen — a watcher's bench and the baker's own card",
+    "a screen is left holding a live bake-off under the wreck box (a watcher's bench, or the baker's own card)");
   const chain = [/runLiveNet\(\)\.catch\(([^)]*)\)/, /_evQ = _evQ\.then\(\(\) => consumeEvent\(e\)\)\.catch\(([^;]*)\)/];
   const silent = chain.map(re => (orch.match(re) || [""])[0]).filter(t => t && !/haltVoyage/.test(t));
   const namedException = /panel\.js's drain catch keeps calling voyageAground/.test(files["src/orchestrator.js"]) && /voyageAground\(/.test(panel);
@@ -66,6 +66,7 @@ const MUTANTS = [
   ["a voyage catch drawing the box itself again", broken("src/orchestrator.js", 'runLiveNet().catch(e=>haltVoyage(e,"runLiveNet"))', 'runLiveNet().catch(e=>voyageAground(e,"runLiveNet"))'), 1],
   ["the consumer no longer releasing the bench", broken("src/orchestrator.js", 'if(e.t==="halted"){ releaseBench();', 'if(e.t==="halted"){'), 2],
   ["the calling screen left holding its own bench", broken("src/orchestrator.js", "  releaseBench();\n  voyageAground(err,where);", "  voyageAground(err,where);"), 2],
+  ["the baker's own card left up (only a watcher's bench released)", broken("src/orchestrator.js", "try{ retireBakeCard(); }catch(e){}", ""), 2],
   ["the event queue dying quietly again", broken("src/orchestrator.js", '.catch(err => haltVoyage(err, "consumeEvent"))', '.catch(err => { console.error("consumeEvent", err); })'), 3],
 ];
 let proof = true;

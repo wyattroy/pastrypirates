@@ -101,7 +101,7 @@ import {
 import {
   showNarration, panel, setNeedsAction, flash, fadeOutPanel, narrateLastEvent, liveRender, setClockUI,
   narrateEvent, // a fight says how it ended from the event its ending recorded (architecture item 9)
-  bakeoffPrompt, bakeoffReveal, playBakeoffLive,
+  bakeoffPrompt, bakeoffReveal, playBakeoffLive, retireBakeCard,
   benchChoreoMs, BENCH_STUDY_MS, BENCH_BEAT_MS, // A-2: the choreography's own timings, answered by the file that runs them
   appendChatLine, showChatBubble,
   setFlipActive, armFlipTap, landFlipCoin, boardCell, boardShipEls, drawBoard, render, resetBoardLog, bobTheTurn, sailSetsOff, sailArrives, payInto, payOut, crateFlightFrom, crateFlightTo, holdMovesFrom, holdMovesTo, rideStreaks, firstHomeConfetti, shotLands, loserKnocked, stopTurnBob,
@@ -1455,8 +1455,12 @@ export function haltVoyage(err,where){
   releaseBench();
   voyageAground(err,where);
 }
-// a halted voyage lets go of whatever bake bench this screen is holding — the one release, used by the door and by the consumer
-function releaseBench(){ try{ applyBenchSnap(null); }catch(e){} }
+/* A HALTED VOYAGE LETS GO OF WHATEVER BAKE-OFF THIS SCREEN IS HOLDING — and there are TWO kinds, which is what Wy-Blade's second
+   run caught: a WATCHER's bench, retired by applyBenchSnap(null) (it retires `_bench`, which only benchWatch ever sets), and the
+   BAKER's own card, which applyBenchSnap returns early on (`if(decisionIsLocal(snap.seat))return null;`) and which leaves the screen
+   through bakeoff.js retireBakeCard — the one place it ever does. Measured before this: the guest was released in 0.18 s while the
+   host sat under the wreck box with "Tap the crates in recipe order" and a live "Watch again 🪙1" behind it, for all 250 samples. */
+function releaseBench(){ try{ applyBenchSnap(null); }catch(e){} try{ retireBakeCard(); }catch(e){} }
 // host: broadcast new events to the shared feed
 export function pushEvents(){
   /* W9: THE HOST GUARD LIVES HERE, on the publisher itself, not on each caller. It used to sit
