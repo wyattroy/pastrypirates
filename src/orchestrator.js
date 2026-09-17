@@ -79,7 +79,7 @@ import {
   rulesFacts, // A-7: the one source of every number the How-to-Play page teaches
   subjectOf,  // Q-18: the ONE rule both seats run — never a decision one seat ships to the other
 } from "./shared/index.js";
-import { initAudio, playForEvent, playWinScreen, playBattleEngage, isMuted, cycleSoundMode, audioRunning, wakeCtx, kickAudioSession, recoverAudio } from "./ui/audio.js";
+import { initAudio, playForEvent, playWinScreen, isMuted, cycleSoundMode, audioRunning, wakeCtx, kickAudioSession, recoverAudio } from "./ui/audio.js";
 import {
   netDeleteRoom,
   netSetNarr, netPushChat, netWatchChat,
@@ -463,10 +463,8 @@ export function applyBattleSnap(snap){
     appState.spectatingBattle=false;
     return;
   }
-  // Reading spectatingBattle BEFORE assigning it true IS the edge trigger (260801-7f4): this runs
-  // on every write to the battle node, many times per fight, so read-then-assign is what keeps the
-  // clash to once per battle instead of once per scoreboard update.
-  if(!appState.spectatingBattle&&!snap.title)playBattleEngage();
+  /* (the guest's clash stood here — played on the first battle snapshot this screen heard, which comes after the opening line and every
+     crow's-nest call. Architecture item 4: the clash is the engine's `engage` event, sounded by the one event consumer on every screen.) */
   appState.spectatingBattle=true;
   if(!appState.inBattlePrompt)renderBattleFromSnap(snap);
 }
@@ -488,24 +486,9 @@ export function watchBattle(){
        not a side effect of the bake-off. */
     if(appState.isHost)return;
     if(v){
-      // 260801-7f4 (guest tier): reading spectatingBattle BEFORE assigning it true IS the edge
-      // trigger — this callback fires on every write to the battle node (many times per fight,
-      // once per battlePublish()), so without the read-then-assign order the clash would re-fire
-      // on every scoreboard update instead of once per battle.
-      //
-      // `!v.title` — REWRITTEN 04-01 Task 3 TO SAY WHAT IT NOW DOES rather than what it was left
-      // waiting for. It used to be described as "the bakeoff exclusion... the bakeoff stays exactly
-      // as silent as it is today", parked on a snapshot producer that turned out not to exist in
-      // this tree at all: asyncBakeoff is ROOT-ONLY (v2 rule 12 deleted it from 4/), so nothing
-      // here ever produced a `title` and the guard had never once fired. It fires now. A BENCH
-      // SNAPSHOT CARRIES A TITLE, so the battle sting cannot play over a bake — and the bake branch
-      // above returns before this line anyway, which makes this the belt rather than the braces.
-      // Keep both: a future bench field that forgot `bake` would still not sound a clash.
-      //
-      // Known, accepted variance on the battle path itself: this lands on the
-      // first battle-node write (the scoreboard appearing), which trails the host's own clash on
-      // the announcement by a few seconds when a human spectator is put through side-bet prompts —
-      // still before the first flip, still fixing the "end of fight" complaint on this tier too.
+      /* (The clash's once-per-fight edge, and the "known, accepted variance" that it trailed the host's clash by seconds when a human was
+         asked for a crow's-nest call, stood here. Architecture item 4: the clash and the camera's hold come from the engine's `engage`
+         event through the one event consumer, so they no longer wait for a snapshot to be written.) */
       applyBattleSnap(v);
     }
     // T-04: the battle node cleared, so the fight is over. This used to set the flag and draw
@@ -595,35 +578,40 @@ export function battleAsk(player,o,msg,opts,colors){
 
    `need` is gone along with the scoreboard race: the battle-UI's a/d counters now only ever read
    0 or 1, and exist so the shared battlePublish() scoreboard keeps working unchanged. */
-/* THE CAMERA IS ARMED AND DISARMED AROUND THE WHOLE FIGHT, not around the battle card, because a
+/* THE CAMERA IS HELD AND LET GO AROUND THE WHOLE FIGHT, not around the battle card, because a
    battle asks its questions before the card exists — collectSideBets runs first, and playtest 22
    found the crow's-nest call being made with the camera parked on the caller's own boat (Wyatt:
    "the director should focus battles on the players fighting, not the player calling the battle").
-   A wrapper rather than a line at each exit: asyncBattle returns from a flee, a NULL, a decline and
-   two ordinary endings, and a hold that outlives one of them would freeze the director for the rest
-   of the voyage. `finally` is the only spelling that cannot be got wrong later. */
+   ⭐ AND IT IS HELD AND LET GO ON EVERY SCREEN FROM THE SAME TWO FACTS — architecture item 4, 2026-09-17. This wrapper used to call
+   the host's own release (__pp4.battleEnd) and asyncBattleRun its own hold, while a crew guest held the camera from every battle
+   snapshot it drew and NOTHING let it go: measured in a two-window crew game, after a guest's first fight a line about a captain
+   glided the host's camera onto that ship and left the guest's where it was, for the rest of the voyage. Now the engine records the
+   fight called (`engage`, beginBattle) and the fight over (`disengage`, endBattle), and the one event consumer holds and lets go on
+   those, on the host, every guest and a solo phone alike.
+   A wrapper rather than a line at each exit: asyncBattle returns from a flee, a NULL and two ordinary endings, and a fight left
+   unended would freeze every screen's director for the rest of the voyage. `finally` is the only spelling that cannot be got wrong
+   later — and it drains the ending at once, which is the moment the host has always let go: after the crow's-nest calls settle.
+   G6 (COIN-AUDIT site 13), kept here, in front of it all: a battle refused for want of powder or cargo is never begun, never announces
+   itself and never ends; canAttack() owns both tests, so the UI's greying and the engine cannot disagree about a legal target. */
 export async function asyncBattle(att,def){
+  if(!appState.game.canAttack(att,def))return null;
   try{ return await asyncBattleRun(att,def); }
-  finally{ if(window.__pp4&&window.__pp4.battleEnd)window.__pp4.battleEnd(); }
+  finally{ appState.game.endBattle(att,def); liveRender(); }
 }
 async function asyncBattleRun(att,def){
   const c=appState.game.cfg;
-  // G6 (COIN-AUDIT site 13), kept: guard BEFORE the opening broadcast, so a battle refused for
-  // want of powder never announces itself and no snapshot can be in flight. v2 adds rule 13e's
-  // empty-hold check to the same gate — canAttack() owns both, so the UI's greying and the engine
-  // can never disagree about what is a legal target.
-  if(!appState.game.canAttack(att,def))return null;
-  // frame both combatants BEFORE the opening line, so it is spoken over the fight it announces
-  if(window.__pp4&&window.__pp4.battle)window.__pp4.battle(att.idx,def.idx);
-  playBattleEngage();
+  // the engine begins the fight: the fight called (`engage`), powder paid (and recorded), the battle counted, the wind read once — engine beginBattle
+  const F=appState.game.beginBattle(att,def);
+  /* …AND EVERY SCREEN HAS DRAWN THE CALL BEFORE A WORD OF IT IS SAID: this screen's drain has held the camera on both ships and sounded
+     the clash (consumeEvent, on `engage`) — and a crew guest is sent the event before the line — so the opening is spoken over the fight
+     it announces, the order the host has always had (architecture item 4). */
+  await liveRender();
   const need=1;
   // D-08/D-25: the opening names both combatants, each reading it addressed to themselves.
   // his pass, 2026-09-13: "Crustbeard attacks Davy Scones!" — words.js writes each fighter's "ye" version
   const opening=sayAll("battle.opening",{a:seat(att.idx),d:seat(def.idx)});
   // @copy adhoc.battle.opening
   await flash(opening.html,Math.max(900,stepDelay()),undefined,opening.variants);
-  // the engine begins the fight: powder paid (and recorded), the battle counted, the wind read once — engine beginBattle
-  const F=appState.game.beginBattle(att,def);
   const bets=await collectSideBets(att,def);
   let a=0,d=0;
   const hA=att.strategy==="human",hD=def.strategy==="human";
@@ -1738,6 +1726,16 @@ export async function consumeEvent(e){
   const moves=(e.draw&&Array.isArray(e.draw.route))||e.t==="tradewind";
   if((moves||e.t==="turn")&&!sailWindowOpen())forgetCourse();
   if(e.t==="sail"&&moves&&!appState.replaying)sailSetsOff(e.p,e.draw.route);   // his game feel audit: the wind-up and the wake (board.js)
+  /* ⭐ A FIGHT ON SCREEN — THE CAMERA HOLDS BOTH SHIPS WHEN IT IS CALLED AND LETS GO WHEN IT IS OVER, ON EVERY SCREEN — architecture
+     item 4, 2026-09-17. Five places decided this: the host's fight held the camera and played the clash before its opening line and let
+     go in its own `finally`; a crew guest held the camera from every battle snapshot it drew, played the clash on the first one it heard
+     (after the opening line and every crow's-nest call) and never let go — measured in a two-window crew game: the guest's hold was never
+     released, so for the rest of the voyage its camera stayed put on every line about a captain while the host's glided to that ship.
+     Now two engine facts and this one door: `engage` (Game.beginBattle) holds, `disengage` (Game.endBattle, once the calls are settled)
+     lets go; the clash is `engage`'s own sound on the line below. The hold is armed BEFORE the sound, as the host always did it.
+     scripts/qa/fight_on_screen_one_door_check.mjs holds it. */
+  if(e.t==="engage"&&window.__pp4&&window.__pp4.battle)window.__pp4.battle(e.a,e.d);
+  if(e.t==="disengage"&&window.__pp4&&window.__pp4.battleEnd)window.__pp4.battleEnd();
   playForEvent(e, decisionIsLocal(e.p));
   /* ⭐ THE TINY DOCK COIN IS DRAWN HERE, FOR EVERY CAPTAIN WHOSE CHOICE WAS NOT MADE ON THIS SCREEN —
      Wyatt, 2026-09-13 (note 8): "the human players don't see each other's tiny docking coins when the
@@ -1923,7 +1921,7 @@ export function watchPrompt(){
         /* THIS SEAT'S BATTLE DECISION, WITH NO BOX (2026-09-14): the camera holds the fight, a flip is the flip stage, and a choice is
            the ordinary prompt — exactly what the host's own captain gets in battleAsk. */
         appState.inBattlePrompt=true;
-        renderBattleFromSnap(prompt.battle);   // holds the camera on the fight; a line already said is not said again
+        renderBattleFromSnap(prompt.battle);   // the fight's words; a line already said is not said again (the camera is held by the fight's engage event)
         if(prompt.flip){
           setNeedsAction(true);
           armFlipTap(()=>{setNeedsAction(false);sendResponse(prompt.id,0);});   // the tap starts the spin here, not when the host answers back (board.js armFlipTap)

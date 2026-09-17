@@ -1858,8 +1858,8 @@ function stageFlash(msg, ms, holdMs, variants, opts){
      The card was built after the calls were collected, so its own test could not cover the part
      of a battle that asks a spectator anything: the crow's-nest call ran with the camera still on
      whoever the opening line named, and then every "X calls Y" line glided it to the CALLER. So
-     the hold is now armed by the battle itself (S.battle, set at the top of asyncBattle); the
-     card, and the test that read it, were removed at his ask on 2026-09-14. */
+     the hold is now armed by the battle itself (S.battle — held by the one event consumer on the fight's `engage` and let go on its
+     `disengage`, on every screen: architecture item 4); the card, and the test that read it, were removed at his ask on 2026-09-14. */
   else if (S.battle) { /* hold the shot on the fight until it resolves */ }
   else if (subj != null) camToSeat(subj);
   return new Promise(res => {
@@ -4087,8 +4087,8 @@ function promptTick(force){
      Reusing the SAME flag for the wrapper's own visibility (rather than inventing a second gate
      that could disagree with the first) means the whole popup — box, dim and buttons alike — now
      waits together. `pendingReveal` is only ever added when the prompt HAS buttons (panel.js:546),
-     so a buttonless wait-line or battle flip-card (already framed synchronously by
-     window.__pp4.battle, and not what D-20 was complaining about) is untouched by this and keeps
+     so a buttonless wait-line or battle flip-card (already framed by the fight's hold, the
+     engage event's __pp4.battle, and not what D-20 was complaining about) is untouched by this and keeps
      appearing immediately, exactly as before. */
   /* pendingStage, NOT pendingReveal (Wyatt's blank-space lag, 2026-08-23 tier 1). The paragraph
      above still holds — the whole popup waits for the BOARD — but the flag it read also waited for
@@ -5967,8 +5967,8 @@ export function initStage(){
     // `pos` (optional) is the asked captain's authoritative square off the prompt spec — see
     // camFitSail. renderPickPrompt passes it; the spectating host's pickCell call passes seat only.
     sailCells: (seat, pos) => { if (S.active) camFitSail(seat, pos); },
-    /* THE SHOT IS THE FIGHT, AND IT IS HELD. Called at the top of asyncBattle (before the opening
-       line, so the camera is already there when it speaks) and again by every battle-card render.
+    /* THE SHOT IS THE FIGHT, AND IT IS HELD. Called by the one event consumer on the fight's `engage` — drawn before the opening line,
+       so the camera is already there when it speaks — and let go (battleEnd) on its `disengage`, on every screen (architecture item 4).
        It used to centre the MIDPOINT at a fixed 2.0x, which frames two adjacent ships and crops two
        that are not — camFitSeats derives the zoom from the gap instead, so both boats are on screen
        whatever the fight looks like. Re-fitting only when the pair changes: an unchanged re-fit

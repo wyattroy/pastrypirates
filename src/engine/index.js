@@ -2112,12 +2112,24 @@ class Game{
      runner. Making that one needs a generator both runners drive, which has never been tried.
      A fight is a plain object — {att, def, downwind, rounds, why, winner, fled} — made by beginBattle and handed to every step.
      scripts/qa/one_fight_rules_check.mjs holds it. */
-  // The fight begins: a legal target, the powder paid, the battle counted, and the wind read once (positions never change mid-fight).
+  /* The fight begins: a legal target, the fight CALLED, the powder paid, the battle counted, and the wind read once (positions never change
+     mid-fight). THE CALL IS RECORDED FIRST, AS `engage` — architecture item 4, 2026-09-17: every screen's one event consumer holds the camera
+     on both ships and sounds the clash from it (his ruling, 2026-09-06: "I want the clashing sound to happen when battles are first
+     called"), so a fight on screen starts from the same fact on the host, a guest and a solo phone. Its pair is endBattle. */
   beginBattle(att,def){
     if(!this.canAttack(att,def))return null; // empty hold or no powder — never a legal fight
+    const downwind=this.downwindSide(att,def);
+    this.ev({t:"engage",a:att.idx,d:def.idx,downwind});
     this.payPowder(att);
     this.battles++;
-    return {att,def,downwind:this.downwindSide(att,def),rounds:[],why:null,winner:null,fled:false};
+    return {att,def,downwind,rounds:[],why:null,winner:null,fled:false};
+  }
+  /* THE FIGHT IS OVER — recorded as `disengage`, and every screen's one event consumer lets the camera go on it (architecture item 4).
+     It comes LAST, after the crow's-nest calls are settled: the hold is around the WHOLE fight (Wyatt, playtest 22: "the director should
+     focus battles on the players fighting, not the player calling the battle"), which is when the fight a player watches has always let
+     go. Both fights call it in a finally, so no way out of a fight can leave a screen's camera held. */
+  endBattle(att,def){
+    return this.ev({t:"disengage",a:att.idx,d:def.idx});
   }
   /* WHO WINS A ROUND OF SHOTS, AND WHY — decided here and nowhere else, and the screen reads `why` rather than re-deriving it:
        "hit"     one heads, one tails — the heads ship's shot lands
@@ -2229,19 +2241,21 @@ class Game{
   battle(att,def){
     const fight=this.beginBattle(att,def);
     if(!fight)return null;
-    this.resolveRound(fight,this.flip(att,"battle"),this.flip(def,"battle"));   // recorded, as the watched fight's flips are
-    if(this.mayFlee(fight)&&this.botWantsFlee(fight)){
-      this.flee(fight,this.botFleeSquare(fight,this.fleeSquares(def)));
-      return null;
-    }
-    while(this.refireOffered(fight)&&this.wantsRefire(att,def,fight.downwind,fight.rounds.length)){
-      this.payRefire(fight);
-      this.resolveRefire(fight,this.flip(att,"battle"));
-    }
-    if(!fight.winner){this.nullBattle(fight);return null;}
-    const win=fight.winner;
-    this.winBattle(fight,this.botSpoilPick(win,win===att?def:att));
-    return win;
+    try{
+      this.resolveRound(fight,this.flip(att,"battle"),this.flip(def,"battle"));   // recorded, as the watched fight's flips are
+      if(this.mayFlee(fight)&&this.botWantsFlee(fight)){
+        this.flee(fight,this.botFleeSquare(fight,this.fleeSquares(def)));
+        return null;
+      }
+      while(this.refireOffered(fight)&&this.wantsRefire(att,def,fight.downwind,fight.rounds.length)){
+        this.payRefire(fight);
+        this.resolveRefire(fight,this.flip(att,"battle"));
+      }
+      if(!fight.winner){this.nullBattle(fight);return null;}
+      const win=fight.winner;
+      this.winBattle(fight,this.botSpoilPick(win,win===att?def:att));
+      return win;
+    }finally{this.endBattle(att,def);}   // the fight is over, however it ended (architecture item 4)
   }
   /* ================= v2 bot AI: planners, not gates =================
      Wyatt, 2026-08-04: *"have them make a plan for their entire ingredient trajectory that they

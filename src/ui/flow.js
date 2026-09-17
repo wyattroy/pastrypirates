@@ -3446,7 +3446,8 @@ export function battleSnapshot(o){
 }
 export function renderBattleFromSnap(snap,extra){
   if(!appState.game||!appState.game.players[snap.attIdx]||!appState.game.players[snap.defIdx])return;
-  if(window.__pp4)window.__pp4.battle(snap.attIdx,snap.defIdx);
+  // (the camera's hold stood here, re-armed by every snapshot a guest drew and never released — architecture item 4: it is the fight's
+  //  `engage` event now, held and let go by the one event consumer on every screen)
   netHandlers().onRenderBattle(Object.assign({att:appState.game.players[snap.attIdx],def:appState.game.players[snap.defIdx]},snap,extra||{}));
 }
 // The Lookout's Call: every spectator MUST call a winner from the crow's nest —
