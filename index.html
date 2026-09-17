@@ -711,8 +711,10 @@
      WHY A CLASS AND WHY !important: two reveal rules below force `visibility: visible !important` on any .apBtn once the card's words
      have typed (#pp4Prompt.radial and #pp4Prompt.pp4Center, the blank-space-lag fix). An inline style loses to them, measured on
      Wy-Blade's phone pose: hidden for three samples while the words were still typing, then drawn again for the rest of the shuffle.
-     This selector carries one class more than those two, so it wins wherever it sits in the file. */
-  #pp4Prompt #actionPanel .apBtns .apBtn.bkoAway { visibility: hidden !important; }
+     This selector carries more classes than those two (and the row is .bkoBtns, not .apBtns — the bake-off's own row, index.html's
+     note above says why), so it wins wherever it sits in the file. My first try said .apBtns and matched nothing, which Wy-Blade's
+     pose caught: 18 of 18 samples still drew the button. */
+  #pp4Prompt #actionPanel .bkoBtns .apBtn.bkoGo.bkoAway { visibility: hidden !important; }
   /* .ahoyGlow is assigned in THE ATTENTION VOCABULARY block (end of this stylesheet) — it used
      to carry its own private @keyframes ahoyglow, the second of three hand-rolled copies of the
      same orange ring. One definition now: pp4Glow. */
