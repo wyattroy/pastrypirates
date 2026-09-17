@@ -79,7 +79,9 @@ export async function playVictoryBoard(e, { fadeOutPanel, sweepCam, lastLookMs, 
 function boardBox() {
   const bw = $("boardwrap"), r = bw ? bw.getBoundingClientRect() : { left: 0, top: 44, width: innerWidth, height: innerWidth };
   const top = Math.max(r.top, 44), w = Math.min(r.width, innerWidth);
-  return { x: Math.max(0, r.left), y: top, w, h: Math.min(r.height, innerHeight - top), k: Math.max(.8, Math.min(1.7, w / 375)) };
+  // k scales the crown and podium with the board — but never so far that the podium's labels (about 267k below the board's top) reach the card below them
+  const fit = (innerHeight - 310 - top - 12) / 267;
+  return { x: Math.max(0, r.left), y: top, w, h: Math.min(r.height, innerHeight - top), k: Math.max(.8, Math.min(1.7, w / 375, fit)) };
 }
 
 async function boardBeats(g, v, shipEls) {
@@ -432,7 +434,7 @@ body.pp4Stage #statsWrap.vcOn { top:auto; background:transparent; box-shadow:non
 .vcAward .as { font-size:10.5px; color:#5c6b70; border-top:1px solid #dfe7e4; margin-top:3px; padding-top:2px; }
 .vcAwardSm { border-width:2px; border-radius:10px; padding:2px 4px; overflow:hidden; }
 .vcAwardSm img { width:24px; display:block; margin:3px auto 2px; } .vcAwardSm .an { font:600 10px/1.12 Fredoka,system-ui,sans-serif; color:#1f2d33; }
-.vcAwardSm .ac { font:700 11.5px/1.1 Fredoka,system-ui,sans-serif; margin:4px 0 3px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; } .vcAwardSm .as { font:600 9px/1.15 'Avenir Next',Avenir,sans-serif; color:#5c6b70; border-top:1px solid #dfe7e4; padding-top:2px; }
+.vcAwardSm .ac { font:700 11px/1.1 Fredoka,system-ui,sans-serif; margin:4px 0 3px; } .vcAwardSm .as { font:600 9px/1.15 'Avenir Next',Avenir,sans-serif; color:#5c6b70; border-top:1px solid #dfe7e4; padding-top:2px; }
 .vcPouch { width:28px; display:block; margin:0 auto; }
 .vcRows { overflow-y:hidden; margin:6px 8px 0; scrollbar-width:thin; }
 .vcRow { display:flex; justify-content:space-between; align-items:center; gap:6px; height:20px; font:600 12.5px/1.2 'Avenir Next',Avenir,sans-serif; text-align:left; white-space:nowrap; }
