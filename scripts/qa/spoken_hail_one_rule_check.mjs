@@ -18,7 +18,7 @@
         call of tryTrade / botOpenTradeLive / humanTrade in src is one of those three.
      3. EVERY HAIL SAYS WHETHER IT WAS SPOKEN — the three runners never return a bare value: {spoken:false,…} only before their
         `openoffer` is recorded, {spoken:true,…} on every return after it.
-     4. BEHAVIOURAL — 50 simulator voyages (trade_offer_measure's seating and seeds), the engine's OWN takeTurn / tryTrade /
+     4. BEHAVIOURAL — 10 simulator voyages (trade_offer_measure's seating and seeds), the engine's OWN takeTurn / tryTrade /
         hailEndsTurn text, real or mutant, compiled onto a real Game: every `openoffer` — the ones that strike no deal included — is
         followed by no dock, muse or sail by that captain in the same turn; tryTrade's `spoken` is exactly whether it recorded an
         `openoffer`; and a trade plan that was never spoken still docks or muses. */
@@ -32,7 +32,13 @@ const { Game, roundCfg } = await import(pathToFileURL(path.join(REPO, "src/engin
 const { man } = await import(pathToFileURL(path.join(REPO, "src/shared/index.js")).href);
 const walk = d => fs.readdirSync(path.join(REPO, d), { withFileTypes: true }).flatMap(e => e.isDirectory() ? walk(path.join(d, e.name)) : e.name.endsWith(".js") ? [path.join(d, e.name)] : []);
 const ENG = "src/engine/index.js", FLOW = "src/ui/flow.js";
-const VOYAGES = 50, STRATS = ["pirate", "trader", "balanced", "rusher"];
+/* WHY 10 VOYAGES (item 14 follow-up, 2026-09-17; it was 50, ~17 s of every npm test). A mutant plays exactly like the real tree
+   until its first refused hail (or first never-spoken trade plan), so it goes red whenever the real tree's voyages hold one — and
+   the vacuity check below turns the REAL tree red if they hold none. Measured on 5 seed bases (7919, 104729, 1299709, 15485863,
+   179424673): 3 voyages is the fewest that catch the old simulator line on all five; 47% of voyages hold no refused hail, and the
+   longest dry run seen in 200 was 5. 10 is the fewest where the WORST base still holds 5 refused hails, so an engine change that
+   reshuffles these seeds is ~0.05% likely (0.47^10) to leave the gate vacuous. */
+const VOYAGES = 10, STRATS = ["pirate", "trader", "balanced", "rusher"];
 
 function bodyAt(src, h) {
   if (h < 0) return "";
@@ -111,7 +117,7 @@ function textRules(files) {
   return out;
 }
 
-/* 4. BEHAVIOURAL — 50 voyages, the engine's own text */
+/* 4. BEHAVIOURAL — VOYAGES voyages, the engine's own text */
 function behaviourRule(files) {
   let M;
   try { M = compile(stripComments(files[ENG])); } catch (e) { return { ok: false, bad: [`the engine's turn could not be compiled (${e.message})`] }; }
