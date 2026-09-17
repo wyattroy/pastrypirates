@@ -125,11 +125,10 @@ export function netWatchStatus(db, room, handler) {
   return registry.attach({ scope: "room", ref, event: "value", callback: handler, label: "status" });
 }
 
-export function netWatchRecipes(db, room, handler) {
-  if (!db || !room) return null;
-  const ref = db.ref("rooms/" + room + "/recipes");
-  return registry.attach({ scope: "room", ref, event: "value", callback: handler, label: "recipes" });
-}
+/* ⛔ netWatchRecipes STOOD HERE — architecture item 10 (2026-09-17). Which recipe a captain is baking reaches every
+   screen on the event stream (Game.setRecipe -> recipeSet, applied in the one consumer); a second route is how every
+   screen applied every pick twice and a host reload pushed four bogus recipeSet events at the crew.
+   scripts/qa/recipe_one_pipe_check.mjs holds the rest. */
 
 // ---------------------------------------------------------------------
 // Phase 9 Plan 3, Task 1 (D-02). The last two watchers: the self-cancelling

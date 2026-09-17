@@ -91,7 +91,10 @@ function harness(S) {
   const code = statements.join("\n") + "\n" + tail;
   const lets = [...orch.matchAll(/^let\s+([A-Za-z_$][\w$]*)\s*=\s*([^;\n]*);/gm)].filter(m => new RegExp(`\\b${m[1].replace(/\$/g, "\\$")}\\b`).test(code)).map(m => m[0]).join("\n");
   const makeGate = new Function("pilotSpeaks", "pilotLine", "pilotSee", "localAsk", "say", `return ${gate.replace(/^export\s+/, "")};`);
-  const make = new Function("appState", "decisionIsLocal", "pilotSpeaks", "pilotGate", "flashCaptainsBox", "pn", "window",
+  /* `updateRecipeBanner` joined the injected names on 2026-09-17 (architecture item 10 gave the consumer's recipeSet
+     statements the one banner refresh). It is a stub here for the same reason `window` is: this gate is about the CARD,
+     and a repaint of the recipe band decides nothing about whether one is shown. Nothing below was relaxed. */
+  const make = new Function("appState", "decisionIsLocal", "pilotSpeaks", "pilotGate", "flashCaptainsBox", "pn", "window", "updateRecipeBanner",
     `${lets}\nasync function consume(e){\n${statements.join("\n")}\n}\nasync function afterDrain(){\n${tail}\n}\nreturn {consume, afterDrain};`);
   return { makeGate, make };
 }
@@ -103,7 +106,7 @@ async function table(H, { strategies, passAndPlay, mySeat, deliveries = 1, voyag
   let blinks = 0;
   const localAsk = (msg) => new Promise(res => { cards.push(msg); pending.push(res); });
   const pilotGate = H.makeGate(pilot.pilotSpeaks, pilot.pilotLine, pilot.pilotSee, localAsk, say);
-  const h = H.make(appState, decisionIsLocal, pilot.pilotSpeaks, pilotGate, () => { blinks++; }, i => NAMES[i], {});
+  const h = H.make(appState, decisionIsLocal, pilot.pilotSpeaks, pilotGate, () => { blinks++; }, i => NAMES[i], {}, () => {});
   const before = pilot.__pilotPeek().seen[ID] | 0;
   const perVoyage = []; let flowWaited = true;
   for (let v = 0; v < voyages; v++) {

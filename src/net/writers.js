@@ -129,11 +129,8 @@ export function netRemoveBattle(db, room, onError) {
   return withReporter(db.ref("rooms/" + room + "/battle").remove(), onError);
 }
 
-/* ---------- recipe drafting -------------------------------------------------------------------- */
-
-export function netSetRecipes(db, room, picks, onError) {
-  return withReporter(db.ref("rooms/" + room + "/recipes").set(picks), onError);
-}
+/* ⛔ netSetRecipes STOOD HERE, with the rooms/<C>/recipes node it wrote — architecture item 10 (2026-09-17). The pick
+   is an engine fact and rides the event stream; nothing writes it anywhere else now. */
 
 export function netSetDraftPrompt(db, room, seat, payload, onError) {
   return withReporter(db.ref("rooms/" + room + "/draftPrompts/" + seat).set(payload), onError);

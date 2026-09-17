@@ -86,7 +86,7 @@ import {
   netSetBattle, netWatchBattle, netRemoveBattle,
   netWatchConnected, netWatchPresence, netMarkPresence, netInit,
   netSetMeta, netWriteGameLog,
-  netReadMeta, netUpdateRoom, netSetRecipes,
+  netReadMeta, netUpdateRoom,
   netSetRecovery, netRemoveRecovery, netWatchRecovery,
   netPushEvent,
   netSetPrompt, netRemovePrompt, netWatchResponse, netDetach, netSetResponse,
@@ -94,7 +94,6 @@ import {
   netWatchEvents, netWatchPrompt, netWatchNarr,
   netSetDlog,
   netCreateRoom, netClaimSeat, netReadRoom, netWatchSeats, netWatchStatus,
-  netWatchRecipes,
   netLeaveRoom, netSetFeedback, netReadDlog, netReadEv,
   netMarkHostGoneOnDisconnect, netClearHostGone,
   netForfeitOnDisconnect, netClearForfeitOnDisconnect,
@@ -941,10 +940,16 @@ export async function recipeDraftNet(){
       msgFor:i=>msgFor(byIdx[i]),optsFor:i=>optsFor(byIdx[i]),waitMsg:draftWait,announce});
     for(const player of pending){picks[player.idx]=results[player.idx];logDecision(results[player.idx]);}
   }
-  // THROUGH THE ENGINE, so the choice becomes an event both sides drain — see Game.setRecipe.
+  /* THROUGH THE ENGINE, AND ONLY THROUGH THE ENGINE, so the choice becomes an event every screen drains — see
+     Game.setRecipe and consumeEvent's recipeSet lines.
+     ⛔ A SECOND PIPE STOOD HERE UNTIL ARCHITECTURE ITEM 10 (2026-09-17): `netSetRecipes(...)` wrote the same picks
+     to rooms/<C>/recipes, and watchRecipes — attached on EVERY screen, the host's included — read that node back and
+     called setRecipe AGAIN. Measured in a real crew room, two first-time devices, four picks: the host's engine held
+     EIGHT recipeSet events (setRecipe applied twice to every captain) and the guest's TWELVE (eight off the wire plus
+     four its own watcher invented), and a host reload pushed four more bogus recipeSet events into every guest's live
+     feed. The node is gone, its writer and its watcher with it. A guest learns `player.recipe` from the event now,
+     which is the only place the fact was ever stated. */
   appState.game.players.forEach(player=>{if(player.recipeChoices)appState.game.setRecipe(player,player.recipeChoices[picks[player.idx]]);});
-  if(appState.db&&appState.room&&!appState.replaying)await netSetRecipes(appState.db,appState.room,picks,netFail("recipe picks"));
-  if(!appState.replaying)updateRecipeBanner();
   await liveRender();                       // drain the recipeSet event(s) this choice just produced
   if(stowedGate){ const g=stowedGate; stowedGate=null; await g; }   // let it be read before sailing on
   /* (A SECOND "yer recipe's stowed below" STOOD HERE — this loop's own copy of the card and the captains-box blink, left
@@ -1612,6 +1617,13 @@ export async function consumeEvent(e){
     if(e.wind!=null)appState.game.windNow=e.wind;
     if(e.storm!=null)appState.game.stormNow=e.storm;
     if(e.t==="newround"){appState.game.windNext=e.next;appState.game.stormNext=e.nextStorm;}
+    /* ⭐ WHICH RECIPE THIS CAPTAIN IS BAKING — architecture item 10, 2026-09-17, and it belongs in this block for the
+       same reason every other line here does: a guest MIRRORS the authority's record, it does not re-decide it. The
+       engine states the pick once (Game.setRecipe) and carries it on the event; before today a guest ignored `e.recipe`
+       entirely and learned the fact from a private Firebase node instead, through a watcher that called setRecipe a
+       second time on every screen — the host's included. `.slice()` because the wire copy is this event's own array and
+       nothing downstream may write through it into the feed. */
+    if(e.t==="recipeSet"&&Array.isArray(e.recipe)&&appState.game.players[e.p])appState.game.players[e.p].recipe=e.recipe.slice();
   }
   /* (applyActiveSeat(e.p) stood here — the consumer writing "whose turn it is" from whichever seat THIS event
      named: the defender's coin, each crow's-nest caller, a trade partner. Architecture item 3, 2026-09-16, his
@@ -1634,7 +1646,7 @@ export async function consumeEvent(e){
      are exactly what the host used to run inline and what watchTurnOrder used to run again.
      ⚠ Array.isArray, because Firebase Realtime Database has no array type: a dense integer-keyed
      array survives the round trip, but the guard costs nothing and this file has been bitten by
-     that exact assumption before (see watchRecipes' note, and fixEv). */
+     that exact assumption before (see the watchRecipes tombstone below, and fixEv). */
   /* ⭐ THE ENGINE'S OWN RECORD, NOT A COPY OF IT — Wyatt, 2026-09-11, note 4: "the captain's box
      and top nav player circles no longer seem to be in turn order, like they should be."
      The order lived twice: on the engine (Game.setTurnOrder) and in appState.turnOrder, filled only
@@ -1657,6 +1669,11 @@ export async function consumeEvent(e){
     armStormGate(pilotGate("storm.hit").catch(()=>{}));
   }
   if(e.t==="recipeSet"&&window.__pp4&&window.__pp4.recipePicked)window.__pp4.recipePicked();
+  /* THE RECIPE BAND AND THE ROW CHIPS, REFRESHED WHERE THE FACT ARRIVES — architecture item 10. This was called from
+     three places (the host's draft loop, beginGame before a single event existed, and watchRecipes on every screen);
+     the first and the third belonged to the deleted second pipe and the second could never do anything, because
+     updateRecipeBanner asks for an event and beginGame has not drained one yet. One caller now, on the one event. */
+  if(e.t==="recipeSet")updateRecipeBanner();
   /* ⭐ ONE SHOWING PER DEVICE — architecture item 11, 2026-09-17. The card and the blink are decided HERE and nowhere else:
      the host's draft loop kept its own copy until today, so a first-time solo captain got this card, tapped Aye aye, and
      got a second one with a second blink. That copy's one rule comes with it: the captains box is the same box for every
@@ -2624,8 +2641,9 @@ export async function startGame(){
     const cfg=roundCfg(strategies);
     const seed=Math.floor(Math.random()*1e9);
     pingStart(strategies.filter(s=>s==="human").length,"net");
+    // (`recipes:null` stood in this list — architecture item 10 deleted the node it cleared.)
     await netUpdateRoom(appState.db,appState.room,{status:"playing",cfg,seed,ev:null,prompt:null,response:null,narr:null,meta:null,
-      recipes:null,dlog:null,battle:null,draftPrompts:null,draftResponses:null,clock:null,chat:null});
+      dlog:null,battle:null,draftPrompts:null,draftResponses:null,clock:null,chat:null});
     /* THE HOST'S HAND ON THE WHEEL — Wyatt, 2026-08-20: "when the host leaves, the guest isn't told
        anything; the game simply stalls." Armed the moment the voyage actually starts, because a
        lobby that loses its host is already covered (the room is deleted and watchRoom's existing
@@ -2655,8 +2673,8 @@ export function beginGame(cfg,seed){
   $("chatLog").innerHTML="";clearChatBubbles();
   $("chatPanel").style.display=(appState.db&&appState.room)?"":"none"; // no chat in solo/pass-and-play — no one else to talk to
   drawBoard();buildPlayerRows();
-  updateRecipeBanner();
-  watchRecipes();
+  /* (updateRecipeBanner() and watchRecipes() stood here — architecture item 10, 2026-09-17. The banner call could
+     never do anything: it asks for an event and this engine has emitted none yet. The watcher was the second pipe.) */
   /* THE ONE PLACE THE WHOLE VOYAGE IS ROOTED, and until 2026-08-14 the only thing here was a bare
      call. runLiveNet() is not awaited (it drives the game for the rest of the session), so a throw
      anywhere beneath it — any round, any turn, any prompt — became an unhandled rejection that
@@ -2688,33 +2706,23 @@ export function beginGame(cfg,seed){
    them: it existed only so a guest could re-run two lines the host had already run, from a node
    the host wrote purely to trigger it. Sailing order now arrives the way sails, docks and recipes
    do. Six channels left; the pattern is the same for each. */
-// FIX-03/T-02-04 (02-02): Firebase Realtime Database has no native array type — the SDK hands
-// rooms/<C>/recipes back as a dense ARRAY, padded with null, only when the picked-seat/max-index
-// ratio is high enough to look array-like; a lone early pick (the normal shape of a draft still in
-// progress) reads back as a plain OBJECT with sparse integer-like keys instead (measured directly
-// against the live database, 02-02-SUMMARY.md). The old `picks.forEach(...)` assumed the array
-// shape unconditionally and threw `TypeError: picks.forEach is not a function` the instant a guest
-// (every guest also runs this callback, per beginGame()'s unconditional watchRecipes() call)
-// received the object form — killing the guest silently, with zero page errors
-// (docs/HARD-WON-LESSONS.md §1b's exact shape). Object.entries() walks either shape identically,
-// keyed by the seat index each pick actually names, so both the sparse mid-draft object and the
-// fully-resolved dense array apply correctly. The `pk==null` guard also closes a second, quieter
-// fault the array-only code carried: a null-padded gap would have driven `recipeChoices[null]`
-// (=== undefined) onto a still-drafting seat's `.recipe` — this is the same fix, not new scope.
-export function watchRecipes(){
-  netWatchRecipes(appState.db,appState.room,snap=>{
-    const picks=snap.val();
-    if(!picks)return;
-    Object.entries(picks).forEach(([key,pk])=>{
-      if(pk==null)return; // not-yet-picked seat — either absent (object form) or null-padded (array form)
-      const i=+key;
-      // the recovery path uses the same door, or a restored voyage would emit no recipeSet at all
-      if(appState.game.players[i]&&appState.game.players[i].recipeChoices)appState.game.setRecipe(appState.game.players[i],appState.game.players[i].recipeChoices[pk]);
-    });
-    updateRecipeBanner();
-    if(appState.game.events.length)render();
-  });
-}
+/* ⛔ watchRecipes IS GONE TOO — architecture item 10, 2026-09-17, the same fold, one channel further along.
+   It was the second pipe carrying the same fact as `recipeSet`: the host wrote every pick to rooms/<C>/recipes and
+   then EVERY screen — the host's own included, because beginGame attached this unconditionally — read the node back
+   and called Game.setRecipe a second time. MEASURED in a real crew room, two first-time devices, four picks
+   (.planning/architecture-cleanup-shots/item-10-*): the host's engine held 8 recipeSet events, the guest's 12 (8 off
+   the wire, 4 its own watcher invented with no wire serial), and a host reload pushed 4 further bogus recipeSet
+   events into every guest's live feed, because the watcher re-fired after the replay and those events were new.
+   ITS TWO HARD-WON REPAIRS DIED WITH THE NODE, and are recorded here rather than lost: (1) FIX-03/T-02-04 — Firebase
+   Realtime Database has no array type, so rooms/<C>/recipes came back as a dense null-padded ARRAY or as a sparse
+   integer-keyed OBJECT depending on how array-like the picks looked, and the original `picks.forEach(...)` threw
+   `TypeError: picks.forEach is not a function` on the object form, killing the guest silently with zero page errors
+   (docs/HARD-WON-LESSONS.md §1b); (2) the `pk==null` guard, against a null-padded gap driving `recipeChoices[null]`
+   onto a still-drafting seat. Neither shape can recur: an event carries the recipe itself, as its own array.
+   THE OBJECTION fbf0993e RAISED — "the recovery path uses the same door, or a restored voyage would emit no
+   recipeSet at all" — IS MET, and measured both ways: a host reload re-runs the draft from the decision log, so its
+   engine emits the picks again; a guest's feed is a `child_added` listener, so a reload replays every past event and
+   this consumer applies each one. One channel fewer; the pattern is the same for every one that is left. */
 export function leaveGame(){netLeaveRoom();clearSession();clearSoloState();location.reload();}
 
 /* ================= boot ================= */

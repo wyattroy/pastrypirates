@@ -305,21 +305,27 @@ function checkDirectionalImports() {
 // corrected count of eighteen (the roadmap's original figure was stale by
 // four) permanent.
 // netWatchTimerOff/netWatchClock left with the clock; netWatchPaused with play/pause (A-10); netWatchTurnOrder folded into the
-// event stream (2026-09-10); netWatchFlip folded into it too (architecture item 6, 2026-09-17) — fourteen now.
+// event stream (2026-09-10); netWatchFlip folded into it too (architecture item 6, 2026-09-17), and netWatchRecipes the same day
+// (architecture item 10) — thirteen now.
 const WATCHER_INVENTORY = [
   "netWatchConnected", "netWatchPresence",
   "netWatchChat", "netWatchBattle", "netWatchRecovery",
   "netWatchDraftPrompt", "netWatchEvents", "netWatchPrompt", "netWatchNarr",
-  "netWatchSeats", "netWatchStatus", "netWatchRecipes",
+  "netWatchSeats", "netWatchStatus",
   "netWatchResponse", "netWatchDraftResponse",
 ];
 const WATCHERS_FILE = path.join(NET_DIR, "watchers.js");
 /* CHANNELS DELIBERATELY REMOVED, and they must STAY removed. The inventory above catches a watcher vanishing; the count below catches
    one appearing — but only as a number, which a removal elsewhere could cancel out. So a folded channel is named here too, and its
    return fails by name. rooms/<C>/flip: architecture item 6 (2026-09-17) — a coin flip reaches every screen on the event stream, and a
-   second route is how every watching screen heard the spin sound twice. scripts/qa/coin_flip_one_pipe_check.mjs holds the rest. */
+   second route is how every watching screen heard the spin sound twice. scripts/qa/coin_flip_one_pipe_check.mjs holds the rest.
+   rooms/<C>/recipes: architecture item 10 (2026-09-17) — which recipe a captain is baking is stated once by the engine
+   (Game.setRecipe -> recipeSet) and applied in the one consumer. Its watcher was attached on EVERY screen, the host's own
+   included, so every pick was applied twice and a host reload pushed four more bogus recipeSet events at the crew (measured,
+   two real browsers). scripts/qa/recipe_one_pipe_check.mjs holds the rest. */
 const REMOVED_CHANNELS = [
   { name: "netWatchFlip", file: "watchers.js" }, { name: "netSetFlip", file: "writers.js" },
+  { name: "netWatchRecipes", file: "watchers.js" }, { name: "netSetRecipes", file: "writers.js" },
 ];
 
 async function checkWatcherInventory() {
@@ -345,8 +351,12 @@ async function checkWatcherInventory() {
     try { mod = await import(pathToFileURL(path.join(NET_DIR, file)).href); } catch (err) { failures.push(`INVENTORY: importing src/net/${file} threw — ${err.message}`); ok = false; continue; }
     if (name in mod) { ok = false; failures.push(`INVENTORY: "${name}" is exported by src/net/${file} again — that channel was folded into the event stream and must not come back`); }
   }
-  if (/["'`]\/flip["'`]/.test(stripCommentSegments(fs.readFileSync(path.join(NET_DIR, "writers.js"), "utf8") + "\n" + fs.readFileSync(WATCHERS_FILE, "utf8")))) {
+  const netCode = stripCommentSegments(fs.readFileSync(path.join(NET_DIR, "writers.js"), "utf8") + "\n" + fs.readFileSync(WATCHERS_FILE, "utf8"));
+  if (/["'`]\/flip["'`]/.test(netCode)) {
     ok = false; failures.push(`INVENTORY: src/net/ addresses rooms/<C>/flip again — the flip node was deleted by architecture item 6`);
+  }
+  if (/["'`]\/recipes["'`]/.test(netCode)) {
+    ok = false; failures.push(`INVENTORY: src/net/ addresses rooms/<C>/recipes again — the recipes node was deleted by architecture item 10`);
   }
 
   const content = fs.readFileSync(WATCHERS_FILE, "utf8");
