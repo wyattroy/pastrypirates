@@ -5,7 +5,7 @@
 // Imports from `../shared/index.js`; must never be imported BY
 // `src/shared/` (shared is a leaf, engine depends on it, never the reverse).
 
-import { mulberry32, ING_ALL, TET, DIRS, OPPOSITE, PERP, SAIL_RANGE, SAIL_RANGE_UPWIND, STORM_PUSH, SEA_CREATURES, BAKE_SWAPS, BAKE_ATTENTION, BAKE_REWATCH_COST, BAKEOFF_ENABLED, bakeoffEnabled, ovensNowEnabled, bake2Enabled, endCardEnabled, man, ilabelImg, VOYAGE_POINTS, voyageScoreRows, voyageCloseness } from "../shared/index.js";
+import { mulberry32, ING_ALL, TET, DIRS, OPPOSITE, PERP, SAIL_RANGE, SAIL_RANGE_UPWIND, STORM_PUSH, SEA_CREATURES, BAKE_SWAPS, BAKE_ATTENTION, BAKE_REWATCH_COST, BAKEOFF_ENABLED, bakeoffEnabled, ovensNowEnabled, bake2Enabled, endCardEnabled, man, ilabelImg, VOYAGE_POINTS, voyageScoreRows, voyageCloseness, startingPurse } from "../shared/index.js";
 import { recipeSteps } from "../shared/recipe-steps.js";
 import { newBake, scrambleBench, shuffleSlots, scoreAttempt, applyResult, botGuess, unsolvedCount } from "./bakeoff.js";
 
@@ -17,6 +17,10 @@ function rollStorm(g){
   g.stormStreak=storm?(g.stormStreak||0)+1:0;
   return storm;
 }
+/* THE DAY CAP — the most days a voyage may run before it ends with whoever is crowned by then (nobody, if
+   nobody has baked). ONE named number (architecture item 2, 2026-09-16): it was typed as a bare 150 three
+   times — playBakeoff, playClassic and the live runLiveNet — and Game.beginDay is now the only reader. */
+const DAY_CAP=150;
 
 // v2: bots are PLANNERS, not weighted gates (Wyatt, 2026-08-04: "don't give them gates, give them
 // strategy"). Each bot builds a route through every ingredient it still needs, costed in TURNS —
@@ -268,7 +272,9 @@ class Game{
       let b=this.sample(this.ings,cfg.recipeSize);
       let tries=0;
       while(tries++<20&&a.slice().sort().join()===b.slice().sort().join())b=this.sample(this.ings,cfg.recipeSize);
-      return {idx:i,strategy:s,pos:[...this.home],coins:cfg.startCoins,
+      // Until the sailing order is drawn (Game.beginVoyage) every captain holds the first captain's purse —
+      // what the captains' rows show during the opening, before the order is known.
+      return {idx:i,strategy:s,pos:[...this.home],coins:startingPurse(cfg,0),
         ing:[],recipe:a,recipeChoices:[a,b],firstFlip:new Set(),dockedNow:new Set(),
         done:false,heads:0,flips:0,corner:null,justDocked:false,shipwrecked:false,
         coolUntil:{},grudge:null,justLost:null,fightLog:{},
@@ -364,6 +370,20 @@ class Game{
     this.turnOrder=order.slice();
     this.ev({t:"turnOrder",order:this.turnOrder.slice()});
     return this.turnOrder;
+  }
+  /* ⭐ HOW A VOYAGE STARTS — ONE STEP, CALLED BY EVERY VOYAGE (architecture item 2, 2026-09-16).
+     The sailing order is drawn once and never rotates, each captain is dealt the purse for their place in
+     it (startingPurse: the first gets cfg.startCoins, each after one more — the stagger that levels the
+     one-time first-mover edge), and the order is published on the one pipe.
+     It used to be written twice: runLiveNet shuffled, staggered and published; playBakeoff / playClassic
+     shuffled and did neither, so every headless voyage started at 3/3/3/3 with no turnOrder event. The
+     ENGINE FOLLOWS THE LIVE GAME: same draws in the same order (one shuffle), same purses, same event. */
+  beginVoyage(){
+    const order=this.players.map((_,i)=>i);
+    this.shuffle(order);
+    order.forEach((i,place)=>{this.players[i].coins=startingPurse(this.cfg,place);});
+    this.setTurnOrder(order);
+    return order;
   }
   ev(o){if(!this.record)return;o.round=this.round;o.wind=this.windNow;o.storm=this.stormNow;o.wind2=this.windNow2;
     // `baking` rides in the snapshot so the board can render a captain's out-of-play state from the
@@ -3284,6 +3304,22 @@ class Game{
     this.windNow2=null;
     return cur;
   }
+  /* ⭐ HOW EACH DAY BEGINS — ONE STEP, CALLED BY EVERY VOYAGE (architecture item 2, 2026-09-16).
+     Returns null once the voyage has run DAY_CAP days (the voyage then ends); otherwise the day is counted,
+     the forecast wind becomes today's (advanceWind), and the day-start record is written — `newround` with
+     the wind, `streak` (storms running, read by the narration's "the storm's still ragin'" line), the wind's
+     own streak, and tomorrow's forecast. Returns today's {wind, storm}; the caller runs the storm (headless
+     at once, live with its pictures).
+     It used to be written three times with a bare 150 in each: playBakeoff, playClassic and runLiveNet —
+     and only the live record carried `streak`. The ENGINE FOLLOWS THE LIVE GAME: the record's fields, their
+     order and every draw are the live loop's. */
+  beginDay(){
+    if(this.round>=DAY_CAP)return null;
+    this.round++;
+    const {dir:wind,storm}=this.advanceWind();
+    this.ev({t:"newround",dir:wind,streak:storm?this.stormStreak:0,windStreak:this.noteWind(wind),next:this.forecastWind(),nextStorm:this.stormNext}); // NARR-04
+    return {wind,storm};
+  }
   /* v2 rule 7: ONE storm event for the whole table, at the top of the round, before anybody acts.
      Resolved downwind-first (Wyatt's ruling) so the lead ship clears its square before the ship
      behind it arrives — otherwise ships shield each other purely by seat order. */
@@ -3312,12 +3348,9 @@ class Game{
          a fair race instead of seat order deciding it
      The old one-lap final round is gone entirely: the baking days ARE the catch-up window. */
   playBakeoff(){
-    let order=this.players.map((_,i)=>i);
-    this.shuffle(order);
-    while(this.round<150){
-      this.round++;
-      const {dir:wind,storm}=this.advanceWind();
-      this.ev({t:"newround",dir:wind,windStreak:this.noteWind(wind),next:this.forecastWind(),nextStorm:this.stormNext});
+    const order=this.beginVoyage();
+    for(let day;(day=this.beginDay());){
+      const {wind,storm}=day;
       if(storm)this.runStorm(wind);
       for(const i of order){
         const p=this.players[i];
@@ -3341,12 +3374,9 @@ class Game{
     return this.resolveEnd();
   }
   playClassic(){
-    let order=this.players.map((_,i)=>i);
-    this.shuffle(order);
-    while(this.round<150){
-      this.round++;
-      const {dir:wind,storm}=this.advanceWind();
-      this.ev({t:"newround",dir:wind,windStreak:this.noteWind(wind),next:this.forecastWind(),nextStorm:this.stormNext}); // NARR-04
+    const order=this.beginVoyage();
+    for(let day;(day=this.beginDay());){
+      const {wind,storm}=day;
       if(storm)this.runStorm(wind); // rule 7: everyone at once, before anyone acts
       for(const i of order){
         const p=this.players[i];
@@ -3396,7 +3426,9 @@ class Game{
   eligibleFinishers(){
     return this.finishOrder.filter(i=>!this.needs(this.players[i]).length);
   }
-  /* ⭐ HOW THE WINNER IS CROWNED — ONE PLACE. Two engine steps, because the live voyage speaks between them:
+  /* ⭐ HOW THE WINNER IS CROWNED — ONE PLACE (architecture item 2, 2026-09-16). It was written twice: here
+     (resolveEnd) and in the live liveResolveEndNet, which re-ran the same eligibility, ranking and events by
+     hand. Now two engine steps, because the live voyage speaks between them:
        crownWinner() — who may be crowned (a full recipe), the winner, and when several captains finished,
                        the shared bakery ({t:"collab"}, ranked by bakeRank). Returns true when it recorded one,
                        so the live voyage can narrate it before the voyage ends.

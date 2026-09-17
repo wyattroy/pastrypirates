@@ -1304,23 +1304,20 @@ export async function runLiveNet(){
      first one as well as the last.
      Only endcard: ?ovens=1 poses a state a captain then PLAYS, so it keeps its opening. */
   if(!testFlagOn("endcard",endCardEnabled))await showAhoyIntro();
-  // turn order is randomized once here and never rotates — a one-time first-player advantage,
-  // not something that cycles away round to round
-  let order=appState.game.players.map((_,i)=>i);
-  appState.game.shuffle(order);
-  // staggered starting coins level that one-time edge: sim-tested (see cocoa_pirates_sim.py
-  // "staggeredcoins" mode) to flatten the first-mover advantage without overcorrecting to favor
-  // whoever goes last
-  order.forEach((i,pos)=>{appState.game.players[i].coins=appState.game.cfg.startCoins+pos;});
-  /* ONE PIPE. This was `appState.turnOrder=…; buildPlayerRows();` followed by a write to
-     rooms/<C>/turnOrder that only a guest's watchTurnOrder ever read — the host doing the work AND
-     posting a note about it, and the guest doing the work again from the note. The engine says it
-     once now; consumeEvent applies it on every tier including this one.
+  /* HOW THE VOYAGE STARTS IS THE ENGINE'S — Game.beginVoyage (architecture item 2, 2026-09-16): the sailing
+     order drawn once (it never rotates — a one-time first-mover edge), each captain's staggered starting
+     purse for their place in it (startingPurse, sim-tested in cocoa_pirates_sim.py "staggeredcoins" to
+     flatten that edge without favouring whoever goes last), and the turnOrder event. The same step every
+     headless voyage now takes; this loop used to write all three itself, and the engine's copy staggered
+     nothing.
+     ONE PIPE. The order was once `appState.turnOrder=…; buildPlayerRows();` plus a write to
+     rooms/<C>/turnOrder that only a guest's watchTurnOrder ever read. The engine says it once now;
+     consumeEvent applies it on every tier including this one.
      ⚠ AWAITED, because the drain is what rebuilds the captains' rows in sailing order, and the
      intro that follows should find them already in it. (The engine holds the order itself since
      2026-09-11 — see consumeEvent's turnOrder note.) Same shape as recipeDraftNet's drain of
      recipeSet, for the same reason. */
-  appState.game.setTurnOrder(order);
+  const order=appState.game.beginVoyage();
   await liveRender();
   // G5 (Wyatt-approved 2026-07-30): *"Put the recipe selection step NEXT"* — immediately after the
   // Ahoy intro, before the turn-order intro. The player is told to choose a recipe and then asked
@@ -1329,7 +1326,7 @@ export async function runLiveNet(){
   // ONLY these two awaited calls were swapped. The invariant that made that safe is NOT turn order
   // itself — it is the seeded RNG stream and the decision log, because a host-reload replay must
   // reconstruct an identical game. Verified before swapping:
-  //   1. shuffle(order) above consumes game.r() (src/engine/index.js:228).
+  //   1. beginVoyage() above consumes game.r() (its one shuffle of the sailing order).
   //   2. recipeDraftNet consumes game.r() for bot picks and calls logDecision for human picks.
   //   3. showTurnOrderIntro -> netIntroBarrier (src/ui/flow.js:988) consumes NEITHER, and returns
   //      immediately when appState.replaying. Nor do its callees: localAsk, remoteDraftPrompt and
@@ -1337,7 +1334,7 @@ export async function runLiveNet(){
   //   4. recipeDraftNet reads nothing from appState.turnOrder and iterates in SEAT-index order.
   // So r() consumption order (shuffle -> bot recipe picks) and logDecision order are both identical.
   //
-  // The silent setup above (shuffle, staggered coins, and the setTurnOrder emit that replaced the
+  // The silent setup above (Game.beginVoyage: shuffle, staggered coins, and the setTurnOrder emit that replaced the
   // hand-written appState/buildPlayerRows/netSetTurnOrder trio) was deliberately NOT moved. Nothing is on screen for it, so from a player's
   // point of view it does not sit "between" the two intros at all — and moving it WOULD perturb
   // the RNG stream, which is the one thing this swap must not do.
@@ -1353,12 +1350,11 @@ export async function runLiveNet(){
   const toEnd=await skipToEndCard();
   if(!toEnd)await showTurnOrderIntro(order);
   let ended=toEnd;
-  while(appState.game.round<150&&!ended){
-    appState.game.round++;
-    // v2 rule 6: the wind that blows this round was forecast on the compass LAST round, and rule
-    // 6d makes that forecast a promise — advanceWind() is the single place it is kept.
-    appState.game.advanceWind();
-    appState.game.ev({t:"newround",dir:appState.game.windNow,streak:appState.game.stormNow?appState.game.stormStreak:0,windStreak:appState.game.noteWind(appState.game.windNow),next:appState.game.forecastWind(),nextStorm:appState.game.stormNext});liveRender(); // NARR-04
+  /* HOW EACH DAY BEGINS IS THE ENGINE'S — Game.beginDay (architecture item 2, 2026-09-16): the day cap, the
+     day counted, the forecast wind becoming today's (v2 rule 6d: advanceWind keeps that promise), and the
+     `newround` record with its storm `streak`. It returns null once the voyage has run its days. */
+  while(!ended&&appState.game.beginDay()){
+    liveRender();
     // wind direction (and any storm) used to be visible only in the captain's log — call it
     // out in the yellow panel too, briefly, so it's not missed
     /* THE STORM LADDER RIDES THE ROUND HEADER — one line, not a second beat.

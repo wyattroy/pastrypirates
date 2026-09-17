@@ -62,7 +62,7 @@
  *   node scripts/qa/rules_claims_match_engine_check.mjs --claims-only   skip the mutations
  */
 import { Game, roundCfg } from "../../src/engine/index.js";
-import { DIRS } from "../../src/shared/index.js";
+import { DIRS, rulesFacts } from "../../src/shared/index.js";
 
 /* THE RED PROOF RUNS ON EVERY BUILD, not by hand. It costs 0.75s for the whole mutation sweep, and
  * the 18 hand-run red proofs in scripts/qa/ are the reason nobody knows whether those gates still
@@ -101,6 +101,35 @@ function openWater(g, k, extra = []) {
 function measureAll() {
   const R = {};
   const claim = (id, page, ok, detail) => { R[id] = { page, ok: !!ok, detail }; };
+
+  /* ── SETTING SAIL: THE STARTING PURSES ───────────────────────────────────────
+     ADDED 2026-09-16 (architecture item 2). The page used to say every captain gets "3 gold coins"; the game a
+     player plays has staggered them by sailing order since 06005ae8 (2026-07-18), and the headless engine gave
+     everyone 3. Now one engine step (Game.beginVoyage) deals them for every voyage, and the page states the
+     stagger. The NUMERALS are rulesFacts' job (startCoins / startCoinsNext spans); what is measured here is
+     the rule the sentence teaches — by STARTING a real voyage at every table size, the two steps every voyage
+     opens with (beginVoyage, then beginDay), and reading each captain's purse on the first day's record, in
+     the sailing order the voyage itself published. Not a whole play(): that cost 25 s across the mutation
+     sweep, and scripts/qa/one_voyage_start_check.mjs already holds that every voyage opens with these steps. */
+  {
+    const rows = [];
+    let ok = true;
+    for (const n of [2, 3, 4]) {
+      const g = new Game(roundCfg(["human", "bot", "bot", "bot"].slice(0, n)), 20260916 + n, true);
+      const facts = rulesFacts(g.cfg);
+      g.beginVoyage(); g.beginDay();
+      const order = (g.events.find(e => e.t === "turnOrder") || {}).order;
+      const day1 = g.events.find(e => e.t === "newround");
+      if (!order || !day1) { ok = false; rows.push(`${n} captains: no turnOrder or no first day recorded`); continue; }
+      const purses = order.map(i => day1.state[i].coins);
+      const step = facts.startCoinsNext - facts.startCoins;
+      const ladder = purses.every((c, k) => c === facts.startCoins + k * step);
+      if (!(ladder && step > 0)) ok = false;
+      rows.push(`${n} captains, in sailing order: ${JSON.stringify(purses)} (page: first ${facts.startCoins}, next ${facts.startCoinsNext})`);
+    }
+    claim("voyage-purses-staggered", "the captain who goes first gets 3🌕, the next 4🌕, and so on down the line, so the later ye sail, the fuller yer purse",
+      ok, rows.join("; "));
+  }
 
   /* ── SAILING ──────────────────────────────────────────────────────────────── */
   {
@@ -466,6 +495,10 @@ const blindTo = name => P => {
 };
 
 const MUTATIONS = [
+  /* The voyage dealt every captain the same purse again — what the headless engine did until 2026-09-16, and
+     exactly what "the next 4, and so on down the line" denies. */
+  { id: "voyage-purses-staggered", breaks: ["voyage-purses-staggered"],
+    patch: P => { const o = P.beginVoyage; P.beginVoyage = function () { const order = o.call(this); const flat = this.players[order[0]].coins; order.forEach(i => { this.players[i].coins = flat; }); return order; }; } },
   /* Shrinking the range really does falsify BOTH sentences — "up to 4 squares" and "4 across the
      wind" — so listing one would be the gate lying about its own reach. */
   { id: "sail-range", breaks: ["sail-range", "sail-crosswind-free"],
