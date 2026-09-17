@@ -33,6 +33,8 @@ BUILD: 2026.09.16.1-staging@7fb54490
 - Pastry Pirates After Launch (the PRD from the future-plans interview, 2026-09-15: goals ladder, economy, accounts and ledger, worlds as folders, ways to play, all 14 growth leads, platforms, board game, order, not-doing; 4 open questions at top, a notes box per section; his marks in localStorage `after-launch-prd/wyatt-r1`, or pasted from Copy my notes) — https://claude.ai/artifact/6DGyHdVj4SShy3tZumPNQn
 - Game Feel Tuner (2026-09-15, his ask four times over: dials for the coins, the crates, the sail squares, the cannon's recoil/smoke/shake, the speed lines and confetti; three coin "chink" sounds and three "coins leaving the purse" candidates to pick; his numbers in `feel/wyatt`) — https://claude.ai/artifact/N62YXT3Bg9SBfruWTJi1s3
 
+- Tier 1 Cleanup Checkpoint (2026-09-17 — the architecture cleanup's first tier: two open questions with answer buttons, the sea trial verdict beside dev's, and Passed/Problem on each item once it reaches staging; his marks in localStorage `tier1/wyatt`) — https://claude.ai/artifact/UkGq3PFn4mkmyx9TKTiBiB
+
 ## Build 2026.09.15.5 — staging, 2026-09-15 (waiting on his verdict)
 - **The coins**: one at a time (1400ms flight, 700ms apart, stagger capped), the count steps per landing, a chink per coin
   (his three candidates are slots in `sfx/coin-chink.mp3`; A is in), elastic landings for coins and both flying crates.
