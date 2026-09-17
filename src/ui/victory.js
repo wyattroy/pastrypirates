@@ -17,7 +17,7 @@ import { ASSET_BASE, BOAT_IMG, CROWN_IMG, PARROT_IMG, SPOILS_POUCH_IMG, POCKET_C
 import { say, sayText, pname, seatLocal, sleepMs, assignBadges } from "./util.js";
 import { seat } from "../shared/words.js";
 import { recipeInfo } from "./recipe.js";
-import { playWinScreen, playLidNote, playPop, playCrateVerdict, playDrumroll, playAwardWhoosh, playCoinTick, playCoinChink, playCardSwish } from "./audio.js";
+import { playWinScreen, playLidNote, playPop, playCrateVerdict, playDrumroll, playAwardWhoosh, playCoinTick, playCardSwish } from "./audio.js";
 
 /* ---------------- HIS TUNING ---------------- */
 export const VICTORY_TUNING = {
@@ -53,6 +53,7 @@ const isLocalHuman = s => { const p = appState.game.players[s]; if (!p) return f
 /* ================= 1. THE BOARD: last look, crown, podium ================= */
 let stageEl = null;
 export async function playVictoryBoard(e, { fadeOutPanel, sweepCam, lastLookMs, render, shipEls }) {
+  ensureStyle();
   const g = appState.game;
   if (!g || !e) return;
   // every screen reads the result from the event — a guest's flips/heads/winner come from here, not from a second route
@@ -185,6 +186,7 @@ function gravityConfetti(box, n) {
 
 /* ================= 2. THE CARD ================= */
 export function victoryCard() {
+  ensureStyle();
   const g = appState.game, wrap = $("statsWrap"), panel = $("statsPanel");
   if (!g || !wrap || !panel) return;
   wrap.classList.add("vcOn");
@@ -356,7 +358,8 @@ function pageTally(el, v, c, card) {
   const trow = mk(el, "vcRow vcTotal", `<span>${esc(sayText("victory.score.total", {}))}</span><b>0</b>`);
   reel(trow.querySelector("b"), total, totalAt + g.reel, "", true);
   setTimeout(() => { lifts.forEach(x => { try { x && x.cancel(); } catch (e) {} }); list.style.transform = ""; vp.style.overflowY = "auto"; vp.scrollTop = Math.max(0, (rows.length - g.visible) * 20); }, totalAt + g.reel + 50);
-  setTimeout(() => { playCoinChink();
+  setTimeout(() => { playLidNote(7);   // not the coin chink: that sound is a coin ARRIVING in a purse, played in one place (coin_arrival_one_event_check)
+   
     if (g.shake && !reduced()) anim(card, [0, 1, 2, 3, 4, 5, 6].map(i => ({ translate: i === 6 ? "0 0" : `${(i % 2 ? 1 : -1) * g.shake * (1 - i / 6) * Math.min(2, total / 800)}px 0` })), { duration: 380, fill: "none", easing: "linear" }); }, totalAt + g.reel);
   // "New best voyage!" — each player's own best, on their own device (his ruling, 2026-09-16)
   const bests = store.get("pp_bestVoyage", {}), prev = bests[name];
@@ -460,6 +463,8 @@ body.pp4Stage #statsWrap.vcOn { top:auto; background:transparent; box-shadow:non
 .vcConfetti { position:fixed; width:7px; height:10px; border-radius:2px; z-index:33; pointer-events:none; }
 @media (prefers-reduced-motion: reduce) { .vcConfetti { display:none; } }
 `;
-if (typeof document !== "undefined" && !document.getElementById("vcStyle")) {
+/* the style goes in the first time the card is shown — never at import, because headless checks load the game's modules with no page (w7_route_derivation_check) */
+function ensureStyle() {
+  if (typeof document === "undefined" || typeof document.createElement !== "function" || !document.head || document.getElementById("vcStyle")) return;
   const st = document.createElement("style"); st.id = "vcStyle"; st.textContent = CSS; document.head.appendChild(st);
 }
