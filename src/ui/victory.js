@@ -113,7 +113,10 @@ async function boardBeats(g, v, shipEls, leanCam, sweepCam) {
     const land = 250 + c.drop;
     await sleepMs(land);
     playWinScreen();
-    if (c.shake && !skip) anim(document.body, [0, 1, 2, 3, 4, 5].map(i => ({ translate: i === 5 ? "0 0" : `${(i % 2 ? 1 : -1) * c.shake * (1 - i / 5)}px ${(i % 2 ? -1 : 1) * c.shake * .4 * (1 - i / 5)}px` })), { duration: 320, fill: "none", easing: "linear" });
+    /* the shake moves the board and this stage — never <body>: a transform on body makes it the box every fixed layer is
+       placed in, and on a phone body is 56 px tall, so the full-screen dim collapsed into a strip (Wy-Blade's crew run) */
+    if (c.shake && !skip) { const kf = [0, 1, 2, 3, 4, 5].map(i => ({ translate: i === 5 ? "0 0" : `${(i % 2 ? 1 : -1) * c.shake * (1 - i / 5)}px ${(i % 2 ? -1 : 1) * c.shake * .4 * (1 - i / 5)}px` }));
+      [$("boardwrap"), stageEl].forEach(el => el && anim(el, kf, { duration: 320, fill: "none", easing: "linear" })); }
     [...nameEl.querySelectorAll(":scope > span")].forEach((sp, i) => {
       anim(sp, [{ transform: "scale(0)", opacity: 0 }, { transform: `scale(${c.letterPop})`, opacity: 1, offset: .6 }, { transform: "scale(1)", opacity: 1 }], { duration: 260, delay: 220 + i * c.letterGap });
       setTimeout(() => playLidNote(Math.min(i, 7)), 220 + i * c.letterGap);
@@ -244,12 +247,12 @@ function placeCard(wrap) {
 /* -------- so close: only a captain who did not win, on their own screen (or a shared pass-and-play screen, where the
    voyage is over and the recipe is no secret — his ruling, 2026-09-16) -------- */
 function pageClose(el, v, c) {
-  const size = v.size, baking = !!c.baked, bench = baking && Array.isArray(c.bakeOrder) && Array.isArray(c.locked);
+  const size = v.size, baking = !!c.baked, bench = baking && Array.isArray(c.bakeOrder) && Array.isArray(c.namedCrates);
   const recipe = bench ? c.bakeOrder : (c.recipe || []);
   const held = (appState.game.players[c.seat] || {}).ing || [];
   const ok = baking ? (c.named || 0) : (c.crates || 0), missing = Math.max(1, size - ok);
   // a sailing captain's ticks are the crates they HELD; a baker's are how many crates they had named right
-  const has = bench ? recipe.map((x, i) => !!c.locked[i]) : baking ? recipe.map((x, i) => i < ok) : recipe.map(x => held.includes(x));
+  const has = bench ? recipe.map(x => c.namedCrates.includes(x)) : baking ? recipe.map((x, i) => i < ok) : recipe.map(x => held.includes(x));
   el.innerHTML = `<h4 class="vcHead">${say((baking ? "victory.close.bake" : "victory.close.ovens") + (missing === 1 ? ".one" : ".many"), { w: seat(c.seat), n: sayText("victory.number." + Math.min(5, missing), {}) })}</h4>`;
   const row = mk(el, "vcRecipe");
   recipe.forEach((ing, i) => { const got = has[i];
