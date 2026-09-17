@@ -464,22 +464,23 @@ export function applyBenchSnap(snap){
    `panel("")` is guarded on our own content so this can never blank a panel that has already moved
    on to something else — the bake-off bench takes the same precaution. */
 export function applyBattleSnap(snap){
-  if(!snap){
-    appState.spectatingBattle=false;
-    return;
-  }
+  /* RETIRE: a cleared battle node draws nothing here, and never did — the fight's own words leave on their own timer. (It cleared
+     `spectatingBattle`, and the branch below set it. Architecture item 8 deleted that flag with watchNarr's filter, its last reader.) */
+  if(!snap)return;
   /* (the guest's clash stood here — played on the first battle snapshot this screen heard, which comes after the opening line and every
-     crow's-nest call. Architecture item 4: the clash is the engine's `engage` event, sounded by the one event consumer on every screen.) */
-  appState.spectatingBattle=true;
-  if(!appState.inBattlePrompt)renderBattleFromSnap(snap);
+     crow's-nest call. Architecture item 4: the clash is the engine's `engage` event, sounded by the one event consumer on every screen.)
+     A FIGHT'S WORDS ARE DRAWN WHATEVER THIS SCREEN IS DOING, ITS OWN FIGHT PROMPT INCLUDED — architecture item 8, 2026-09-17. This was
+     `if(!appState.inBattlePrompt)renderBattleFromSnap(snap)`, the battle box's guard; the host's battlePublish never had one. */
+  renderBattleFromSnap(snap);
 }
 
 export function watchBattle(){
   netWatchBattle(appState.db,appState.room,s=>{
     const v=s.val();
     /* THE BAKE COMES FIRST AND RETURNS. A bench snapshot carries `bake` and has no attIdx/defIdx,
-       so renderBattleFromSnap would bail on it anyway — but reaching that line at all would set
-       spectatingBattle and silence narration for the rest of the voyage. */
+       so renderBattleFromSnap bails on it anyway — and this door is the bench's, not the fight's.
+       (It used to matter far more: reaching that line at all set spectatingBattle, which silenced
+       narration for the rest of the voyage. That flag is gone — architecture item 8.) */
     if(v&&v.bake){applyBenchSnap(v.bake);return;}
     if(!v)applyBenchSnap(null);                 // the node cleared: any watcher session ends
     /* THE BATTLE PATH STAYS GUEST-ONLY, AND THAT IS A DECLARED GAP, NOT AN OVERSIGHT.
@@ -512,25 +513,17 @@ export function battleAsk(player,o,msg,opts,colors){
   }
   const askSeat=player.idx;   // who is being ASKED — never whose turn it is (architecture item 3: the top bar stays on the attacker)
   const isFlip=opts.length===1&&!!opts[0].flip;
-  // spectators (and, crucially, the OTHER combatant) get a battle-aware nudge that names who's
-  // attacking whom instead of a bare "…is deciding" — so when a bot attacks a human on the bot's
-  // turn, the table can see it's the human's defend flip and nudge them (see #11).
-  const spect=(o&&o.att&&o.def)
-    ?(askSeat===o.def.idx?sayAll("battle.waitDefend",{a:seat(o.att.idx),d:seat(o.def.idx)})
-      :sayAll("battle.waitFor",{a:seat(o.att.idx),d:seat(o.def.idx),who:seat(askSeat)}))
-    :sayAll("wait.deciding",{p:seat(askSeat)});
-  // D-10 DELIVERY (F7): the spectator line is the neutral broadcast, the asked seat's own prompt is
-  // that seat's variant, and each client selects for itself through the mechanism that already ships.
-  //
-  // THIS IS A NEW FINDING, NOT A REVERSAL. D-35's sweep listed this site as "the correct
-  // actor/spectator split (D-10), not a transport fork", and it was right about the question it
-  // asked: does guest-side code AUTHOR its own text? It does not. This gate asks a different
-  // question — does the broadcast REACH the right viewer? — which that sweep never examined. One
-  // message cannot express a per-viewer difference, however correctly it was authored.
-  /* THE CAPTAIN ABOUT TO FLIP GETS NO BOX. Wyatt, 2026-09-15: "There is still a narration box that appears for a moment before the
-     flippenator appears. we can get rid of that." The flip stage rises with these same words as its own title, so on that one screen
-     the line is dropped (stageFlash ignores an empty line); every other seat still gets the spectator line it always got. */
-  netBroadcast(spect.html,[...spect.variants.filter(v=>v.seat!==askSeat),{seat:askSeat,html:isFlip?"":msg}]);
+  /* ⭐ NOBODY IS TOLD THE FIGHT IS WAITING FOR A COIN — architecture item 8, Wyatt's ruling relayed 2026-09-17, his own option (a):
+     "drop the fight's two waiting lines everywhere … 'loads the cannon…' and 'shows TAILS — X must answer…' already say whose coin it is."
+     WHAT STOOD HERE: a broadcast of `battle.waitDefend` ("⚔️ {a} attacks {d}! Waiting for {d} to defend…") to every screen but the
+     defender's, or `battle.waitFor` ("⚔️ {a} attacks {d} — waiting for {who}…") to every screen but the asked captain's. THE HOST NEVER
+     DREW EITHER — netBroadcast draws nothing locally (see its own comment) — so on a solo device the words did not exist, and in a crew
+     room they existed only on the screens that were not deciding. MEASURED in the two-window crew fight behind this item: the guest's
+     own watchNarr filter then dropped them too, so in a crew fight they reached NO screen at all; with that filter gone but these lines
+     still here they landed on the watching phone and cut "HostCap loads the cannon…" from 4,537 ms of reading time to 769 ms.
+     Both words are deleted from src/shared/words.js in the same commit. scripts/qa/fight_lines_not_filtered_check.mjs holds it.
+     (`msg` is still this seat's own question, put to it by the prompt itself below — never broadcast. THE CAPTAIN ABOUT TO FLIP GETS NO
+     BOX either way, Wyatt 2026-09-15: "There is still a narration box that appears for a moment before the flippenator appears.") */
   let idxP;
   if(decisionIsLocal(askSeat)){
     battlePublish(o);   // the table's copy of the fight (no box any more — see renderBattle)
@@ -740,8 +733,9 @@ async function asyncBattleRun(att,def){
   // made the host's teardown and a watcher's two separate pieces of code — the condition rule 23
   // exists to forbid. Both now leave by this door.
   applyBattleSnap(null);
-  // battle's over — clear the broadcast scoreboard so every client's watchNarr can take the panel
-  // back for the result narration (and so spectatingBattle resets). (#9)
+  // battle's over — clear the broadcast scoreboard, which is how every other screen hears it. No screen waits for this to draw a
+  // narration line any more: a line is drawn when it arrives, fight or no fight (architecture item 8; it used to reset spectatingBattle,
+  // which is what let watchNarr "take the panel back for the result narration" — #9, 2026-07-20).
   if(appState.isHost&&appState.db&&appState.room&&!appState.replaying)netRemoveBattle(appState.db,appState.room,netFail("battle clear"));
   /* ⭐ HOW THE FIGHT ENDED IS SAID ONCE, BY THE FIGHT, FROM THE EVENT ITS ENDING RECORDED — before the calls settle, however it ended
      (architecture item 9, 2026-09-17): a won fight ("Crustbeard wins and takes Cacao Pods."), a stand-off, or a flight ("Davy Scones
@@ -1968,12 +1962,13 @@ export function watchPrompt(){
          (Wyatt's Glass report, 13:08Z). The bake-bench guard above is untouched: squares are
          never a bench. One broom, shared with the renderer — see clearSailWindow() in ui/flow.js. */
       clearSailWindow();
-      setFlipActive(null);appState.inBattlePrompt=false;return;}
+      setFlipActive(null);return;}
     if(prompt.kind==="ask"){
       if(prompt.battle){
         /* THIS SEAT'S BATTLE DECISION, WITH NO BOX (2026-09-14): the camera holds the fight, a flip is the flip stage, and a choice is
-           the ordinary prompt — exactly what the host's own captain gets in battleAsk. */
-        appState.inBattlePrompt=true;
+           the ordinary prompt — exactly what the host's own captain gets in battleAsk. (It used to raise `inBattlePrompt`, which
+           dropped every line this screen was handed while it was up; architecture item 8 deleted the flag — a line is drawn when it
+           arrives.) */
         renderBattleFromSnap(prompt.battle);   // the fight's words; a line already said is not said again (the camera is held by the fight's engage event)
         if(prompt.flip){
           setNeedsAction(true);
@@ -1985,7 +1980,6 @@ export function watchPrompt(){
         }
         return;
       }
-      appState.inBattlePrompt=false;
       /* FORK 2 CONVERGED (W1, 2026-08-28). Everything that stood here — the guest's own flip
          branch (whose early return meant a guest NEVER saw the other options on a flip-bearing
          prompt), its own back-button build, its own panel() markup, its own slider build and its
@@ -2014,7 +2008,6 @@ export function watchPrompt(){
       renderAskPrompt({msg:prompt.msg,opts,colors:prompt.colors||null,sub:prompt.sub||null,slider:sl,battle:false},
         v=>sendResponse(prompt.id,v,true));
         }else if(prompt.kind==="pick"){
-      appState.inBattlePrompt=false;
       setFlipActive(null);
       // THE TRACER (02.15-02 Task 3, D-25/PAR-14): names the ONE converged renderer DIRECTLY —
       // this is what makes the pick channel's orchestration parity gate (assertion 6,
@@ -2052,7 +2045,6 @@ export function watchPrompt(){
          SEE the convergence — a wrapper would satisfy the eye and nothing else. playBakeoffLive is
          handed the same spec bakeoffPrompt built, so the shuffle a remote captain watches is the
          same arcs, the same 1000ms swaps and the same 700ms settles, drawn by the same code. */
-      appState.inBattlePrompt=false;
       setFlipActive(null);
       /* ONE PROMPT, ONE CHOREOGRAPHY. This callback fires on every write to the prompt node and
          also on re-attach, and a bake is a two-minute interaction rather than a re-render — a
@@ -2153,10 +2145,14 @@ let _liveBakePromptId=null;
 const NARR_EVENT_GRACE_MS=450, NARR_EVENT_POLL_MS=30;
 export function watchNarr(){
   netWatchNarr(appState.db,appState.room,s=>{const v=s.val();
-    // while a battle scoreboard is showing here (as spectator or active combatant), keep it up —
-    // the per-flip "X flips HEADS" broadcasts are already reflected in the scoreboard coins, and
-    // letting them overwrite the panel made the battle box flicker away between flips (#9)
-    if(v&&!appState.spectatingBattle&&!appState.inBattlePrompt)
+    /* ⭐ A LINE IS DRAWN WHEN IT ARRIVES, FIGHT OR NO FIGHT — architecture item 8, 2026-09-17. This dropped EVERY line handed to this
+       screen while a fight's snapshot was live or this screen's own fight prompt was up: `&&!appState.spectatingBattle&&!appState.inBattlePrompt`,
+       written 2026-07-20 (2793771d, playtest item #9) so the per-flip lines "would not overwrite the panel" and make "the battle box
+       flicker away between flips". THE BATTLE BOX WAS DELETED ON 2026-09-14 (1c87b27a) and the reason with it; the host's own flash
+       never filtered anything, so the two screens disagreed by construction — rule 23.
+       MEASURED in a two-window crew fight before this change: the watching phone was handed six narration lines during two fights and
+       drew none of them, the host's "…is deciding…" for a fire-again and for a flee among them. */
+    if(v)
       {
         /* THE HOST'S DECISION WINS OVER THE SNIFF. -1 means "the host deliberately gave this line no
            subject" (a fight, a table-wide report) and must NOT fall through to the colour sniff,

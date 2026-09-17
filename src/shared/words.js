@@ -194,7 +194,8 @@ export const WORDS = {
   "wait.sailing": "{p} {p:is|are} choosing where to sail…",
   "wait.ovens": "{p} {p:steps|step} up to the ovens…",
   "wait.mateys": "⚓ Waiting for yer mateys…",
-  "battle.waiting": "⏳ Waiting for {who}…",
+  /* (the battle box's own "⏳ Waiting for {who}…" stood here. Nothing has said it since the box was deleted on 2026-09-15, 1c87b27a —
+     the same deletion that left the guest's two line filters with nothing to protect. Architecture item 8 takes all three.) */
 
   /* ── SAILING ───────────────────────────────────────────────────────────────────────────────────────── */
   "sail.tap": "tap to sail",
@@ -333,8 +334,9 @@ export const WORDS = {
   "battle.crosswindTag": "CROSSWIND · ties collide",
   "battle.downwindTag": "⬇ {name} FIRES DOWNWIND — WINS TIES",
   "battle.opening": "⚔️ {a} {a:attacks|attack} {d}!",
-  "battle.waitDefend": "⚔️ {a} {a:attacks|attack} {d}! Waiting for {d} to defend…",
-  "battle.waitFor": "⚔️ {a} {a:attacks|attack} {d} — waiting for {who}…",
+  /* (the fight's two waiting lines stood here — "⚔️ {a} attacks {d}! Waiting for {d} to defend…" and "⚔️ {a} attacks {d} — waiting for
+     {who}…". Wyatt, relayed 2026-09-17, architecture item 8: drop them everywhere. "battle.loads" and "battle.showsTails" below already
+     say whose coin the table is waiting on, and the host never drew either line at all.) */
   "battle.loads": "{a} {a:loads|load} the cannon…",
   "battle.fire": "⚔️ {name} (attacker) — fire!",
   "battle.defend": "⚔️ {a} {a:attacks|attack} ye — defend! FLIP",
