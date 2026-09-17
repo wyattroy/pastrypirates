@@ -3410,3 +3410,15 @@ tomorrow's sea overnight, rejecting a seed that cannot be baked or that one seat
   scripts/voyage_disagreements.mjs now counts live and staging voyages by default (never localhost probes or the gate's pid) and asks only
   voyages a human won. NOTE for him: it does not change the bots by itself — it lists where a winning human and the bot brain disagree;
   turning that list into a smarter bot is the next piece of work (and his "easy to diabolical" skill setting after it).
+- **HIS GAME FEEL TUNER, ROUND 2 — 2026-09-16, on build .4.** All his numbers are in build .5: coins 630 ms flight, 470 ms apart, arc 280%,
+  bounce 32%, squash 24%; coins leaving 800 ms, 155 ms apart, at most 5; crates 1330 ms, bow 160%, bounce 32%; sail wave 180 ms a ring;
+  cannon recoil 30% of a square over 1290 ms, fling 25%, smoke 150% for 1200 ms, shake 8 px; speed lines 1080 ms; confetti 2000 ms, 32
+  pieces. Verdicts: the cannon *"Looks great now!"*; speed lines and confetti *"Looks great!"*.
+  **The crate:** *"the crate disappears completely instead of bouncing or squashing"* — the flying crate now takes its own squash and hop
+  (board.js landInHold, for a crate off an island and both crates of a trade), then becomes the chip in the hold.
+  **The sails:** *"I want it to look flowier ... juicy, wavy, reflective, as if shimmering fish scales are being rolled out from the boat.
+  this looks horribly jagged, with no bounce or momentum -- but i want it."* Build .5 overlaps each ring's pop with the next two, springs
+  it, grows each square out of its edge nearest the boat with a glint, and breathes in rings from the boat instead of diagonal stripes.
+  Three pop styles are on the tuner for him to pick (A Scales = the game's, B Jelly, C Shimmer) — his pick is still open.
+  **Carried-over notes:** his coin and sound notes on this round were last round's, kept by the tuner; the tuner now starts each build
+  with no notes, so a note always means "still true on this build".
