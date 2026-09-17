@@ -2427,7 +2427,7 @@ export async function humanTrade(player){
   const colors=opts.map(o=>HEXCOL[responses[o.value].q.idx]);
   opts.push({label:say("trade.walkAway",{}),value:-1});colors.push(null);
   const denyNote=denials.length
-    ?denials.map(r=>say(r.why==="blocking"?"trade.refuses":"trade.declines",{q:pn(r.q.idx)})).join(" · ")
+    ?denials.map(r=>say(r.why==="blocking"?"trade.refuses":"trade.declines",{q:seat(r.q.idx)},player.idx)).join(" · ")
     :null;
   // Nobody said anything ye can act on (or nobody answered at all): no choice to put to ye, and the
   // engine says why below. Otherwise:
@@ -3464,7 +3464,7 @@ export function renderBattleFromSnap(snap,extra){
    (rule 9: crosswind stand-off, attacker declines to pay) has no winner, so no call is correct
    and nobody is paid. */
 export async function collectSideBets(att,def){
-  const bets=[],ns=pn;
+  const bets=[];
   const spectators=appState.game.players.filter(player=>player!==att&&player!==def&&!player.done);
   for(const s of spectators){
     if(s.strategy==="human"){
@@ -3473,10 +3473,10 @@ export async function collectSideBets(att,def){
       // A battle's brewing!'"). The caller is a SPECTATOR of someone else's fight, so nothing about
       // whose turn it is tells you the screen is now asking you. The name is the only thing that does.
       // @copy prompt.sidebet.call
-      const who=await ask(s.idx,say("call.ask",{name:ns(s.idx),n:appState.game.cfg.callBounty}),
+      const who=await ask(s.idx,say("call.ask",{name:pn(s.idx),n:appState.game.cfg.callBounty}),
         // `seat` puts each circle ON THE BOAT IT NAMES (Wyatt's pick, playtest 22) rather than
         // fanning both around the caller's own ship, which the director no longer has on screen.
-        [{label:say("call.button",{name:ns(att.idx)}),value:"a",seat:att.idx},{label:say("call.button",{name:ns(def.idx)}),value:"d",seat:def.idx}],
+        [{label:say("call.button",{name:pn(att.idx)}),value:"a",seat:att.idx},{label:say("call.button",{name:pn(def.idx)}),value:"d",seat:def.idx}],
         [HEXCOL[att.idx],HEXCOL[def.idx]]);
       bets.push({idx:s.idx,on:who});
       // D-08: a call names two seats — the caller AND the captain called — so both get an

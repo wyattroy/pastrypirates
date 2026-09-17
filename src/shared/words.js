@@ -29,8 +29,9 @@
                                every line about a captain, even one only other screens read today.
        {name}                  a captain's name as a LABEL — the line is put TO them by name ("{name}, choose yer
                                recipe:"), or names them on a badge, a tally or a table ("{name's} HEADS"). A name
-                               never becomes "ye", which is the point of it. words_one_place_check holds the list of
-                               lines allowed a name, so a line about a captain cannot quietly take one.
+                               never becomes "ye", which is the point of it. scripts/qa/lines_take_the_seat_check.mjs
+                               holds the list of lines allowed a name, and follows a name through a variable, a helper,
+                               a template or a field it was stored in, so a line about a captain cannot quietly take one.
 
    THE RULE THIS FILE EXISTS TO HOLD: A BOT AND A HUMAN ARE DESCRIBED IN THE SAME WORDS. A captain's type
    decides how a move is CHOSEN, never which sentence describes it; which screen is reading decides "ye".
@@ -277,8 +278,8 @@ export const WORDS = {
   "trade.tooDear": "That'd cost ye {n}🌕, and ye've only {coins}🌕 aboard.",
   "trade.coinsShort": "+{n}🌕",
   "trade.walkAway": "🚫 Walk away",
-  "trade.refuses": "{q} refuses outright",
-  "trade.declines": "{q} declines",
+  "trade.refuses": "{q} {q:refuses|refuse} outright",
+  "trade.declines": "{q} {q:declines|decline}",
   "trade.allDeclined": "No captain will part with {want} for {p:that|that offer of yers}.",
   "trade.answers": "Fer yer {want} the table answers:<br>{lines}<br>Take a deal, or walk away?",
   "trade.walksAway": "{p} {p:walks|walk} away from the table.",
@@ -342,7 +343,7 @@ export const WORDS = {
   /* his pass, 2026-09-13 */
   "battle.downwindHits": "⚪ {w's} downwind shot hits!",
   "battle.crosswindMiss": "⚪ No hit — cannonballs collide in the crosswind.",
-  "battle.hit": "{name} lands a hit!",
+  "battle.hit": "{w} {w:lands|land} a hit!",
   "battle.bothMiss": "⚫ Both miss.",
   "battle.fleeAsk": "{name}: both shots missed wildly! Slip away?",
   "battle.flee": "🏃 Flee!",

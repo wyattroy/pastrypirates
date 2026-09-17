@@ -305,6 +305,11 @@ export function renderBattle(o){
   const first=!battleLineSaid||JSON.parse(battleLineSaid)[0]!==who||o.round===1&&o.result&&o.result.id==="battle.loads";
   battleLineSaid=key;
   let txt=typeof o.result==="object"?say(o.result.id,o.result.facts):o.result;
+  /* A RESULT THAT CARRIES ITS SKIN WEARS IT (architecture item 43): `cls` is the green of a shot that landed ("score", index.html
+     .pp4Bub.btl .score). The old battle box wrapped it (flow.js battleFooter's btl-result); when the box went on 2026-09-15 (8eca1608)
+     this renderer stopped reading it, so the downwind hit and the second broadside lost their green while the hit line — then a
+     finished string with its own span — kept it. The hit line is a result like those two now, so the one renderer wraps all three. */
+  if(txt&&typeof o.result==="object"&&o.result.cls)txt=`<span class="${o.result.cls}">${txt}</span>`;
   if(first){
     const dw=o.dw!==undefined?o.dw:(appState.game&&appState.game.downwindSide?appState.game.downwindSide(o.att,o.def):null);
     // @copy misc.battlecard.windtag — APPROVED as written, Wyatt 2026-08-15 (said with the fight's first line now, not pinned in a box)
@@ -617,7 +622,6 @@ async function asyncBattleRun(att,def){
   let a=0,d=0;
   const hA=att.strategy==="human",hD=def.strategy==="human";
   let round=0;
-  const nm=pn;
   const bd=(typeof stepDelay==="function")?stepDelay():500;
   /* D-49: the battle's own `spin` const is GONE. It was clamp(260,650, stepDelay()*0.7), and with
      stepDelay() a flat 3000 that resolved to 650 — nearly twice the dock flip's 340, so two flips
@@ -647,7 +651,7 @@ async function asyncBattleRun(att,def){
   round=1;
   battlePublish(base({atState:"wait",dfState:"wait",live:"a",result:{id:"battle.loads",facts:{a:seat(att.idx)}}}));
   await sleep(beat*0.5);
-  const ah=await fightFlip("a",att,()=>say("battle.fire",{name:nm(att.idx)}),{dfState:"wait"});
+  const ah=await fightFlip("a",att,()=>say("battle.fire",{name:pn(att.idx)}),{dfState:"wait"});
   battlePublish(base({atState:ah?"H":"T",dfState:"wait",live:"a"}));
   await sleep(beat*0.6);
   battlePublish(base({atState:ah?"H":"T",dfState:"wait",live:"d",
@@ -658,16 +662,17 @@ async function asyncBattleRun(att,def){
   const {scorer,why}=appState.game.resolveRound(F,ah,dh);
   if(scorer==="a")a++;else if(scorer==="d")d++;
   const scorerIdx=scorer==="a"?att.idx:def.idx;
-  /* ⚠ A READY-MADE NAME, UNCHANGED FROM BEFORE ARCHITECTURE ITEM 1 (it was `hitName` then too): "battle.hit" is handed nm(), so the
-     scorer's own screen reads its name, never "ye". scripts/qa/words_one_place_check.mjs rule 4 cannot see a name passed through a
-     variable — found when this line was briefly inlined on 2026-09-16. Handing it seat() would change what a player reads, which that
-     item did not name; it is left as it was and reported. */
-  const hitName=nm(scorerIdx);
+  /* A ROUND'S RESULT NAMES THE SCORER AS A CAPTAIN, NOT AS A READY-MADE NAME — architecture item 43, 2026-09-17. "battle.hit" was
+     handed a finished name (`hitName`, through an alias of pn), so the captain who landed the shot read their own name on their own
+     screen and never "ye" — and the words check could not see a name passed through a variable. It is a seat now, like the downwind
+     line beside it, so each screen words it for itself (renderBattle): "Crustbeard — ye land a hit!" on the scorer's own screen,
+     "Crustbeard lands a hit!" on every other. His rulings: "the location decides 'ye' or the captain's name. The 'ye' form is derived,
+     never hand-written twice" and "SOLO SAYS 'YE' TOO" (DECISIONS.md, 2026-09-13). scripts/qa/lines_take_the_seat_check.mjs holds it. */
   const rmsg=
     // @copy misc.battleline.bothheadsdownwind
     why==="wind"?{id:"battle.downwindHits",facts:{w:seat(scorerIdx)},cls:"score"}
     // @copy misc.battleline.hitlands
-    :why==="hit"?`<span class="score">${say("battle.hit",{name:hitName})}</span>`
+    :why==="hit"?{id:"battle.hit",facts:{w:seat(scorerIdx)},cls:"score"}
     // @copy misc.battleline.bothheadscrosswind
     :why==="collide"?`<span class="cancel">${say("battle.crosswindMiss",{})}</span>`
     // @copy misc.battleline.bothmiss
@@ -687,7 +692,7 @@ async function asyncBattleRun(att,def){
   if(appState.game.mayFlee(F)){
     let flee;
     // @copy prompt.battle.flee
-    if(hD){flee=await ask(def.idx,say("battle.fleeAsk",{name:nm(def.idx)}),
+    if(hD){flee=await ask(def.idx,say("battle.fleeAsk",{name:pn(def.idx)}),
       [{label:say("battle.flee",{}),value:true},{label:say("battle.stand",{}),value:false}]);}
     else flee=appState.game.botWantsFlee(F);
     if(flee){
@@ -710,7 +715,7 @@ async function asyncBattleRun(att,def){
     let again;
     if(hA){
       // @copy prompt.battle.refire
-      again=await ask(att.idx,say("battle.refireAsk",{name:nm(att.idx),n:c.refire}),
+      again=await ask(att.idx,say("battle.refireAsk",{name:pn(att.idx),n:c.refire}),
         // ITEM 1 (Wyatt, 2026-08-20): brackets off the money buttons. Found by the rule-8 consistency
         // sweep, NOT by his report — the other three live in ui/flow.js and this one is easy to miss.
         [{label:say("battle.fireAgain",{n:c.refire}),value:true},{label:say("battle.breakOff",{}),value:false}]);
