@@ -52,7 +52,7 @@ const isLocalHuman = s => { const p = appState.game.players[s]; if (!p) return f
 
 /* ================= 1. THE BOARD: last look, crown, podium ================= */
 let stageEl = null;
-export async function playVictoryBoard(e, { fadeOutPanel, sweepCam, lastLookMs, render, shipEls }) {
+export async function playVictoryBoard(e, { fadeOutPanel, sweepCam, leanCam, lastLookMs, render, shipEls }) {
   ensureStyle();
   const g = appState.game;
   if (!g || !e) return;
@@ -69,7 +69,7 @@ export async function playVictoryBoard(e, { fadeOutPanel, sweepCam, lastLookMs, 
       if (sweepCam) sweepCam();
       if (render) render();
       await sleepMs(lastLookMs || 0);
-      await boardBeats(g, e.voyage, shipEls);
+      await boardBeats(g, e.voyage, shipEls, leanCam, sweepCam);
     } catch (err) { console.error("victory board", err); }
   }
   appState.liveDone = true;
@@ -85,7 +85,7 @@ function boardBox() {
   return { x: Math.max(0, r.left), y: top, w, h: Math.min(r.height, innerHeight - top), k: Math.max(.8, Math.min(1.7, w / 375, fit)) };
 }
 
-async function boardBeats(g, v, shipEls) {
+async function boardBeats(g, v, shipEls, leanCam, sweepCam) {
   if (!v) return;
   const box = boardBox(), k = box.k, win = g.winner, order = v.order || [];
   stageEl && stageEl.remove();
@@ -99,11 +99,8 @@ async function boardBeats(g, v, shipEls) {
   if (win != null) {
     const c = T.crown;
     anim(dim, [{ opacity: 0 }, { opacity: c.dim }], { duration: 250 });
-    const ship = (shipEls ? shipEls() : [])[win], sr = ship ? ship.getBoundingClientRect() : null;
-    const bw = $("boardwrap"), canLean = !skip && bw && getComputedStyle(bw).transform === "none" && sr;
-    let lean = null;
-    if (canLean) { const br = bw.getBoundingClientRect(); bw.style.transformOrigin = `${sr.left + sr.width / 2 - br.left}px ${sr.top + sr.height / 2 - br.top}px`;
-      lean = anim(bw, [{ transform: "scale(1)" }, { transform: `scale(${c.zoom})` }], { duration: 700 }); }
+    // the camera leans in on the winner — the game's own camera, so the board stays inside its frame and every layer follows
+    const lean = !skip && leanCam ? (leanCam(win, c.zoom), true) : false;
     hero = mk(stageEl, "vcHero", `<img src="${BOAT_IMG[win]}" alt="">`, { left: (cx - heroSize / 2) + "px", top: (heroY - heroSize / 2) + "px", width: heroSize + "px" });
     const cw = 38 * k * c.crownSize;
     const crown = mk(hero, "vcCrown", `<img src="${CROWN_IMG}" alt="">`, { left: (heroSize / 2 - cw / 2) + "px", top: (-cw * .62) + "px", width: cw + "px" });
@@ -125,7 +122,7 @@ async function boardBeats(g, v, shipEls) {
     anim(nameEl.querySelector(".vcSub"), [{ opacity: 0 }, { opacity: .92 }], { duration: 300, delay: confAt });
     if (!skip) setTimeout(() => gravityConfetti(box, c.confetti), confAt);
     await sleepMs(confAt + 500 + c.hold);
-    if (lean) { anim(bw, [{ transform: `scale(${c.zoom})` }, { transform: "scale(1)" }], { duration: T.podium.rise }); setTimeout(() => { try { lean.cancel(); } catch (x) {} bw.style.transformOrigin = ""; }, T.podium.rise + 50); }
+    if (lean && sweepCam) sweepCam();   // back out to the whole board for the podium
   } else {
     anim(dim, [{ opacity: 0 }, { opacity: .55 }], { duration: 250 });
     nameEl = mk(stageEl, "vcName vcNobody", `<div class="vcSub">${sayText("victory.nobody", {})}</div>`, { top: (box.y + 18 * k) + "px", fontSize: (22 * k) + "px" });
@@ -247,11 +244,12 @@ function placeCard(wrap) {
 /* -------- so close: only a captain who did not win, on their own screen (or a shared pass-and-play screen, where the
    voyage is over and the recipe is no secret — his ruling, 2026-09-16) -------- */
 function pageClose(el, v, c) {
-  const size = v.size, baking = !!c.baked, recipe = c.recipe || [];
+  const size = v.size, baking = !!c.baked, bench = baking && Array.isArray(c.bakeOrder) && Array.isArray(c.locked);
+  const recipe = bench ? c.bakeOrder : (c.recipe || []);
   const held = (appState.game.players[c.seat] || {}).ing || [];
   const ok = baking ? (c.named || 0) : (c.crates || 0), missing = Math.max(1, size - ok);
   // a sailing captain's ticks are the crates they HELD; a baker's are how many crates they had named right
-  const has = baking ? recipe.map((x, i) => i < ok) : recipe.map(x => held.includes(x));
+  const has = bench ? recipe.map((x, i) => !!c.locked[i]) : baking ? recipe.map((x, i) => i < ok) : recipe.map(x => held.includes(x));
   el.innerHTML = `<h4 class="vcHead">${say((baking ? "victory.close.bake" : "victory.close.ovens") + (missing === 1 ? ".one" : ".many"), { w: seat(c.seat), n: sayText("victory.number." + Math.min(5, missing), {}) })}</h4>`;
   const row = mk(el, "vcRecipe");
   recipe.forEach((ing, i) => { const got = has[i];
@@ -457,7 +455,7 @@ body.pp4Stage #statsWrap.vcOn { top:auto; background:transparent; box-shadow:non
 .vcHero, .vcCrown, .vcBoat { position:absolute; } .vcHero img, .vcCrown img, .vcBoat img { width:100%; display:block; }
 .vcHero { z-index:3; }
 .vcName { position:absolute; left:0; right:0; text-align:center; font-family:Fredoka,system-ui,sans-serif; font-weight:700; color:#fff; text-shadow:0 2px 0 rgba(0,0,0,.35); white-space:nowrap; transform-origin:50% 0; z-index:3; }
-.vcName span { display:inline-block; } .vcName .vcSub { font-size:.54em; font-weight:600; opacity:.92; margin-top:2px; }
+.vcName span { display:inline-block; opacity:0; } .vcName .vcSub { font-size:.54em; font-weight:600; opacity:0; margin-top:2px; }
 .vcNobody .vcSub { font-size:1em; opacity:1; }
 .vcPodium { position:absolute; inset:0; } .vcTier { position:absolute; border-radius:9px 9px 0 0; text-align:center; font-family:Fredoka,system-ui,sans-serif; font-weight:700; padding-top:3px; box-sizing:border-box; }
 .vcPlate { position:absolute; border-radius:4px; background:#e2cfa6; box-shadow:0 2px 0 #b89d6a; }

@@ -1907,7 +1907,7 @@ export async function consumeEvent(e){
      the board's last look, the crown, the podium, then liveDone + render(), which opens the card. There used to be
      two endings — the host's ritual in liveResolveEndNet and applyEndMeta, the guest's twin, which read the numbers
      from Firebase meta and drew the card ~3.4 s early with no confetti. Both are gone. */
-  if(e.t==="end")await playVictoryBoard(e,{fadeOutPanel,sweepCam:()=>{if(window.__pp4&&window.__pp4.sweepCam)window.__pp4.sweepCam();},lastLookMs:BOARD_LAST_LOOK_MS,render,shipEls:boardShipEls});
+  if(e.t==="end")await playVictoryBoard(e,{fadeOutPanel,sweepCam:()=>{if(window.__pp4&&window.__pp4.sweepCam)window.__pp4.sweepCam();},leanCam:(s,z)=>{if(window.__pp4&&window.__pp4.leanCam)window.__pp4.leanCam(s,z);},lastLookMs:BOARD_LAST_LOOK_MS,render,shipEls:boardShipEls});
   } finally { finishEventDrawing(e); }
 }
 

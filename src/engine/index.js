@@ -3375,7 +3375,11 @@ class Game{
         ovensDay:p.ovensDay, navDay:p.navDay,
         ahead:(p.ovensDay!=null&&p.navDay!=null)?Math.max(0,p.navDay-p.ovensDay):0,
         coins:p.coins, trades:p.trades||0, squares:man(p.pos,this.home),
-        flips:p.flips, heads:p.heads, recipe:p.recipe.slice()};
+        flips:p.flips, heads:p.heads, recipe:p.recipe.slice(),
+        // the bake in its own step order, and which of those crates were named right (locked) — "so close" ticks THESE,
+        // never the first n of the recipe (Wy-Blade's crew run: a guest who named sugar, vanilla and flour saw cinnamon,
+        // flour and chocolate ticked)
+        bakeOrder:bake&&Array.isArray(bake.order)?bake.order.slice():null, locked:bake&&Array.isArray(bake.locked)?bake.locked.map(Boolean):null};
       c.rows=voyageScoreRows(c,P,size);
       c.score=c.rows.reduce((s,r)=>s+r.pts,0);
       return c;

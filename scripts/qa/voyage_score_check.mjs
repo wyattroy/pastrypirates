@@ -47,10 +47,10 @@ function posed() {
   for (const p of g.players) p.recipe = p.recipe.slice(0, 5);
   // the winner: every crate, solved on the first try, lit the ovens day 15 against a navigator's 18, 5 doubloons, 1 trade
   Object.assign(p0, { ing: p0.recipe.slice(), pos: at(0, 1), coins: 5, trades: 1, done: true, ovensDay: 15, navDay: 18,
-    bake: { locked: [true, true, true, true, true], attempts: 1, solved: true } });
+    bake: { order: p0.recipe.slice().reverse(), locked: [true, true, true, true, true], attempts: 1, solved: true } });
   // at the ovens: every crate, 3 of 5 named, lit day 15 against 16, 7 doubloons
   Object.assign(p1, { ing: p1.recipe.slice(), pos: at(1, 0), coins: 7, trades: 0, baking: true, ovensDay: 15, navDay: 16,
-    bake: { locked: [true, true, true, false, false], attempts: 2, solved: false } });
+    bake: { order: p1.recipe.slice().reverse(), locked: [false, true, true, false, true], attempts: 2, solved: false } });
   // one ingredient short, 4 squares out, 4 doubloons, 2 trades
   Object.assign(p2, { ing: p2.recipe.slice(0, 4), pos: at(2, 2), coins: 4, trades: 2 });
   // three crates, 7 squares out, 11 doubloons (the coin cap is 10), 1 trade
@@ -77,6 +77,9 @@ function posed() {
   (v.captains || []).forEach((c, i) => ok(c.score === want[i], `seat ${i} scored ${c.score}, by hand ${want[i]} — rows ${JSON.stringify(c.rows && c.rows.map(r => r.key + ":" + r.pts))}`));
   ok(v.captains && v.captains.length === 4, `the end event carries ${v.captains && v.captains.length} captains`);
   ok(JSON.stringify(v.order) === "[0,1,2,3]", `closeness order ${JSON.stringify(v.order)}, expected [0,1,2,3]`);
+  { const c1 = v.captains[1], bake = g.players[1].bake;
+    ok(Array.isArray(c1.bakeOrder) && JSON.stringify(c1.bakeOrder) === JSON.stringify(bake.order) && JSON.stringify(c1.locked) === JSON.stringify(bake.locked),
+      `the end event does not carry the bake's own order and locks (so "so close" would tick the wrong crates): ${JSON.stringify([c1.bakeOrder, c1.locked])}`); }
   ok(voyageWinBonus(VOYAGE_POINTS, 5) === 445, `the win pays ${voyageWinBonus(VOYAGE_POINTS, 5)}, by hand 445`);
   // a shared bakery: a captain who also solved first try but was not crowned gets every named crate, never the perfect bonus
   const g2 = posed(); const q = g2.players[1];

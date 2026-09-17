@@ -5962,6 +5962,9 @@ export function initStage(){
     // a rim ride spans the whole board — pull out so the sweep never plays off screen; the
     // narration that follows glides the camera back down to the ship at its whirlpool
     sweepCam: () => { if (S.active){ S.lock = false; camFull(); } },
+    /* THE VICTORY CARD'S LEAN-IN (src/ui/victory.js): the crown comes down on the winner, so the camera glides in on
+       their ship — his dial, 205%, within zoomCap like every other shot. The podium calls sweepCam to come back out. */
+    leanCam: (seat, zoom) => { const g = appState.game; if (S.active && g && g.players[seat]){ S.lock = false; camToCell(g.players[seat].pos, zoom); } },
     /* THE STORM IS THE ONE MOMENT THE WHOLE TABLE MOVES AT ONCE — playtest 22 item 1 (Wyatt): "The
        director should zoom out to show all boats and their end squares before moving them in a
        storm." A storm takes every ship three squares downwind simultaneously; framed on one boat,
