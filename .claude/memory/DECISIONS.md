@@ -3422,3 +3422,33 @@ tomorrow's sea overnight, rejecting a seed that cannot be baked or that one seat
   Three pop styles are on the tuner for him to pick (A Scales = the game's, B Jelly, C Shimmer) — his pick is still open.
   **Carried-over notes:** his coin and sound notes on this round were last round's, kept by the tuner; the tuner now starts each build
   with no notes, so a note always means "still true on this build".
+- **HIS PLAYTEST OF BUILD .5 — 2026-09-16.** *"Wow i LOVE this claude the game feel is incredible.... well done my friend."* Then, each
+  handled in build .6 (fact · count before → after · gate):
+  - **The crate's arc leaves a desktop screen:** *"calculate the crates max height based on the screen height ... with the constraint of
+    keeping it onscreen? ... i basically want the parabola, and also want the crate to remain visible, if possible."* Every flight's height
+    and bow are cut to the window (board.js onGlass inside arcFrames) · 1 private clamp (trade swap) + 0 for the rest → 1 for all ·
+    flights_stay_on_glass_check. (Read as: keep his launch point, the island's crate; the window caps the height.)
+  - **The coin chink:** *"I also don't love the coin chink sound"* — three new coin sounds on the tuner (Silver, Into the purse, On the
+    pile); HIS PICK IS OPEN.
+  - **The bob before sailing jitters:** *"it needs to more intelligently lerp between whatever state the boat is in, and whatever state it
+    should be in to sail."* The bobbing copy and the SVG picture now hand over in one place (board.js handOver) carrying the lift ·
+    measured: a 5.05px one-frame drop → at most 0.88px a frame · boat_pose_one_door_check.
+  - **Battle coins off to the side:** regression from aa08a1ad (the fight coin's own board-to-page copy left out fixedOrigin) · posed at
+    1440x900: (458,545) on a boat at (443,500) → (443,501) · converters 2 → 1 (board.js fixedPointOfBoard) · board_point_one_converter_check.
+  - **The tiny bot coin is pixellated:** a 16px coin inside the camera layer, stretched by the zoom · every small coin drawn on the page at
+    the camera's size ("sized, not scaled", W5-1's rule) · same gate. Not re-measured at a real zoom yet.
+  - **The flip sound twice** and **no line when a bot refused his counter-offer** — architecture items 6 and 15 (Wy-Blade), moved up.
+  - **Fleeing cuts across islands — REGRESSION:** 106d164f (2026-08-31) put `event.t!=="sail"` back into storyboard.js present() eight
+    hours after d62da9f5 took it out of the walker, so a flee's route was never walked · "does this event walk" 2 disagreeing tests → the
+    route alone · storyboard_sail_equivalence_check now walks a flee (red-proofed).
+  - **The sail squares:** *"look great as is."* Settled: style A (Scales) stays; B and C are gone from the tuner.
+  - **The clicking when buying:** *"is it the sound of money leaving? if so ... the sound and coins both leave more spaced apart."* It was
+    the number rolling down on its own 40ms clock. Now each coin seen leaving is one event (board.js coinLeft: one off the number, one
+    click), every spending through one door (payOut) · clocks 2 → 1 · coin_arrival_one_event_check (now both directions). Spacing 155 →
+    220ms (his "more spaced apart"; a tuner dial).
+  - **Plunder:** *"those crates should change holds according to the same exact animation as trades."* REPLACES his 2026-09-13 audit pick
+    (a crate tumbling into the sea). board.js holdMovesFrom reads a trade's crates and a fight's plunder · crate_changes_holds_one_animation_check.
+  - **The bakery:** *"use the cannon sound when someone fires up the bakery"* — the `ovens` event plays the cannon, on every screen.
+  - **Bake-off crates static, lids dropping again and again — REGRESSION:** 5e2654de (my 09-15 swish) declared the swish's clock below the
+    `await runSwaps()` that called it; the shuffle threw before its first crate moved and each watcher rebuilt and re-dropped · sound
+    spacing clocks 2 → 1 (audio.js playSpaced) · sound_spacing_one_place_check.
