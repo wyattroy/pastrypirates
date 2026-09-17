@@ -99,6 +99,24 @@ something is deliberate but cannot cite it, it goes in §7 as an open question, 
 
 ## 0. THE RECURRING ONES — got wrong more than once, so they lead
 
+### One thing drawn over another is NOT a fault when it passes his rule (2026-09-17)
+
+**Wyatt's words, ruling on a fight's flip coin covering the word "HEADS", and on a gold sail square drawn over "…: tap to
+sail":** *"It's fine -- the coin is there for a short time, it actually is a GOOD thing that adds to the depth of the game.
+Look, here's a general rule: if important game elements like words or sail squares are blocked for a finite, short amount of
+time, or can be interacted with to stop them from covering each other, that's fine. that passes."*
+
+So a cover-up PASSES when either holds:
+- it clears ON ITS OWN within a few seconds (a coin that lands, a bubble that fades); or
+- the player can clear it themselves (drag the board off the overlap, close the card).
+
+It is still a FAULT when it hides a control the player must tap to go on, or when it never clears by itself and cannot be
+moved. *(That failing edge is Mac: Dev's reading of his rule, flagged to him on 2026-09-17; his own words cover the passing
+half.)*
+
+**For a sea trial's vision judge:** a screenshot showing two things overlapping is not by itself a finding. The finding must
+say how long it lasts, or that the player cannot clear it.
+
 ### The greyed, red-backed ingredient chips are what a captain STILL NEEDS. They are not the hold.
 
 **What it looks like:** the two human captains' ingredients disagree between screens — the host sees

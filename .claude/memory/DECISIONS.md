@@ -3519,3 +3519,13 @@ tomorrow's sea overnight, rejecting a seed that cannot be baked or that one seat
 - **SMALL AWARDS ARE TALL COLUMNS** filling the card's height so their words stay readable.
 - **SCORE LINES SLIDE UP** to make room for the next one.
 - **NEXT: THE PRD** after this round.
+- **A SHORT COVER-UP PASSES — HIS GENERAL RULE, 2026-09-17.** Answering the fight coin over "HEADS" (he marked it NO, don't move
+  the line): *"It's fine -- the coin is there for a short time, it actually is a GOOD thing that adds to the depth of the game. Look,
+  here's a general rule: if important game elements like words or sail squares are blocked for a finite, short amount of time, or can be
+  interacted with to stop them from covering each other, that's fine. that passes."* Recorded in docs/INTENDED-BEHAVIOUR.md §0 with the
+  failing edge Mac: Dev inferred and flagged to him: it is still a fault if it hides a control you must tap to go on, or never clears and
+  cannot be moved. This also settles the sea trial's "gold sail square over the tap-to-sail words".
+- **HIS OTHER SIX ANSWERS, 2026-09-17** (all AGREED, off the playtest sheet): one tap presses "Get bakin'!" even while the card is still
+  writing · when a host's voyage breaks, every screen is told · "Ready to bake!" is hidden while the crates shuffle · a failed trade of
+  his own stays a bubble over his boat · the fight's two "waiting for…" lines are dropped everywhere so a watching phone keeps the
+  fight's own words (architecture item 8) · a watching screen frames the waters a PERSON can reach, as it already does for a bot.
