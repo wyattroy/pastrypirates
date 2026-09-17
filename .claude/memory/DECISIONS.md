@@ -3458,3 +3458,7 @@ tomorrow's sea overnight, rejecting a seed that cannot be baked or that one seat
   Start the shuffle when yer ready." while the crates crossed: *"yes, change the hint during the shuffle"*. The first shuffle now says
   "Watch closely — keep yer eyes on the crates!" (bake.shuffling, my draft — his to reword); a paid re-watch keeps "Watch closely — the
   crates move again."
+- **OVERNIGHT SHIPPING — HIS ANSWERS, 2026-09-17 (going to bed):** the bake-hint build: *"push it to staging when it passes"*. Victory Card,
+  if finished and passing the full test overnight: **"Yes, push it (Recommended)"** to staging. The architecture cleanup: **"Ship the first
+  13 (Recommended)"** — Tier 1 goes to dev and staging once Mac: Dev has checked it and a sea trial on Wy-Blade passes (his approval of
+  that sea trial), without waiting for all 45. Production untouched; main still merges only on his word.
