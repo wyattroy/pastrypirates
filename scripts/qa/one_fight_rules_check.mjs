@@ -9,7 +9,8 @@
      1. MAY THE ATTACKER FIRE AGAIN — decided only in Game.refireOffered (the crosswind collision and the purse); no coins-vs-refire test
         and no crosswind test anywhere else; both fights ask it. Posed: a crosswind double-heads → no; both tails, full purse → yes.
      2. THE RE-FIRE'S PRICE — leaves a purse and is recorded ({t:"refire"}) only in Game.payRefire; both fights pay through it.
-     3. THE FLEE — where a fleeing ship may go (Game.fleeSquares: the rim allowed), whether a bot flees (Game.botWantsFlee), which square
+     3. THE FLEE — where a fleeing ship may go (Game.fleeSquares, which IS Game.sailChoices — where any captain may sail, the rim
+        allowed; architecture item 18 made it one call, and scripts/qa/sail_frame_same_squares_check.mjs holds that), whether a bot flees (Game.botWantsFlee), which square
         it takes (Game.botFleeSquare), and the record (Game.flee: the event with the fleeing captain, THEN the trade winds). Neither fight
         body reaches for a square search, a distance, a recipe or a position itself.
      4. THE PLUNDER — which crate a winner who is not asked takes (Game.botSpoilPick: needed → wanted by another captain → first), called by
@@ -46,7 +47,7 @@ const method = (eng, name) => { const m = eng.match(methodRe(name)); return m ? 
 const fnBody = (src, head) => bodyAt(src, src.indexOf(head));
 const count = (s, re) => (s.match(new RegExp(re.source, re.flags.includes("g") ? re.flags : re.flags + "g")) || []).length;
 
-const STEPS = ["beginBattle", "resolveRound", "resolveRefire", "landRound", "fightFlips", "refireOffered", "payRefire", "mayFlee", "fleeSquares",
+const STEPS = ["beginBattle", "resolveRound", "resolveRefire", "landRound", "fightFlips", "refireOffered", "payRefire", "mayFlee", "fleeSquares", "sailChoices",
   "botWantsFlee", "botFleeSquare", "flee", "nullBattle", "winBattle", "botSpoilPick", "takeSpoil", "battle"];
 /* Compile the engine's own method text (real or mutant) so the behavioural rules run what the SOURCE says. The only free names these
    methods may use are `man` and `ilabelImg`; anything else throws, and a throw is a failed rule. */
@@ -131,12 +132,13 @@ function rules(files) {
   }
   // 3. THE FLEE
   {
-    const flee = method(eng, "flee"), squares = method(eng, "fleeSquares"), wants = method(eng, "botWantsFlee"), pick = method(eng, "botFleeSquare");
-    const reach = fights.filter(([, b]) => /\breachable(?:From)?\(|\bsailStates\(|\bsailPath\(|\bman\(|\.pos\s*=[^=]|\brecipe\b|\bcnt\(|\btradewind\(/.test(b)).map(([n]) => n);
+    const flee = method(eng, "flee"), squares = method(eng, "fleeSquares"), choices = method(eng, "sailChoices"), wants = method(eng, "botWantsFlee"), pick = method(eng, "botFleeSquare");
+    const reach = fights.filter(([, b]) => /\breachable(?:From)?\(|\bsailStates\(|\bsailChoices\(|\bsailPath\(|\bman\(|\.pos\s*=[^=]|\brecipe\b|\bcnt\(|\btradewind\(/.test(b)).map(([n]) => n);
     const fleeEvents = count(all, /t\s*:\s*"battleflee"/);
     rule([
       [reach.length === 0, `${reach.join(" and ")} decide(s) a flee's square, a distance, a recipe crate or a move itself`],
-      [/sailStates\([^)]*throughRim\s*:\s*true/.test(squares), "Game.fleeSquares does not allow the rim"],
+      [/this\.sailChoices\(def\)/.test(squares) && /sailStates\([^)]*throughRim\s*:\s*true/.test(choices),
+        "Game.fleeSquares does not allow the rim — it must ask Game.sailChoices (where a captain may sail, the rim included), and that must keep the rim"],
       [/\.recipe\b/.test(wants) && /\bcnt\(/.test(wants) && /\bman\(/.test(pick), "Game.botWantsFlee / botFleeSquare no longer hold the bot's flee choice"],
       [fleeEvents === 1 && /t\s*:\s*"battleflee"/.test(flee) && flee.search(/t\s*:\s*"battleflee"/) < flee.search(/tradewind\(/) && /\bp\s*:/.test(flee) && /\broute\b/.test(flee),
         `{t:"battleflee"} is recorded ${fleeEvents} time(s), or Game.flee does not record the fleeing captain and route BEFORE the trade winds`],
@@ -265,8 +267,10 @@ const MUTANTS = [
     broken(ENG, "this.flee(fight,this.botFleeSquare(fight,this.fleeSquares(def)));", "this.flee(fight,this.botFleeSquare(fight,this.reachableFrom(def)));")],
   [3, "the watched fight's bot flee test written inline again",
     broken(ORCH, "else flee=appState.game.botWantsFlee(F);", "else flee=(F.downwind===\"a\")||def.ing.some(i=>def.recipe&&def.recipe.includes(i)&&appState.game.cnt(def.ing,i)<=1);")],
-  [3, "the rim taken out of Game.fleeSquares",
-    broken(ENG, "return [...this.sailStates(def,{throughRim:true}).keys()]", "return [...this.sailStates(def,{}).keys()]")],
+  [3, "the rim taken out of Game.sailChoices, which Game.fleeSquares asks",
+    broken(ENG, "sailChoices(p){return [...this.sailStates(p,{throughRim:true}).keys()]", "sailChoices(p){return [...this.sailStates(p,{}).keys()]")],
+  [3, "Game.fleeSquares running its own search again, without the rim",
+    broken(ENG, "return this.sailChoices(def);", "return [...this.sailStates(def,{}).keys()].map(k=>k.split(\",\").map(Number));")],
   [4, "the watched fight's own plunder pick restored (needed → first, no leverage)",
     broken(ORCH, "else pick=appState.game.botSpoilPick(win,lose);", "else{const w2=lose.ing.filter(i=>appState.game.needs(win).includes(i));pick=w2[0]||lose.ing[0];}")],
   [4, "the leverage step deleted from Game.botSpoilPick",

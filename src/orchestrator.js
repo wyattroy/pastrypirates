@@ -1771,7 +1771,7 @@ export async function consumeEvent(e){
      camera director does not seem to be zooming in and out dynamically or correctly -- were these
      changes somehow made only to the host?" They were: the sail-window frame lived in pickCell(), which
      runs only on the machine running the engine. The turn event reaches every device through this
-     consumer and the engine can say where ANY captain may sail (reachableFrom, read by camFitSail), so
+     consumer and the engine can say where ANY captain may sail (sailChoices, read by camFitSail — the same call as the chooser's gold squares, architecture item 18), so
      the frame is decided here, once, from the event. A captain's own sail prompt still refines it with
      the pill's room (renderPickPrompt) — the same function, asked again with more to go on. */
   if(e.t==="turn"&&!appState.replaying&&window.__pp4&&window.__pp4.sailCells)window.__pp4.sailCells(e.p);

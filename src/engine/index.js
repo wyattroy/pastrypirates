@@ -710,7 +710,7 @@ class Game{
       .map(p=>({p,proj:p.pos[0]*d[0]+p.pos[1]*d[1]}))
       .sort((a,b)=>b.proj-a.proj).map(o=>o.p);
   }
-  // v2 rule 1 reachability, shared by the engine and (via reachableFrom) the UI's highlighting.
+  // v2 rule 1 reachability, shared by the engine and (via sailChoices) every screen's gold squares and sail frame.
   // Breadth-first over states of (cell, hasGoneUpwind): a route is legal when it stayed off the
   // wind's nose and is <= SAIL_RANGE long, OR touched upwind and is <= SAIL_RANGE_UPWIND long.
   // You may sail PAST other ships but never END on one, so occupied cells expand but don't land.
@@ -780,6 +780,16 @@ class Game{
     return {out,prev,bestK,startKey};
   }
   sailStates(p,opts){return this.sailSearch(p,opts).out;}
+  /* WHERE A CAPTAIN MAY SAIL THIS TURN — every square a ship may legally finish a move on, the trade winds' rim included (a captain
+     may deliberately ride the current). THE ONE ANSWER, asked by everything that shows it: the gold squares the captain choosing is
+     given (ui/flow.js reachable), the squares every OTHER screen's camera frames for that captain's turn (ui/stage.js camFitSail),
+     and where a fleeing ship may go (fleeSquares — his ruling: a flee is an ordinary sail).
+     ARCHITECTURE ITEM 18, 2026-09-17: the watching screens' frame asked reachableFrom — this search WITHOUT the rim — under a
+     comment saying the two "agree by construction". Measured on 40 seeded boards: from 3,430 of 4,432 legal sea squares the
+     chooser's gold squares included rim squares the watchers' frame left out (18,267 squares), and on 3,296 of them the framed
+     rectangle itself was smaller. scripts/qa/sail_frame_same_squares_check.mjs holds it to one. (A BOT's ordinary-move list is
+     still reachableFrom, with its rides weighed as the head of the current — how a bot chooses, not where it may go; item 7.) */
+  sailChoices(p){return [...this.sailStates(p,{throughRim:true}).keys()].map(k=>k.split(",").map(Number));}
   /* The squares a ship actually crosses to reach `dest`, in order, EXCLUDING the square it starts
      on and INCLUDING dest. Empty when dest is not legally reachable — callers animate nothing
      rather than invent a route, the same refusal rimSweepPath makes.
@@ -1853,9 +1863,11 @@ class Game{
     const f=p.fightLog[q.idx];
     return (f&&f.until>=this.round)?f.n:0;
   }
-  // Every square this ship could legally finish a move on, as a plain array — the engine-side
-  // twin of the UI's reachable() helper. A fleeing defender uses the ordinary v2 sail rules
-  // (4 squares, 2 if the escape route touches upwind), which is Wyatt's ruling for rule 9's flee.
+  /* A BOT'S ORDINARY MOVES: the squares this ship could finish on WITHOUT touching the trade winds, as a plain array. Read only by
+     the bots' choosing (planTurnV3 adds each ride as the head of the current it reaches; strikeFrom looks for a square to fire from).
+     It is NOT where a captain may sail — that is sailChoices, the rim included — and it is not what any screen shows or frames. It
+     used to say it was "the engine-side twin of the UI's reachable()" and that a fleeing defender used it; neither was true any more
+     (architecture items 1 and 18). */
   reachableFrom(p){
     return [...this.sailStates(p).keys()].map(k=>k.split(",").map(Number));
   }
@@ -2113,9 +2125,11 @@ class Game{
   }
   /* WHERE A FLEEING SHIP MAY GO: the ordinary v2 sail (4 squares, 2 if the route touches upwind), and the rim IS a legal square — a
      fleeing ship may ride the trade winds, which the W9 ride animates. The headless fight used to forbid the rim here while the fight
-     people play allowed it: measured 2026-09-16, 483 of 1842 fights put a fleeing bot on a different square. */
+     people play allowed it: measured 2026-09-16, 483 of 1842 fights put a fleeing bot on a different square.
+     And it is the SAME answer as where a captain may sail this turn, so it asks that one function rather than repeating its search
+     (architecture item 18). */
   fleeSquares(def){
-    return [...this.sailStates(def,{throughRim:true}).keys()].map(k=>k.split(",").map(Number));
+    return this.sailChoices(def);
   }
   /* WHETHER A BOT FLEES: when the wind is against it (it would lose the next both-heads) or when it carries a crate it cannot afford to
      lose — a RECIPE crate it holds no spare of. NOT `needs(def).includes(i)`: needs() is the recipe MINUS what ye already hold, so

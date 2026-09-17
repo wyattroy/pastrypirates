@@ -319,12 +319,11 @@ export async function flipFor(player,why){
 // correctly (rule 5). The sugarfish/candycrab art and the "fishing" sfx stay on disk in the
 // shared assets/ and sfx/ at the repo root — the classic game at /classic reaches them as ../assets and ../sfx.
 export function reachable(player){
-  // v2 rule 1, and the ONE place the human's highlighted squares are computed. The rule itself
-  // lives in the engine (Game.sailStates) so the board a player is shown can never disagree with
-  // where a bot is allowed to sail — humans and bots read the same function. A human may
-  // deliberately ride the trade winds, so the rim stays a legal destination here (throughRim);
-  // bots stay out of the channel except via rimEscape().
-  return [...appState.game.sailStates(player,{throughRim:true}).keys()].map(k=>k.split(",").map(Number));
+  /* v2 rule 1: the gold squares a captain choosing where to sail is shown. Not computed here — Game.sailChoices is where a captain
+     may sail this turn (the trade winds' rim included), and it is the SAME function every other screen's camera frames that turn
+     from (ui/stage.js camFitSail), so the squares one screen offers and the squares another frames cannot differ (architecture
+     item 18, 2026-09-17; scripts/qa/sail_frame_same_squares_check.mjs). */
+  return appState.game.sailChoices(player);
 }
 // D-25/D-35 (Wyatt-approved 2026-07-29): the one sail-prompt message, shared by BOTH transports —
 // composed once in pickCell() and rendered by the ONE converged renderer, renderPickPrompt()

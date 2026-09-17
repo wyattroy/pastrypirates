@@ -284,15 +284,20 @@ function camFitSail(seat, pos){
   // the squares became HTML sized in cqw rather than SVG rects with x/width attributes.
   /* THE SQUARES ON SCREEN — OR, ON A SCREEN WATCHING SOMEBODY ELSE'S TURN THAT HAS DRAWN NONE, THE SAME
      SQUARES FROM THE ENGINE. Only the captain choosing gets gold squares, so a frame built from the DOM
-     alone could only ever be right on one device. reachableFrom() is the engine's own answer to "where
-     may this captain sail", and the picker's squares are drawn from it, so the two agree by
-     construction (Wyatt, 2026-09-13, note 6: the guest camera was not framing anybody's sail). */
+     alone could only ever be right on one device (Wyatt, 2026-09-13, note 6: the guest camera was not
+     framing anybody's sail). Game.sailChoices is the engine's one answer to "where may this captain
+     sail", and the chooser's gold squares are drawn from that same call (ui/flow.js reachable).
+     ARCHITECTURE ITEM 18, 2026-09-17: this used to ask reachableFrom — the same search WITHOUT the
+     trade winds' rim — under a comment claiming the two "agree by construction". They did not: on 40
+     seeded boards, from 3,430 of 4,432 sea squares the watchers' frame left out rim squares the chooser
+     was offered, and on 3,296 the framed rectangle was smaller. One call now; the gate is
+     scripts/qa/sail_frame_same_squares_check.mjs. */
   const drawn = [...document.querySelectorAll(".sailCell")]
     .map(r => [+r.dataset.gx, +r.dataset.gy])
     .filter(c => Number.isFinite(c[0]) && Number.isFinite(c[1]));
   let cells = drawn;
-  if (!drawn.length && who && typeof g.reachableFrom === "function"){
-    try { cells = g.reachableFrom(who).filter(c => Array.isArray(c) && Number.isFinite(c[0]) && Number.isFinite(c[1])); }
+  if (!drawn.length && who && typeof g.sailChoices === "function"){
+    try { cells = g.sailChoices(who).filter(c => Array.isArray(c) && Number.isFinite(c[0]) && Number.isFinite(c[1])); }
     catch (err) { cells = []; }
   }
   cells.push(own);
