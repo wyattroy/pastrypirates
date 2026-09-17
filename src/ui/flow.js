@@ -660,7 +660,13 @@ export function clearSailWindow(){
 }
 /* Is a sail prompt open on THIS screen — its gold squares on the sea? The squares exist only on the screen being asked, and they
    leave through the prompt's own teardown or clearSailWindow() above. Read by the one event consumer: a dotted course drawn by an
-   open sail prompt belongs to the turn being played, however late that turn's own event is drawn (orchestrator.js consumeEvent). */
+   open sail prompt belongs to the turn being played, however late that turn's own event is drawn (orchestrator.js consumeEvent).
+   HIS RULINGS ON THE COURSE: 2026-09-09 (quoted at the parrot-off teardown below) "on 'Polly' mode, the dotted line should appear for
+   the whole game, not fade out"; 2026-09-10 (2b40b7bd, his SS1) "the dotted line is ONLY visible on the player's turn, and auto
+   updates with their current location each turn"; 2026-09-11 (DECISIONS.md, playtest notes) "should disappear the moment your boat
+   starts animatedly sailing". WHY THIS GUARD EXISTS IS A MEASUREMENT, NOT A RULING (architecture item 12, 2026-09-17): this screen's
+   own open sail prompt IS "the player's turn" on that screen, and a crew guest's event feed can trail its prompt, so a late `turn`
+   must not end that turn early — without the guard 1 of 3 slowed guest prompts lost its course; with it, 0 of 3. */
 export function sailWindowOpen(){
   return !!document.querySelector(".sailCell");
 }
