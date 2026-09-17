@@ -228,6 +228,23 @@ if (process.argv.includes("--explain")) {
  * "in progress" stub behind. */
 function archivePrevious(reportPath) {
   if (!fs.existsSync(reportPath)) return null;
+  /* ⛔ NOT WHAT A CHECKOUT JUST RESTORED. A `git checkout` rewrites this path from the committed tree, so the
+     file sitting here is often the LAST COMMITTED report rather than a run's own output — and archiving it
+     files another copy of something the repo already holds, one per trial, for ever. Measured 2026-09-17:
+     .planning/sea-trials/ held SEA-TRIAL-2045-2026.09.13.5.md and -2046-, byte-identical to each other AND to
+     the report committed at ea943c2a; they came from two runs that each followed a branch switch. Both deleted.
+     So: when the file on disk is byte-identical to HEAD's version of the same path, it is the committed file a
+     checkout restored, not a run's output — leave it alone and let this run overwrite it. Anything that differs
+     by a byte is somebody's real output and is archived as before. The naming below is untouched: an archive is
+     named after the report INSIDE it, which is the only naming that cannot lie. */
+  try {
+    const head = execSync(`git show HEAD:${path.relative(REPO, reportPath).split(path.sep).join("/")}`,
+      { ...NO_CONSOLE_WINDOW, cwd: REPO, encoding: "buffer", stdio: ["ignore", "pipe", "ignore"], maxBuffer: 32 * 1024 * 1024 });
+    if (Buffer.compare(head, fs.readFileSync(reportPath)) === 0) {
+      say("  the report on disk is the committed one a checkout restored — not archiving a second copy");
+      return null;
+    }
+  } catch (e) { /* no HEAD copy (a new path, a detached tree, no git): fall through and archive as before */ }
   const dir = path.join(path.dirname(reportPath), "sea-trials");
   fs.mkdirSync(dir, { recursive: true });
   const base = path.basename(reportPath, ".md");
