@@ -698,7 +698,13 @@
      Hiding is right for the ORDER rule and wrong for the hand. Shown-but-inert says the same thing
      to the reveal order and something honest to the thumb: it is coming, it is not ready. Same
      treatment "Ready to bake!" already got for its own ghost window. */
-  #actionPanel.pendingReveal .bkoIntroBtns { visibility: visible; opacity: .4; pointer-events: none; }
+  /* ⭐ …AND A BUTTON YE CAN SEE IS A BUTTON YE CAN TAP. Wyatt, 2026-09-17, on "Get bakin'!": AGREED, one tap should do it. The line
+     above showed it at 40% and took `pointer-events: none` away from it, so the tap fell THROUGH to the card — and a tap on the card
+     means "hurry the words" (stage.js's tap-to-hurry, which stands aside for a button but never sees one that takes no taps). So the
+     first tap only finished the typing and the second pressed the button: his 8 August "I have to push it twice", by a different road.
+     Shown-but-inert is now shown-and-live: the tap lands on the button, the button's own handler answers, and the words it interrupts
+     were going to be replaced by the next card anyway. scripts/qa/seen_buttons_take_taps_check.mjs holds it. */
+  #actionPanel.pendingReveal .bkoIntroBtns { visibility: visible; opacity: .4; }
   .bkoIntroBtns { transition: opacity .2s ease; }
   /* .ahoyGlow is assigned in THE ATTENTION VOCABULARY block (end of this stylesheet) — it used
      to carry its own private @keyframes ahoyglow, the second of three hand-rolled copies of the

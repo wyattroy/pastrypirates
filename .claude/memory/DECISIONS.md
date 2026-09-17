@@ -3522,9 +3522,10 @@ tomorrow's sea overnight, rejecting a seed that cannot be baked or that one seat
 - **A SHORT COVER-UP PASSES — HIS GENERAL RULE, 2026-09-17.** Answering the fight coin over "HEADS" (he marked it NO, don't move
   the line): *"It's fine -- the coin is there for a short time, it actually is a GOOD thing that adds to the depth of the game. Look,
   here's a general rule: if important game elements like words or sail squares are blocked for a finite, short amount of time, or can be
-  interacted with to stop them from covering each other, that's fine. that passes."* Recorded in docs/INTENDED-BEHAVIOUR.md §0 with the
-  failing edge Mac: Dev inferred and flagged to him: it is still a fault if it hides a control you must tap to go on, or never clears and
-  cannot be moved. This also settles the sea trial's "gold sail square over the tap-to-sail words".
+  interacted with to stop them from covering each other, that's fine. that passes."* Recorded in docs/INTENDED-BEHAVIOUR.md §0. Mac: Dev's stricter reading of the
+  failing edge was put to him and CORRECTED, same day, in his words: *"the failing rule is 'unless it hides a button that the player
+  cannot access by either waiting for 0.5 seconds or shifting the screen themselves (eg. dragging the board)'"*. So a cover-up fails only
+  when it hides a BUTTON the player can neither wait out (~0.5 s) nor reach by moving the screen. This also settles the sea trial's "gold sail square over the tap-to-sail words".
 - **HIS OTHER SIX ANSWERS, 2026-09-17** (all AGREED, off the playtest sheet): one tap presses "Get bakin'!" even while the card is still
   writing · when a host's voyage breaks, every screen is told · "Ready to bake!" is hidden while the crates shuffle · a failed trade of
   his own stays a bubble over his boat · the fight's two "waiting for…" lines are dropped everywhere so a watching phone keeps the

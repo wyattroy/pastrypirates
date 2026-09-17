@@ -110,9 +110,10 @@ So a cover-up PASSES when either holds:
 - it clears ON ITS OWN within a few seconds (a coin that lands, a bubble that fades); or
 - the player can clear it themselves (drag the board off the overlap, close the card).
 
-It is still a FAULT when it hides a control the player must tap to go on, or when it never clears by itself and cannot be
-moved. *(That failing edge is Mac: Dev's reading of his rule, flagged to him on 2026-09-17; his own words cover the passing
-half.)*
+**And the failing edge is HIS, given the same day** when Mac: Dev's stricter reading was put to him: *"the failing rule is
+'unless it hides a button that the player cannot access by either waiting for 0.5 seconds or shifting the screen themselves
+(eg. dragging the board)'"*. So: a cover-up FAILS only when it hides a BUTTON and the player can neither wait about half a
+second for it nor move the screen to reach it. Words covered for a moment, or a button reachable by waiting or dragging, pass.
 
 **For a sea trial's vision judge:** a screenshot showing two things overlapping is not by itself a finding. The finding must
 say how long it lasts, or that the player cannot clear it.
