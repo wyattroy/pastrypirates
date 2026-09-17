@@ -1854,13 +1854,28 @@ class Game{
   }
   // A bot's whole trade turn: put the offer to the table, read every answer, take the best one it
   // can afford — or walk away. Exactly the flow a human gets in the UI (rule 4).
+  // Returns {spoken, struck}, as every hail runner does; what that costs the turn is hailEndsTurn's.
   tryTrade(p){
     const offer=this.botOpenOffer(p);
-    if(!offer)return false;
+    if(!offer)return {spoken:false,struck:false};
     // announcing what you want is itself public information — everyone now knows p wants this
     this.noteDemand(p,offer.want,1);
     this.ev({t:"openoffer",p:p.idx,want:offer.want,offer:this.offerLabel(offer,0)});
-    return this.resolveHail(p,offer,this.collectResponses(offer,p)).struck;
+    return {spoken:true,struck:this.resolveHail(p,offer,this.collectResponses(offer,p)).struck};
+  }
+  /* ⭐ WHAT A SPOKEN HAIL COSTS THE CAPTAIN WHO MADE IT — decided here, once (architecture item 14, 2026-09-17).
+     Every hail runner hands back {spoken, struck}: this engine's tryTrade (the simulator's turn), flow.js botOpenTradeLive (a bot
+     on screen) and humanTrade (a person). `spoken` means an offer was put to the table — an `openoffer` was recorded. The
+     simulator's turn, botTurn and humanAct all ask THIS whether the turn is over.
+     HIS CALL (relayed by Mac: Dev, 2026-09-17): a hail put to the table ends the turn, struck or refused, everywhere —
+     docs/TRADE-SYSTEM.md "A trade is one captain's turn ACTION"; rules.html "Ye see every answer together, then take one or walk
+     away." A trade that was never spoken costs nothing: a bot still works the berth under it or muses, a person is back at the menu.
+     It was decided in three places that disagreed. The simulator ended its turn only on a STRUCK deal, so a refused bot went on to
+     dock or muse — 114 of 264 hails over 150 voyages, every one (19 docked, 95 mused); the rules audit counted 195 of 416 in 200.
+     A live bot ended its turn once anybody answered but not after a hail nobody answered; a person's always ended.
+     Guarded by scripts/qa/spoken_hail_one_rule_check.mjs. */
+  hailEndsTurn(hail){
+    return !!(hail&&hail.spoken);
   }
   // called on every battle resolution (win or flee) — cools the opportunistic "rich" attack
   // trigger against this specific opponent for a few rounds (mutual, since either side's coin
@@ -3240,12 +3255,17 @@ class Game{
     // decision — the same plan, refusing to pretend it arrived.
     if(plan.type==="attack"&&this.attackTargets(p).includes(plan.target)){
       this.battle(p,plan.target);return;}
-    if(plan.type==="trade"&&this.tryTrade(p))return;
+    // A hail put to the table IS this turn's action, struck or refused (hailEndsTurn, architecture item 14);
+    // a trade never spoken costs nothing, and the turn goes on to the fallback below.
+    if(plan.type==="trade"&&this.hailEndsTurn(this.tryTrade(p)))return;
     if(plan.type==="dock"&&this.adjPort(p)===plan.ing&&this.doDock(p,plan.ing))return;
-    // THE FALLBACK. chooseAction picks ONE action and, before this, a refusal ended the turn: a
-    // hail nobody would answer, or a berth already taken, and the captain went to look at the sea —
+    // THE FALLBACK. chooseAction picks ONE action and, before this, a plan that could not be carried
+    // out ended the turn: a trade with nothing worth saying from where the ship ended up, or a berth
+    // already taken, and the captain went to look at the sea —
     // even standing on a dock that pays whether or not there is a crate left to buy (rule 10d).
-    // A human does the next best thing instead, so a bot does too. Deliberately only the DOCK, not
+    // A human does the next best thing instead, so a bot does too. NOT after a refused hail: a person
+    // who hails and is turned down has spent the turn, and so has a bot (architecture item 14 — this
+    // fallback used to catch refused hails too, in the simulator only). Deliberately only the DOCK, not
     // a second full pass through chooseAction: re-running the menu could pick a fight the planner
     // had already priced and rejected this turn, and working the berth under your feet is the one
     // move that is never wrong.

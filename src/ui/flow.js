@@ -2278,6 +2278,8 @@ async function coinSlider(seat,msgFor,start,min,max,confirmLabel,extraOpt,declin
   if(v==="__back__"||v==null)return "__back__";
   return v;
 }
+/* Returns {spoken, struck}, like every hail runner: spoken once the offer is put to the table (the `openoffer` below), never
+   before. Whether that ends the turn is Game.hailEndsTurn's (architecture item 14). */
 export async function humanTrade(player){
   const g=appState.game;
   // DEFENSE IN DEPTH, for any caller but the menu (which greys Trade on the same answer): whether this captain may open a trade
@@ -2286,12 +2288,12 @@ export async function humanTrade(player){
   // @copy adhoc.trade.nothingtogive
   // @copy adhoc.trade.nocargo
   const cannot=g.whyNoTrade(player);
-  if(cannot){await sayFlash({nothingToTrade:"trade.nothingAtAll",noCargo:"trade.noCargo"}[cannot],{p:seat(player.idx)});return false;}
+  if(cannot){await sayFlash({nothingToTrade:"trade.nothingAtAll",noCargo:"trade.noCargo"}[cannot],{p:seat(player.idx)});return {spoken:false,struck:false};}
   const st={want:undefined,baseIng:undefined,extraCoins:undefined};
   let step=0;
   while(step<3){
     // CR-02 layer 1: the shot clock can expire on ANY prompt below. No partial trade, ever.
-    if(appState.turnExpired)return false;
+    if(appState.turnExpired)return {spoken:false,struck:false};
     if(step===0){
       // every crate in the game, with the ones nobody holds greyed out (rule 4, Wyatt's ruling)
       const opts=g.ings.map(i=>{
@@ -2306,7 +2308,7 @@ export async function humanTrade(player){
       // no shared helper line: every greyed crate above carries "No captain on the water is
       // carryin' <that crate>", which names the crate the general sentence could not (2026-08-25).
       const want=await ask(player.idx,say("trade.want",{}),opts);
-      if(want==="__back__"||want==null)return false;
+      if(want==="__back__"||want==null)return {spoken:false,struck:false};
       st.want=want;step=1;
     }else if(step===1){
       // An offer is a crate, coins, or both — sweeten a crate with a few coins on top.
@@ -2320,7 +2322,7 @@ export async function humanTrade(player){
       // @copy prompt.trade.give
       const baseIng=await ask(player.idx,say("trade.give",{want:ilabelImg(st.want)}),ingOpts);
       if(baseIng==="__back__"){step=0;continue;}
-      if(baseIng==null)return false;
+      if(baseIng==null)return {spoken:false,struck:false};
       st.baseIng=(baseIng==="__coinsonly__")?null:baseIng;step=2;
     }else{ // step 2 — playtest 13: the coin stepper, never an option grid
       // ye may offer everything ye have — the same ceiling the counter now uses, and the same one
@@ -2353,12 +2355,12 @@ export async function humanTrade(player){
       const n=await coinSlider(player.idx,
         k=>say(st.baseIng?"trade.coinOnTop":"trade.howMany",{}),
         minC,minC,maxC,say("trade.offerGo",{}),null,say("button.nah",{}));
-      if(n==null)return false;
+      if(n==null)return {spoken:false,struck:false};
       if(n==="__back__"){step=1;continue;}
       st.extraCoins=n;step=3;
     }
   }
-  if(appState.turnExpired)return false;
+  if(appState.turnExpired)return {spoken:false,struck:false};
   const offer={want:st.want,giveIng:st.baseIng,giveCoins:st.extraCoins||0};
   const offerDisplay=g.offerLabel(offer,0)||"nothing";
   // announcing an offer is itself public information — the whole table now knows what player is after,
@@ -2370,7 +2372,7 @@ export async function humanTrade(player){
 
   // ---- every captain the hail is put to answers: bots reason (engine-side), human captains are asked ----
   const responses=await hearHail(player,offer);
-  if(responses==null)return false;                 // the clock ran out on a captain answering
+  if(responses==null)return {spoken:true,struck:false};   // the clock ran out on a captain answering
 
   // ---- the asker sees EVERY answer at once and picks one, or walks away (rule 4a/4b) ----
   /* WHAT EACH CAPTAIN IS ASKING FOR MUST BE ON SCREEN BEFORE YE TAP — playtest 21, and this was a
@@ -2434,17 +2436,17 @@ export async function humanTrade(player){
   let pick=-1;
   if(responses.some(r=>g.canTakeAnswer(player,offer,r))){
     pick=await ask(player.idx,say("trade.answers",{want:ilabelImg(offer.want),lines:answerLines.join("<br>")}),opts,colors,denyNote);
-    if(appState.turnExpired)return false;
+    if(appState.turnExpired)return {spoken:true,struck:false};
   }
   /* THE HAIL IS RESOLVED BY THE ENGINE, and the WORDS for one that falls through are the narration
      table's, read off the `parley` event's reason — the same lines a bot's failed hail now gets
      (architecture item 15). CR-02 layer 2 lives there too: settleTrade validates BOTH legs before
      EITHER mutates, so a deal that can no longer be honoured falls through rather than half-completing. */
   const hail=g.resolveHail(player,offer,responses,pick===-1||pick==null?null:responses[pick]);
-  if(!hail.struck){liveRender();await narrateLastEvent();return true;}
+  if(!hail.struck){liveRender();await narrateLastEvent();return {spoken:true,struck:false};}
   await narrateLastEvent();
   liveRender();
-  return true;
+  return {spoken:true,struck:true};
 }
 /* WHICH LADDER SPEAKS AT THE ACT MENU — one helper slot, four teachable buttons.
    FIRST SIGHTING, NOT TURN COUNT. The ladder with the most rungs still to give wins, so a captain
@@ -2802,7 +2804,10 @@ export async function humanAct(player,sailCtx){
     // forced/edge selection) so we never enter a trade P cannot possibly complete.
     // @copy adhoc.act.notrade
     if(!canTrade){await sayFlash("act.cantTrade",{p:seat(player.idx)},1400);await humanAct(player,sailCtx);return;}
-    const done=await humanTrade(player);if(!done){await humanAct(player,sailCtx);}return;
+    // A hail put to the table IS this turn's action, struck or refused; backing out before a word was said is not — back to the
+    // menu. The same one rule the simulator's turn and botTurn ask (Game.hailEndsTurn, architecture item 14).
+    if(!g.hailEndsTurn(await humanTrade(player)))await humanAct(player,sailCtx);
+    return;
   }
 }
 /* ══════════════════════════════════════════════════════════════════════════════════════════════
@@ -3022,18 +3027,19 @@ async function humanAnswersHail(q,asker,offer){
 export async function botOpenTradeLive(player){
   const g=appState.game;
   const offer=g.botOpenOffer(player);
-  if(!offer)return false;
+  if(!offer)return {spoken:false,struck:false};
   g.noteDemand(player,offer.want,1);
   g.ev({t:"openoffer",p:player.idx,want:offer.want,offer:g.offerLabel(offer,0)||"nothing"});
   liveRender();
   await botBeat();
   const responses=await hearHail(player,offer);
-  if(responses==null)return false;               // the clock ran out on a captain answering
-  g.resolveHail(player,offer,responses);
+  if(responses==null)return {spoken:true,struck:false};               // the clock ran out on a captain answering
+  const hail=g.resolveHail(player,offer,responses);
   liveRender();
   await botBeat();
-  // UNCHANGED BY ITEM 15: a hail somebody answered ends this turn, struck or not; one nobody answered does not.
-  return responses.length>0;
+  /* {spoken, struck}, like every hail runner; what it costs the turn is Game.hailEndsTurn's (architecture item 14). This
+     used to return whether anybody ANSWERED, so a hail nobody answered left the bot free to dock or muse after it. */
+  return {spoken:true,struck:hail.struck};
 }
 /* A BOT'S DOCK COIN IS NOT DRAWN HERE ANY MORE. It was, until 2026-09-13 — in this turn loop, which
    only the host runs and only for bots, so no human's dock ever drew one and a guest never drew its
@@ -3107,9 +3113,9 @@ export async function botTurn(player){
     await netHandlers().onAsyncBattle(player,plan.target);
     await botBeat();return;
   }
-  if(plan.type==="trade"){
-    if(await botOpenTradeLive(player))return;
-  }
+  // A hail put to the table IS this turn's action, struck or refused; a trade never spoken costs nothing and falls through to
+  // the berth or the muse below. The same one rule the simulator's turn and humanAct ask (Game.hailEndsTurn, architecture item 14).
+  if(plan.type==="trade"&&g.hailEndsTurn(await botOpenTradeLive(player)))return;
   if(plan.type==="dock"&&g.adjPort(player)===plan.ing){
     const n0=g.events.length;
     if(g.doDock(player,plan.ing)){

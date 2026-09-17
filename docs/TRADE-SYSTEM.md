@@ -110,7 +110,9 @@ produced.
   re-countering a counter.
 - **No harbor-tax bonus.** A trade is just the exchange.
 
-A trade is one captain's turn ACTION. The responders do not spend a turn answering.
+A trade is one captain's turn ACTION. The responders do not spend a turn answering. Struck or refused, a
+hail put to the table is the whole of the asker's action that turn — for a bot as for a person
+(`Game.hailEndsTurn`, §8).
 
 ---
 
@@ -413,7 +415,7 @@ Engine — `src/engine/index.js`:
 `collectResponses` · `settleTrade` · `counterTerms` · `counterRoom` (the most coin a counter may ask for — architecture item 20) · `offerLabel` · `rememberRefusal` ·
 `refusedFlagWanted` · `worthReAsking` · `offerWorthTurns` · `openingBid` · `worthHailing` ·
 `composeOffer` · `botOpenOffer` · `hailAudience` · `canTakeAnswer` · `resolveHail` · `chooseAnswer` ·
-`rememberHail` · `tryTrade`
+`rememberHail` · `tryTrade` · `hailEndsTurn` (whether a hail ends the captain's turn — architecture item 14)
 Public inference: `noteDemand` · `demandFor` · `likelyNeeds` · `visibleProgress`
 Units: `coinTurns` · `acquireTurns` · `PLAN.coinsPerDockTurn` · `PLAN.leverageTurns`
 
@@ -455,9 +457,14 @@ the table heard nothing. Wyatt, build .5: *"when a captain denied my trade count
 his bot turn), that trade fail resolution message did not appear."* The `parley` entry had been deleted
 as collateral by the weather-line commit `693c2b0b` (2026-08-27).
 
-**Still NOT one, on purpose, and item 14's business:** what a spoken hail costs the turn. The simulator
-goes on to dock or muse after a refusal; both live runners end the turn. Each runner still maps
-`resolveHail`'s result to its own return value.
+**What a spoken hail costs the turn is one rule too — architecture item 14, 2026-09-17.** Every runner
+(`tryTrade`, `botOpenTradeLive`, `humanTrade`) returns `{spoken, struck}`, and the simulator's turn, `botTurn`
+and `humanAct` all ask `Game.hailEndsTurn(hail)`: **a hail put to the table ends the turn, struck or refused**
+(§1: *a trade is one captain's turn ACTION*; `rules.html`: *take one or walk away*). A trade never spoken —
+nothing worth offering from where the ship ended up, or a person backing out of the picker — costs nothing: a
+bot still docks or muses, a person is back at the menu. Before, the simulator ended its turn only on a struck
+deal, so a refused bot went on to dock or muse (114 of 264 hails over 150 voyages), and a live bot did the same
+after a hail nobody answered. Guarded by `scripts/qa/spoken_hail_one_rule_check.mjs`.
 
 Guarded by `scripts/qa/one_hail_check.mjs`.
 

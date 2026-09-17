@@ -214,12 +214,12 @@ const broken = (file, from, to) => { if (!files[file].includes(from)) return nul
 const mutantGame = patch => { class M extends engineMod.Game {} patch(M.prototype); return { ...engineMod, Game: M }; };
 const HEAR = "  for(const q of g.hailAudience(asker,offer)){";
 const MUTANTS = [
-  ["the live bot remembering its own refusals again", broken("src/ui/flow.js", "  g.resolveHail(player,offer,responses);", "  for(const r of responses)if(r.kind===\"deny\")g.rememberRefusal(player,offer.want,r.q.idx,0);\n  g.resolveHail(player,offer,responses);"), 0, null],
+  ["the live bot remembering its own refusals again", broken("src/ui/flow.js", "  const hail=g.resolveHail(player,offer,responses);", "  for(const r of responses)if(r.kind===\"deny\")g.rememberRefusal(player,offer.want,r.q.idx,0);\n  g.resolveHail(player,offer,responses);"), 0, null],
   ["the replay tool copying the memory instead of calling it", broken("scripts/lib/voyage_ask.mjs", "g.rememberHail(p, offer, responses, dealt);", "for (const r of responses) if (r.kind === \"deny\") p.refused[x.want + \"|\" + r.q.idx] = {};"), 0, null],
-  ["the live bot settling its own deal again", broken("src/ui/flow.js", "  g.resolveHail(player,offer,responses);", "  if(responses[0]&&responses[0].kind===\"accept\")g.settleTrade(player,responses[0].q,offer,0);\n  g.resolveHail(player,offer,responses);"), 1, null],
+  ["the live bot settling its own deal again", broken("src/ui/flow.js", "  const hail=g.resolveHail(player,offer,responses);", "  if(responses[0]&&responses[0].kind===\"accept\")g.settleTrade(player,responses[0].q,offer,0);\n  g.resolveHail(player,offer,responses);"), 1, null],
   ["the live bot asking every holder again: `for(const q of g.holdersOf(offer.want,player))`", broken("src/ui/flow.js", HEAR, "  for(const q of g.holdersOf(offer.want,asker)){"), 2, null],
   ["a second copy of the answering prompt", broken("src/ui/flow.js", "export async function botOpenTradeLive(player){", "async function secondPrompt(q,p,o){return ask(q.idx,say(\"trade.offered\",{q:pn(q.idx)}),[]);}\nexport async function botOpenTradeLive(player){"), 3, null],
-  ["the typed 1.1 back in a pricing expression", broken("src/ui/flow.js", "  g.resolveHail(player,offer,responses);", "  const spare=g.acquireTurns(player,offer.want).turns>1.1;\n  g.resolveHail(player,offer,responses);"), 4, null],
+  ["the typed 1.1 back in a pricing expression", broken("src/ui/flow.js", "  const hail=g.resolveHail(player,offer,responses);", "  const spare=g.acquireTurns(player,offer.want).turns>1.1;\n  g.resolveHail(player,offer,responses);"), 4, null],
   ["`sayFlash(\"trade.walksAway\")` back in humanTrade", broken("src/ui/flow.js", "  if(!hail.struck){", "  if(pick===-1)await sayFlash(\"trade.walksAway\",{p:seat(player.idx)});\n  if(!hail.struck){"), 5, null],
   ["the narration table losing its parley entry", broken("src/ui/util.js", "  parley:(e,at,cellPx,viewerSeat)=>{", "  parleyGone:(e,at,cellPx,viewerSeat)=>{"), 5, null],
   ["a fall-through that records no reason", files, 6, mutantGame(P => { const ev = P.ev; P.ev = function (o) { if (o && o.t === "parley") delete o.why; return ev.call(this, o); }; })],
