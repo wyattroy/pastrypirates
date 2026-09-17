@@ -2264,7 +2264,20 @@ export const SESSION_SCHEMA_V=1;
 // trade, so replaying it would run every decision after the first such trade against the wrong
 // prompt — the exact failure the new entry exists to stop. The stamp is what makes an old blob
 // "no resume" instead of a mis-aligned one.
-export const SOLO_SCHEMA_V=3;   // 2->3 at A-1: the bake-day reorder changes replay — a v2 save must be refused, never desynced
+export const SOLO_SCHEMA_V=4;   // 2->3 at A-1: the bake-day reorder changes replay — a v2 save must be refused, never desynced
+// 3 -> 4, the architecture cleanup of 2026-09-16/17 (Mac: Dev relaying Wyatt: bump ONCE, at the Tier-1 checkpoint, naming every
+// item that changed the replayed stream). A v3 save replays a stream this build no longer produces, so it is refused:
+//   item 1  — every rule of a fight is an engine step: the fight's events and their order changed (65f80052 -> a7abf0a4)
+//   item 2  — beginVoyage/beginDay/crownWinner/declareEnd: the sailing order is recorded, the day record carries streak
+//   item 44 — a storm day at the head of a run is counted before tomorrow is drawn: `streak` values move
+//   item 6  — the `flip` net node is gone; a flip reaches every screen as the coinflip event alone
+//   item 15 — one Game.resolveHail: audience, refusal memory and the parley reason are the engine's
+//   item 20 — the counter's ceiling is Game.counterRoom; a v3 save can hold a coin counter this build would refuse
+//   item 19 — a landing at the head of the current records its own `rimhead` event
+//   item 4  — a fight records `engage` when it is called and `disengage` when it is over
+//   item 7  — Game.sailTo: every sail carries the route it really sails, checked when it is written
+//   item 14 — a hail put to the table ends the turn: what a captain does after a refusal changed
+//   item 10 — a recipe reaches another screen only as its `recipeSet` event
 export function getMyId(){
   let id=null;try{id=localStorage.getItem("pp_id");}catch(e){}
   if(!id){id="u"+Math.random().toString(36).slice(2,10);try{localStorage.setItem("pp_id",id);}catch(e){}}
