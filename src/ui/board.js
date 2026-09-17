@@ -3093,9 +3093,10 @@ export function syncBoardSizing(){
       that latency. No two flips were alike because no two resumptions were.
 
    THE CLOCK IS STAMPED WHERE THE SPIN IS PAINTED, which is here — `setFlipCoin("spin")` is the one
-   spelling of a spinning coin in the whole game, reached by the dock tap, by broadcastFlip, and by
-   a guest's Firebase listener alike. Every caller then waits the REMAINDER of FLIP_SPIN_MS, so the
-   length on screen is the same however slow the chain that got there was.
+   spelling of a spinning coin in the whole game, and since architecture item 6 (2026-09-17) it is
+   reached from exactly one place: the tap (armFlipTap, below), for every flip kind on every tier.
+   The landing (landFlipCoin) waits the REMAINDER of FLIP_SPIN_MS, so the length on screen is the
+   same however slow the chain that got there was.
 
    ONE CLOCK, THREE WAITS, and the split is deliberate: this module owns WHEN the spin began and
    HOW LONG a flip lasts; each call site owns HOW it waits, through its own `sleep`, which is what
@@ -3171,9 +3172,9 @@ export function setFlipCoin(state){
   const el=$("flipCoinWrap");if(!el)return;
   // see ceremonyHoldsTheCoin() below — only a BLANKING is deferred, never a face and never a spin
   if(state==="wait"&&ceremonyHoldsTheCoin())return;
-  // IDEMPOTENT for "spin", because the tap now paints it and broadcastFlip repaints it a beat
-  // later (setFlipActive below) — re-entering the state ye are already in must not re-play the
-  // sound, or every flip is heard twice.
+  // IDEMPOTENT for "spin": re-entering the state ye are already in must not re-play the sound, or a flip
+  // is heard twice. (The repaint this guarded against — broadcastFlip's, a beat after the tap — is gone
+  // with architecture item 6; the guard stays because it costs nothing and a second paint must never ring.)
   const wasSpin=el.classList.contains("spin");
   /* THE SPIN SOUND STOPS HERE, ON THE ONE LINE THAT ENDS EVERY SPIN. Every state change clears the
      classes through this line — a landed face, a re-arm, a disarm, a cancelled prompt — so stopping
@@ -3186,8 +3187,8 @@ export function setFlipCoin(state){
   if(state==="H"){el.classList.add("heads");el.style.backgroundImage=`url(${FLIP_HEADS_IMG})`;el.textContent="";}
   else if(state==="T"){el.classList.add("tails");el.style.backgroundImage=`url(${FLIP_TAILS_IMG})`;el.textContent="";}
   // D-49: the flip's clock starts on the frame the spin is PAINTED, and only on the frame it
-  // actually starts — the `wasSpin` guard that already stops the sound doubling is the same
-  // guard that stops broadcastFlip's repaint a beat later restarting the timer under the tap.
+  // actually starts — the `wasSpin` guard that stops the sound doubling also stops a repaint
+  // restarting the timer under the tap.
   else if(state==="spin"){el.classList.add("spin");el.style.backgroundImage=`url(${COIN_SPIN_IMG})`;el.textContent="";if(!wasSpin){flipSpinAt=performance.now();startFlipSpinSound();}}
   else{el.classList.add("wait");el.textContent="";}
 }
@@ -3197,15 +3198,15 @@ export function setFlipCoin(state){
    veil coming down clear it."
 
    IT WAS TWO CLOCKS DISAGREEING, and the arithmetic is the whole bug:
-     the battle flow holds the landed face  FLIP_LAND_HOLD_MS = 800ms, then calls broadcastFlip("wait")
+     the flip holds the landed face         FLIP_LAND_HOLD_MS = 800ms, then clears it (landFlipCoin, since item 6)
      the ceremony holds the veil up         CER_REVEAL_MS    = 1100ms, then tears down
    So for 300ms the stage stood there with a blank coin on it. Shortening the veil would have fixed
    the symptom and left two clocks to drift; his answer removes one of them instead.
 
    SO WHILE A CEREMONY IS STANDING, A CLEAR IS THE CEREMONY'S TO MAKE. cerTeardown() does it as the
    veil leaves, so the face is on screen for every frame the stage is. A landed face is NOT
-   suppressed here — only the blanking — so nothing can hide a result. And the wire write in
-   broadcastFlip() is untouched: a guest with no veil of its own still resets normally. */
+   suppressed here — only the blanking — so nothing can hide a result. (A screen with no veil of its
+   own still resets normally: landFlipCoin's "wait" goes straight through.) */
 function ceremonyHoldsTheCoin(){
   return typeof document !== "undefined" && document.body && document.body.classList.contains("pp4Cer");
 }
@@ -3229,4 +3230,35 @@ export function setFlipActive(onClick){
      that still clears it for the spin. */
   else{const wasArmed=el.classList.contains("active");el.classList.remove("active");el.onclick=null;
     if(!(ceremonyHoldsTheCoin()&&!wasArmed)){el.style.backgroundImage="";el.textContent="";}}
+}
+
+/* ⭐ ONE COIN FLIP, ONE PIPE — architecture item 6, 2026-09-17. Wyatt, playing build .5: "it seems like the coin flip sound is being
+   played twice." MEASURED before this change (headless, the sample's starts counted): a bot's fight flip on a solo phone started the
+   spin sound TWICE in the same millisecond, and a crew guest watching the host's fight flip heard it twice, 696ms apart. A flip reached
+   another screen by two routes — the `flip` node (broadcastFlip -> watchFlip -> setFlipCoin("spin"), whose big coin is hidden on the
+   stage, so its only effect there was the sound) and the `coinflip` event (-> the small coin, which plays the sound too) — and it was
+   tossed by three routines (humanFlip, hFlip, bFlip) that each slept, broadcast and held on their own.
+   NOW: a flip is decided and recorded by flow.js flipFor (the one toss), the one event consumer draws it on every screen, and these
+   two are the only halves a screen can play:
+     · armFlipTap  — THE TAP STARTS THE SPIN, for every flip kind (a dock, a fight's attacker or defender, the host's screen or a
+                     guest's). It used to be written for the ordinary flip only (renderAskPrompt, "THE TAP IS THE FLIP"); both fight taps
+                     skipped it and waited for the host — a crew guest's own fight coin sat still ~118ms (measured) until the wire
+                     brought the spin back. The sound starts with the picture, here, on the screen that tapped.
+     · landFlipCoin — the screen that tapped lands its big coin on the face the engine recorded, when the consumer reaches that
+                     coinflip: the rest of the spin, the face, the hold, the clear. Every other screen draws the small coin over the
+                     boat instead (dockcoin.js flipDockCoin), which starts its own spin sound — the ONE starter for a flip this screen
+                     did not make. scripts/qa/coin_flip_one_pipe_check.mjs holds all of it.
+   The ORDER inside the tap is today's ordinary-flip order and it matters: disarm first (the flip stage launches only off an ARMED
+   coin — stage.js flipArmed), then the answer, then the spin (a later disarm inside the answer must not blank a spinning coin). */
+export function armFlipTap(onTap){
+  setFlipActive(()=>{setFlipActive(null);onTap();setFlipCoin("spin");});
+}
+/* `sleep` is the caller's (the consumer's replay- and fast-forward-aware one) — the same split D-49 describes above: this module owns
+   how long a flip lasts, the caller owns how it waits. */
+export async function landFlipCoin(heads,sleep){
+  await sleep(flipSpinLeftMs());
+  setFlipCoin(heads?"H":"T");
+  // playtest 13 / T-34: the landed face holds FLIP_LAND_HOLD_MS, the one hold the small coin waits out too
+  await sleep(FLIP_LAND_HOLD_MS);
+  setFlipCoin("wait");
 }

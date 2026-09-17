@@ -44,11 +44,8 @@ function withReporter(promise, onError) {
   return onError ? promise.catch(onError) : promise;
 }
 
-/* ---------- flip / clock / timer --------------------------------------------------------------- */
-
-export function netSetFlip(db, room, state, onError) {
-  return withReporter(db.ref("rooms/" + room + "/flip").set({ state, t: Date.now() }), onError);
-}
+/* (netSetFlip stood here — rooms/<C>/flip. Architecture item 6, 2026-09-17: a coin flip reaches every screen on the event stream,
+   so the node, its writer and its watcher are gone.) */
 
 
 /* ---------- prompt / response (the shared singular prompt node) -------------------------------- */

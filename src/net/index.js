@@ -17,7 +17,7 @@
 
 import { detach, detachRoom, detachAll, size, list } from "./registry.js";
 import {
-  netWatchFlip, netWatchConnected, netWatchPresence,
+  netWatchConnected, netWatchPresence,
   netWatchChat, netWatchBattle,
   netWatchRecovery, netWatchDraftPrompt, netWatchEvents, netWatchPrompt,
   netWatchNarr,
@@ -25,7 +25,6 @@ import {
   netWatchResponse, netWatchDraftResponse,
 } from "./watchers.js";
 import {
-  netSetFlip,
   netSetPrompt, netRemovePrompt, netSetResponse,
   netSetNarr, netPushChat,
   netSetBattle, netRemoveBattle,
@@ -42,7 +41,7 @@ import {
 } from "./readers.js";
 
 export {
-  netWatchFlip, netWatchConnected, netWatchPresence,
+  netWatchConnected, netWatchPresence,
   netWatchChat, netWatchBattle,
   netWatchRecovery, netWatchDraftPrompt, netWatchEvents, netWatchPrompt,
   netWatchNarr,
@@ -50,7 +49,6 @@ export {
   netWatchResponse, netWatchDraftResponse,
 };
 export {
-  netSetFlip,
   netSetPrompt, netRemovePrompt, netSetResponse,
   netSetNarr, netPushChat,
   netSetBattle, netRemoveBattle,

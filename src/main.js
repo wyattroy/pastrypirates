@@ -88,7 +88,7 @@ if (typeof window !== "undefined") {
     onRemoteDraftPrompt: orchestrator.remoteDraftPrompt,
     onLogDecision: orchestrator.logDecision,
     onBeginGame: orchestrator.beginGame,
-    onBroadcastFlip: orchestrator.broadcastFlip,
+    // (onBroadcastFlip stood here — the flip wire node, deleted by architecture item 6: a flip reaches every screen on the event stream)
     onCreateRoom: orchestrator.createRoom, // UI-05: "Host a Crew" creates the room directly
     onNetBroadcast: orchestrator.netBroadcast,
     onRenderBattle: orchestrator.renderBattle,

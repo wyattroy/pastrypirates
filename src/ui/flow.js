@@ -54,7 +54,7 @@ import {
   CUPCAKE_IMG, CHECKMARK_IMG, CANCEL_X_IMG, DICE_IMG, FLIP_HEADS_IMG, FLIP_TAILS_IMG, COIN_SPIN_IMG, ovensNowEnabled, bake2Enabled, endCardEnabled, BAKE_REWATCH_COST,
   buildRoster, emojify,
 } from "../shared/index.js";
-import { el, boardCell, setFlipActive, setFlipCoin, flipSpinLeftMs, FLIP_LAND_HOLD_MS, renderLiveShips, paintShipAt, setShipGlideMs, paintShipAtPoint, snapShipTo, render as renderBoard } from "./board.js";
+import { el, boardCell, setFlipActive, armFlipTap, renderLiveShips, paintShipAt, setShipGlideMs, paintShipAtPoint, snapShipTo, render as renderBoard } from "./board.js";
 import {
   liveRender, panel, setNeedsAction, narrateLastEvent, flash, showNarration,
 } from "./panel.js";
@@ -217,9 +217,9 @@ export function renderAskPrompt(spec,answer){
     // stage.js's `!fm && btl` "⚔️ Broadside!" fallback needs fm null for battles).
     if(!spec.battle&&window.__pp4)window.__pp4.flipMsg={m:msg||"",s:sub||""};
     setNeedsAction(true);
-    // THE TAP IS THE FLIP — playtest 22: the tap paints the spin in its own frame; the
-    // broadcastFlip("spin") that follows finds it already spinning and is a no-op.
-    setFlipActive(()=>{setFlipActive(null);setFlipCoin("spin");setNeedsAction(false);answer(0);});
+    // THE TAP IS THE FLIP — playtest 22: the tap paints the spin in its own frame. armFlipTap (board.js) is where every
+    // flip's tap does that now, a fight's included (architecture item 6).
+    armFlipTap(()=>{setNeedsAction(false);answer(0);});
     return;
   }
   const backIdx=opts.findIndex(o=>o&&o.back);
@@ -229,7 +229,7 @@ export function renderAskPrompt(spec,answer){
   if(flipIdx!==-1){
     if(!spec.battle&&window.__pp4)window.__pp4.flipMsg={m:msg||"",s:sub||""};   // same stash as the pure flip
     // same rule as the pure-flip path above: choosing the coin paints the spin at once
-    setNeedsAction(true);setFlipActive(()=>{done(flipIdx);setFlipCoin("spin");});
+    setNeedsAction(true);armFlipTap(()=>done(flipIdx));
   }
   else setFlipActive(null);
   const rest=opts.map((o,i)=>({o,i})).filter(x=>x.i!==flipIdx&&x.i!==backIdx);
@@ -290,31 +290,27 @@ export async function humanFlip(player,label,allowBack,sub,why){
   // @copy prompt.flip.fallback
   const v=await ask(player.idx,label||say("flip.ask",{}),opts,null,sub);
   if(v==="back")return "back";
-  /* THE RESULT IS DECIDED AT THE TAP, AND EVERY OTHER SCREEN HEARS OF IT AT ONCE. It used to be decided 795ms
-     later, after this device's spin, and a dock's result reached nobody until the whole dock — buy included —
-     was over. Deciding it here draws exactly the same random number (nothing else draws between the tap and
-     the old line), and when the flip is FOR something the engine records a coinflip event, which is published
-     and drained immediately: other screens start their tiny coin as this captain's big coin starts spinning. */
+  return flipFor(player,why);
+}
+/* ⭐ THE ONE TOSS — architecture item 6, 2026-09-17. A dock's flip (humanFlip above) and every flip of a fight (orchestrator.js
+   asyncBattleRun, a captain's or a bot's) come here once the captain has tapped, or once a bot has simply decided to. There used to be
+   three of these — humanFlip, the fight's hFlip and bFlip — each painting the spin, sleeping out the rest of it, broadcasting the face
+   over its own wire node, holding, and clearing, so the two timing fixes below had to be made three times, and a watching screen heard
+   the spin sound from the node AND from the small coin. Measured before: two starts in the same millisecond for a bot's fight flip on a
+   solo phone; two starts 696ms apart on a crew guest watching the host's fight flip.
+   THE RESULT IS DECIDED AT THE TAP, AND EVERY OTHER SCREEN HEARS OF IT AT ONCE (2026-09-13, kept): the engine records a coinflip event,
+   which is published and drained immediately. Then this AWAITS THE DRAIN, which is where the flip is drawn on every screen — the one
+   event consumer lands the big coin on the screen that tapped (board.js landFlipCoin) and throws the small coin everywhere else
+   (dockcoin.js flipDockCoin) — so the flip's pacing is the drawing's own:
+     · D-49, kept: the spin lasts FLIP_SPIN_MS from the frame the TAP painted it (flipSpinLeftMs), not a flat sleep from wherever this
+       line happens to resume;
+     · T-34 / playtest 13, kept: the landed face holds FLIP_LAND_HOLD_MS, the same hold the small coin waits out;
+     · 2026-09-13, kept: no "Crustbeard flips HEADS!" line — the coin's own face is the answer.
+   Through the drain, so fast-forward, pause and reload-replay behave exactly as before (a replay does not drain, and draws no coin). */
+export async function flipFor(player,why){
   const h=appState.game.flip(player,why);
-  if(why){publishNow();liveRender();}
-  netHandlers().onBroadcastFlip("spin");
-  /* D-49 — WAIT OUT THE REST OF THE FLIP, not a fixed 340ms from wherever this line happens to
-     resume. The coin has already been spinning since the TAP (localAsk paints it in the tap's own
-     frame, the playtest-22 fix), and everything between the tap and here — the promise resolving,
-     ask()'s shot-clock wrapper unwinding, this function being scheduled again — is latency nobody
-     designed and nobody can predict. Adding a flat 340 on top of it is why no two flips were the
-     same length. flipSpinLeftMs() is measured from the frame the spin was painted (board.js), so
-     the coin is on screen for FLIP_SPIN_MS however slow the chain was. Through this file's own
-     `sleep`, so fast-forward, pause and reload-replay behave exactly as before. */
-  await sleep(flipSpinLeftMs());
-  netHandlers().onBroadcastFlip(h?"H":"T");
-  /* NO "Crustbeard flips HEADS!" LINE ANY MORE — his pass, 2026-09-13: "We can all now see what the coin flips to --
-     i think we can cut this". Checked: this captain sees the big coin land, and every other screen draws the small
-     coin over the boat (dockcoin.js) from the coinflip event published at the tap. The face HOLDS for
-     FLIP_LAND_HOLD_MS — the one hold every other flip already waits out (a battle's, a bot's dock coin) — where it
-     used to hold for however long a sentence nobody needed took to read. */
-  await sleep(FLIP_LAND_HOLD_MS);
-  netHandlers().onBroadcastFlip("wait");
+  publishNow();
+  await liveRender();
   return h;
 }
 // v2 rule 3: fishing is gone entirely. fishCast() and its whole flip-for-coins path are deleted
@@ -3222,7 +3218,6 @@ export async function botTurn(player){
     const n0=g.events.length;
     if(g.doDock(player,plan.ing)){
       await botBeat();
-      netHandlers().onBroadcastFlip("wait");
       return;
     }
   }
@@ -3236,7 +3231,6 @@ export async function botTurn(player){
     const n0=g.events.length;
     if(g.doDock(player,fallbackPort)){
       await botBeat();
-      netHandlers().onBroadcastFlip("wait");
       return;
     }
   }

@@ -28,11 +28,8 @@
 
 import * as registry from "./registry.js";
 
-export function netWatchFlip(db, room, handler) {
-  if (!db || !room) return null;
-  const ref = db.ref("rooms/" + room + "/flip");
-  return registry.attach({ scope: "room", ref, event: "value", callback: handler, label: "flip" });
-}
+/* (netWatchFlip stood here — rooms/<C>/flip, deleted by architecture item 6, 2026-09-17: a coin flip reaches every screen on the
+   event stream. net_contract_check.js counts the watchers that remain.) */
 
 // Session-scoped (D-04's Pattern 3 scoping): attached once per page life
 // from the caller's own connection-setup routine, independent of which

@@ -81,7 +81,6 @@ import {
 } from "./shared/index.js";
 import { initAudio, playForEvent, playWinScreen, playBattleEngage, isMuted, cycleSoundMode, audioRunning, wakeCtx, kickAudioSession, recoverAudio } from "./ui/audio.js";
 import {
-  netSetFlip, netWatchFlip,
   netDeleteRoom,
   netSetNarr, netPushChat, netWatchChat,
   netSetBattle, netWatchBattle, netRemoveBattle,
@@ -105,7 +104,7 @@ import {
   bakeoffPrompt, bakeoffReveal, playBakeoffLive,
   benchChoreoMs, BENCH_STUDY_MS, BENCH_BEAT_MS, // A-2: the choreography's own timings, answered by the file that runs them
   appendChatLine, showChatBubble,
-  setFlipActive, setFlipCoin, flipSpinLeftMs, FLIP_LAND_HOLD_MS, boardCell, boardShipEls, drawBoard, render, resetBoardLog, bobTheTurn, sailSetsOff, sailArrives, payInto, payOut, crateFlightFrom, crateFlightTo, holdMovesFrom, holdMovesTo, rideStreaks, firstHomeConfetti, shotLands, loserKnocked, stopTurnBob,
+  setFlipActive, armFlipTap, landFlipCoin, boardCell, boardShipEls, drawBoard, render, resetBoardLog, bobTheTurn, sailSetsOff, sailArrives, payInto, payOut, crateFlightFrom, crateFlightTo, holdMovesFrom, holdMovesTo, rideStreaks, firstHomeConfetti, shotLands, loserKnocked, stopTurnBob,
   seedIdleGameState, syncBoardSizing, watchMutePlacement, clearChatBubbles,
   showSeatCoins, // MP-06: the ONE purse renderer, shared with render() (04-01 Task 2)
   battleSnapshot, renderBattleFromSnap,
@@ -129,7 +128,7 @@ import {
   sliderWrapHTML, wireSlider,        // 05-01 Task 3 (MP-08): the ONE coin slider, shared with localAsk
   pn, pname, updateRecipeBanner, describe, seatLocal,
   decisionIsLocal, resolveOpt, raiseLocalPrompt, stepDelay, ask, pickNarrVariant,
-  expectEventDrawing, finishEventDrawing, eventDrawn, afterLine, flipDockCoin,
+  expectEventDrawing, finishEventDrawing, eventDrawn, afterLine, flipDockCoin, flipFor,
   sleepMs, BOARD_LAST_LOOK_MS,
   mountKofi, openKofi, // KOFI-01: the embedded Ko-Fi panel and its modal opener
   coinShortfall, // G6: the shared coin re-validation, reached through the barrel (module_graph_check tiering)
@@ -161,15 +160,12 @@ const PRESENCE_WARN_THRESHOLD=80;
 function netFail(label){return e=>{console.error(label+" sync failed",e);const note=$("syncnote");if(note)note.style.display="";};}
 
 // setFlipCoin/setFlipActive moved verbatim to src/ui/board.js (11-03).
-// host: play the spin/land locally AND broadcast it so every connected browser's flippenator
-// animates in sync, whether or not that browser is the one actually flipping
-export function broadcastFlip(state){
-  setFlipCoin(state);
-  if(appState.isHost&&appState.db&&appState.room)netSetFlip(appState.db,appState.room,state,netFail("flip"));
-}
-export function watchFlip(){
-  netWatchFlip(appState.db,appState.room,s=>{const v=s.val();if(v)setFlipCoin(v.state);});
-}
+/* (broadcastFlip and watchFlip stood here — the `flip` wire node. The host painted every flip's spin, face and clear on its own
+   big coin and wrote each to rooms/<C>/flip; every guest painted them again from the node. That big coin is hidden on the stage, so
+   on a watching screen the only thing the node still did was START THE SPIN SOUND — beside the small coin the `coinflip` event draws,
+   which starts it too. Architecture item 6, 2026-09-17: a flip reaches every screen on the one pipe, the event stream (consumeEvent's
+   coinflip branch; ui/flow.js flipFor; ui/board.js armFlipTap and landFlipCoin). BACKLOG.md named watchFlip a channel to fold under his
+   2026-09-09 "ONE pipe" ruling.) */
 
 /* broadcastClock() stood here (the clock write), then togglePause()/watchPause() (the whole-table
    pause) — the clock left with the shot-clock removal, pause with Wyatt's A-10, both 2026-08-28. */
@@ -554,7 +550,7 @@ export function battleAsk(player,o,msg,opts,colors){
     idxP=raiseLocalPrompt(askSeat,()=>isFlip
       ?new Promise(res=>{
         setNeedsAction(true);
-        setFlipActive(()=>{setFlipActive(null);setNeedsAction(false);res(0);});   // the flip stage is the control
+        armFlipTap(()=>{setNeedsAction(false);res(0);});   // the flip stage is the control, and the tap starts the spin (board.js armFlipTap)
       })
       // the ordinary prompt: its buttons answer with their index, which is what the record and resolveOpt below expect
       :localAsk(msg,opts.map((op,i)=>({label:op.label,value:i})),colors));
@@ -636,61 +632,39 @@ async function asyncBattleRun(att,def){
   const bd=(typeof stepDelay==="function")?stepDelay():500;
   /* D-49: the battle's own `spin` const is GONE. It was clamp(260,650, stepDelay()*0.7), and with
      stepDelay() a flat 3000 that resolved to 650 — nearly twice the dock flip's 340, so two flips
-     in one voyage took visibly different times by design. Both sites below now wait out the
-     remainder of the ONE clock stamped where the spin is painted (board.js's flipSpinLeftMs), so
-     "every flip takes the same 1.5s" is true across the two code paths and not just within one.
-     Still through this file's own `sleep`, which is what keeps ⏩, pause and replay unchanged. */
+     in one voyage took visibly different times by design. Every flip of a fight now goes through the
+     ONE toss (ui/flow.js flipFor), whose drawing waits out the remainder of the ONE clock stamped where
+     the tap painted the spin (board.js flipSpinLeftMs), so "every flip takes the same time" is true
+     because there is one flip, not because two copies agree. */
   const beat=Math.max(300,Math.min(900,bd*0.9));  // suspense pause before the defender answers
   const hold=Math.max(500,Math.min(1500,bd*1.1)); // pause to read the round result
   const base=o=>Object.assign({att,def,a,d,round,need},o);
-  const hFlip=async(side,player,label,extra)=>{
-    extra=extra||{};
-    const key=side==="a"?"atState":"dfState";
-    await battleAsk(player,base(Object.assign({live:side,[key]:"wait"},extra)),
-      label,[{label:say("flip.button",{}),value:1,flip:true}]);
-    /* DECIDED AT THE TAP AND RECORDED (why "battle"), as a dock's flip is (flow.js humanFlip): with the battle box gone, the small
-       coin over this captain's boat is how every other screen sees the flip, and it starts as this screen's big coin starts. */
-    const h=appState.game.flip(player,"battle");
-    publishNow();liveRender();
-    broadcastFlip("spin");
-    battlePublish(base(Object.assign({live:side,[key]:"spin"},extra)));
-    await sleep(flipSpinLeftMs());
-    broadcastFlip(h?"H":"T");
-    // (no "flips HEADS!" line — his pass, 2026-09-13; the battle card's own coin shows the face on every screen,
-    // and a bot's flip, bFlip below, never had the line at all)
-    battlePublish(base(Object.assign({live:side,[key]:h?"H":"T"},extra)));
-    // playtest 13 (Wyatt: "hold the finished coin heads/tails for longer — .8 seconds maybe").
-    // T-34: the number is FLIP_LAND_HOLD_MS now, shared with the other flips (board.js).
-    await sleep(FLIP_LAND_HOLD_MS);
-    broadcastFlip("wait");
-    return h;
-  };
-  const bFlip=async(side,player,extra)=>{
-    extra=extra||{};
-    const key=side==="a"?"atState":"dfState";
-    battlePublish(base(Object.assign({live:side,[key]:"wait"},extra)));
-    const h=appState.game.flip(player,"battle");   // decided and recorded first — see hFlip
-    publishNow();liveRender();
-    broadcastFlip("spin");
-    battlePublish(base(Object.assign({live:side,[key]:"spin"},extra)));
-    await sleep(flipSpinLeftMs());
-    broadcastFlip(h?"H":"T");
-    battlePublish(base(Object.assign({live:side,[key]:h?"H":"T"},extra)));   // land ON the face
-    await sleep(FLIP_LAND_HOLD_MS);   // playtest 13 / T-34: the landed face holds, same as every other flip
-    broadcastFlip("wait");
-    return h;
+  /* THE FIGHT'S FLIPS, THROUGH THE ONE TOSS — architecture item 6, 2026-09-17. Two routines stood here, hFlip for a captain and
+     bFlip for a bot, each painting the spin, sleeping, broadcasting the face on the `flip` wire node, holding and clearing on its own —
+     the D-49 and T-34 fixes had to be applied to both, and every watching screen heard the spin sound twice (measured: a bot's flip on a
+     solo phone started it twice in one millisecond; a crew guest watching the host's flip, twice 696ms apart). Now the only difference
+     left between a captain and a bot is the one that is real: a captain is ASKED (the flip stage; their tap starts the spin —
+     board.js armFlipTap), a bot simply decides to. Then both are the same toss, and the fight waits for it to be drawn.
+     (The snapshot writes that rode each flip — the coin "spin" and the face — are gone with them: renderBattle draws only a round's
+     words, and nothing on any screen read a flip's state off the snapshot.)
+     `label` is a function so a bot's flip composes no prompt it will never show. */
+  const fightFlip=async(side,player,label,extra)=>{
+    const o=base(Object.assign({live:side,[side==="a"?"atState":"dfState"]:"wait"},extra));
+    if(player.strategy==="human")await battleAsk(player,o,label(),[{label:say("flip.button",{}),value:1,flip:true}]);
+    else battlePublish(o);
+    return flipFor(player,"battle");   // decided and recorded at the tap, drawn on every screen by the one consumer (ui/flow.js)
   };
   // ---- THE round ----
   round=1;
   battlePublish(base({atState:"wait",dfState:"wait",live:"a",result:{id:"battle.loads",facts:{a:seat(att.idx)}}}));
   await sleep(beat*0.5);
-  const ah=hA?await hFlip("a",att,say("battle.fire",{name:nm(att.idx)}),{dfState:"wait"}):await bFlip("a",att,{dfState:"wait"});
+  const ah=await fightFlip("a",att,()=>say("battle.fire",{name:nm(att.idx)}),{dfState:"wait"});
   battlePublish(base({atState:ah?"H":"T",dfState:"wait",live:"a"}));
   await sleep(beat*0.6);
   battlePublish(base({atState:ah?"H":"T",dfState:"wait",live:"d",
     result:{id:ah?"battle.showsHeads":"battle.showsTails",facts:{a:seat(att.idx),d:seat(def.idx)}}}));
   await sleep(beat);
-  const dh=hD?await hFlip("d",def,say("battle.defend",{a:seat(att.idx)},def.idx),{atState:ah?"H":"T"}):await bFlip("d",def,{atState:ah?"H":"T"});
+  const dh=await fightFlip("d",def,()=>say("battle.defend",{a:seat(att.idx)},def.idx),{atState:ah?"H":"T"});
   // ---- resolve: the engine says who scored and WHY (engine resolveRound); this only chooses the words for it ----
   const {scorer,why}=appState.game.resolveRound(F,ah,dh);
   if(scorer==="a")a++;else if(scorer==="d")d++;
@@ -757,7 +731,7 @@ async function asyncBattleRun(att,def){
     appState.game.payRefire(F);   // the price leaves the purse, and says so — engine payRefire
     liveRender();
     round++;
-    const rh=hA?await hFlip("a",att,say("battle.fireAgainFlip",{}),{dfState:dh?"H":"T"}):await bFlip("a",att,{dfState:dh?"H":"T"});
+    const rh=await fightFlip("a",att,()=>say("battle.fireAgainFlip",{}),{dfState:dh?"H":"T"});
     if(appState.game.resolveRefire(F,rh).scorer){a++;
       liveRender();   // the re-fire landed: the engine recorded shotLands — same kick, flash and shake
       // @copy misc.battleline.refirehits
@@ -1766,10 +1740,22 @@ export async function consumeEvent(e){
      human's tap, inside a bot's doDock — and this is what draws the coin. ARRIVAL FIRST: "bots begin docking
      BEFORE they have arrived at their dock" — so the coin waits for the stage to be settled (the camera's
      glide done and every ship drawn where the engine says it is) before it is thrown. */
-  if(e.t==="coinflip"&&(e.why==="dock"||e.why==="battle")&&!appState.replaying&&!decisionIsLocal(e.p)){   // a battle flip too, since the battle box went (2026-09-14)
-    const settled=window.__pp4&&window.__pp4.settled;
-    if(settled)await settled();
-    await flipDockCoin(e.p,!!e.heads,undefined,{front:e.why==="battle"});   // a battle's coin turns above the fight's words (dockcoin.js)
+  /* ⭐⭐⭐ AND IT IS THE ONLY WAY A FLIP REACHES ANY SCREEN — architecture item 6, 2026-09-17. Wyatt, build .5: "it seems like the
+     coin flip sound is being played twice." It was: a second wire route (the `flip` node, broadcastFlip/watchFlip) painted every flip
+     again on a big coin the stage hides, and that paint started the spin sound beside this small coin's own. Now one coinflip, two
+     inputs — the engine's event and this screen's locality — and exactly one drawing per screen:
+       · the screen whose captain TAPPED (decisionIsLocal): the tap already painted the spin and started its sound (board.js
+         armFlipTap), so this lands that big coin on the face the engine recorded — the rest of the spin, the face, the hold, the clear;
+       · every other screen: the small coin over the flipping boat, which starts its own spin sound — the one starter a watcher has.
+     Every flip kind comes this way — a dock's or a fight's, a captain's or a bot's — and the toss (ui/flow.js flipFor) awaits this
+     drawing, so the flip's pacing is the drawing's own on the machine that runs the game. */
+  if(e.t==="coinflip"&&!appState.replaying){
+    if(decisionIsLocal(e.p))await landFlipCoin(!!e.heads,sleep);
+    else{
+      const settled=window.__pp4&&window.__pp4.settled;
+      if(settled)await settled();
+      await flipDockCoin(e.p,!!e.heads,undefined,{front:e.why==="battle"});   // a battle's coin turns above the fight's words (dockcoin.js)
+    }
   }
   /* ⭐ AND THE CAMERA FRAMES WHOEVER'S TURN IT IS, ON EVERY DEVICE — Wyatt, 2026-09-13 (note 6): "Guest
      camera director does not seem to be zooming in and out dynamically or correctly -- were these
@@ -1925,7 +1911,7 @@ export function watchPrompt(){
         renderBattleFromSnap(prompt.battle);   // holds the camera on the fight; a line already said is not said again
         if(prompt.flip){
           setNeedsAction(true);
-          setFlipActive(()=>{setFlipActive(null);setNeedsAction(false);sendResponse(prompt.id,0);});
+          armFlipTap(()=>{setNeedsAction(false);sendResponse(prompt.id,0);});   // the tap starts the spin here, not when the host answers back (board.js armFlipTap)
         }else{
           setFlipActive(null);
           renderAskPrompt({msg:prompt.msg,opts:(prompt.labels||[]).map((l,i)=>({label:l,value:i})),colors:prompt.colors||null,battle:true},
@@ -2619,7 +2605,7 @@ export async function startGame(){
     const seed=Math.floor(Math.random()*1e9);
     pingStart(strategies.filter(s=>s==="human").length,"net");
     await netUpdateRoom(appState.db,appState.room,{status:"playing",cfg,seed,ev:null,prompt:null,response:null,narr:null,meta:null,
-      recipes:null,dlog:null,flip:null,battle:null,draftPrompts:null,draftResponses:null,clock:null,chat:null});
+      recipes:null,dlog:null,battle:null,draftPrompts:null,draftResponses:null,clock:null,chat:null});
     /* THE HOST'S HAND ON THE WHEEL — Wyatt, 2026-08-20: "when the host leaves, the guest isn't told
        anything; the game simply stalls." Armed the moment the voyage actually starts, because a
        lobby that loses its host is already covered (the room is deleted and watchRoom's existing
@@ -2657,7 +2643,7 @@ export function beginGame(cfg,seed){
      stopped the game with an empty panel and, measured, NOTHING in the console. See
      voyageAground()'s note in util.js for why that is worse than a crash. */
   if(appState.isHost){runLiveNet().catch(e=>voyageAground(e,"runLiveNet"));}
-  else{watchEvents();watchPrompt();watchNarr();watchFlip();watchDraftPrompt();watchRecoveryState();}
+  else{watchEvents();watchPrompt();watchNarr();watchDraftPrompt();watchRecoveryState();}
   /* EVERY CLIENT WATCHES THE BENCH NODE, THE HOST INCLUDED — watchChat's shape, one line below,
      and for the same reason (04-01 Task 3, MP-05). A bake-off bench is published by whoever is
      BAKING, and the baker may be a guest, so a host that only ever wrote to this node could never

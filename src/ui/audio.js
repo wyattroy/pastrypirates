@@ -986,8 +986,9 @@ function soundReady(name) {
   return !ctx || isMuted() || !!buffers[name];
 }
 
-// The single exported flip sound — every flip in the game passes through
-// src/ui/board.js's setFlipCoin() "spin" branch, on both host and guest (D-02/D-07).
+// The single exported flip sound. A flip is heard ONCE per screen (architecture item 6, 2026-09-17): the screen that tapped starts it
+// with the spin its tap paints (src/ui/board.js setFlipCoin "spin", reached only from armFlipTap), and every other screen starts it
+// with the small coin over the flipping boat (src/ui/dockcoin.js flipDockCoin) — never both on one screen (D-02/D-07).
 function playFlip() {
   play("coin-flip");
 }
