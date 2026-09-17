@@ -224,6 +224,11 @@ export function victoryCard() {
      release asks for. The ends rubber-band rather than wrap, and a page dragged to before its turn is filled on the way. */
   const filled = pages.map(() => false);
   const fill = i => { if (filled[i]) return 0; filled[i] = true; return pages[i].fill(bodies[i]) || 0; };
+  /* hand every page back to its inline style: keep the pose a filled animation is holding, then let that animation go */
+  const freePages = () => els.forEach(el => el.getAnimations().forEach(an => {
+    try { an.commitStyles(); } catch (e) {}
+    try { an.cancel(); } catch (e) {}
+  }));
   const restAt = i => { els[i].style.transform = i === cur ? "translateX(0)" : `translateX(${i < cur ? -112 : 112}%)`; };
   const takeOver = () => { if (done) return; taken = true; done = true; card.classList.add("done"); };
   const nav = i => { if (!done || i < 0 || i >= pages.length || i === cur) return; card.classList.add("browsing"); fill(i); slide(cur, i, i > cur ? 1 : -1); cur = i; };
@@ -251,6 +256,12 @@ export function victoryCard() {
     if (!drag.moved) {                                             // a drag, not a tap, and across rather than down
       if (Math.abs(dx) < 6 || Math.abs(dx) <= Math.abs(dy)) return;
       drag.moved = true; takeOver(); card.classList.add("browsing");
+      /* ⚠ AND THE LAST SWIPE'S ANIMATION HAS TO LET GO OF THE PAGE FIRST. Every slide ends as a filled Web Animation
+         (fill:"forwards"), which outranks an inline style — so a second drag on the same page wrote its transform and nothing
+         moved. Wy-Blade measured exactly that: "inline translateX(59.89%), painted 0px, animations [finished/forwards]". Each
+         page's finished animations are committed (so the page keeps the pose it is in) and then cancelled, which hands it back
+         to the inline style this drag writes. */
+      freePages();
     }
     if (ev.cancelable) ev.preventDefault();                        // ours now: no rubber-banding of the page under it
     const to = dx < 0 ? cur + 1 : cur - 1, room = (to >= 0 && to < pages.length) ? 1 : PULL;
