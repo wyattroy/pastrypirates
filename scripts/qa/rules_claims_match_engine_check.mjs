@@ -315,15 +315,20 @@ function measureAll() {
   }
 
   /* ── TRADE ────────────────────────────────────────────────────────────────── */
+  /* REPOINTED 2026-09-17 (architecture item 13). This was measured on Game.tradeOpp — a function no game ever called, kept alive by
+     this gate alone, with its own range test that disagreed with the game whenever cfg.parley was off. The hail a player makes is
+     put to Game.hailAudience (built on holdersOf), and whether it may be made at all is Game.whyNoTrade — so that is what is played:
+     a captain alone in the far corner, every other captain holding the crate it wants. */
   {
     const g = mk();
-    const p = g.players[0];
-    g.players.forEach(q => { q.pos = [1, 1]; });
-    p.pos = [13, 13];                                 // nowhere near anybody
-    const hailed = g.tradeOpp(p);
+    const p = g.players[0], want = g.ings[0];
+    g.players.forEach(q => { q.pos = [1, 1]; q.ing = [want]; });
+    p.pos = [13, 13]; p.ing = []; p.coins = 5;       // nowhere near anybody
+    const may = g.canOpenTrade(p);
+    const hailed = g.hailAudience(p, { want, giveIng: null, giveCoins: 1 });
     claim("trade-hails-whole-table", "hail the whole table at once",
-      hailed.length === g.players.length - 1 && !hailed.includes(p),
-      `a captain alone in the far corner hails ${hailed.length} of the other ${g.players.length - 1} — distance is no object`);
+      may && hailed.length === g.players.length - 1 && !hailed.includes(p),
+      `a captain alone in the far corner may open a trade (${may}) and its hail reaches ${hailed.length} of the other ${g.players.length - 1} holders — distance is no object`);
   }
 
   /* ── THE TRADE WINDS ──────────────────────────────────────────────────────── */
@@ -545,9 +550,9 @@ const MUTATIONS = [
   { id: "tradewind-sweeps-to-the-end", breaks: ["tradewind-sweeps-to-the-end"],
     patch: P => { P.tradewind = function () { return false; }; } },
   /* Back to the pre-parley rule, where a hail only reached the ships you were standing next to —
-     which is what "the whole table at once" denies. */
+     which is what "the whole table at once" denies. Patched into holdersOf, the one place the game asks who can be traded with. */
   { id: "trade-hails-whole-table", breaks: ["trade-hails-whole-table"],
-    patch: P => { P.tradeOpp = function (p) { return this.players.filter(q => q !== p && this.inPlay(q) && Math.abs(p.pos[0] - q.pos[0]) + Math.abs(p.pos[1] - q.pos[1]) <= 1); }; } },
+    patch: P => { const o = P.holdersOf; P.holdersOf = function (ing, ex) { return o.call(this, ing, ex).filter(q => !ex || Math.abs(ex.pos[0] - q.pos[0]) + Math.abs(ex.pos[1] - q.pos[1]) <= 1); }; } },
   /* Every arc the same length in every game — which is precisely what "arcs of varying length each
      game" denies. The first attempt at this mutation was a STUB that set an unread flag and changed
      nothing; the red proof reported the claim staying green and that is how it was caught. A red

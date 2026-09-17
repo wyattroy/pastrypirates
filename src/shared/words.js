@@ -219,6 +219,9 @@ export const WORDS = {
   "act.attackFree": "⚔️ Attack",
   "act.noPowder": "Ye can't afford the powder — {n}🌕 a broadside, and yer purse won't stretch.",
   "act.emptyHolds": "Their holds are empty — there's nothin' aboard worth takin'.",
+  /* architecture item 13, 2026-09-17: the ship alongside is baking at Tortuga (sanctuary, his ruling of 2026-08-06) — this line is
+     drafted in the voice of the one above and the rules page's "they're beyond yer reach"; his to rewrite. "yer" is derived. */
+  "act.sanctuary": "Their ovens are lit at Tortuga — they're beyond {p's} reach now.",
   "act.trade": "🤝 Trade",
   "act.nothingToTrade": "Ye've nothin' to trade — an empty hold and an empty purse.",
   "act.noCargoOnWater": "Not a captain on the water is carryin' cargo to trade for.",

@@ -397,7 +397,7 @@ time — **4,884 dead turns** in 300 games. Ask the exact question the action wi
 ## 8. WHERE IT LIVES
 
 Engine — `src/engine/index.js`:
-`holdersOf` · `offerValueTurns` · `estimateCrateCost` · `crateCostTurns` · `respondToOffer` ·
+`holdersOf` · `whyNoTrade` / `canOpenTrade` (whether a captain may open a trade at all, and why not — architecture item 13) · `offerValueTurns` · `estimateCrateCost` · `crateCostTurns` · `respondToOffer` ·
 `collectResponses` · `settleTrade` · `counterTerms` · `offerLabel` · `rememberRefusal` ·
 `refusedFlagWanted` · `worthReAsking` · `offerWorthTurns` · `openingBid` · `worthHailing` ·
 `composeOffer` · `botOpenOffer` · `hailAudience` · `canTakeAnswer` · `resolveHail` · `chooseAnswer` ·

@@ -1003,9 +1003,7 @@ class Game{
     for(const q of this.players)if(q!==exclude&&this.inPlay(q)&&q.pos[0]===d[0]&&q.pos[1]===d[1])return q;
     return null;
   }
-  adjOpp(p){const out=this.players.filter(q=>q!==p&&this.inPlay(q)&&man(p.pos,q.pos)<=1);this.shuffle(out);return out;}
-  tradeOpp(p){if(this.cfg.parley)return this.players.filter(q=>q!==p&&this.inPlay(q));
-    return this.players.filter(q=>q!==p&&this.inPlay(q)&&man(p.pos,q.pos)<=1);}
+  adjOpp(p){const out=this.foesAt(p.pos,p);this.shuffle(out);return out;}
   // v2 rule 11: price = 6 − crates still on the island. 3 left → 3🌕, 2 → 4🌕, 1 → 5🌕. Shared by
   // the whole table, and self-correcting if a crate ever comes back into supply — it is a function
   // of the board, not a counter anybody has to maintain. Returns null when there is nothing to buy.
@@ -1242,6 +1240,19 @@ class Game{
   holdersOf(ing,exclude){
     return this.players.filter(q=>q!==exclude&&this.inPlay(q)&&q.ing.includes(ing));
   }
+  /* ⭐ WHETHER A CAPTAIN MAY OPEN A TRADE, AND WHY NOT — decided here, once (architecture item 13, 2026-09-17; the attack half
+     is whyNoAttack). v2 rule 4: a hail reaches the whole table from wherever ye float, so there are exactly two reasons:
+       "nothingToTrade"  an empty hold AND an empty purse — the give step could never be built (02.2 FINAL-QA: such a captain was
+                         once stranded on a give prompt with no way forward; composeOffer refuses a bot the same)
+       "noCargo"         nobody still on the board holds a crate — asked through holdersOf, so a captain baking at Tortuga, who is
+                         off the board, is not somebody to trade with
+     The action menu used to decide this itself, counting any captain not yet `done` — a baker included — so when the only cargo on
+     the water was aboard a baker, Trade was live and tapping it bounced with "No one has cargo to trade for." */
+  whyNoTrade(p){
+    if(!p.coins&&!p.ing.length)return "nothingToTrade";
+    return this.ings.some(i=>this.holdersOf(i,p).length)?null:"noCargo";
+  }
+  canOpenTrade(p){return !this.whyNoTrade(p);}
   // How a bot prices a crate somebody is asking it for. Wyatt's ruling, 2026-08-04: price it in
   // TURNS — how long would it take me to replace this myself — PLUS a denial premium when the
   // asker looks close to finishing. That is the whole valuation; there is no flat threshold.
@@ -1902,7 +1913,7 @@ class Game{
       if(this.isIsland(c))return this.islands[c];}
     return null;
   }
-  foesAt(cell,p){return this.players.filter(q=>q!==p&&this.inPlay(q)&&man(cell,q.pos)<=1);}
+  foesAt(cell,p){return this.alongside(cell,p).filter(q=>this.inPlay(q));}
   // Would a ship on `cell` hold the weather gauge over q? Rule 9 gives a both-heads round to the
   // downwind ship, and downwindSide grants it at exactly one square along the wind — so this is the
   // single cell that doubles the odds, and there is nothing to search for.
@@ -1963,7 +1974,21 @@ class Game{
     if(k>=0)this.finishOrder.splice(k,1);
     this.ev({t:"unfinish",p:p.idx});
   }
-  // Can this ship legally be attacked? v2 rule 13e: an empty hold is not a target — there is
+  /* ⭐ WHETHER YE MAY ATTACK, AND WHY NOT — DECIDED HERE, ONCE (architecture item 13, 2026-09-17).
+     It was decided here AND again in the action menu (src/ui/flow.js humanAct), and the two disagreed about one captain: the one
+     baking at Tortuga. The menu listed every ship alongside with no in-play test, re-tested the powder itself, and picked its
+     greyed reason by elimination — powder, else "Their holds are empty" — so beside a baker carrying five crates, Attack was
+     greyed with a sentence about an empty hold. Its comment still taught the rule sanctuary replaced ("a captain who has already
+     fired up the ovens is still a legal target"), the same rot the paragraph above canAttack records. Now:
+       alongside(cell,p)     who lies within a broadside of a square — the ONE range test (foesAt, adjOpp and attackTargets read it)
+       canPayPowder(att)     whether the purse covers a broadside — the ONE affordability test
+       whyNoAttack(att,def)  why att may not fire on def, or null when it may — canAttack is its yes/no
+       attackTargets(p)      who p may fire on from where it floats; whyNoAttackHere(p) says why nobody, for the Attack button
+     The trade half is whyNoTrade / canOpenTrade, beside holdersOf. The menu greys its buttons and picks its words from these
+     answers and nothing else; scripts/qa/action_reasons_from_engine_check.mjs holds it. */
+  alongside(cell,p){return this.players.filter(q=>q!==p&&man(cell,q.pos)<=1);}
+  canPayPowder(att){return !this.cfg.powder||att.coins>=this.cfg.powder;}
+  // Can this ship legally be attacked, and if not, why? v2 rule 13e: an empty hold is not a target — there is
   // nothing to take, and the option greys out rather than wasting the attacker's powder.
   /* ⛔ THE PARAGRAPH THAT USED TO SIT HERE STATED THE OPPOSITE OF THE LINE BELOW, AND IT COST
      SOMETHING. It read: "there is deliberately no `def.done` check: v2 rule 13c is 'nobody is
@@ -1974,15 +1999,27 @@ class Game{
      would have had its mistake CONFIRMED by the commentary sitting above the code.
      Rule 6, in its exact shape — a comment is not a measurement. If you want to know what this
      function does, call it: scripts/qa/rules_sanctuary_matches_engine_check.mjs does. */
-  canAttack(att,def){
-    if(!def||def===att)return false;
+  // The reasons, in the order a captain is told them: powder first, because it is the one a captain can do
+  // something about (playtest 21 item 5); then sanctuary; then an empty hold.
+  whyNoAttack(att,def){
+    if(!def||def===att)return "noTarget";
+    if(!this.canPayPowder(att))return "noPowder";
     // v2.1 SANCTUARY (Wyatt, 2026-08-06). Once the ovens are lit nobody can touch them. The raid
     // does not die, it moves earlier: you rob a captain carrying a full recipe on their way home,
     // which is the more skilful version of the same play and the one the bots already hunt for.
     // Tortuga becomes the thing you are racing for rather than a place you get mugged.
-    if(this.cfg.bakeoff&&def.baking)return false;
-    if(this.cfg.powder&&att.coins<this.cfg.powder)return false;
-    return def.ing.length>0;
+    if(this.cfg.bakeoff&&def.baking)return "sanctuary";
+    return def.ing.length>0?null:"emptyHolds";
+  }
+  canAttack(att,def){return !this.whyNoAttack(att,def);}
+  attackTargets(p){return this.alongside(p.pos,p).filter(q=>this.canAttack(p,q));}
+  // The Attack button's reason: null when there is somebody to fire on, or nobody alongside at all (then there is no
+  // button to grey). Otherwise the first reason, in whyNoAttack's own order, that any ship alongside gives.
+  whyNoAttackHere(p){
+    const near=this.alongside(p.pos,p);
+    if(!near.length||near.some(q=>this.canAttack(p,q)))return null;
+    const whys=near.map(q=>this.whyNoAttack(p,q));
+    return ["noPowder","sanctuary","emptyHolds"].find(w=>whys.includes(w));
   }
   // v2 rule 9 — the battle is ONE round.
   //
@@ -2337,7 +2374,7 @@ class Game{
       consider((PLAN.tradeTurns+sweetener+theirPrice)/bias.dealBias,"deal",null,q);
       // take: sail into range, then fight. A fight is only worth planning when it is legal
       // (rule 13e — an empty hold is never a target) and when I can pay for powder.
-      if(this.canAttack(p,q)||p.coins>=(this.cfg.powder||0)){
+      if(this.canAttack(p,q)||this.canPayPowder(p)){
         if(q.ing.includes(ing)){
           // v2.1: sail to CUT THEM OFF, not to where they are standing. For a captain who is going
           // nowhere this is their own square and nothing changes; for one running for home it is a
@@ -3153,7 +3190,7 @@ class Game{
     // The plan was costed from plan.cell; a storm or a blocked route can leave the ship short of it,
     // so anything needing adjacency is re-checked against where the ship ACTUALLY is. Not a second
     // decision — the same plan, refusing to pretend it arrived.
-    if(plan.type==="attack"&&man(p.pos,plan.target.pos)<=1&&this.canAttack(p,plan.target)){
+    if(plan.type==="attack"&&this.attackTargets(p).includes(plan.target)){
       this.battle(p,plan.target);return;}
     if(plan.type==="trade"&&this.tryTrade(p))return;
     if(plan.type==="dock"&&this.adjPort(p)===plan.ing&&this.doDock(p,plan.ing))return;

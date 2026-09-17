@@ -2281,14 +2281,13 @@ async function coinSlider(seat,msgFor,start,min,max,confirmLabel,extraOpt,declin
 }
 export async function humanTrade(player){
   const g=appState.game;
-  // DEFENSE IN DEPTH, symmetric with step 0's "nobody has cargo I want" guard four lines below:
-  // a captain with nothing at all to give (0 coins AND an empty hold) can never complete step 1
-  // regardless of what they WANT — step 1 is built purely from player.ing/player.coins, never from st.want —
-  // so decline here, before the want prompt even renders, instead of dead-ending them one screen
-  // deeper with no way out. humanAct's own canOffer gate (the button itself) is the real fix and
-  // makes this unreachable through the normal menu; this guard exists for any other caller.
+  // DEFENSE IN DEPTH, for any caller but the menu (which greys Trade on the same answer): whether this captain may open a trade
+  // is the engine's (Game.whyNoTrade — nothing to give, or nobody still on the board holding a crate), so decline here, before the
+  // want prompt renders, rather than dead-end them a screen deeper. Each reason keeps the refusal line it always had.
   // @copy adhoc.trade.nothingtogive
-  if(!player.coins&&!player.ing.length){await sayFlash("trade.nothingAtAll",{p:seat(player.idx)});return false;}
+  // @copy adhoc.trade.nocargo
+  const cannot=g.whyNoTrade(player);
+  if(cannot){await sayFlash({nothingToTrade:"trade.nothingAtAll",noCargo:"trade.noCargo"}[cannot],{p:seat(player.idx)});return false;}
   const st={want:undefined,baseIng:undefined,extraCoins:undefined};
   let step=0;
   while(step<3){
@@ -2303,9 +2302,6 @@ export async function humanTrade(player){
         return {label:ilabelImg(i),value:i,disabled:!holders.length,
           why:sayText("trade.nobodyHas",{ing:iname(i)})};
       });
-      const anyHeld=opts.some(o=>!o.disabled);
-      // @copy adhoc.trade.nocargo
-      if(!anyHeld){await flash(say("trade.noCargo",{}));return false;}
       opts.push({label:say("button.back",{}),back:true,value:"__back__"});
       // @copy prompt.trade.want
       // no shared helper line: every greyed crate above carries "No captain on the water is
@@ -2468,39 +2464,30 @@ function actLadder(opts){
   }
   return best;
 }
+/* The engine's reasons (Game.whyNoAttack / whyNoAttackHere / whyNoTrade) in the game's words — one entry per reason, and
+   nothing else in this file picks these lines. A reason the engine gains without an entry here would throw in say();
+   scripts/qa/action_reasons_from_engine_check.mjs fails first, because it words every reason the engine can give. */
+const WHY_WORDS={noPowder:"act.noPowder",sanctuary:"act.sanctuary",emptyHolds:"act.emptyHolds",
+  nothingToTrade:"act.nothingToTrade",noCargo:"act.noCargoOnWater"};
 export async function humanAct(player,sailCtx){
   const port=appState.game.adjPort(player);
   const canDock=port&&!(appState.game.cfg.singleDock&&appState.game.dockOccupiedBy(port,player));
-  // v2 rule 13: EVERY dock is raidable now, and a captain who has already fired up the ovens is
-  // still a legal target ("nobody is safe"). So the target list is simply everyone adjacent — a
-  // berth protects no one, and `done` no longer grants immunity.
-  const targets=appState.game.players.filter(q=>q!==player&&man(player.pos,q.pos)<=1);
-  const canAfford=player.coins>=appState.game.cfg.powder;
-  // v2 rule 13e: a ship with an empty hold cannot be attacked — there is nothing to take, and the
-  // prize is a crate or nothing (rule 9d). Compute real availability once and drive both the
-  // button's greying and the action guard from it.
-  const attackable=targets.filter(q=>appState.game.canAttack(player,q));
-  // D-41 EXTENDED (Wyatt-approved 2026-07-29): Parley/Trade is offered whenever any opponent is
-  // alive, but the action itself only ever works against someone HOLDING cargo — compute real
-  // availability once and drive both the button's `disabled` flag and the action guard (:602 below)
-  // from it, following the same pattern already used for Attack.
-  // v2 rule 4: a trade reaches the WHOLE TABLE from wherever ye happen to be floating — there is
-  // no partner to be adjacent to. It is available whenever anybody, anywhere, is holding cargo.
-  //
-  // 02.2 FINAL-QA FIX (a captain who cannot take their turn): a captain with NOTHING TO OFFER —
-  // 0 coins AND an empty hold — could still click an enabled Trade button (this line used to check
-  // only whether an OPPONENT held cargo, never whether P did). humanTrade()'s "what will ye GIVE"
-  // step is built purely from player.ing/player.coins, independent of what P chose to WANT, so that captain
-  // was guaranteed to reach a give-prompt with one permanently-disabled button and no possible way
-  // forward — Back only re-asks WANT (step 0), which can never fix a GIVE-side problem, so the
-  // captain (and the whole table, which waits on their turn) was stuck forever. Same defect shape
-  // Attack already had and already fixed here: two INDEPENDENT conditions must each get their own
-  // `if`, never folded into one, or one silently suppresses the other's reason (see the Attack
-  // comment just below). Bot parity check: engine/index.js's composeOffer already refuses to hail
-  // when `!giveIng&&!giveCoins` — bots have always declined this state cleanly; canOffer brings the
-  // human path to the same rule (rule 13, bot/human parity), not a new behaviour.
-  const canOffer=player.coins>0||player.ing.length>0;
-  const canTrade=canOffer&&appState.game.players.some(q=>q!==player&&!q.done&&q.ing.length>0);
+  /* ⭐ WHETHER YE MAY ATTACK OR TRADE, AND WHY NOT, IS THE ENGINE'S ANSWER — this menu greys the buttons and words the reason,
+     and decides nothing (architecture item 13, 2026-09-17). Game.alongside, attackTargets, whyNoAttackHere and whyNoTrade hold
+     the rules; WHY_WORDS below is the only thing that turns a reason into a sentence.
+     WHAT STOOD HERE, so it is not rebuilt: a target list of everyone adjacent with no in-play test, justified by a comment saying
+     "a captain who has already fired up the ovens is still a legal target ('nobody is safe')" — the v2 classic rule, false since
+     his SANCTUARY ruling of 2026-08-06; its own powder test; a reason picked by elimination (powder, else "Their holds are empty");
+     and a Trade test that counted a baker's crates. So beside a captain baking at Tortuga with five crates aboard, Attack said
+     their holds were empty, and when the only cargo on the water was a baker's, Trade was live and bounced when tapped.
+     The Attack button still SHOWS whenever a ship lies alongside — a baker included, greyed, saying why. The two trade reasons
+     keep their own ruling history in the engine (D-41; the 02.2 FINAL-QA "nothing to offer" strand). */
+  const g=appState.game;
+  const alongside=g.alongside(player.pos,player);
+  const attackable=g.attackTargets(player);
+  const attackWhy=g.whyNoAttackHere(player);
+  const tradeWhy=g.whyNoTrade(player);
+  const canTrade=!tradeWhy;
   const opts=[];
   // F5 (Wyatt-approved 2026-07-29), his own example: *"In the 'Dock at Full Cream Folly' the icon
   // should go directly in front of the island name — 'Dock at 🥛 Full Cream Folly'"*. The icon used
@@ -2545,17 +2532,16 @@ export async function humanAct(player,sailCtx){
   // #5b/#5d: shorter label, and the Attack button always shows when there's a target — greyed out
   // (disabled) rather than hidden when you can't afford powder.
   // playtest 21 item 5: a greyed circle carries its OWN reason, spoken at the circle when tapped.
-  // Attack has two independent ways to be greyed and they used to share one line — the powder one
-  // is checked first because it is the one the captain can actually do something about.
+  // Attack has three ways to be greyed — no powder, sanctuary, an empty hold — and they used to share one line. The engine
+  // orders them (Game.whyNoAttack): powder first, because it is the one the captain can actually do something about.
   // @copy adhoc.why.* — APPROVED as written, Wyatt 2026-08-14 ("draft copy is fine").
-  if(targets.length)
-    opts.push({label:say(appState.game.cfg.powder?"act.attack":"act.attackFree",{n:appState.game.cfg.powder}),value:"attack",disabled:!canAfford||!attackable.length,
-      why:!canAfford?sayText("act.noPowder",{n:appState.game.cfg.powder})
-        :sayText("act.emptyHolds",{})});
+  // The reason is read to the captain being asked, so "ye"/"yer" is derived for that seat (player.idx), wherever the menu is drawn.
+  if(alongside.length)
+    opts.push({label:say(g.cfg.powder?"act.attack":"act.attackFree",{n:g.cfg.powder}),value:"attack",disabled:!attackable.length,
+      why:attackWhy?sayText(WHY_WORDS[attackWhy],{n:g.cfg.powder,p:seat(player.idx)},player.idx):null});
   // @copy adhoc.why.nothingtotrade
   opts.push({label:say("act.trade",{}),value:"trade",disabled:!canTrade,
-    why:!canOffer?sayText("act.nothingToTrade",{})
-      :sayText("act.noCargoOnWater",{})});
+    why:tradeWhy?sayText(WHY_WORDS[tradeWhy],{p:seat(player.idx)},player.idx):null});
   // (the classic "Start yer bakery!" button stood here — the classic day is gone, his word of 2026-09-13)
   // THE OVENS BUTTON (Wyatt, 2026-08-09: "Where did the button go? This is a celebratory moment!
   // It feels terrible to have to click 'pass'").
@@ -2775,7 +2761,7 @@ export async function humanAct(player,sailCtx){
     // #5d: safety net — the button is disabled when you can't afford powder, but guard the action
     // too (e.g. a forced/edge selection) so we never enter a battle you can't pay for.
     // @copy adhoc.act.nopowder
-    if(player.coins<appState.game.cfg.powder||!attackable.length){await sayFlash("act.cantAttack",{p:seat(player.idx)},1400);await humanAct(player,sailCtx);return;}
+    if(!attackable.length){await sayFlash("act.cantAttack",{p:seat(player.idx)},1400);await humanAct(player,sailCtx);return;}
     const t=attackable.length===1?attackable[0]:
       // @copy prompt.act.attacktarget
       // SEAT-ANCHORED, joining the ONE placement rule (Wyatt, 2026-09-01, from the Glass: attack
@@ -3104,7 +3090,7 @@ export async function botTurn(player){
   // The plan was costed from plan.cell; a storm or a blocked route can leave the ship short of it,
   // so anything needing adjacency is re-checked against where the ship ACTUALLY is. Not a second
   // decision — the same plan, refusing to pretend it arrived.
-  if(plan.type==="attack"&&man(player.pos,plan.target.pos)<=1&&g.canAttack(player,plan.target)){
+  if(plan.type==="attack"&&g.attackTargets(player).includes(plan.target)){
     await netHandlers().onAsyncBattle(player,plan.target);
     await botBeat();return;
   }
