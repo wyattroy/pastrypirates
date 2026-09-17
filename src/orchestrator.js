@@ -134,7 +134,7 @@ import {
   coinShortfall, // G6: the shared coin re-validation, reached through the barrel (module_graph_check tiering)
   isDisabledBtn, showWhy, // playtest 21 item 5: a greyed circle is tappable and says why
   voyageAground, // the visible stall guard — a throw in the turn chain must never be silent again
-  forgetCourse, // 2026-09-11: the dotted course comes down the moment a boat starts to move
+  forgetCourse, sailWindowOpen, // 2026-09-11: the dotted course comes down the moment a boat starts to move — and, item 12, when a turn begins, unless this screen's sail prompt is open
 } from "./ui/index.js";
 
 // `$`/`sleep` are classic-script-local (index.html:863/:921) — see src/ui/board.js's/panel.js's
@@ -1715,9 +1715,23 @@ export async function consumeEvent(e){
      the ocean as you move away from its starting position." With the parrot on, the sail prompt
      leaves the line up for the rest of the turn on purpose (his 2026-09-09 ruling), and only the
      next turn took it down. It is a picture of where to go FROM HERE, so it ends when "here" does:
-     the same events that wait for the boat to arrive (below), in the one consumer, on every device. */
+     the same events that wait for the boat to arrive (below), in the one consumer, on every device.
+     ⭐ AND WHEN ANY CAPTAIN'S TURN BEGINS — Wyatt, playtest 2026-09-10: "the dotted line stays up on others' turns ...
+     Expectation: the dotted line is ONLY visible on the player's turn, and auto updates with their current location each turn."
+     That half lived at the top of takeTurn (ui/flow.js) until architecture item 12, 2026-09-17 — and takeTurn runs only on the
+     machine running the game. Measured before in a real crew room (guest a phone, parrot on): a guest who stayed put kept its
+     line on the sea into the next captain's turn until somebody sailed, and a guest's recipe-picker line stayed up into the
+     host's first turn. The `turn` event reaches every screen through here, so the line comes down here, once, for both.
+     ⚠ BUT NEVER WHILE THIS SCREEN'S OWN SAIL PROMPT IS OPEN — measured the same day, and it is why this is not a bare `turn`
+     test. A guest's prompt and the event feed are two wires, and the drain may still be walking the last boat home: in a real
+     room the guest's prompt drew its course, its own `turn` event was drawn a second later, and a bare test took the course off
+     the sea with the gold squares still on it. A course drawn by an open sail prompt IS the turn being played; the prompt closing
+     (Stay put, a sail, a timeout's remote clear) is what lets the next turn or move take it down. The host is unchanged by this:
+     its turn is always drawn before its prompt opens (takeTurn awaits the drain).
+     (With the parrot OFF, renderPickPrompt also forgets it when its prompt ends — a different rule: the parrot toggle must not
+     bring back a course for a sail already chosen.) scripts/qa/course_down_one_place_check.mjs holds all of this. */
   const moves=(e.draw&&Array.isArray(e.draw.route))||e.t==="tradewind";
-  if(moves)forgetCourse();
+  if((moves||e.t==="turn")&&!sailWindowOpen())forgetCourse();
   if(e.t==="sail"&&moves&&!appState.replaying)sailSetsOff(e.p,e.draw.route);   // his game feel audit: the wind-up and the wake (board.js)
   playForEvent(e, decisionIsLocal(e.p));
   /* ⭐ THE TINY DOCK COIN IS DRAWN HERE, FOR EVERY CAPTAIN WHOSE CHOICE WAS NOT MADE ON THIS SCREEN —

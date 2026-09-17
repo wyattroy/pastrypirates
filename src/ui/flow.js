@@ -658,6 +658,12 @@ function pressSailSquare(r){
 export function clearSailWindow(){
   document.querySelectorAll(".sailCell").forEach(el=>el.remove());
 }
+/* Is a sail prompt open on THIS screen — its gold squares on the sea? The squares exist only on the screen being asked, and they
+   leave through the prompt's own teardown or clearSailWindow() above. Read by the one event consumer: a dotted course drawn by an
+   open sail prompt belongs to the turn being played, however late that turn's own event is drawn (orchestrator.js consumeEvent). */
+export function sailWindowOpen(){
+  return !!document.querySelector(".sailCell");
+}
 export function renderPickPrompt(spec,answer){
   clearSailWindow();
   const svg=$("board"),hs=[];
@@ -2818,22 +2824,9 @@ export async function humanAct(player,sailCtx){
    choosing. The rest is in .planning/BACKLOG.md with its own entry. */
 export async function takeTurn(player){
   await passGate(player.idx);
-  /* ⭐ THE DOTTED COURSE BELONGS TO ONE CAPTAIN'S TURN — Wyatt, playtest 2026-09-10: "the dotted
-     line stays up on others' turns and doesn't seem to update until the player's next turn.
-     Expectation: the dotted line is ONLY visible on the player's turn, and auto updates with their
-     current location each turn."
-     WHY IT LINGERED: with Polly on, the sail prompt draws the course and NOTHING takes it down —
-     the `else forgetCourse()` beside that draw only runs when the parrot is OFF, which was the
-     whole point of his earlier ruling that the line should last the voyage rather than fade after
-     three turns. Both rulings are right and they are about different things: the line should
-     persist through HIS turn, not through everybody's.
-     A FOURTH SHARED STEP, HERE, which is exactly what this door was built for. Clearing at the top
-     of EVERY turn answers both halves of his ask at once: a bot's turn draws no course, so the sea
-     is clear while it sails; and his own next turn re-charts from wherever he is standing NOW,
-     because the sail prompt draws it fresh from `spec.pos`. No new flag, no second clock, and
-     pass-and-play gets it right for free — every seat there is a local captain taking its own
-     turn. */
-  forgetCourse();
+  /* (forgetCourse() stood here — "the dotted line is ONLY visible on the player's turn", Wyatt, playtest 2026-09-10. It ran only
+     on the machine running the game, so a crew guest's course never came down with it. The `turn` event below takes the course
+     down now, in the one consumer, on every screen — architecture item 12, 2026-09-17; course_down_one_place_check.mjs.) */
   appState.game.ev({t:"turn",p:player.idx});
   /* PUBLISHED AND DRAWN BEFORE THE CHOOSING BEGINS — so the one consumer frames this captain's turn on
      every device (a guest the moment the event lands; the host here) before anybody is asked anything.
