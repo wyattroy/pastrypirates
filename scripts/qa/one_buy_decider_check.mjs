@@ -16,13 +16,13 @@ const SRC = fs.readFileSync(path.join(REPO, "src/engine/index.js"), "utf8");
 
 const rules = [
   ["the decision is defined exactly once", s => (s.match(/^\s*wantsCrate\(/gm) || []).length === 1,
-   s => s.replace("  wantsCrate(p,ing,price,coins){", "  wantsCrate(p,ing,price,coins){\n  }\n  wantsCrate(p,ing,price,coins){")],
+   s => s.replace("  wantsCrate(p,ing,price){", "  wantsCrate(p,ing,price){\n  }\n  wantsCrate(p,ing,price){")],
   ["doDock asks it rather than deciding itself", s => /doDock\(p,port\)\{[\s\S]{0,2600}?this\.wantsCrate\(/.test(s),
    s => s.replace("const why=this.wantsCrate(p,ing,price)", "const why=this.needs(p).includes(ing)?\"needs\":\"\"")],
-  ["the planner asks the same one", s => (s.match(/this\.wantsCrate\(p,port,price,purse\)/g) || []).length === 1,
-   s => s.replace("this.wantsCrate(p,port,price,purse)", "this.needs(p).includes(port)")],
+  ["the planner asks the same one", s => (s.match(/this\.wantsCrate\(p,port,price\)/g) || []).length === 1,
+   s => s.replace("this.wantsCrate(p,port,price)", "this.needs(p).includes(port)")],
   ["the merchant's leverage clause exists in ONE place", s => (s.match(/hoardBias>=1\.4/g) || []).length === 1,
-   s => s.replace("wantsCrate(p,ing,price,coins){", "wantsCrate(p,ing,price,coins){ if(PERSONALITY[p.strategy]&&PERSONALITY[p.strategy].hoardBias>=1.4){} ")],
+   s => s.replace("wantsCrate(p,ing,price){", "wantsCrate(p,ing,price){ if(PERSONALITY[p.strategy]&&PERSONALITY[p.strategy].hoardBias>=1.4){} ")],
   ["the dock rate is derived from the dock, not from PLAN's frozen 4",
    s => /coinTurns\(n\)\{[\s\S]{0,400}?dockHeads[\s\S]{0,120}?dockTails/.test(s),
    s => s.replace(/coinTurns\(n\)\{[\s\S]*?\n  \}/, "coinTurns(n){ return n<=0?0:n/PLAN.coinsPerDockTurn; }")],

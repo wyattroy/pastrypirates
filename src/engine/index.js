@@ -2104,25 +2104,18 @@ class Game{
      just makes the bot spend money its own objective says was wasted. The honest fix is to let the objective
      SEE a spare — price tour3's bare-shelf leg in crates as well as coins, so two spares in the hold genuinely
      shorten the route — and then the buy falls out of the valuation, which is what principle 2 asks for.
-     Wyatt has the numbers; whoever builds that reads this paragraph first. */
-  wantsCrate(p,ing,price,coins){
+     THAT FIX WAS BUILT AND MEASURED THE SAME DAY, AND WON NOTHING (commit e8482ca1, reverted): tour3 priced a
+     black-market leg at two spares, and a buy was "worth" it when it shortened the voyage. It fired about 0.2
+     times a voyage; days, crates bought and barters (0.13) did not move, and the edge was +0.0 / +0.1 over 1000
+     voyages an arm on two seed sets. Caveat: measured on the engine's voyage, which in 2026-09 still differed
+     from the live one (equal purses, no crow's-nest calls, its own fight). Re-run it once those are one. */
+  wantsCrate(p,ing,price){
     if(!this.cfg.dockBuy||price===null||price===undefined)return "";
     if(this.needs(p).includes(ing))return "needs";
     const bias=PERSONALITY[p.strategy];
     if(this.cfg.merchant&&bias&&bias.hoardBias>=1.4&&
        this.players.some(q=>q!==p&&this.inPlay(q)&&this.likelyNeeds(q,ing)))return "leverage";
-    if(this.buyShortensVoyage(p,ing,price,coins===undefined?p.coins:coins))return "worth";
     return "";
-  }
-  /* ⭐ "WORTH" — THE BUY THAT FALLS OUT OF THE OBJECTIVE, NOT A RULE. Wyatt, 2026-09-16: bots should play "as intelligently as a skilled
-     human ... holding a resource, especially a cheap resource is always better than holding the coin". A gate that bought spares at a price
-     measured as a loss (2026-09-16 ladder); the reason it lost was that the planner could not see a spare's use. Now it can (tour3 prices a
-     bare shelf in spares), so the question is simply the objective's own: with this crate aboard and its price paid, is my voyage shorter?
-     Mutate-and-restore only (turnsToWin3If), so asking it changes nothing. */
-  buyShortensVoyage(p,ing,price,coins){
-    if(!(coins>=price))return false;
-    const now=this.turnsToWin3(p), after=this.turnsToWin3If(p,{gain:ing,coins:coins-price});
-    return after<now-1e-9;
   }
   // Sailing time from a to b under a given wind. v2 rule 1: 4 squares a turn unless the route has
   // to bite into the wind, in which case 2. Bots plan against the wind they can SEE — this round's
@@ -2601,15 +2594,6 @@ class Game{
      change of substance — the shelf I arrive at holds what will be LEFT when I get there, rivals'
      predicted buys included, not what it holds now. Price is a clock; this makes the clock tick.
      Returns {turns, first} — first is the best ordering's opening destination, for aiming. */
-  /* ⭐ A SPARE CRATE, COUNTED. Every crate in a hold beyond one of each ingredient the captain's recipe wants — a duplicate, or a crate its
-     recipe never asks for. Two of them buy a crate off a bare shelf (barterCrate); until 2026-09-16 the route planner never knew that, so a
-     spare was worth structurally nothing to a bot (the CEO's audit: "an off-recipe crate cannot change that number by construction"). */
-  spareCrates(p){
-    const want=new Set(p.recipe||[]), seen=new Set();
-    let spare=0;
-    for(const ing of p.ing){ if(want.has(ing)&&!seen.has(ing))seen.add(ing); else spare++; }
-    return spare;
-  }
   tour3(p,ctx){
     const fc=this.forecastWind()||this.windNow;
     if(p.done)return {turns:0,first:null};
@@ -2622,7 +2606,7 @@ class Game{
     const pay=((this.cfg.dockHeads||0)+(this.cfg.dockTails||0))/2||1;
     const base=this.cfg.crateBase||6;
     let best=PLAN.unreachable,bestFirst=null;
-    const walk=(rest,at,coins,t,first,spares)=>{
+    const walk=(rest,at,coins,t,first)=>{
       if(t>=best)return;
       if(!rest.length){
         const home=this.legTurns3(at,this.home,fc);
@@ -2632,7 +2616,7 @@ class Game{
       }
       for(let i=0;i<rest.length;i++){
         const ing=rest[i];
-        let cost,end=at,purse=coins,left2=spares;
+        let cost,end=at,purse=coins;
         const sail=this.legTurns3(at,this.dockOf[ing],t===0?this.windNow:fc);
         const arrive=t+(sail===null?PLAN.unreachable:sail);
         const raw=this.tokens[ing]||0;
@@ -2670,15 +2654,9 @@ class Game{
             bm=sail+bearn+1;
             bmPurse=coins+bearn*pay+pay-bprice;
           }
-          /* …OR TWO SPARE CRATES. The black market's other price (barterCrate): no earning, sail there and hand them over. With this in the
-             route, a spare genuinely shortens a voyage that will meet a bare shelf, so the planner can see what a spare is worth — and the
-             buy decision (wantsCrate "worth") takes one exactly when its own tour says so. */
-          const barter=(sail!==null&&this.cfg.blackMarket&&spares>=2)?sail+1:null;
-          if(take===null&&deal===null&&bm===null&&barter===null){best=Math.min(best,PLAN.unreachable);continue;}
-          const cheapest=Math.min(take===null?Infinity:take,deal===null?Infinity:deal,bm===null?Infinity:bm,barter===null?Infinity:barter);
-          if(barter!==null&&barter===cheapest&&(bm===null||barter<bm)){
-            cost=barter;end=this.dockOf[ing];purse=coins+pay;left2=spares-2;   // the flip still pays; two spares leave the hold
-          }else if(bm!==null&&bm===cheapest){
+          if(take===null&&deal===null&&bm===null){best=Math.min(best,PLAN.unreachable);continue;}
+          const cheapest=Math.min(take===null?Infinity:take,deal===null?Infinity:deal,bm===null?Infinity:bm);
+          if(bm!==null&&bm===cheapest){
             cost=bm;end=this.dockOf[ing];purse=bmPurse;  // a certain purchase outranks a coin-flip fight on ties
           }else if(deal!==null&&deal===cheapest){
             cost=deal;                                   // rule 4: a hail reaches the whole table
@@ -2698,10 +2676,10 @@ class Game{
         // nothing and supplies nothing — it must NOT fall back to the bare island's dock, which
         // is exactly the empty shelf there is no reason to visit.
         walk(rest.slice(0,i).concat(rest.slice(i+1)),end,purse,t+cost,
-             first||(end===at?null:end),left2);
+             first||(end===at?null:end));
       }
     };
-    walk(needs,p.pos,p.coins,0,null,this.spareCrates(p));
+    walk(needs,p.pos,p.coins,0,null);
     return {turns:best,first:bestFirst};
   }
   turnsToWin3(p,ctx){return this.tour3(p,ctx).turns;}
@@ -2812,7 +2790,7 @@ class Game{
         for(const pay of [heads,tails]){
           const purse=p.coins+pay;
           const buys=this.cfg.dockBuy&&price!==null&&purse>=price;
-          const take=buys&&!!this.wantsCrate(p,port,price,purse);   // the SAME question doDock will play, asked in the ONE place it lives
+          const take=buys&&!!this.wantsCrate(p,port,price);   // the SAME question doDock will play, asked in the ONE place it lives
           const myT=this.turnsToWin3If(p,{cell,gain:take?port:null,
                                           coins:purse-(take?price:0)},ctx);
           // my purchase empties a shelf slot rivals may have been counting on — their race moves.
