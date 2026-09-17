@@ -602,9 +602,10 @@ export function checkRingMovesWithShip(root) {
   if (!/activeRing\.style\.transition\s*=\s*ms\s*==\s*null\s*\?\s*""/.test(fn)) {
     fail(res, `PARITY-RING: setShipGlideMs does not RESTORE activeRing's transition to "" when ms is null. A ring left carrying a transition slides right across the board from one captain's boat to the next when the turn passes, instead of simply appearing on them.`);
   }
-  // and it must only ever move the ring belonging to the seat being retuned
-  if (!/activeTurnSeat\(\)\s*===\s*seat/.test(fn)) {
-    fail(res, `PARITY-RING: setShipGlideMs changes activeRing without checking activeTurnSeat() === seat — it would retune the ring while it is marking a DIFFERENT captain's boat.`);
+  // and it must only ever move the ring belonging to the seat being retuned — asked of the ONE answer to whose turn it is
+  // (util.js whoseTurn; board.js's private activeTurnSeat() wrapper was deleted by architecture item 3, 2026-09-16)
+  if (!/whoseTurn\(\)\s*===\s*seat/.test(fn)) {
+    fail(res, `PARITY-RING: setShipGlideMs changes activeRing without checking whoseTurn() === seat — it would retune the ring while it is marking a DIFFERENT captain's boat.`);
   }
   note(res, `setShipGlideMs retunes and restores activeRing alongside the ship, scoped to the active seat`);
   return res;
@@ -648,8 +649,12 @@ const ORCHESTRATION_DECL = [
      numbers are still measured and printed beside it so the swap is auditable rather than asserted.
      A `superseded` row asserts nothing; it exists so nobody reads a vanished renderer as a quietly
      dropped requirement. */
-  { fn: "applyActiveSeat(", shared: true, why: "shared — PROMOTED BY 02.15-01 STAGE 2, in the same commit that made it true. The one function that sets curSeat AND S.activeSeat, called by humanTurn/botTurn and by watchEvents." },
-  { fn: "setActor(",      superseded: "applyActiveSeat(", why: "not a renderer — a one-line assignment to appState.curSeat, now reached by both tiers THROUGH applyActiveSeat. Reported, not asserted." },
+  /* ARCHITECTURE ITEM 3 (2026-09-16) RETIRED BOTH ROWS' SUBJECTS. applyActiveSeat and setActor are gone: nothing WRITES whose
+     turn it is any more — every surface reads it from the event stream through util.js whoseTurn(), which both tiers reach
+     because both tiers hold the same stream. There is no renderer here to be host-only, so the rows are superseded rather
+     than re-pointed; scripts/qa/whose_turn_shown_once_check.mjs is where that fact is held now. */
+  { fn: "applyActiveSeat(", superseded: "whoseTurn(", why: "DELETED by architecture item 3 — whose turn it is is read from the stream (util.js whoseTurn) on every tier, never written. Reported, not asserted." },
+  { fn: "setActor(",      superseded: "whoseTurn(", why: "DELETED by architecture item 3, with applyActiveSeat. Reported, not asserted." },
   /* W1 (2026-08-28) CLOSED THIS ROW — the last declared gap of the six forks. renderAskPrompt is
      the ONE ask-class renderer, named directly by localAsk (now the LOCAL RESPONSE MECHANISM,
      exactly localPickCell's shape) and by watchPrompt's ask branch. Same superseded precedent as
@@ -1141,7 +1146,7 @@ function drill() {
   const GOOD_RING = `export function setShipGlideMs(seat,ms,ease){
   const css=\`transform \${shipGlideCss(ms==null?SHIP_GLIDE_MS:ms,ms==null?null:ease)}\`;
   shipEls[seat].style.transition=css;
-  if(activeRing&&activeTurnSeat()===seat)activeRing.style.transition=ms==null?"":css;
+  if(activeRing&&whoseTurn()===seat)activeRing.style.transition=ms==null?"":css;
 }
 `;
   // 5a: THE REAL PRE-FIX SHAPE — the ship is retuned, the ring is not, so the ring runs ahead
@@ -1157,7 +1162,7 @@ function drill() {
   fixture(BOARD_REL, `export function setShipGlideMs(seat,ms,ease){
   const css="transform 16ms linear";
   shipEls[seat].style.transition=css;
-  if(activeRing&&activeTurnSeat()===seat)activeRing.style.transition=css;
+  if(activeRing&&whoseTurn()===seat)activeRing.style.transition=css;
 }
 `);
   expect("drill 5b (ring retuned but never restored — slides across the board on turn change)", checkRingMovesWithShip(tmpRoot), true, "does not RESTORE");

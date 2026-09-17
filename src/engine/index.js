@@ -3201,7 +3201,16 @@ class Game{
     const fallback=botGuess(p.bake,rng,BAKE_ATTENTION);
     return {setup,fallback};
   }
+  /* A BAKING CAPTAIN'S TURN BEGINS — recorded, so every screen can see whose turn it is (architecture item 3, 2026-09-16).
+     A baking captain's turn IS their attempt (A-1), and nothing said so until the attempt RESOLVED: `ovens` is recorded only on the day
+     a captain arrives, `bake` only once the guess is scored. So for a whole bench on every later day the event stream still named the
+     PREVIOUS captain, and "whose turn is it" (src/shared/storyboard.js, TURN_ESTABLISHING) could only answer from a prompt's side
+     channel — which is how the top bar and the ring came to disagree through every bake (T-09). Draws no random number. */
+  bakeTurn(p){
+    this.ev({t:"bakeTurn",p:p.idx});
+  }
   bakeAttempt(p,guess){
+    this.bakeTurn(p);
     const {setup,fallback}=this.bakeSetup(p);
     return {setup,...this.bakeResolve(p,guess||fallback)};
   }

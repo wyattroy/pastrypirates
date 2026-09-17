@@ -41,7 +41,7 @@
 import {
   appState,
 } from "../state/index.js";
-import { normalizeSeat, deriveActiveSeat, isDecisionLocal } from "../shared/storyboard.js";
+import { normalizeSeat, turnShown, isDecisionLocal } from "../shared/storyboard.js";
 import { roundCfg } from "../engine/index.js";
 import {
   // F5 (2026-07-29): dockFlavor -> dockFlavorIcon. EVENT_NARRATION.dock was this file's only
@@ -1608,14 +1608,19 @@ export function resolveOpt(opts,i,fallback){
    above); the guest builds the SAME markup with the SAME builder, and the number it drags to comes
    home beside the button index as {i,n} and lands in this tier's `ref` below, before resolveOpt.
    coinStepper is gone from the tree, and with it the routing-dependent decision-log length. */
-export function ask(msg,opts,colors,sub,extra){
+/* WHO IS BEING ASKED IS THE FIRST ARGUMENT — architecture item 3 (2026-09-16). It used to be read off
+   appState.curSeat, a slot every prompt site wrote through applyActiveSeat() just before calling here —
+   the same slot the top bar drew as "whose turn it is", so asking a defender to flip moved every
+   screen's top bar off the attacker. The seat is now said at the call, the way raiseLocalPrompt(seat,…)
+   already took it, and nothing a prompt does can touch whose turn it is. */
+export function ask(forSeat,msg,opts,colors,sub,extra){
   // during reload-replay, return the recorded choice (an index) mapped through the freshly
   // rebuilt opts — so object-valued options resolve to live game references, not stale copies.
   if(appState.replaying){
     if(appState.dlogIdx<appState.dlog.length){appState.dlogN++;return Promise.resolve(resolveOpt(opts,appState.dlog[appState.dlogIdx++],0).opt.value);}
     netHandlers().onEndReplay();
   }
-  const askSeat=appState.curSeat;
+  const askSeat=forSeat;   // NOT named `seat`: that is words.js's seat(), called below for the table's "…is deciding…" line
   /* THE SHOT CLOCK IS TEMPORARILY OUT OF THE GAME — Wyatt, 2026-08-28, choosing removal over
      engineering the one-activity-engine convergence around it: "i'd prefer to do it even if it
      breaks shot clock, and to temporarily remove the shot clock from the game." What stood here
@@ -1651,7 +1656,7 @@ export function ask(msg,opts,colors,sub,extra){
   const isFlip=opts.length===1&&!!opts[0].flip;
   // `sub` is optional helper text rendered under the button row; an option flagged `disabled`
   // renders greyed and non-clickable (notes/edits #5) — used for the too-poor Attack button.
-  const base=decisionIsLocal(askSeat)?netHandlers().onLocalAsk(msg,opts,colors,sub,extra)
+  const base=decisionIsLocal(askSeat)?raiseLocalPrompt(askSeat,()=>netHandlers().onLocalAsk(msg,opts,colors,sub,extra))
     :netHandlers().onRemotePrompt(askSeat,{kind:"ask",msg,labels:opts.map(o=>o.label),
        colors:colors?colors.map(c=>c||""):null,classes:opts.map(o=>o.cls||""),
        // playtest 21 item 5: `why` rides across with `disabled`, because the two are one fact and
@@ -2006,39 +2011,65 @@ export async function narrateEvent(e){
   await eventCeremony(e);
 }
 export async function narrateCurrent(){ await narrateEvent(appState.game.events[appState.evIdx]); }
-/* NOT EXPORTED (2026-08-31). One fact, one writer: the only caller is applyActiveSeat below,
-   which also moves S.activeSeat — the value stage.js:1206 draws FIRST. Sixteen call sites used
-   to import this directly and leave the ribbon pointing at the previous captain; they now call
-   applyActiveSeat. Un-exporting is what stops the seventeenth from being added by hand.
-   scripts/qa/whose_turn_one_fact_check.mjs holds this. */
-function setActor(s){appState.curSeat=s;}
-/* ONE ACTIVE SEAT (02.15-01 Stage 2, D-25). THE fault of D-24 in miniature, and it was measured
-   before it was touched: ribbonTick (ui/stage.js) glows the boat at S.activeSeat ?? appState.curSeat;
-   curSeat is written only by setActor and S.activeSeat only by __pp4.actor; and every one of those
-   21 call sites lived in the host's live simulation or a local prompt. Not one of the guest's nine
-   listeners called either. Measured in a two-tab crew game 2026-08-20, fourteen consecutive samples:
-   host curSeat=1 / ribbon glow on boat 1, guest curSeat=0 / glow on boat 0, never moving. That is
-   his shot 21 — "top-bar boats: updating with the turn / not updating" — and, through camToSeat
-   reading the same notion of whose turn it is, his shot 20 as well.
-   ONE FUNCTION, BOTH TIERS, so the two cannot be aimed differently. The host's turn loop calls it
-   (humanTurn, botTurn) and so does watchEvents, off the `p: seat` field every meaningful event
-   already carries. NO ENGINE CHANGE and none is permitted here: ev() records no actor and the
-   schema has no actor field, but `turn`/`sail`/`dock`/`pass`/`attack` all carry `p`. This is the
-   same move watchEvents already makes for round, wind, storm and per-seat state.
-   TWO GUARDS, BOTH DELIBERATE. Events that carry no seat (`newround`, `end`) leave the indicator
-   alone rather than blanking it. And the seat is bounded to the known range before it is used as an
-   index (T-02.2-08) — the `ev` node is host-authoritative, which is the same trust already relied
-   on for board positions, but a bounded index costs nothing and a trusted one eventually does. */
-export function applyActiveSeat(seat){
-  /* THE ONE WRITER. Both guards now come from src/shared/storyboard.js's normalizeSeat, so the
-     rule for "is this a seat we may point at" has one spelling shared with the event-stream
-     derivation the board reads (2026-08-31). Behaviour is unchanged: null in -> nothing written,
-     out-of-range in -> nothing written. */
+/* ⭐ WHOSE TURN IT IS, AS EVERY SURFACE SHOWS IT — THE ONE HELPER (architecture item 3, 2026-09-16).
+   The top bar (stage.js ribbonTick, and the ⏩ chip beside it), the ring, the captains-box highlight and
+   the pass-and-play row order (board.js render/renderLiveShips), the bobbing boat (board.js bobTheTurn)
+   and "Check my recipe" (board.js render) all call this and nothing else. The rule is pure and lives in
+   src/shared/storyboard.js (turnShown); this knows only WHERE its two inputs live.
+   WHAT STOOD HERE: setActor() and applyActiveSeat(), the writer of a slot (appState.curSeat and stage.js's
+   S.activeSeat) that the top bar drew — written by 19 callers, most of them for whoever was being ASKED:
+   the defender's flip, each crow's-nest caller, a trade partner. His ruling, 2026-09-16: "The top bar
+   shows whose turn it is -- which is the active player who decided to attack. this does not need to
+   change during a battle; it should not." Nothing writes whose turn it is now; it is read.
+   scripts/qa/whose_turn_shown_once_check.mjs holds it. */
+export function whoseTurn(){
+  const g=appState.game;
+  if(!g||!g.events)return null;
+  return turnShown({events:g.events,playhead:appState.evIdx,askedSeat:appState.askedSeat});
+}
+/* ⭐ THE ONE DOOR A LOCAL PROMPT COMES THROUGH — Wyatt, 2026-09-09.
+
+   He caught the guest's recipe picker naming the HOST, and when I described the fix as "both seams
+   must publish the same fact" he stopped me:
+
+     "This seems like sloppy architecture that's easy to mess up in future -- is there a better way
+      to do it in alignment with our design values (eg one central engine?)"
+
+   He is right and the rule is already written down: *when a second consumer of the same thing
+   appears, converge — never run two side by side.* Two seams each remembering to publish the seat
+   is two things kept in step by nothing, and the way I found out is that I fixed one of them,
+   watched every local mode go green, and shipped a guest that was still broken.
+
+   SO "WHO IS BEING ASKED" IS PUBLISHED IN EXACTLY ONE PLACE: here. A caller cannot raise a local
+   prompt without saying whose it is, because the seat is the first argument and the drawing is the
+   second. Forgetting is no longer possible; it would mean not calling this function at all.
+
+   ⭐ AND IT IS ITS OWN FACT NOW, NOT THE TURN (architecture item 3, 2026-09-16). This used to call
+   applyActiveSeat(), which wrote the slot the top bar drew as whose turn it is. It now writes
+   appState.askedSeat and nothing else — only while the prompt is up, so a screen asking nobody names
+   nobody — and whoseTurn() reads it for exactly one phase: the recipe draft (with the Ahoy card before it),
+   before the recipes are set and any captain can hold a turn. MOVED HERE FROM src/ui/flow.js in the same change, so ask() (this file) goes through the
+   same door for its local branch; flow.js may import util.js, never the reverse.
+
+   ⚠ AND THE DEEPER DUPLICATION IS STILL THERE, NAMED HERE SO IT IS NOT LOST. The guest does not
+   merely publish its own seat — it hand-rolls its own copy of this renderer. watchDraftPrompt
+   (src/orchestrator.js) builds `<div class="apMsg">…<div class="apBtns recipes">` itself and
+   re-derives the SAME rule renderAskPrompt uses one line from here (`opts.some(o => o.cls)` ->
+   " recipes"). That is the actual root: two renderers for one card. Converging them means the
+   guest calling localAsk() and sending the resolved answer over the wire instead of resolving it
+   locally — which is the sanctioned host/guest difference (who computes), leaving one renderer.
+   It is a change to the network path and it wants the two-window rig and a fresh head, so it is
+   written down rather than attempted at the end of a long day. This door is the half that removes
+   the fault he actually hit; the other half is the one that stops it coming back in a new form. */
+let askedToken=0;
+export function raiseLocalPrompt(forSeat, draw){
   const ps=appState.game&&appState.game.players;
-  const s=normalizeSeat(seat,ps?ps.length:null);
-  if(s==null)return;
-  setActor(s);
-  if(window.__pp4)window.__pp4.actor(s);
+  const token=++askedToken;
+  appState.askedSeat=normalizeSeat(forSeat,ps?ps.length:null);
+  const answered=()=>{if(askedToken===token)appState.askedSeat=null;};
+  const p=draw();
+  Promise.resolve(p).then(answered,answered);
+  return p;
 }
 export function seatLocal(s){return s===appState.mySeat;}
 // D-10: a sentinel seat value no real seat index (0..3) can ever equal — passing it as
@@ -2076,17 +2107,9 @@ export function decisionIsLocal(s){const player=((appState.game&&appState.game.p
    hidden-tab history) are in git history at this file — read the log before re-deriving any of
    it. sleepMs's sweeper belt above is NOT pause residue: it is the measured defence against a
    browser dropping setTimeout callbacks, and it must stay. */
-// CORRECTED 2026-08-31: this comment used to say "mirrors render()'s derivation". IT DOES NOT —
-// render() also stops at `ovens` and `bake`; this walk knows only `turn`. It was true when written
-// and rotted when render()'s copy was widened, which is exactly the rot a behavioural comment
-// carries (rule 6). It is now one walk, shared/storyboard.js, with the difference passed in.
-// CURRENTLY UNCALLED (its last consumer, the
-// pause panel's "waiting" label, left with play/pause at A-10) — kept because the clock's return
-// needs exactly this derivation, and it is pure over the event stream.
-export function currentTurnSeat(){
-  if(!appState.game||!appState.game.events)return null;
-  return deriveActiveSeat(appState.game.events,appState.evIdx);
-}
+/* (currentTurnSeat() stood here, uncalled since A-10 and kept "because the clock's return needs exactly this
+   derivation". It is whoseTurn() above now — one helper, read by every surface — and the clock's return
+   should call that.) */
 /* ---------- board pops (event -> emoji animation) ---------- */
 export function spawnPops(e,cellPx){
   if(!e)return;

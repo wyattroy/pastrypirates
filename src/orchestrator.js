@@ -105,7 +105,7 @@ import {
   bakeoffPrompt, bakeoffReveal, playBakeoffLive,
   benchChoreoMs, BENCH_STUDY_MS, BENCH_BEAT_MS, // A-2: the choreography's own timings, answered by the file that runs them
   appendChatLine, showChatBubble,
-  setFlipActive, setFlipCoin, flipSpinLeftMs, FLIP_LAND_HOLD_MS, boardCell, boardShipEls, drawBoard, render, resetBoardLog, bobShip, sailSetsOff, sailArrives, payInto, payOut, crateFlightFrom, crateFlightTo, holdMovesFrom, holdMovesTo, rideStreaks, firstHomeConfetti, shotLands, loserKnocked, stopTurnBob,
+  setFlipActive, setFlipCoin, flipSpinLeftMs, FLIP_LAND_HOLD_MS, boardCell, boardShipEls, drawBoard, render, resetBoardLog, bobTheTurn, sailSetsOff, sailArrives, payInto, payOut, crateFlightFrom, crateFlightTo, holdMovesFrom, holdMovesTo, rideStreaks, firstHomeConfetti, shotLands, loserKnocked, stopTurnBob,
   seedIdleGameState, syncBoardSizing, watchMutePlacement, clearChatBubbles,
   showSeatCoins, // MP-06: the ONE purse renderer, shared with render() (04-01 Task 2)
   battleSnapshot, renderBattleFromSnap,
@@ -128,7 +128,7 @@ import {
   //  prompt_one_renderer_check.mjs holds that.)
   sliderWrapHTML, wireSlider,        // 05-01 Task 3 (MP-08): the ONE coin slider, shared with localAsk
   pn, pname, updateRecipeBanner, describe, seatLocal,
-  decisionIsLocal, resolveOpt, applyActiveSeat, raiseLocalPrompt, stepDelay, ask, pickNarrVariant,
+  decisionIsLocal, resolveOpt, raiseLocalPrompt, stepDelay, ask, pickNarrVariant,
   expectEventDrawing, finishEventDrawing, eventDrawn, afterLine, flipDockCoin,
   sleepMs, BOARD_LAST_LOOK_MS,
   mountKofi, openKofi, // KOFI-01: the embedded Ko-Fi panel and its modal opener
@@ -526,8 +526,7 @@ export function battleAsk(player,o,msg,opts,colors){
     if(appState.dlogIdx<appState.dlog.length){appState.dlogN++;return Promise.resolve(resolveOpt(opts,appState.dlog[appState.dlogIdx++],opts.length-1).opt.value);}
     endReplay();
   }
-  applyActiveSeat(player.idx);
-  const askSeat=player.idx;
+  const askSeat=player.idx;   // who is being ASKED — never whose turn it is (architecture item 3: the top bar stays on the attacker)
   const isFlip=opts.length===1&&!!opts[0].flip;
   // spectators (and, crucially, the OTHER combatant) get a battle-aware nudge that names who's
   // attacking whom instead of a bare "…is deciding" — so when a bot attacks a human on the bot's
@@ -551,15 +550,14 @@ export function battleAsk(player,o,msg,opts,colors){
   let idxP;
   if(decisionIsLocal(askSeat)){
     battlePublish(o);   // the table's copy of the fight (no box any more — see renderBattle)
-    if(isFlip){
-      idxP=new Promise(res=>{
+    // through the one door a local prompt comes through, which says who is being asked (util.js raiseLocalPrompt)
+    idxP=raiseLocalPrompt(askSeat,()=>isFlip
+      ?new Promise(res=>{
         setNeedsAction(true);
         setFlipActive(()=>{setFlipActive(null);setNeedsAction(false);res(0);});   // the flip stage is the control
-      });
-    }else{
+      })
       // the ordinary prompt: its buttons answer with their index, which is what the record and resolveOpt below expect
-      idxP=localAsk(msg,opts.map((op,i)=>({label:op.label,value:i})),colors);
-    }
+      :localAsk(msg,opts.map((op,i)=>({label:op.label,value:i})),colors));
   }else{
     battlePublish(Object.assign({},o,{waiting:askSeat}));   // a seat, so each screen words it for itself
     idxP=remotePrompt(askSeat,{kind:"ask",msg,labels:opts.map(x=>x.label),
@@ -725,7 +723,7 @@ async function asyncBattleRun(att,def){
   if(appState.game.mayFlee(F)){
     let flee;
     // @copy prompt.battle.flee
-    if(hD){applyActiveSeat(def.idx);flee=await ask(say("battle.fleeAsk",{name:nm(def.idx)}),
+    if(hD){flee=await ask(def.idx,say("battle.fleeAsk",{name:nm(def.idx)}),
       [{label:say("battle.flee",{}),value:true},{label:say("battle.stand",{}),value:false}]);}
     else flee=appState.game.botWantsFlee(F);
     if(flee){
@@ -747,9 +745,8 @@ async function asyncBattleRun(att,def){
   while(appState.game.refireOffered(F)){
     let again;
     if(hA){
-      applyActiveSeat(att.idx);
       // @copy prompt.battle.refire
-      again=await ask(say("battle.refireAsk",{name:nm(att.idx),n:c.refire}),
+      again=await ask(att.idx,say("battle.refireAsk",{name:nm(att.idx),n:c.refire}),
         // ITEM 1 (Wyatt, 2026-08-20): brackets off the money buttons. Found by the rule-8 consistency
         // sweep, NOT by his report — the other three live in ui/flow.js and this one is easy to miss.
         [{label:say("battle.fireAgain",{n:c.refire}),value:true},{label:say("battle.breakOff",{}),value:false}]);
@@ -796,9 +793,9 @@ async function asyncBattleRun(att,def){
   // than one kind to choose from is asked; anyone else takes the engine's pick (engine botSpoilPick). The crate moves in engine winBattle.
   let pick;
   const uniq=[...new Set(lose.ing)];
-  if(win.strategy==="human"&&uniq.length>1){applyActiveSeat(win.idx);
+  if(win.strategy==="human"&&uniq.length>1){
     // @copy prompt.battle.winnerplunder
-    pick=await ask(say("battle.plunder",{name:pn(win.idx)}),uniq.map(i=>({label:ilabelImg(i),value:i})));}
+    pick=await ask(win.idx,say("battle.plunder",{name:pn(win.idx)}),uniq.map(i=>({label:ilabelImg(i),value:i})));}
   else pick=appState.game.botSpoilPick(win,lose);
   appState.game.winBattle(F,pick);
   liveRender();
@@ -1043,6 +1040,14 @@ async function runLiveDayBakeoff(order){
 /* One captain's attempt. */
 async function bakeTurnLive(player){
   const g=appState.game;
+  /* A BAKING CAPTAIN'S TURN BEGINS THE WAY EVERY TURN DOES (architecture item 3, 2026-09-16): the device changes
+     hands, THEN the engine records that this captain's turn has begun, and it is drawn — takeTurn's order, for a
+     bake. Before this the bench had no record of its own until the attempt was scored, so every screen showed the
+     previous captain's turn through it. passGate moved up from bakeoffPrompt so the hand-over still comes first; it
+     is a no-op for a bot and on any screen that is not a shared device, and under replay it only keeps mySeat in step. */
+  await passGate(player.idx);
+  g.bakeTurn(player);
+  await liveRender();
   /* SETUP FIRST, ALWAYS. The engine shuffles and computes the bot's guess in one call, in that
      fixed order, so the seeded stream is identical whether a human is about to play or not. Only
      then does the human path get to look at the bench. */
@@ -1648,7 +1653,11 @@ export async function consumeEvent(e){
     if(e.storm!=null)appState.game.stormNow=e.storm;
     if(e.t==="newround"){appState.game.windNext=e.next;appState.game.stormNext=e.nextStorm;}
   }
-  applyActiveSeat(e.p);
+  /* (applyActiveSeat(e.p) stood here — the consumer writing "whose turn it is" from whichever seat THIS event
+     named: the defender's coin, each crow's-nest caller, a trade partner. Architecture item 3, 2026-09-16, his
+     ruling: "The top bar shows whose turn it is -- which is the active player who decided to attack. this does not
+     need to change during a battle; it should not." Nothing here writes the turn now; every surface reads it
+     from the stream through util.js whoseTurn.) */
   /* ⭐ "WHERE DID MY RECIPE GO?" NOW ANSWERS ITSELF ON EVERY DEVICE — Wyatt, 2026-09-09: "only the
      host saw the help message about where the recipe was stored, even though polly was helping on
      guest."
@@ -1770,7 +1779,7 @@ export async function consumeEvent(e){
      the frame is decided here, once, from the event. A captain's own sail prompt still refines it with
      the pill's room (renderPickPrompt) — the same function, asked again with more to go on. */
   if(e.t==="turn"&&!appState.replaying&&window.__pp4&&window.__pp4.sailCells)window.__pp4.sailCells(e.p);
-  if(e.t==="turn"&&!appState.replaying)bobShip(e.p);   // his game feel audit, then 2026-09-14: the active boat bobs for its whole turn, on every screen (board.js)
+  if(!appState.replaying)bobTheTurn();   // his game feel audit, then 2026-09-14: the boat whose turn it is bobs for the whole turn, on every screen — read from the one helper, so a baking captain's boat bobs too (board.js; architecture item 3)
   if(e.t==="end")stopTurnBob();                         // …and nothing bobs once the voyage is over
   $("scrub").max=Math.max(0,appState.game.events.length-1);
   stormCamForEvent(e);            // W9: the storm's wide shot, the SAME cue the host's storm driver fires, off the same event — not a guest-only camera call. Self-guarded: any event that is not a storm returns immediately.
@@ -1881,8 +1890,8 @@ export function watchEvents(){
        the state onto every event (Game.ev already did) and mirror it here — MUTATED IN PLACE,
        never reassigned, because renderBattleFromSnap holds player object references across a
        fight. That mirror now lives in consumeEvent's guest branch, where the host's drain shares
-       every line AFTER it. `player` rides turn/sail/dock/pass/attack for applyActiveSeat (02.15-01
-       Stage 2); the rim sweep's known, accepted degradation stands: the guest's coin panels lag
+       every line AFTER it. (`player` rode turn/sail/dock/pass/attack for applyActiveSeat until architecture item 3
+       deleted it — whose turn is read from the stream now); the rim sweep's known, accepted degradation stands: the guest's coin panels lag
        by the sweep's duration, an event arriving mid-sweep snaps the ship true on the next paint. */
     // QUEUED, not awaited here: this callback has already done the ordering-critical work above.
     expectEventDrawing(e);   // queued: a narration naming it waits for its turn in this queue, not just its start
