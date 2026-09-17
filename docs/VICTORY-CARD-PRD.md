@@ -1,6 +1,6 @@
 # The Victory Card — product requirements
 
-**Draft 1 · 2026-09-16 · branch `sep14-victory-card`.** Written after four rounds on the Victory Card sheet
+**Draft 1 · 2026-09-16 · planned on `sep14-victory-card`, BEING BUILT on `sep16-victory-card`.** Written after four rounds on the Victory Card sheet
 (https://claude.ai/code/artifact/a7e8dae4-42d9-4f01-891a-ef2c782f091f). **The sheet is the source of truth for every
 tuned number.** Where this document and Wyatt's latest *Copy my notes* disagree, his notes win. His rulings, verbatim, are
 in `.claude/memory/DECISIONS.md` (2026-09-14 and 2026-09-16 entries).
@@ -50,7 +50,7 @@ players who don't win -- winning is really hard."*) — **his verdict on these n
 | Ovens lit at Tortuga | Getting home with the whole recipe | 50 |
 | Bake-off crates named right | Watching the shuffle | 15 each |
 | Perfect bake-off | Solving it on the first try; two tries earns half | 300 |
-| Won the voyage | The win (see the rule below) | worked out: 415 today |
+| Won the voyage | The win (see the rule below) | worked out: 445 today |
 | Days ahead of the navigator | Beating the bots' day-one route for this recipe | 10 a day, up to 5 days |
 | Doubloons in the hold | Spending wisely | 3 each, up to 10 |
 | Traded like a Good Friendly Pirate | Each trade struck | 10 each, up to 3 |
@@ -61,8 +61,12 @@ trades) to score **double the most any non-winner can ever reach**. That is why 
 only up to a limit — without one, a hoarder could out-score a win. Change any other number and the win re-works itself,
 so the rule always holds.
 
-With today's settings: the most a non-winner can score is **320**; the slowest winner scores **640**; the example winner
-(solved first try, 3 days ahead, 5 doubloons, 1 trade) scores **995**.
+With today's settings: the most a non-winner can score is **335**; the slowest winner scores **670**; the example winner
+(solved first try, 3 days ahead, 5 doubloons, 1 trade) scores **1025**.
+
+**The perfect bake-off is a winner's prize.** At a shared bakery a captain who is not crowned can also name all five
+crates; they score every named crate, never the perfect bonus — which is why the most a non-winner can reach counts five
+named crates (found while building it, 2026-09-16; the sheet's first arithmetic counted four).
 
 **Left out on purpose:** dock flips, battle flips and storms (luck); musing (*"remove the musing points entirely"*).
 
