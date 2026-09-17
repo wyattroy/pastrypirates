@@ -538,8 +538,9 @@ const SAIL_HL_SCALE=0.9;
 // CORRECTION (Wyatt, 2026-08-13): an earlier version of this note called the rim "impassable".
 // It is not, and the distinction matters for anything built on top of this. The rim is a LEGAL,
 // DELIBERATE move — sailStates' own `throughRim` option exists precisely so "a human may
-// deliberately ride the trade winds". What is true is narrower: BOTS pass throughRim:false and
-// so never choose it. That is a bot-routing decision, not a rule, and it is being changed.
+// deliberately ride the trade winds". What was true then was narrower: bots never chose it — a bot-routing decision, not a rule,
+// and it was changed (bots ride the current since 2026-08-13). Every ship's sail, a bot's or a person's, now goes through
+// Game.sailTo with the rim allowed (architecture item 7); the bots' route request that still said throughRim:false is gone.
 // A wrong reason is what the next change gets built on — see HARD-WON-LESSONS section 5.
 /* THE SAIL CARD CARRIES NO HELPER LINE AT ALL — playtest 22 items 2 and 9 (Wyatt).
 
@@ -800,20 +801,11 @@ export function pickCell(player,cells){
     if(appState.dlogIdx<appState.dlog.length){
       appState.dlogN++;
       const rec=appState.dlog[appState.dlogIdx++];
-      /* A RECORDED SQUARE ONLY MEANS ANYTHING AGAINST THE BOARD THAT WAS ACTUALLY REBUILT.
-         This used to be handed straight back, unchecked — so if a replay ever diverged (the coin
-         slider did exactly that until logQuantity, above), the ship was teleported to a square it
-         had no legal route to, and everything downstream reasoned about a position the rules could
-         not have produced. Same posture resolveOpt() already takes for a stale option index: warn,
-         fall back to something the rules allow, and let the voyage carry on. "Stay put" is the
-         outcome the sail prompt already has for a captain who chooses nothing, so it costs a move
-         rather than inventing one. */
-      if(rec==null)return Promise.resolve(null);
-      if(!(cells&&cells.some(c=>c[0]===rec[0]&&c[1]===rec[1]))){
-        console.warn("pickCell(): recorded square",rec,"is not reachable in the rebuilt voyage — staying put");
-        return Promise.resolve(null);
-      }
-      return Promise.resolve(rec);
+      /* A RECORDED SQUARE ONLY MEANS ANYTHING AGAINST THE BOARD THAT WAS ACTUALLY REBUILT — and it is checked where EVERY square is
+         checked now, live or replayed: Game.sailTo (a sail, Move instead, a flight through Game.flee) writes nothing for a square the
+         captain may not sail to, so a diverged replay stays put rather than teleporting. That check lived HERE, for replays alone,
+         while a live square went in unchecked; one check at the write is architecture item 7's. */
+      return Promise.resolve(rec==null?null:rec);
     }
     endReplay();
   }
@@ -1482,7 +1474,7 @@ export async function animateRimSweepRun(seat,from,to){
    one move in six, and up to three land squares at a time. The MOVE was always legal; only the line
    drawn between its endpoints was a lie.
 
-   The route comes from Game.sailPath, which is the very BFS that decides which squares are legal
+   The route comes from Game.sailTo, which walks the very BFS that decides which squares are legal
    (sailStates is now that same search's `out`). So the path a ship is drawn along and the rule that
    permitted the move cannot disagree — the alternative, a second pathfinder in the UI, is precisely
    the shape of bug this project keeps paying for.
@@ -2726,14 +2718,10 @@ export async function humanAct(player,sailCtx){
     // destination" outcome — the ship simply does not move, which renders nothing, so nothing is
     // invented. appState.turnExpired above does NOT cover this: it is set at 30s, the coin
     // penalty fires at 20s and sets no flag at all.
-    if(dest){
-      // playtest 21 item 6: the route is derived from the PRE-MOVE square, so it must be taken
-      // before player.pos is written. sailPath asks the same search that made `dest` legal in the first
-      // place, so the drawn line and the rule can never disagree.
-      const from=[...player.pos];
-      // the drawn line INCLUDES the square being left, so what lands on the wire is self-contained
-      const route=[from,...appState.game.sailPath(player,dest,{throughRim:true})];
-      player.pos=dest;player.justDocked=false;const evSail=appState.game.ev({t:"sail",p:player.idx,route});
+    /* THE SAIL IS THE ENGINE'S (architecture item 7): Game.sailTo checks the square, writes it, and records the move with the route
+       the same search takes — the one every captain's sail gets. A square it refuses is no move at all. */
+    if(dest&&appState.game.sailTo(player,dest)){
+      player.justDocked=false;
       /* ⭐ THE TURN LOOP WAITS ON THE DRAIN, AND TOUCHES THE DISPLAY NOWHERE.
          Wyatt, 2026-09-08, reading my write-up of the sound-timing fix: "All players, bot or human,
          are supposed to feed actions to an engine, which feeds events back, which a different piece
@@ -2902,13 +2890,9 @@ export async function humanTurn(player){
     // re-locks (here after the sail, and after the action below) are gone. The reveal ends at the
     // turn's own boundaries instead: humanTurn's entry, the expiry path, and passGate itself.
     if(appState.turnExpired)return;
-    if(dest){
-      // playtest 21 item 6 — see the moveInstead site above; both human sail legs route, because a
-      // ship that sails honestly on one of them and cuts the corner on the other is the same
-      // inconsistency in a new place.
-      const fromSail=[...player.pos];
-      const routeSail=[fromSail,...appState.game.sailPath(player,dest,{throughRim:true})];
-      player.pos=dest;player.justDocked=false;const evSail=appState.game.ev({t:"sail",p:player.idx,route:routeSail});
+    // the sail, its square checked and its route recorded, is Game.sailTo's — the same call as Move instead above and every bot's sail
+    if(dest&&appState.game.sailTo(player,dest)){
+      player.justDocked=false;
       /* ⭐ THE TURN LOOP WAITS ON THE DRAIN, AND TOUCHES THE DISPLAY NOWHERE.
          Wyatt, 2026-09-08, reading my write-up of the sound-timing fix: "All players, bot or human,
          are supposed to feed actions to an engine, which feeds events back, which a different piece
@@ -3059,19 +3043,12 @@ export async function botTurn(player){
   const plan=g.planTurn(player);
   const target=plan.cell;
   if(man(player.pos,target)>0){
-    const b=[...player.pos];
     // v2 rule 2: sailing is free. No coin to spend, none to refund.
-    // playtest 21 item 6: bots route too. `b` is already the pre-move square, and sailPlan writes
-    // player.pos — so the path is derived AFTER the move, from `b` to where the bot actually ended up,
-    // which is the one square sailPath can no longer be asked about from player. Hence the explicit
-    // `dest` read. A bot that cut corners while the human sailed honestly would be the same
-    // inconsistency wearing a different hat, and bots do most of the sailing a player watches.
+    /* A BOT SAILS THE WAY EVERY SHIP SAILS (architecture item 7): sailPlan picks the square and Game.sailTo checks it, writes it and
+       records the move with the route the sail search takes, the trade winds allowed — the same call as a person's sail. This loop
+       used to ask for the route itself, after sailPlan had written the square, WITHOUT the rim ({throughRim:false,from:b}), so a bot
+       sailing into the trade winds was recorded with no route and its boat glided the straight chord to the current, over the islands. */
     if(g.sailPlan(player,plan)){player.justDocked=false;
-      // `from:b` — sailPlan has already written player.pos, so the search is told the pre-move square
-      // outright rather than player.pos being temporarily rewound to read the route back out of it.
-      // The route is now taken BEFORE the event, because it rides ON the event (Game.ev/bakeDraw).
-      const route=[b,...g.sailPath(player,[...player.pos],{throughRim:false,from:b})];
-      const evSail=g.ev({t:"sail",p:player.idx,route});
       /* ⭐ THE TURN LOOP WAITS ON THE DRAIN, AND TOUCHES THE DISPLAY NOWHERE.
          Wyatt, 2026-09-08, reading my write-up of the sound-timing fix: "All players, bot or human,
          are supposed to feed actions to an engine, which feeds events back, which a different piece

@@ -138,10 +138,9 @@ function rules(files, narrate = describeFor) {
   rule([
     behave(() => {
       const res = [];
-      for (const how of ["a human's sail", "a Move instead"]) {                 // humanTurn and humanAct: pos, the sail event, then the step
+      for (const how of ["a human's sail", "a Move instead"]) {                 // humanTurn and humanAct: Game.sailTo (item 7), then the step
         const t = pose(M); const n0 = t.g.events.length;
-        const route = [[...t.me.pos], ...t.g.sailPath(t.me, t.dest, { throughRim: true })];
-        t.me.pos = [...t.dest]; t.g.ev({ t: "sail", p: t.me.idx, route });
+        t.g.sailTo(t.me, [...t.dest]);
         const r = t.g.tradewind(t.me), k = kindsFrom(t.g, n0);
         res.push([k.join() === "sail,rimhead" && r && r.t === "rimhead" && r.p === t.me.idx, `${how} onto the head → ${JSON.stringify(k)}, step returned ${r && r.t}`]);
       }
@@ -197,7 +196,7 @@ const MUTANTS = [
   ["the engine's step explaining a storm too", broken(ENG, "return blown?false:this.ev({t:\"rimhead\",p:p.idx});", "return this.ev({t:\"rimhead\",p:p.idx});"), 2],
   ["a flight's trade wind no longer shown by the fight (said by nobody, as before item 19)", broken(ORCH, "  await showTheWind(flight.evWind);\n", ""), 0],
   ["showTheWind narrating the top of the pile instead of its event", broken(FLOW, "publishNow();await liveRender();await narrateEvent(ev);", "publishNow();await liveRender();await narrateLastEvent();"), 0],
-  ["a bot's headless sail skipping the trade-wind step", broken(ENG, "{throughRim:false,from:before})]});this.tradewind(p);}", "{throughRim:false,from:before})]});}"), 2],
+  ["a bot's headless sail skipping the trade-wind step", broken(ENG, "if(this.sailPlan(p,plan))this.tradewind(p);", "if(this.sailPlan(p,plan)){}"), 2],   // re-anchored by item 7: the sail is sailPlan -> sailTo
   ["the line worded with a ready-made name, the same on every screen (never \"ye\")", files, 3, (e) => describeFor(e, NEUTRAL_VIEWER)],
 ];
 let proofOk = true;

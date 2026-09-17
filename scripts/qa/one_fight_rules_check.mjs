@@ -11,7 +11,8 @@
      2. THE RE-FIRE'S PRICE — leaves a purse and is recorded ({t:"refire"}) only in Game.payRefire; both fights pay through it.
      3. THE FLEE — where a fleeing ship may go (Game.fleeSquares, which IS Game.sailChoices — where any captain may sail, the rim
         allowed; architecture item 18 made it one call, and scripts/qa/sail_frame_same_squares_check.mjs holds that), whether a bot flees (Game.botWantsFlee), which square
-        it takes (Game.botFleeSquare), and the record (Game.flee: the event with the fleeing captain, THEN the trade winds). Neither fight
+        it takes (Game.botFleeSquare), and the record (Game.flee: the event with the fleeing captain, her square checked and her route
+        drawn by Game.sailTo like every sail — architecture item 7, scripts/qa/one_sail_move_check.mjs — THEN the trade winds). Neither fight
         body reaches for a square search, a distance, a recipe or a position itself.
      4. THE PLUNDER — which crate a winner who is not asked takes (Game.botSpoilPick: needed → wanted by another captain → first), called by
         both fights and the bots' planner; the crate changes hands only in Game.takeSpoil. Posed: the other captain's crate is taken.
@@ -140,8 +141,8 @@ function rules(files) {
       [/this\.sailChoices\(def\)/.test(squares) && /sailStates\([^)]*throughRim\s*:\s*true/.test(choices),
         "Game.fleeSquares does not allow the rim — it must ask Game.sailChoices (where a captain may sail, the rim included), and that must keep the rim"],
       [/\.recipe\b/.test(wants) && /\bcnt\(/.test(wants) && /\bman\(/.test(pick), "Game.botWantsFlee / botFleeSquare no longer hold the bot's flee choice"],
-      [fleeEvents === 1 && /t\s*:\s*"battleflee"/.test(flee) && flee.search(/t\s*:\s*"battleflee"/) < flee.search(/tradewind\(/) && /\bp\s*:/.test(flee) && /\broute\b/.test(flee),
-        `{t:"battleflee"} is recorded ${fleeEvents} time(s), or Game.flee does not record the fleeing captain and route BEFORE the trade winds`],
+      [fleeEvents === 1 && /t\s*:\s*"battleflee"/.test(flee) && flee.search(/t\s*:\s*"battleflee"/) < flee.search(/tradewind\(/) && /\bp\s*:/.test(flee) && /this\.sailTo\(\s*def\s*,\s*dest\s*,/.test(flee),
+        `{t:"battleflee"} is recorded ${fleeEvents} time(s), or Game.flee does not record the fleeing captain, sailed through Game.sailTo (her square and route; re-anchored by architecture item 7), BEFORE the trade winds`],
       [["fleeSquares", "botWantsFlee", "botFleeSquare", "flee"].every(bothCall), "a fight flees without going through fleeSquares / botWantsFlee / botFleeSquare / flee"],
       behave(() => {
         const t = pose(M, { across: true, rimEdge: true }); const f = t.g.beginBattle(t.att, t.def); t.g.resolveRound(f, false, false);
@@ -156,8 +157,8 @@ function rules(files) {
         const tk = pose(M, { across: true }); tk.def.ing = [tk.g.ings[1]]; tk.def.recipe = [tk.g.ings[1], tk.g.ings[2]];
         const fk = tk.g.beginBattle(tk.att, tk.def);                                 // crosswind, holding its only recipe crate
         const w = [tw.g.botWantsFlee(fw), tc.g.botWantsFlee(fc), tk.g.botWantsFlee(fk)];
-        return [kinds[0] === "battleflee" && kinds[1] === "tradewind" && ev.p === t.def.idx && w[0] === true && w[1] === false && w[2] === true,
-          `posed flee onto the rim → events ${JSON.stringify(kinds)} (must be battleflee then tradewind), fled captain ${ev && ev.p} (must be ${t.def.idx}); a bot flees: wind against it ${w[0]} (true), nothing to lose ${w[1]} (false), its only recipe crate ${w[2]} (true)`];
+        return [kinds[0] === "battleflee" && kinds[1] === "tradewind" && ev.p === t.def.idx && !!(ev.draw && ev.draw.route) && w[0] === true && w[1] === false && w[2] === true,
+          `posed flee onto the rim → events ${JSON.stringify(kinds)} (must be battleflee then tradewind), fled captain ${ev && ev.p} (must be ${t.def.idx}), route drawn ${!!(ev && ev.draw)} (must be true); a bot flees: wind against it ${w[0]} (true), nothing to lose ${w[1]} (false), its only recipe crate ${w[2]} (true)`];
       }),
     ]);
   }
@@ -267,6 +268,8 @@ const MUTANTS = [
     broken(ENG, "this.flee(fight,this.botFleeSquare(fight,this.fleeSquares(def)));", "this.flee(fight,this.botFleeSquare(fight,this.reachableFrom(def)));")],
   [3, "the watched fight's bot flee test written inline again",
     broken(ORCH, "else flee=appState.game.botWantsFlee(F);", "else flee=(F.downwind===\"a\")||def.ing.some(i=>def.recipe&&def.recipe.includes(i)&&appState.game.cnt(def.ing,i)<=1);")],
+  [3, "Game.flee writing its own square again, with no route, instead of sailing through Game.sailTo (architecture item 7)",
+    broken(ENG, "    const moved=this.sailTo(def,dest,flight);\n", "    const moved=dest?(def.pos=dest):null;\n")],
   [3, "the rim taken out of Game.sailChoices, which Game.fleeSquares asks",
     broken(ENG, "sailChoices(p){return [...this.sailStates(p,{throughRim:true}).keys()]", "sailChoices(p){return [...this.sailStates(p,{}).keys()]")],
   [3, "Game.fleeSquares running its own search again, without the rim",

@@ -402,7 +402,7 @@ class Game{
        belong here.
        It is baked in the SAME breath as the snapshot on purpose: bakeDraw checks the route against
        the pos it was baked beside and refuses one that does not land there, so the drawn line and
-       the recorded move can never be published disagreeing. Same refusal sailPath and rimSweepPath
+       the recorded move can never be published disagreeing. Same refusal sailTo and rimSweepPath
        make — no route is better than an invented one. */
     o.state=this.players.map(p=>({pos:[...p.pos],coins:p.coins,ing:[...p.ing],done:p.done,baking:!!p.baking}));const draw=this.bakeDraw(o.route,o.state[o.p]);delete o.route;if(draw)o.draw=draw;
     o.tokens={...this.tokens};this.events.push(o);
@@ -726,8 +726,8 @@ class Game{
   // wind's nose and is <= SAIL_RANGE long, OR touched upwind and is <= SAIL_RANGE_UPWIND long.
   // You may sail PAST other ships but never END on one, so occupied cells expand but don't land.
   //
-  // `opts.throughRim` lets a caller keep the rim as a legal destination (a human may deliberately
-  // ride the trade winds); bots pass it false and stay out of the channel except via rimEscape().
+  // `opts.throughRim` keeps the rim as a legal destination — any captain may deliberately ride the trade winds. Without it the search
+  // is a BOT's ordinary-move list (stepToward, reachableFrom: how a bot chooses, its rides weighed separately), never where a ship may go.
   /* THE ONE SAIL SEARCH. sailStates() is this function's `out` and nothing else, so the squares a
      player may sail to and the ROUTE a ship takes to reach one are answered by the same walk of the
      board — they cannot disagree about what is legal, which a second pathfinder would eventually
@@ -751,12 +751,10 @@ class Game{
     };
     const occ=o=>this.players.some(q=>q!==p&&this.inPlay(q)&&q.pos[0]===o[0]&&q.pos[1]===o[1]);
     const k=(c,u)=>c[0]+","+c[1]+","+(u?1:0);
-    // `opts.from` lets a caller ask the search from a square the ship is no longer standing on —
-    // the bot path needs it, because sailPlan has already committed p.pos by the time the route is
-    // wanted. An explicit origin, NEVER a temporary write to p.pos: mutating live game state to
-    // read something back out of it is the shortcut HARD-WON-LESSONS records as having wedged a
-    // whole run, and it would be invisible here right up until something rendered mid-way.
-    const origin=opts.from||p.pos;
+    /* FROM WHERE THE SHIP STANDS, ALWAYS. `opts.from` stood here for the two bot turn paths, which wrote p.pos first (sailPlan) and
+       asked for the route afterwards; nothing writes a sailing ship's square before its route is taken now (sailTo, below), so a
+       search from anywhere else has nothing left to answer (architecture item 7). */
+    const origin=p.pos;
     const startKey=k(origin,false);
     const seen={[startKey]:0};
     const out=new Map(); // "x,y" -> fewest steps to reach it legally
@@ -799,20 +797,30 @@ class Game{
      comment saying the two "agree by construction". Measured on 40 seeded boards: from 3,430 of 4,432 legal sea squares the
      chooser's gold squares included rim squares the watchers' frame left out (18,267 squares), and on 3,296 of them the framed
      rectangle itself was smaller. scripts/qa/sail_frame_same_squares_check.mjs holds it to one. (A BOT's ordinary-move list is
-     still reachableFrom, with its rides weighed as the head of the current — how a bot chooses, not where it may go; item 7.) */
+     still reachableFrom, with its rides weighed as the head of the current — how a bot chooses, not where it may go. Where any ship
+     actually goes, and the squares it crosses on the way, is sailTo below: item 7.) */
   sailChoices(p){return [...this.sailStates(p,{throughRim:true}).keys()].map(k=>k.split(",").map(Number));}
-  /* The squares a ship actually crosses to reach `dest`, in order, EXCLUDING the square it starts
-     on and INCLUDING dest. Empty when dest is not legally reachable — callers animate nothing
-     rather than invent a route, the same refusal rimSweepPath makes.
-
-     playtest 21 item 6: a ship was drawn gliding straight from its old square to its new one, so a
-     move around the corner of an island read as sailing THROUGH the island. Nothing was wrong with
-     the move; only with the line drawn between its endpoints. */
-  sailPath(p,dest,opts){
-    if(!dest)return [];
-    const {prev,bestK,startKey}=this.sailSearch(p,opts);
+  /* ⭐ A SHIP SAILS — WHETHER SHE MAY LAND WHERE SHE IS SENT, AND THE SQUARES SHE CROSSES TO GET THERE, DECIDED ONCE FOR EVERY CAPTAIN
+     (architecture item 7, 2026-09-17). A bot's sail in a headless voyage and on screen (both through sailPlan), a person's sail, a
+     person's Move instead, and a flight from a fight (Game.flee) all come through here.
+     ONE SEARCH ANSWERS BOTH HALVES, WITH THE RIM ALLOWED: the square is legal exactly when this search reached it (bestK and out are
+     written together, so it is Game.sailChoices' answer, square for square), and the route is that same search's own prev chain. Then
+     the ship's square is written and the move recorded — a `sail`, unless the caller names what the move is (`as`: a flight is a
+     `battleflee`) — with the whole drawn line, the square left behind included, riding on the event (Game.ev / bakeDraw).
+     WHAT STOOD BEFORE, five route requests and two legality paths: the two bot turn paths wrote the square first (sailPlan) and asked
+     for the route afterwards WITHOUT the rim (sailPath {throughRim:false, from}), so every bot sail into the trade winds was recorded
+     with no route — measured over 400 headless voyages, 1,958 of 22,977 bot sails, all route-less — and its boat glided the straight
+     chord to the current, over land, instead of sailing; a person's sail and Move instead (ui/flow.js) and the flee each asked for
+     their own route and wrote their own square, and a person's square was checked only when a save was replayed.
+     A square this captain may not sail to this turn writes nothing and records nothing: null. Otherwise the move's record — the event
+     itself, or the same object when the voyage records no events — so `if(sailTo(…))` means "she sailed" in every voyage.
+     The trade wind that may carry her on from there is NOT here: it is the one step after a boat lands (Game.tradewind; on screen,
+     ui/flow.js afterSail, drawn once the sail has been), item 19. scripts/qa/one_sail_move_check.mjs holds all of this. */
+  sailTo(p,dest,as){
+    if(!dest)return null;
+    const {prev,bestK,startKey}=this.sailSearch(p,{throughRim:true});
     let cur=bestK.get(dest[0]+","+dest[1]);
-    if(!cur)return [];
+    if(!cur)return null;   // not a square this captain may sail to this turn
     const path=[];
     // bounded by the sail budget; the guard is against a malformed prev chain, never expected
     for(let i=0;cur&&cur!==startKey&&i<64;i++){
@@ -820,8 +828,10 @@ class Game{
       path.push([+parts[0],+parts[1]]);
       cur=prev[cur];
     }
-    if(cur!==startKey)return [];   // the chain did not reach the start — refuse rather than guess
-    return path.reverse();
+    if(cur!==startKey)return null;   // the chain did not reach the start — refuse rather than guess
+    const move={...(as||{t:"sail",p:p.idx}),route:[[p.pos[0],p.pos[1]],...path.reverse()]};
+    p.pos=[dest[0],dest[1]];
+    return this.ev(move)||move;
   }
   // How far every water square is from `target`, sailing around the islands rather than through
   // them — a plain BFS flood, wind ignored (wind prices how FAR you get in a turn, not which
@@ -924,19 +934,19 @@ class Game{
      headless, src/ui/flow.js botTurn animated), so a route that exists in one can never be
      missing from the other. The ordinary case is stepToward. A plan that rides the trade winds
      names the square where the ship ENTERS the channel; the caller's tradewind(p) then does what
-     it does for a human who sails onto the rim, which is the whole of the ride. */
+     it does for a human who sails onto the rim, which is the whole of the ride.
+     IT CHOOSES THE SQUARE AND SAILS THROUGH sailTo, like every other ship (architecture item 7): the ride's entry square if the ship
+     may sail there this turn — sailTo's own answer, the one a person's sail gets — otherwise the step toward the plan's square. So a
+     bot riding into the current is recorded with the route it sailed, and nothing here writes a position. Returns what sailTo does. */
   sailPlan(p,plan){
-    if(plan.via&&this.sailStates(p,{throughRim:true}).has(plan.via[0]+","+plan.via[1])){
-      p.pos=[...plan.via];return true;
-    }
-    return this.stepToward(p,plan.cell);
+    return (plan.via&&this.sailTo(p,plan.via))||this.sailTo(p,this.stepToward(p,plan.cell));
   }
-  // Move as close to `target` as this turn's sailing allows, measured in real sailing distance.
-  // Ties break toward the shorter move, so a bot never burns its whole range drifting sideways
-  // when it is already as close as it can get.
+  // The square that moves as close to `target` as this turn's sailing allows, measured in real sailing distance — or null, to hold
+  // position. Ties break toward the shorter move, so a bot never burns its whole range drifting sideways
+  // when it is already as close as it can get. It CHOOSES; sailPlan sails there (through sailTo).
   stepToward(p,target){
     const cells=this.sailStates(p);
-    if(!cells.size)return false;
+    if(!cells.size)return null;
     const field=this.waterField(target);
     const here=field[p.pos[0]+","+p.pos[1]];
     const cur=here===undefined?man(p.pos,target):here;
@@ -964,13 +974,12 @@ class Game{
       const score=d*1000+n+stormPenalty;
       if(score<bestScore){bestScore=score;best=c;}
     }
-    if(!best)return false;
+    if(!best)return null;
     const bd=field[best[0]+","+best[1]];
     const bestDist=bd===undefined?man(best,target)+1000:bd;
     // nothing in range gets us any closer — hold position rather than drift for the sake of it
-    if(bestDist>=cur)return false;
-    p.pos=[...best];
-    return true;
+    if(bestDist>=cur)return null;
+    return best;
   }
   // AI-05: is this bot walled in — every orthogonal neighbour blocked, an island, home, occupied,
   // or the rim? (The rim counts as "not an ordinary move" because stepToward refuses it.) When
@@ -2204,20 +2213,21 @@ class Game{
     const at=fight.att.pos;
     return cells.reduce((best,cc)=>man(cc,at)>man(best,at)?cc:best,cells[0]);
   }
-  /* THE FLEE, RECORDED — for a human's chosen square and a bot's alike. A flee is very nearly a full sail, so it carries the route the
-     sail search really takes (mean 3.93 squares over 600 posed flees; 13.3% of straight lines crossed an island), and the event names
-     the captain who fled (`p`), because ev() bakes the drawn route against o.state[o.p].
+  /* THE FLEE, RECORDED — for a human's chosen square and a bot's alike. A flee IS a sail (his ruling), so it sails through Game.sailTo
+     like every other ship (architecture item 7): the square checked, the route the sail search really takes (mean 3.93 squares over 600
+     posed flees; 13.3% of straight lines crossed an island) on the event, and the event names the captain who fled (`p`), because ev()
+     bakes the drawn route against o.state[o.p]. Recorded as what it is — a `battleflee`, not a sail.
      AND IT IS RECORDED AT THE DESTINATION, BEFORE THE TRADE WINDS TAKE IT. Recorded after the sweep, the last snapshot before it still
      held the pre-battle square, and a ship that fled into the channel got no ride on either tier — it simply appeared at the whirlpool.
-     `dest` null (a human who chose to stay where they are) flees without moving. */
+     `dest` null (a human who chose to stay where they are) flees without moving, and so does a square she may not sail to. */
   flee(fight,dest){
     const {att,def}=fight;
-    const route=dest?[[...def.pos],...this.sailPath(def,dest,{throughRim:true})]:null;
-    if(dest)def.pos=dest;
     fight.fled=true;
     this.recordSkirmish(att,def,null);
-    const evFlee=this.ev({t:"battleflee",p:def.idx,a:att.idx,d:def.idx,rounds:fight.rounds,flips:this.fightFlips(fight),downwind:fight.downwind,route});
-    const evWind=dest?this.tradewind(def):false;
+    const flight={t:"battleflee",p:def.idx,a:att.idx,d:def.idx,rounds:fight.rounds,flips:this.fightFlips(fight),downwind:fight.downwind};
+    const moved=this.sailTo(def,dest,flight);
+    const evFlee=moved||this.ev(flight);
+    const evWind=moved?this.tradewind(def):false;
     return {evFlee,evWind};
   }
   // NULL: the battle ends with no player gaining anything. No spoil, no swap, no caller paid.
@@ -3254,12 +3264,9 @@ class Game{
     const before=[...p.pos];
     // sailing is free now (rule 2) — no coin gate, no refund, no "too poor to sail"
     if(man(p.pos,plan.cell)>0){
-      const moved=this.sailPlan(p,plan);
-      // The drawn route rides WITH the move (see ev/bakeDraw above). sailPlan has already written
-      // p.pos, so the search is told the pre-move square outright via `from`, and `before` heads
-      // the polyline — the wire then carries the whole line instead of a destination that the far
-      // side would have to guess a line to.
-      if(moved){this.ev({t:"sail",p:p.idx,route:[[...before],...this.sailPath(p,[...p.pos],{throughRim:false,from:before})]});this.tradewind(p);}
+      // The sail, its route and its record are Game.sailTo's, reached through sailPlan exactly as the bot on screen reaches it
+      // (architecture item 7); then the one step after a boat lands, the trade wind (item 19).
+      if(this.sailPlan(p,plan))this.tradewind(p);
       else if(this.boxedIn(p)&&this.rimEscape(p)){/* rim sweep recorded its own event */}
     }
     if(p.pos[0]!==before[0]||p.pos[1]!==before[1])p.justDocked=false;
