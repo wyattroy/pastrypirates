@@ -1743,3 +1743,17 @@ cutover come first. He calls that "the first level of success".
       player will lose their "viking longship" after they leave the game"*. **Blocked on user accounts**, not on design: progress
       kept only in one browser is progress a player loses. Ties to the backlog item "every boat a different kind of pirate ship".
       Mockup lives on the Victory Card Proposals sheet (idea 9).
+
+# 🎨 ART, FOR THE VICTORY CARD — his notes, 2026-09-17
+
+Wyatt, on playing the victory card for the first time: *"This is SO FUN TO SEE!!! Slight tweaks: … 2. Add to the art review
+backlog: make boats with sails down, and separate sails, so the end animation looks better than flat boats; also, create
+trophies for each of the awards se we can retire the placeholder svg medals"*.
+
+- [ ] **Boats with their sails down, and sails as separate art.** The end of voyage leans the camera in on the winner and drops
+      a crown on a boat drawn flat, sails up, as it is on the board. A hull with the sails struck — and sails that are their own
+      picture, so they can be raised, dropped and caught by the wind — is what the crowning moment wants. Every captain's boat
+      needs both, at the sizes in .planning/ASSET-DISPLAY-SIZES.md. Pipeline: notes/art-generation-process.md.
+- [ ] **A trophy for each award, to retire the placeholder medals.** Polly's awards page flips each award in big, then shrinks
+      it into a column; the art under that is a placeholder SVG medal. Each award gets its own trophy. The award list lives in
+      src/shared/index.js (computeAwards / assignBadges) and their words in src/shared/words.js.
