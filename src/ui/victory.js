@@ -13,7 +13,7 @@
 // THE NUMBERS BELOW ARE HIS, tuned on the Victory Card sheet (rounds 3 and 4). Change them there, then here.
 
 import { appState } from "../state/index.js";
-import { ASSET_BASE, BOAT_IMG, CROWN_IMG, PARROT_IMG, SPOILS_POUCH_IMG, POCKET_COMPASS_IMG, HEXCOL, ING_ALL, ingImg, dockPlace, iname } from "../shared/index.js";
+import { ASSET_BASE, BOAT_IMG, CROWN_IMG, PARROT_IMG, SPOILS_POUCH_IMG, POCKET_COMPASS_IMG, HEXCOL, ING_ALL, ING_IMG, dockPlace, iname } from "../shared/index.js";
 import { say, sayText, pname, seatLocal, sleepMs, assignBadges } from "./util.js";
 import { seat } from "../shared/words.js";
 import { recipeInfo } from "./recipe.js";
@@ -140,6 +140,7 @@ async function boardBeats(g, v, shipEls) {
   const pod = mk(stageEl, "vcPodium");
   anim(pod, [{ transform: `translateY(${260 * k}px)`, opacity: 0 }, { transform: "translateY(0)", opacity: 1 }], { duration: skip ? 1 : p.rise });
   const byS = s => (v.captains || []).find(c => c.seat === s) || {};
+  const shortLabel = s => { const c = byS(s); return c.baked ? sayText("victory.podium.shortOvens", {}) : sayText("victory.podium.shortSailing", { sq: c.squares || 0 }); };
   const label = s => { const c = byS(s);
     if (c.won) return sayText("victory.podium.won", {});
     if (c.baked) return sayText("victory.podium.ovens", { n: c.named || 0, size: v.size });
@@ -155,10 +156,10 @@ async function boardBeats(g, v, shipEls) {
     const b = mk(stageEl, "vcBoat", `<img src="${BOAT_IMG[s]}" alt="">`, { left: (tr.x + tw / 2 - size / 2) + "px", top: (base - hs[ti] - size + 4 * k) + "px", width: size + "px" });
     anim(b, [{ transform: `translateX(${ti === 2 ? 130 : -130}px)`, opacity: 0 }, { transform: "none", opacity: 1 }], { duration: skip ? 1 : 500, delay: skip ? 0 : at });
     setTimeout(() => playCardSwish(), at + 150); });
-  if (rest != null) { const at4 = p.rise * .6 + 3 * p.sailGap, sz = 36 * k;
-    const b4 = mk(stageEl, "vcBoat", `<img src="${BOAT_IMG[rest]}" alt="" style="opacity:.85">`, { left: (cx + tw * 1.5 + 8 * k) + "px", top: (base - 32 * k) + "px", width: sz + "px" });
+  if (rest != null) { const at4 = p.rise * .6 + 3 * p.sailGap, sz = 36 * k, lx = Math.min(cx + tw * 1.5 + 3 * k, innerWidth - 62 * k);
+    const b4 = mk(stageEl, "vcBoat", `<img src="${BOAT_IMG[rest]}" alt="" style="opacity:.85">`, { left: (lx + 29 * k - sz / 2) + "px", top: (base - 32 * k) + "px", width: sz + "px" });
     anim(b4, [{ opacity: 0 }, { opacity: 1 }], { duration: 400, delay: skip ? 0 : at4 });
-    const l4 = mk(stageEl, "vcLab" + (isLocalHuman(rest) ? " mine" : ""), `<span style="color:${HEXCOL[rest]}">${esc(pname(rest))}</span><small>${esc(label(rest))}</small>`, { left: (cx + tw * 1.5 + 3 * k) + "px", width: (52 * k) + "px", top: (base + 11 * k) + "px", fontSize: (11 * k) + "px" });
+    const l4 = mk(stageEl, "vcLab" + (isLocalHuman(rest) ? " mine" : ""), `<span style="color:${HEXCOL[rest]}">${esc(pname(rest))}</span><small>${esc(shortLabel(rest))}</small>`, { left: lx + "px", width: (58 * k) + "px", top: (base + 11 * k) + "px", fontSize: (11 * k) + "px" });
     anim(l4, [{ opacity: 0 }, { opacity: 1 }], { duration: 400, delay: skip ? 0 : at4 }); }
   await sleepMs(skip ? 300 : p.rise + 3 * p.sailGap + 700 + 900);
 }
@@ -206,6 +207,7 @@ export function victoryCard() {
   const SW = T.awards.swipe;
   let cur = 0, done = false;
   const els = pages.map((pg, i) => { const el = mk(card, "vcPage"); if (i) el.style.transform = "translateX(112%)"; return el; });
+  const bodies = els.map(el => mk(el, "vcBody"));   // content fills the body; the swipe buttons live beside it on the page
   const slide = (from, to, dir) => { const ease = "cubic-bezier(.3,.7,.3,1)";
     anim(els[from], [{ transform: "translateX(0)" }, { transform: `translateX(${-dir * 112}%)` }], { duration: SW, fill: "forwards", easing: ease });
     anim(els[to], [{ transform: `translateX(${dir * 112}%)` }, { transform: "translateX(0)" }], { duration: SW, fill: "forwards", easing: ease });
@@ -225,7 +227,7 @@ export function victoryCard() {
     for (let i = 0; i < pages.length; i++) {
       if (!card.isConnected) return;
       if (i > 0) { slide(i - 1, i, 1); cur = i; await sleepMs(skip ? 0 : SW); }
-      const ms = pages[i].fill(els[i]) || 0;
+      const ms = pages[i].fill(bodies[i]) || 0;
       await sleepMs(skip ? 0 : ms);
     }
     done = true; card.classList.add("done");
@@ -249,7 +251,7 @@ function pageClose(el, v, c) {
   el.innerHTML = `<h4 class="vcHead">${say((baking ? "victory.close.bake" : "victory.close.ovens") + (missing === 1 ? ".one" : ".many"), { w: seat(c.seat), n: sayText("victory.number." + Math.min(5, missing), {}) })}</h4>`;
   const row = mk(el, "vcRecipe");
   recipe.forEach((ing, i) => { const got = has[i];
-    const box = mk(row, "vcIng" + (got ? "" : " missing"), `<img src="${ingImg(ing)}" alt="">` + (got ? `<span class="tick">✓</span>` : (baking ? `<span class="q">?</span>` : "")));
+    const box = mk(row, "vcIng" + (got ? "" : " missing"), `<img src="${ING_IMG[ing]}" alt="">` + (got ? `<span class="tick">✓</span>` : (baking ? `<span class="q">?</span>` : "")));
     anim(box, [{ opacity: 0, transform: "scale(.4)" }, { opacity: 1, transform: "none" }], { duration: 260, delay: 250 + i * 110 });
     setTimeout(() => playLidNote(got ? Math.min(i, 7) : 0), 250 + i * 110);
     if (!got && !reduced()) anim(box, [{ transform: "scale(1)" }, { transform: "scale(1.14)" }, { transform: "scale(1)" }], { duration: T.close.pulse, delay: 800, iterations: 12, fill: "none", easing: "ease-in-out" });
@@ -285,7 +287,7 @@ function pageBake(el, v, win) {
     anim(img, [{ transform: "translateY(40px) scale(.6)", opacity: 0 }, { transform: "translateY(-6px) scale(1.06)", opacity: 1, offset: .7 }, { transform: "none", opacity: 1 }], { duration: b.rise, delay: t });
     setTimeout(() => playPop(0), t + b.rise * .7); }
   t += b.rise;
-  recipe.forEach((ing, i) => { const e = mk(el, "vcFly", `<img src="${ingImg(ing)}" alt="">`, { left: (W / 2 - 15 + (i - 2) * 38) + "px", top: "54px" });
+  recipe.forEach((ing, i) => { const e = mk(el, "vcFly", `<img src="${ING_IMG[ing]}" alt="">`, { left: (W / 2 - 15 + (i - 2) * 38) + "px", top: "54px" });
     anim(e, [{ transform: `translate(${(2 - i) * 30}px,${H * .4}px) scale(.3)`, opacity: 0 }, { transform: "scale(1.25)", opacity: 1, offset: .7 }, { transform: "none", opacity: 1 }], { duration: 420, delay: t + i * b.flyGap });
     setTimeout(() => playPop(i + 1), t + i * b.flyGap + 300); });
   t += recipe.length * b.flyGap + 500;
@@ -404,7 +406,8 @@ body.pp4Stage #statsWrap.vcOn { top:auto; background:transparent; box-shadow:non
 #statsWrap.vcOn #statsScroll { overflow:visible; flex:1 1 auto; min-height:0; display:flex; }
 #statsWrap.vcOn #statsPanel { flex:1 1 auto; display:flex; min-height:0; }
 .vcCard { position:relative; flex:1 1 auto; min-height:226px; background:#f4fbf8; border-radius:16px; box-shadow:0 8px 26px rgba(0,0,0,.35); overflow:hidden; touch-action:pan-y; font-family:'Avenir Next',Avenir,'Segoe UI','Trebuchet MS',sans-serif; color:#1f2d33; }
-.vcPage { position:absolute; inset:0; padding:10px 12px; text-align:center; }
+.vcPage { position:absolute; inset:0; text-align:center; }
+.vcBody { position:absolute; inset:0; padding:10px 12px; }
 .vcHead::first-letter { text-transform:uppercase; }
 .vcHead { margin:0; font:600 18px/1.15 Fredoka,'Avenir Next',Avenir,system-ui,sans-serif; color:#1f2d33; }
 .vcSubline { font:600 12px/1.3 'Avenir Next',Avenir,sans-serif; color:#5c6b70; margin-top:2px; }
@@ -428,8 +431,8 @@ body.pp4Stage #statsWrap.vcOn { top:auto; background:transparent; box-shadow:non
 .vcAward .ab { font-size:10px; line-height:1.2; color:#5c6b70; margin:2px 0; } .vcAward .ac { font-family:Fredoka,system-ui,sans-serif; font-weight:700; line-height:1.1; }
 .vcAward .as { font-size:10.5px; color:#5c6b70; border-top:1px solid #dfe7e4; margin-top:3px; padding-top:2px; }
 .vcAwardSm { border-width:2px; border-radius:10px; padding:2px 4px; overflow:hidden; }
-.vcAwardSm img { width:30px; display:block; margin:4px auto 3px; } .vcAwardSm .an { font:600 10.5px/1.15 Fredoka,system-ui,sans-serif; color:#1f2d33; }
-.vcAwardSm .ac { font:700 12px/1.1 Fredoka,system-ui,sans-serif; margin:5px 0 4px; } .vcAwardSm .as { font:600 9.5px/1.2 'Avenir Next',Avenir,sans-serif; color:#5c6b70; border-top:1px solid #dfe7e4; padding-top:3px; }
+.vcAwardSm img { width:24px; display:block; margin:3px auto 2px; } .vcAwardSm .an { font:600 10px/1.12 Fredoka,system-ui,sans-serif; color:#1f2d33; }
+.vcAwardSm .ac { font:700 11.5px/1.1 Fredoka,system-ui,sans-serif; margin:4px 0 3px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; } .vcAwardSm .as { font:600 9px/1.15 'Avenir Next',Avenir,sans-serif; color:#5c6b70; border-top:1px solid #dfe7e4; padding-top:2px; }
 .vcPouch { width:28px; display:block; margin:0 auto; }
 .vcRows { overflow-y:hidden; margin:6px 8px 0; scrollbar-width:thin; }
 .vcRow { display:flex; justify-content:space-between; align-items:center; gap:6px; height:20px; font:600 12.5px/1.2 'Avenir Next',Avenir,sans-serif; text-align:left; white-space:nowrap; }

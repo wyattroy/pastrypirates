@@ -449,6 +449,8 @@ export const WORDS = {
   "victory.podium.won": "won",
   "victory.podium.ovens": "at the ovens · {n} of {size} named",
   "victory.podium.sailing": "{n} of {size} crates · {sq} sq out",
+  "victory.podium.shortOvens": "at the ovens",
+  "victory.podium.shortSailing": "{sq} sq out",
   "victory.chip.close": "So close",
   "victory.chip.bake": "The bake",
   "victory.chip.awards": "Awards",
