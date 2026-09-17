@@ -1448,8 +1448,15 @@ export function haltVoyage(err,where){
       pushEvents();
     }
   }catch(e){ console.error("haltVoyage could not publish",e); }
+  /* AND THIS SCREEN'S OWN BENCH LETS GO TOO. Wy-Blade's two-window run, 2026-09-17: the guest was released in 0.20s by the consumer,
+     while the HOST sat under its own wreck box with a live bake bench behind it — "Tap the crates in recipe order" and a "Watch again
+     🪙1" button, under a box saying the game can sail no further. The screen that calls this one never consumes the event it just
+     recorded, so it needs the same release the consumer gives everyone else. Same fault, same line. */
+  releaseBench();
   voyageAground(err,where);
 }
+// a halted voyage lets go of whatever bake bench this screen is holding — the one release, used by the door and by the consumer
+function releaseBench(){ try{ applyBenchSnap(null); }catch(e){} }
 // host: broadcast new events to the shared feed
 export function pushEvents(){
   /* W9: THE HOST GUARD LIVES HERE, on the publisher itself, not on each caller. It used to sit
@@ -1622,7 +1629,7 @@ export async function consumeEvent(e){
   try{
   /* THE VOYAGE HAS STOPPED — drawn here, on every screen, from the event the host recorded (Game.halt). A watcher's bench is released
      first, or a guest would keep waiting for a Ready that is never coming. */
-  if(e.t==="halted"){ applyBenchSnap(null); voyageAground(new Error(sayText("aground.body",{})+(e.where?" ("+e.where+")":"")),"halted"); return; }
+  if(e.t==="halted"){ releaseBench(); voyageAground(new Error(sayText("aground.body",{})+(e.where?" ("+e.where+")":"")),"halted"); return; }
   if(!appState.isHost){
     // the guest's mirror of the host-authoritative state — see watchEvents' preserved history
     // below for the day the ribbon said DAY 1 while the board played day 2 (2026-08-19).
