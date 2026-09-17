@@ -602,6 +602,18 @@ const EVENT_NARRATION={
     // no 🤝 stamp over the boats — his game feel audit, 2026-09-13: "This already happens, and it seems weird." → "Remove it"
     return {cls:"trade",txt};
   },
+  /* A HAIL THAT STRUCK NO DEAL — SAYS WHY, FOR EVERY CAPTAIN, WHOEVER HAILED (architecture item 15, 2026-09-17).
+     Wyatt, build .5: "when a captain denied my trade counter offer (in solo play, on his bot turn), that trade fail
+     resolution message did not appear." It could not: a human's failed hail was told by four flashes written into
+     humanTrade, and a bot's recorded a `parley` this table had no entry for — the entry that stood here was deleted
+     as collateral by the weather-line commit (693c2b0b, 2026-08-27), the same table edit that silenced the muse.
+     The engine's resolveHail now puts the reason on the event, and these are the four lines a human's hail already
+     said, word for word, moved here from those flashes; "ye" or the captain's name is words.js's business. */
+  parley:(e,at,cellPx,viewerSeat)=>{
+    const id={silence:"trade.silence",declined:"trade.allDeclined",walkaway:"trade.walksAway",fellThrough:"trade.declined"}[e.why];
+    if(!id)return null;   // a parley recorded before it carried a reason (an old save's replay) says nothing, as it did
+    return {cls:"trade",txt:say(id,{p:seat(e.a),q:e.b==null?null:seat(e.b),want:ilabelImg(e.want)},viewerSeat)};
+  },
   // v2 rule 5: a call is free and pays a flat bounty. Nothing is ever lost on a wrong one, so
   // there is no "backed the wrong ship (−N🌕)" form any more.
   sidebet:(e,at,cellPx,viewerSeat)=>{

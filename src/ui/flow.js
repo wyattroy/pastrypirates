@@ -2361,65 +2361,9 @@ export async function humanTrade(player){
   liveRender();
   await narrateLastEvent();
 
-  // ---- every holder answers. Bots reason (engine-side); human captains are asked. ----
-  const responses=[];
-  // Only hail captains for whom something has actually changed since they last said no — the
-  // memory lives in the engine so bots spam neither each other nor, more importantly, the human.
-  for(const q of g.holdersOf(offer.want,player).filter(q=>g.worthReAsking(player,q,offer.want,offer))){
-    if(q.strategy==="human"){
-      // @copy prompt.trade.accept
-      // playtest 20 (Mando: "Bug in 'name your price' - the game simply acted as if I had rejected
-      // the trade and moved on"). TWO separate ways that happened, both fixed here:
-      //
-      //   1. A counter is "+k coins on top of the offer", so it needs the offerer to have coins
-      //      LEFT OVER. When they did not, tapping "Name yer price" was recorded as a DENIAL, with
-      //      no prompt and no word to the captain who tapped it — from their seat the game simply
-      //      moved on. The option is now greyed with the reason said out loud (Wyatt's pick), the
-      //      same way the game already greys crates nobody is carrying, so it can never be a silent
-      //      no again.
-      //   2. "← Back" out of the coin stepper was ALSO recorded as a denial. Everywhere else in
-      //      this flow Back steps BACK (see humanTrade's `step=0`/`step=1` above) — one gesture,
-      //      two meanings, which is the consistency rule this project keeps. Back now returns to
-      //      this prompt, and only "✗ Deny" denies.
-      //
-      // `room` is what the offerer has spare AFTER the coins already in the offer.
-      const room=Math.max(0,player.coins-offer.giveCoins);
-      let answered=false;
-      while(!answered){
-        if(appState.turnExpired)return false;
-        const v=await ask(q.idx,say("trade.offered",{q:pn(q.idx),p:seat(player.idx),offer:offerDisplay,want:ilabelImg(offer.want)},q.idx),[
-          {label:say("button.accept",{icon:iconImg(CHECKMARK_IMG)}),value:"accept"},
-          // playtest 21 item 7: a counter is no longer "+coins" — it can ask for one of THEIR
-          // crates instead. So it is live whenever they hold anything at all to give, not only
-          // when they have coin spare, and the label says what it now does.
-          {label:say("trade.counter",{}),short:say("trade.counterShort",{}),value:"counter",
-            disabled:room<1&&![...new Set(player.ing)].some(i=>i!==offer.giveIng),
-            why:sayText("trade.nothingElse",{p:seat(player.idx)},q.idx)},
-          {label:say("button.deny",{icon:iconImg(CANCEL_X_IMG)}),value:"deny"}],null,
-          // @copy adhoc.trade.nocointosweeten — APPROVED as written, Wyatt 2026-08-14
-          room<1?say("trade.noSweetener",{p:seat(player.idx)},q.idx):null);
-        // CR-02 layer 1, the important one: expireShotClock forces default index 0 — which here
-        // is Accept. Without this guard a captain who merely ran out of time is recorded as
-        // agreeing. Re-checked at the top of the loop too, so a Back cannot outlive the clock.
-        if(appState.turnExpired)return false;
-        if(v==="counter"){
-          const c=await counterOffer(q,player,offer);
-          if(c==null)return false;                 // shot clock expired mid-counter
-          if(c==="__back__")continue;              // BACK MEANS BACK — re-ask, never a denial
-          if(c==="deny")responses.push({q,kind:"deny",why:"chose"});
-          else responses.push({q,kind:"counter",askIng:c.askIng,askFor:c.askCoins});
-        }else responses.push({q,kind:v==="accept"?"accept":"deny",why:"chose"});
-        answered=true;
-      }
-    }else{
-      responses.push(g.respondToOffer(q,offer,player));
-    }
-  }
-  if(!responses.length){
-    // @copy adhoc.trade.silence
-    await sayFlash("trade.silence",{p:seat(player.idx)});
-    return true;
-  }
+  // ---- every captain the hail is put to answers: bots reason (engine-side), human captains are asked ----
+  const responses=await hearHail(player,offer);
+  if(responses==null)return false;                 // the clock ran out on a captain answering
 
   // ---- the asker sees EVERY answer at once and picks one, or walks away (rule 4a/4b) ----
   /* WHAT EACH CAPTAIN IS ASKING FOR MUST BE ON SCREEN BEFORE YE TAP — playtest 21, and this was a
@@ -2464,7 +2408,8 @@ export async function humanTrade(player){
       opts.push({label:say("trade.wants",{q:seat(r.q.idx),what:bits||say("trade.nothin",{})},player.idx),
         short:`${pn(r.q.idx)}<br>${t.giveIng?iconImg(ING_IMG[t.giveIng]):""}${t.giveCoins?say("trade.coinsShort",{n:t.giveCoins}):""}`,
         value:i,
-        disabled:t.giveCoins>player.coins||!haveIng,
+        // the engine's one test of what an asker can honour — the same one it applies for a bot
+        disabled:!g.canTakeAnswer(player,offer,r),
         why:!haveIng?sayText("trade.notCarrying",{ing:t.giveIng?iname(t.giveIng):say("trade.that",{})})
           :sayText("trade.tooDear",{n:t.giveCoins,coins:player.coins})});
     }
@@ -2475,40 +2420,21 @@ export async function humanTrade(player){
   const denyNote=denials.length
     ?denials.map(r=>say(r.why==="blocking"?"trade.refuses":"trade.declines",{q:pn(r.q.idx)})).join(" · ")
     :null;
-  if(!opts.some(o=>o.value!==-1&&!o.disabled)){
-    // nobody said anything ye can act on
-    g.ev({t:"parley",a:player.idx,b:null,offer:offerDisplay,want:offer.want});
-    liveRender();
-    // @copy adhoc.trade.alldeclined
-    await sayFlash("trade.allDeclined",{p:seat(player.idx),want:ilabelImg(offer.want)});
-    return true;
-  }
+  // Nobody said anything ye can act on (or nobody answered at all): no choice to put to ye, and the
+  // engine says why below. Otherwise:
   // @copy prompt.trade.pick — APPROVED as written, Wyatt 2026-08-14. One captain per line: the whole point is that
   // the price is readable BEFORE a finger moves, so this deliberately does not compress.
-  const pick=await ask(player.idx,
-    say("trade.answers",{want:ilabelImg(offer.want),lines:answerLines.join("<br>")}),
-    opts,colors,denyNote);
-  if(appState.turnExpired)return false;
-  if(pick===-1||pick==null){
-    g.ev({t:"parley",a:player.idx,b:null,offer:offerDisplay,want:offer.want});
-    liveRender();
-    // @copy adhoc.trade.walkaway
-    await sayFlash("trade.walksAway",{p:seat(player.idx)});
-    return true;
+  let pick=-1;
+  if(responses.some(r=>g.canTakeAnswer(player,offer,r))){
+    pick=await ask(player.idx,say("trade.answers",{want:ilabelImg(offer.want),lines:answerLines.join("<br>")}),opts,colors,denyNote);
+    if(appState.turnExpired)return false;
   }
-  const chosen=responses[pick];
-  // the deal that was actually agreed — a crate counter REPLACES what was offered rather than
-  // adding to it (Wyatt: the counter is a fresh deal, no money riding along invisibly)
-  const terms=chosen.kind==="counter"?counterTerms(offer,chosen):offer;
-  const extra=0;
-  // CR-02 layer 2: settleTrade validates BOTH legs before EITHER mutates, so a trade is atomic —
-  // a crate that is no longer held, or coins that are no longer there, routes into the decline
-  // path below rather than half-completing.
-  if(!g.settleTrade(player,chosen.q,terms,extra)){
-    // @copy adhoc.trade.refusalhuman
-    await sayFlash("trade.declined",{q:seat(chosen.q.idx),p:seat(player.idx)});
-    return true;
-  }
+  /* THE HAIL IS RESOLVED BY THE ENGINE, and the WORDS for one that falls through are the narration
+     table's, read off the `parley` event's reason — the same lines a bot's failed hail now gets
+     (architecture item 15). CR-02 layer 2 lives there too: settleTrade validates BOTH legs before
+     EITHER mutates, so a deal that can no longer be honoured falls through rather than half-completing. */
+  const hail=g.resolveHail(player,offer,responses,pick===-1||pick==null?null:responses[pick]);
+  if(!hail.struck){liveRender();await narrateLastEvent();return true;}
   await narrateLastEvent();
   liveRender();
   return true;
@@ -3011,6 +2937,72 @@ export async function humanTurn(player){
   // button sits frozen (blurred but visible) behind the next pass-the-device screen
   if(appState.passAndPlay)liveRender();
 }
+/* ⭐ WHO ANSWERS A HAIL, AND HOW — ONE LOOP FOR EVERY CAPTAIN WHO HAILS (architecture item 15, 2026-09-17).
+   The engine says who a hail is put to (Game.hailAudience); a bot holder answers by reasoning
+   (respondToOffer), a human holder is asked (humanAnswersHail). Both a human's hail (humanTrade) and a
+   bot's (botOpenTradeLive) come through here, so a bot hailing the table reaches exactly the captains
+   its own offer was composed for — it used to ask EVERY holder, including ones it had decided were not
+   worth asking (TRADE-SYSTEM invariant I1: every prompt is something a player has to swat away).
+   Returns the answers in seat order, or null when the clock ran out on a captain answering. */
+async function hearHail(asker,offer){
+  const g=appState.game;
+  const responses=[];
+  for(const q of g.hailAudience(asker,offer)){
+    const r=q.strategy==="human"?await humanAnswersHail(q,asker,offer):g.respondToOffer(q,offer,asker);
+    if(r==null)return null;
+    responses.push(r);
+  }
+  return responses;
+}
+/* THE PROMPT A CAPTAIN SEES WHEN A HAIL IS PUT TO THEM — one, whoever hailed. It stood here twice,
+   verbatim, once for a human's hail and once for a bot's (architecture item 15).
+   Returns {q, kind, …} — the same response shape Game.respondToOffer gives — or null if the clock ran out. */
+async function humanAnswersHail(q,asker,offer){
+  const offerDisplay=appState.game.offerLabel(offer,0)||"nothing";
+  // @copy prompt.trade.accept
+  // playtest 20 (Mando: "Bug in 'name your price' - the game simply acted as if I had rejected
+  // the trade and moved on"). TWO separate ways that happened, both fixed here:
+  //
+  //   1. A counter is "+k coins on top of the offer", so it needs the offerer to have coins
+  //      LEFT OVER. When they did not, tapping "Name yer price" was recorded as a DENIAL, with
+  //      no prompt and no word to the captain who tapped it — from their seat the game simply
+  //      moved on. The option is now greyed with the reason said out loud (Wyatt's pick), the
+  //      same way the game already greys crates nobody is carrying, so it can never be a silent
+  //      no again.
+  //   2. "← Back" out of the coin stepper was ALSO recorded as a denial. Everywhere else in
+  //      this flow Back steps BACK (see humanTrade's `step=0`/`step=1` above) — one gesture,
+  //      two meanings, which is the consistency rule this project keeps. Back now returns to
+  //      this prompt, and only "✗ Deny" denies.
+  //
+  // `room` is what the offerer has spare AFTER the coins already in the offer.
+  const room=Math.max(0,asker.coins-offer.giveCoins);
+  for(;;){
+    if(appState.turnExpired)return null;
+    const v=await ask(q.idx,say("trade.offered",{q:pn(q.idx),p:seat(asker.idx),offer:offerDisplay,want:ilabelImg(offer.want)},q.idx),[
+      {label:say("button.accept",{icon:iconImg(CHECKMARK_IMG)}),value:"accept"},
+      // playtest 21 item 7: a counter is no longer "+coins" — it can ask for one of THEIR
+      // crates instead. So it is live whenever they hold anything at all to give, not only
+      // when they have coin spare, and the label says what it now does.
+      {label:say("trade.counter",{}),short:say("trade.counterShort",{}),value:"counter",
+        disabled:room<1&&![...new Set(asker.ing)].some(i=>i!==offer.giveIng),
+        why:sayText("trade.nothingElse",{p:seat(asker.idx)},q.idx)},
+      {label:say("button.deny",{icon:iconImg(CANCEL_X_IMG)}),value:"deny"}],null,
+      // @copy adhoc.trade.nocointosweeten — APPROVED as written, Wyatt 2026-08-14
+      room<1?say("trade.noSweetener",{p:seat(asker.idx)},q.idx):null);
+    // CR-02 layer 1, the important one: expireShotClock forces default index 0 — which here
+    // is Accept. Without this guard a captain who merely ran out of time is recorded as
+    // agreeing. Re-checked at the top of the loop too, so a Back cannot outlive the clock.
+    if(appState.turnExpired)return null;
+    if(v==="counter"){
+      const c=await counterOffer(q,asker,offer);
+      if(c==null)return null;                    // shot clock expired mid-counter
+      if(c==="__back__")continue;                // BACK MEANS BACK — re-ask, never a denial
+      if(c==="deny")return {q,kind:"deny",why:"chose"};
+      return {q,kind:"counter",askIng:c.askIng,askFor:c.askCoins};
+    }
+    return {q,kind:v==="accept"?"accept":"deny",why:"chose"};
+  }
+}
 /* v2 rule 4, the bot's side of the open trade. A bot puts the same announcement to the same table
    a human does — the difference is only who answers the prompts. Bot holders reason in the engine
    (respondToOffer); human holders are asked, so a human is never traded around behind their back.
@@ -3019,124 +3011,30 @@ export async function humanTurn(player){
    priceHailOffer, hailWorthIt and the cooldown). That existed because v1 had no way for a bot to
    reach a player it wasn't standing next to, and it only ever fired as a last resort when an
    island had run dry. Rule 4 gives every captain that reach every turn, so the special case is
-   gone rather than left running alongside the general one. */
+   gone rather than left running alongside the general one.
+
+   ITS SETTLEMENT IS THE ENGINE'S NOW (architecture item 15). This function used to carry a THIRD
+   copy of which answer a bot takes and at what price — the one that once settled the raw offer
+   instead of a human's counter, and later priced a spare crate with a typed 1.1 — and its failed
+   hail recorded a reasonless `parley` the narration table had no words for, so the table heard
+   nothing. Wyatt, build .5: "when a captain denied my trade counter offer (in solo play, on his bot
+   turn), that trade fail resolution message did not appear." Game.resolveHail now chooses, settles
+   and says why, for this runner and the simulator alike. */
 export async function botOpenTradeLive(player){
   const g=appState.game;
   const offer=g.botOpenOffer(player);
   if(!offer)return false;
   g.noteDemand(player,offer.want,1);
-  const offerDisplay=g.offerLabel(offer,0)||"nothing";
-  g.ev({t:"openoffer",p:player.idx,want:offer.want,offer:offerDisplay});
+  g.ev({t:"openoffer",p:player.idx,want:offer.want,offer:g.offerLabel(offer,0)||"nothing"});
   liveRender();
   await botBeat();
-  const responses=[];
-  for(const q of g.holdersOf(offer.want,player)){
-    if(q.strategy==="human"){
-      // @copy prompt.trade.accept
-      // playtest 20 (Mando: "Bug in 'name your price' - the game simply acted as if I had rejected
-      // the trade and moved on"). TWO separate ways that happened, both fixed here:
-      //
-      //   1. A counter is "+k coins on top of the offer", so it needs the offerer to have coins
-      //      LEFT OVER. When they did not, tapping "Name yer price" was recorded as a DENIAL, with
-      //      no prompt and no word to the captain who tapped it — from their seat the game simply
-      //      moved on. The option is now greyed with the reason said out loud (Wyatt's pick), the
-      //      same way the game already greys crates nobody is carrying, so it can never be a silent
-      //      no again.
-      //   2. "← Back" out of the coin stepper was ALSO recorded as a denial. Everywhere else in
-      //      this flow Back steps BACK (see humanTrade's `step=0`/`step=1` above) — one gesture,
-      //      two meanings, which is the consistency rule this project keeps. Back now returns to
-      //      this prompt, and only "✗ Deny" denies.
-      //
-      // `room` is what the offerer has spare AFTER the coins already in the offer.
-      const room=Math.max(0,player.coins-offer.giveCoins);
-      let answered=false;
-      while(!answered){
-        if(appState.turnExpired)return false;
-        const v=await ask(q.idx,say("trade.offered",{q:pn(q.idx),p:seat(player.idx),offer:offerDisplay,want:ilabelImg(offer.want)},q.idx),[
-          {label:say("button.accept",{icon:iconImg(CHECKMARK_IMG)}),value:"accept"},
-          // playtest 21 item 7: a counter is no longer "+coins" — it can ask for one of THEIR
-          // crates instead. So it is live whenever they hold anything at all to give, not only
-          // when they have coin spare, and the label says what it now does.
-          {label:say("trade.counter",{}),short:say("trade.counterShort",{}),value:"counter",
-            disabled:room<1&&![...new Set(player.ing)].some(i=>i!==offer.giveIng),
-            why:sayText("trade.nothingElse",{p:seat(player.idx)},q.idx)},
-          {label:say("button.deny",{icon:iconImg(CANCEL_X_IMG)}),value:"deny"}],null,
-          // @copy adhoc.trade.nocointosweeten — APPROVED as written, Wyatt 2026-08-14
-          room<1?say("trade.noSweetener",{p:seat(player.idx)},q.idx):null);
-        // CR-02 layer 1, the important one: expireShotClock forces default index 0 — which here
-        // is Accept. Without this guard a captain who merely ran out of time is recorded as
-        // agreeing. Re-checked at the top of the loop too, so a Back cannot outlive the clock.
-        if(appState.turnExpired)return false;
-        if(v==="counter"){
-          const c=await counterOffer(q,player,offer);
-          if(c==null)return false;                 // shot clock expired mid-counter
-          if(c==="__back__")continue;              // BACK MEANS BACK — re-ask, never a denial
-          if(c==="deny")responses.push({q,kind:"deny",why:"chose"});
-          else responses.push({q,kind:"counter",askIng:c.askIng,askFor:c.askCoins});
-        }else responses.push({q,kind:v==="accept"?"accept":"deny",why:"chose"});
-        answered=true;
-      }
-    }else responses.push(g.respondToOffer(q,offer,player));
-  }
-  if(!responses.length)return false; // nobody left worth hailing — don't spend the turn on silence
-  // remember every refusal, so the same doomed offer is not put to the same captain again
-  const worth=g.offerWorthTurns(player,offer);
-  for(const r of responses)if(r.kind==="deny"){
-    g.rememberRefusal(player,offer.want,r.q.idx,worth);
-    g.refusedFlagWanted(player,offer,r.q);
-  }
-  /* THE HUMAN'S COUNTER IS A REAL COUNTER HERE TOO — and it was being thrown away.
-
-     playtest 21 item 7 taught counters to REPLACE the give side ("keep yer coin, I want yer
-     cocoa"), and updated the engine's tryTrade and humanTrade's own settlement to read
-     counterTerms(). This path — a BOT hailing the table, the HUMAN answering — is a THIRD copy of
-     the same settlement, and it was left reading the raw `offer`:
-
-         g.settleTrade(player, deal, offer, extra)      // the ORIGINAL deal, not what was agreed
-
-     So a captain who countered asking for a different crate had their counter accepted on screen
-     and the ORIGINAL trade executed instead — the crate they asked for never moved, and the one
-     they had offered still went. Every other test here was wrong in the same way: affordability
-     was judged on `offer.giveCoins + askFor` (blind to a crate counter costing no coin at all),
-     the sort was on `askFor` (not comparable across the two counter shapes), and the worth test
-     priced the deal as if the crate being asked for were free.
-
-     Now identical in shape to Game.tryTrade: price each answer in TURNS on its own terms, drop any
-     the bot cannot actually honour, and settle what was AGREED. Three copies of one decision is
-     the real defect; this at least makes them agree, and TRADE-SYSTEM.md now names all three. */
-  const accepts=responses.filter(r=>r.kind==="accept");
-  const counters=responses.filter(r=>{
-    if(r.kind!=="counter")return false;
-    const t=g.counterTerms(offer,r);
-    return (t.giveCoins||0)<=player.coins&&(!t.giveIng||player.ing.includes(t.giveIng));
-  });
-  let deal=null,terms=offer;
-  if(accepts.length){
-    accepts.sort((x,y)=>g.crateCostTurns(y.q,offer.want,player)-g.crateCostTurns(x.q,offer.want,player));
-    deal=accepts[0].q;
-  }else if(counters.length){
-    const priced=counters.map(r=>{
-      const t=g.counterTerms(offer,r);
-      let cost=g.coinTurns(t.giveCoins||0);
-      if(t.giveIng)cost+=(player.recipe&&player.recipe.includes(t.giveIng)&&g.cnt(player.ing,t.giveIng)<=1)
-        ?g.acquireTurns(player,t.giveIng).turns
-        :1.1;   // PLAN.leverageTurns — a spare costs little to let go
-      return {r,t,cost};
-    }).sort((a,b)=>a.cost-b.cost);
-    // only take a counter that still beats getting the crate the hard way — the same test the
-    // headless bot applies, so a bot never pays a price on screen it would refuse in simulation
-    if(priced[0].cost<=g.acquireTurns(player,offer.want).turns){deal=priced[0].r.q;terms=priced[0].t;}
-  }
-  if(!deal||!g.settleTrade(player,deal,terms,0)){
-    for(const r of responses)if(r.kind==="counter")g.rememberRefusal(player,offer.want,r.q.idx,worth);
-    g.ev({t:"parley",a:player.idx,b:null,offer:offerDisplay,want:offer.want});
-    liveRender();
-    await botBeat();
-    return true; // the offer itself WAS the action — a refused hail still ends the turn
-  }
+  const responses=await hearHail(player,offer);
+  if(responses==null)return false;               // the clock ran out on a captain answering
+  g.resolveHail(player,offer,responses);
   liveRender();
   await botBeat();
-  return true;
+  // UNCHANGED BY ITEM 15: a hail somebody answered ends this turn, struck or not; one nobody answered does not.
+  return responses.length>0;
 }
 /* A BOT'S DOCK COIN IS NOT DRAWN HERE ANY MORE. It was, until 2026-09-13 — in this turn loop, which
    only the host runs and only for bots, so no human's dock ever drew one and a guest never drew its

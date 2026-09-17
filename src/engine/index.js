@@ -1320,12 +1320,13 @@ class Game{
     if(asker&&askFor>asker.coins-(offer.giveCoins||0))return {q,kind:"deny",why:"toodear"};
     return {q,kind:"counter",askFor};
   }
-  // Every answer to an open offer, in seat order. The asker sees all of them at once (rule 4a) —
-  // human captains are skipped here and prompted by the UI instead.
+  // Every answer to an open offer, in seat order, from the captains the hail is put to (hailAudience).
+  // The asker sees all of them at once (rule 4a) — human captains are skipped here and prompted by
+  // the UI instead.
   collectResponses(offer,asker,opts){
     opts=opts||{};
     const out=[];
-    for(const q of this.holdersOf(offer.want,asker)){
+    for(const q of this.hailAudience(asker,offer)){
       if(q.strategy==="human"&&!opts.includeHumans)continue;
       out.push(this.respondToOffer(q,offer,asker));
     }
@@ -1709,6 +1710,93 @@ class Game{
     }
     return null;
   }
+  /* ⭐ ONE HAIL, WHOEVER HAILS AND WHOEVER ANSWERS — architecture item 15, 2026-09-17.
+     A hail is put to the table, answered, and then it either strikes a deal or falls through. That was
+     decided in THREE places (docs/TRADE-SYSTEM.md "A deal is settled in THREE places"): this engine's
+     tryTrade, humanTrade's settlement and botOpenTradeLive's settlement (src/ui/flow.js). The live bot's
+     copy had drifted from this one in the ways the doc warned it would: it asked EVERY holder where this
+     asks only the offer's audience, it priced a spare crate with a typed 1.1 where this reads
+     PLAN.leverageTurns, and its failed hail ended in silence — Wyatt, playing build .5: "when a captain
+     denied my trade counter offer (in solo play, on his bot turn), that trade fail resolution message
+     did not appear." Now every runner asks hailAudience who to hail, collects the answers its own way
+     (a bot reasons, a person is asked), and hands them to resolveHail — which remembers, chooses for a
+     captain who is not choosing for themselves, settles, and records WHY a hail fell through on the
+     `parley` event, which the one narration table words for every captain. */
+  // Who a hail is put to. A bot's offer carries the audience composeOffer already judged worth asking
+  // (worthReAsking, at the price it was composing) — honour that list rather than re-deriving it; an
+  // offer without one is put to every holder still worth asking.
+  hailAudience(p,offer){
+    const aud=offer.audience;
+    return this.holdersOf(offer.want,p).filter(q=>aud?aud.includes(q.idx):this.worthReAsking(p,q,offer.want,offer));
+  }
+  // An answer the asker could act on: every yes, and a counter it can honour on the counter's OWN
+  // terms — a crate counter may cost no coin at all, so coin alone is never the test.
+  canTakeAnswer(p,offer,r){
+    if(!r)return false;
+    if(r.kind==="accept")return true;
+    if(r.kind!=="counter")return false;
+    const t=this.counterTerms(offer,r);
+    return (t.giveCoins||0)<=p.coins&&(!t.giveIng||p.ing.includes(t.giveIng));
+  }
+  /* resolveHail(p, offer, responses, pick) -> {struck, why}
+     `pick` is the answer the asker chose, or null to walk away — or LEFT OUT, when nobody is choosing
+     at the table and the engine chooses for the captain (a bot). A captain who chooses for themselves
+     keeps their own memory of who said no; the engine keeps its bots'.
+     `why` when it falls through, and on the `parley` event:
+       silence     nobody answered
+       declined    nobody gave an answer the asker could act on
+       walkaway    there was one, and the asker took none
+       fellThrough the chosen deal could not be settled (b: the captain it was struck with) */
+  resolveHail(p,offer,responses,pick){
+    const choosing=pick===undefined;
+    const fall=(why,b)=>{
+      if(choosing)this.rememberHail(p,offer,responses,false);
+      this.ev({t:"parley",a:p.idx,b:b==null?null:b,offer:this.offerLabel(offer,0)||"nothing",want:offer.want,why});
+      return {struck:false,why};
+    };
+    if(!responses.length)return fall("silence");
+    const takeable=responses.filter(r=>this.canTakeAnswer(p,offer,r));
+    const chosen=choosing?this.chooseAnswer(p,offer,takeable):pick;
+    if(!chosen)return fall(takeable.length?"walkaway":"declined");
+    // a counter REPLACES or adds to the give side; an acceptance takes the offer as it stood
+    if(!this.settleTrade(p,chosen.q,this.counterTerms(offer,chosen),0))return fall("fellThrough",chosen.q.idx);
+    if(choosing)this.rememberHail(p,offer,responses,true);
+    return {struck:true,why:null};
+  }
+  // How a bot takes its pick of the answers it could act on — or none.
+  chooseAnswer(p,offer,takeable){
+    const accepts=takeable.filter(r=>r.kind==="accept");
+    if(accepts.length){
+      // several yeses: take the crate from whoever can spare it most easily
+      accepts.sort((x,y)=>this.crateCostTurns(y.q,offer.want,p)-this.crateCostTurns(x.q,offer.want,p));
+      return accepts[0];
+    }
+    /* playtest 21 item 7: a counter may now ask for one of MY crates instead of coin, so the
+       answers are no longer comparable on askFor alone and are priced in TURNS — the currency
+       everything else in this planner uses. What a counter costs me is what I hand over: the
+       coins, plus (if they want a crate) what replacing that crate would cost me, discounted
+       hard when it is surplus I never needed. Cheapest first, and still only struck if it beats
+       fetching the crate myself. */
+    const priced=takeable.filter(r=>r.kind==="counter").map(r=>{
+      const t=this.counterTerms(offer,r);
+      let cost=this.coinTurns(t.giveCoins||0);
+      if(t.giveIng)cost+=(p.recipe&&p.recipe.includes(t.giveIng)&&this.cnt(p.ing,t.giveIng)<=1)
+        ?this.acquireTurns(p,t.giveIng).turns
+        :PLAN.leverageTurns;
+      return {r,cost};
+    }).sort((a,b)=>a.cost-b.cost);
+    if(priced.length&&priced[0].cost<=this.acquireTurns(p,offer.want).turns)return priced[0].r;
+    return null;
+  }
+  // What a hail teaches the captain who made it: every no, with what it cost them to say it (see
+  // rememberRefusal) — and, when no deal was struck, every counter too, because walking away from a
+  // counter is this offer being refused as well; forget it and the bot re-opens the identical hail
+  // next turn and gets the identical price back. Nothing the choosing or the settling reads.
+  rememberHail(p,offer,responses,struck){
+    const worth=this.offerWorthTurns(p,offer);
+    for(const r of responses)if(r.kind==="deny"){this.rememberRefusal(p,offer.want,r.q.idx,worth);this.refusedFlagWanted(p,offer,r.q);}
+    if(!struck)for(const r of responses)if(r.kind==="counter")this.rememberRefusal(p,offer.want,r.q.idx,worth);
+  }
   // A bot's whole trade turn: put the offer to the table, read every answer, take the best one it
   // can afford — or walk away. Exactly the flow a human gets in the UI (rule 4).
   tryTrade(p){
@@ -1717,57 +1805,7 @@ class Game{
     // announcing what you want is itself public information — everyone now knows p wants this
     this.noteDemand(p,offer.want,1);
     this.ev({t:"openoffer",p:p.idx,want:offer.want,offer:this.offerLabel(offer,0)});
-    // composeOffer already decided who is worth hailing; honour that list rather than re-deriving it
-    const aud=offer.audience;
-    const responses=this.collectResponses(offer,p)
-      .filter(r=>!aud||aud.includes(r.q.idx));
-    if(!responses.length)return false;
-    // remember every no, with what it cost them to say it — see rememberRefusal
-    const worth=this.offerWorthTurns(p,offer);
-    for(const r of responses)if(r.kind==="deny"){
-      this.rememberRefusal(p,offer.want,r.q.idx,worth);
-      p.refused[offer.want+"|"+r.q.idx].wantedOurs=offer.giveIng&&this.likelyNeeds(r.q,offer.giveIng)?1:0;
-    }
-    const accepts=responses.filter(r=>r.kind==="accept");
-    // affordability is judged on the counter's OWN terms — a crate counter may cost no coin at all,
-    // and the old test would have thrown those away as unaffordable
-    const counters=responses.filter(r=>{
-      if(r.kind!=="counter")return false;
-      const t=this.counterTerms(offer,r);
-      return (t.giveCoins||0)<=p.coins&&(!t.giveIng||p.ing.includes(t.giveIng));
-    });
-    let deal=null,terms=offer;
-    if(accepts.length){
-      // several yeses: take the crate from whoever can spare it most easily
-      accepts.sort((x,y)=>this.crateCostTurns(y.q,offer.want,p)-this.crateCostTurns(x.q,offer.want,p));
-      deal=accepts[0].q;
-    }else if(counters.length){
-      /* playtest 21 item 7: a counter may now ask for one of MY crates instead of coin, so the
-         answers are no longer comparable on askFor alone and are priced in TURNS — the currency
-         everything else in this planner uses. What a counter costs me is what I hand over: the
-         coins, plus (if they want a crate) what replacing that crate would cost me, discounted
-         hard when it is surplus I never needed. Cheapest first, and still only struck if it beats
-         fetching the crate myself, which is the test that was already here. */
-      const priced=counters.map(r=>{
-        const t=this.counterTerms(offer,r);
-        let cost=this.coinTurns(t.giveCoins||0);
-        if(t.giveIng)cost+=(p.recipe&&p.recipe.includes(t.giveIng)&&this.cnt(p.ing,t.giveIng)<=1)
-          ?this.acquireTurns(p,t.giveIng).turns
-          :PLAN.leverageTurns;
-        return {r,t,cost};
-      }).filter(x=>!x.t.giveIng||p.ing.includes(x.t.giveIng))
-        .sort((a,b)=>a.cost-b.cost);
-      const mine=this.acquireTurns(p,offer.want).turns;
-      if(priced.length&&priced[0].cost<=mine){deal=priced[0].r.q;terms=priced[0].t;}
-    }
-    if(!deal){
-      // walking away from a counter is this offer being refused too — remember it, or the bot
-      // re-opens the identical hail next turn and gets the identical price back
-      for(const r of responses)if(r.kind==="counter")this.rememberRefusal(p,offer.want,r.q.idx,worth);
-      this.ev({t:"parley",a:p.idx,b:null,offer:this.offerLabel(offer,0)||"nothing",want:offer.want});
-      return false;
-    }
-    return this.settleTrade(p,deal,terms,0);
+    return this.resolveHail(p,offer,this.collectResponses(offer,p)).struck;
   }
   // called on every battle resolution (win or flee) — cools the opportunistic "rich" attack
   // trigger against this specific opponent for a few rounds (mutual, since either side's coin

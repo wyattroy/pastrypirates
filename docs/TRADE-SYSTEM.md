@@ -400,11 +400,13 @@ Engine — `src/engine/index.js`:
 `holdersOf` · `offerValueTurns` · `estimateCrateCost` · `crateCostTurns` · `respondToOffer` ·
 `collectResponses` · `settleTrade` · `counterTerms` · `offerLabel` · `rememberRefusal` ·
 `refusedFlagWanted` · `worthReAsking` · `offerWorthTurns` · `openingBid` · `worthHailing` ·
-`composeOffer` · `botOpenOffer` · `tryTrade`
+`composeOffer` · `botOpenOffer` · `hailAudience` · `canTakeAnswer` · `resolveHail` · `chooseAnswer` ·
+`rememberHail` · `tryTrade`
 Public inference: `noteDemand` · `demandFor` · `likelyNeeds` · `visibleProgress`
 Units: `coinTurns` · `acquireTurns` · `PLAN.coinsPerDockTurn` · `PLAN.leverageTurns`
 
-UI — `src/ui/flow.js`: `humanTrade` · `counterOffer` · `coinSlider` · `crateOpt` · `logQuantity`
+UI — `src/ui/flow.js`: `humanTrade` · `botOpenTradeLive` · `hearHail` · `humanAnswersHail` · `counterOffer` · `coinSlider` ·
+`crateOpt` · `logQuantity`
 
 What a player SEES settle — `src/engine/index.js` `settleTrade` records the `trade` event with `paid` (the coins the asker hands the seller, offer plus any counter); the one consumer (`src/orchestrator.js` `consumeEvent`) swaps the two crates as crates (`board.js` `tradeSwapTo`) and flies exactly `paid` coins from the payer's purse into the seller's (`board.js` `coinsAcross`). Wyatt, 2026-09-14: *"every coin you earn should fly over"*; guarded by `scripts/qa/every_coin_flies_check.mjs`.
 UI, shared by both tiers — `src/ui/util.js`: `ask` · `optionButtonsHTML` · `sliderWrapHTML` ·
@@ -416,14 +418,38 @@ unbroken *"is deciding"* span, the settlement ledger) ·
 `scripts/local_trade_probe.mjs` (the same trade in solo and pass-and-play, the two modes a
 two-tab test cannot see)
 
-### A deal is settled in THREE places, and they must agree
+### A hail is resolved in ONE place — architecture item 15, 2026-09-17
 
-This is the one structural fact most likely to bite you here. `counterTerms(offer, r)` is the single
-place a counter is turned into the deal it *means* — and three separate call sites read it, because
-who is asking and who is answering changes which code runs:
+This section used to be titled *"A deal is settled in THREE places, and they must agree"*, and it ended
+**"Three copies of one decision is the real defect; until they are one, change all three or none."** They
+are one now. Who hails and who answers still changes which code *runs* — a bot reasons, a person is
+asked — but not which code *decides*:
 
-| Who hails | Who answers | Where it settles |
+| Step | The one place | Read by |
 |---|---|---|
+| who the hail is put to | `Game.hailAudience(p, offer)` — the offer's own `audience` when `composeOffer` built one, otherwise every holder still worth asking | `collectResponses` (the simulator) · `hearHail` (both live runners) |
+| the prompt a person answers | `humanAnswersHail(q, asker, offer)` in `flow.js` | `hearHail` |
+| what an asker can honour | `Game.canTakeAnswer` — a counter judged on its OWN terms (`counterTerms`) | `resolveHail` · the greyed circles in `humanTrade`'s pick |
+| which answer a bot takes, and at what price | `Game.chooseAnswer` — priced in turns, a spare crate at `PLAN.leverageTurns` | `resolveHail` when no pick is passed |
+| what the asker remembers | `Game.rememberHail` — every no; every counter too when nothing was struck | `resolveHail` (a bot's hail) · `scripts/lib/voyage_ask.mjs` replay |
+| settling, and why it fell through | `Game.resolveHail(p, offer, responses, pick)` — records a `trade`, or a `parley` carrying `why`: `silence` · `declined` · `walkaway` · `fellThrough` | `tryTrade` · `humanTrade` (passes the person's pick, or `null` to walk away) · `botOpenTradeLive` |
+| the words for a hail that fell through | `EVENT_NARRATION.parley` (`src/ui/util.js`), by `why` — the four lines a human's hail always said, now said for every captain | the one narrator, every screen |
+
+**Why it had to be one.** The live bot's copy had drifted exactly the way this section warned: it asked
+EVERY holder where the engine asked only the audience (TRADE-SYSTEM invariant I1 — measured: 1 of 384
+simulated bot hails would have prompted a holder the bot had left out), it priced a spare with a typed
+`1.1`, and its failed hail recorded a reasonless `parley` that the narration table had no words for — so
+the table heard nothing. Wyatt, build .5: *"when a captain denied my trade counter offer (in solo play, on
+his bot turn), that trade fail resolution message did not appear."* The `parley` entry had been deleted
+as collateral by the weather-line commit `693c2b0b` (2026-08-27).
+
+**Still NOT one, on purpose, and item 14's business:** what a spoken hail costs the turn. The simulator
+goes on to dock or muse after a refusal; both live runners end the turn. Each runner still maps
+`resolveHail`'s result to its own return value.
+
+Guarded by `scripts/qa/one_hail_check.mjs`.
+
+---|---|---|
 | bot | bot | `Game.tryTrade` — `src/engine/index.js` |
 | **human** | bots | `humanTrade`'s settlement — `flow.js` |
 | **bot** | human (and bots) | `botOpenTradeLive`'s settlement — `flow.js` |
