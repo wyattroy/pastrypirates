@@ -111,7 +111,7 @@ import {
   collectSideBets, settleSideBets, netIntroBarrier, showAhoyIntro, showTurnOrderIntro,
   pickCell, localAsk, pilotGate, armStormGate, pilotOpeningFork, takeTurn, runStormLive, renderPickPrompt, renderAskPrompt, clearSailWindow, draftDispatch, wireRestoreFail,
   startPassAndPlay, startSinglePlayer,
-  endReplay, animateRimSweepIfAny, animateSailRoute, stormCamForEvent, publishNow,
+  endReplay, animateRimSweepIfAny, animateSailRoute, stormCamForEvent, publishNow, showTheWind,
   showHome, showRoom, showGameView, renderSeatList, wireWelcome, buildPlayerRows, hideBootLoader,
   wireRecipeModal, recipeInfo, winRecipeSpan, recipeCardHTML, passGate,
   getMyId, preloadAssets, resumeSoloGame, genCode, saveSession, clearSession, seatStrat,
@@ -694,6 +694,7 @@ async function asyncBattleRun(att,def){
   await sleep(hold);
 
   // ---- both tails: the defender's FREE escape (rules 9a + 2c). May they, and where to, are the engine's; a human is asked ----
+  let fledWind=null;   // what the trade wind recorded when the defender landed (a ride, or a ride of no squares) — shown once the card is down
   if(appState.game.mayFlee(F)){
     let flee;
     // @copy prompt.battle.flee
@@ -703,7 +704,7 @@ async function asyncBattleRun(att,def){
     if(flee){
       const cells=appState.game.fleeSquares(def);
       const dest=hD?await pickCell(def,cells):appState.game.botFleeSquare(F,cells);
-      appState.game.flee(F,dest);   // move, record, the event with its route, THEN the trade winds — engine flee
+      fledWind=appState.game.flee(F,dest).evWind;   // move, record, the event with its route, THEN the trade winds — engine flee
       /* W9: the table is told BEFORE this tier draws — publishNow() is the broadcast half
          only, so no other browser sits on a frozen board for the length of this flee.
          ⭐ AND THEN IT WAITS ON THE DRAIN, not on the rides. Both events exist by now, and
@@ -753,7 +754,11 @@ async function asyncBattleRun(att,def){
   // bets — a NULL battle and a decided win both already tell every caller what happened. A flee
   // has no winner either, so it gets the same NULL settlement: no bounty for anyone, but a caller
   // is told their call resolved rather than left silent.
-  if(F.fled){await settleSideBets(bets,null);return;}
+  /* AND WHAT THE TRADE WIND DID WITH HER IS SAID, the way a won or a null fight says its result, before the calls are settled —
+     for every captain who flees, on every screen: a ship that fled onto the head of the current is told why she went no further
+     (architecture item 19; the one display step, src/ui/flow.js showTheWind). It could not be left to the attacker's closing
+     narration: the calls settle after the flee, so that narration finds a settled call and says nothing. */
+  if(F.fled){await showTheWind(fledWind);await settleSideBets(bets,null);return;}
   if(!F.winner){
     // rule 9: NULL — the battle ends with no player gaining anything, and no caller is paid (engine nullBattle)
     appState.game.nullBattle(F);

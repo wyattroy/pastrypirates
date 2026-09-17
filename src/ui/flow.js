@@ -71,6 +71,7 @@ import {
   buildPlayerRows,                // endReplay: the captains' rows, rebuilt once in sailing order
   say, sayAll, sayText, seat,     // the one door to src/shared/words.js
   eventDrawn,   // a dock's buy waits for its coins to land (humanDock)
+  narrateEvent, // showTheWind narrates the trade-wind event it is handed (architecture item 19)
 } from "./util.js";
 /* A line every screen reads its own way, in one call: the words and their "ye" versions come from words.js. */
 const sayFlash=(id,facts,ms)=>{const w=sayAll(id,facts);return flash(w.html,ms,undefined,w.variants);};
@@ -2467,6 +2468,25 @@ function actLadder(opts){
    scripts/qa/action_reasons_from_engine_check.mjs fails first, because it words every reason the engine can give. */
 const WHY_WORDS={noPowder:"act.noPowder",sanctuary:"act.sanctuary",emptyHolds:"act.emptyHolds",
   nothingToTrade:"act.nothingToTrade",noCargo:"act.noCargoOnWater"};
+/* ⭐ AFTER A BOAT LANDS, THE TRADE WIND — ONE STEP FOR EVERY SAIL (architecture item 19, 2026-09-17).
+   A human's sail (humanTurn), a human's Move instead (humanAct) and a bot's sail (botTurn) each carried their own copy of these
+   lines, and only the first had the line for a boat that comes into the current AT its head ("rim.head", said here with
+   sayFlash) — so a human who took Move instead, and every bot, rode a zero-square ride in silence. The ENGINE's trade-wind step
+   now records that ride as well as a real one (Game.tradewind: a `tradewind` or a `rimhead` event), and the one narration table
+   words it for whoever is reading. A flight from a fight takes the same engine step inside Game.flee, and the fight shows
+   what it recorded through showTheWind below, once its card is down — before the Lookout's line, the way a won or a null
+   fight says its result before the calls are settled (src/orchestrator.js asyncBattleRun). Without that, a flee's wind was
+   never said at all: the calls settle after it, and the attacker's closing narration finds only the settled calls.
+   scripts/qa/after_sail_one_step_check.mjs holds it. */
+async function afterSail(player){
+  await showTheWind(appState.game.tradewind(player));
+}
+/* The trade-wind step SHOWN: the table told, the drain waited on (the ride, if there was one), and the event narrated —
+   the event it is handed, never the top of the pile (W7). Nothing when the step recorded nothing. */
+export async function showTheWind(ev){
+  if(!ev)return;
+  publishNow();await liveRender();await narrateEvent(ev);
+}
 export async function humanAct(player,sailCtx){
   const port=appState.game.adjPort(player);
   const canDock=port&&!(appState.game.cfg.singleDock&&appState.game.dockOccupiedBy(port,player));
@@ -2731,8 +2751,7 @@ export async function humanAct(player,sailCtx){
          (W9 — it calls only the broadcast half, never the local drain), so no other browser is held
          still for the length of this captain's own animation. */
       publishNow();await liveRender();
-      const evWind=appState.game.tradewind(player);
-      if(evWind){publishNow();await liveRender();await narrateLastEvent();}}
+      await afterSail(player);}
     await humanAct(player,sailCtx);return;
   }
   if(v==="pass"){
@@ -2905,11 +2924,7 @@ export async function humanTurn(player){
          (W9 — it calls only the broadcast half, never the local drain), so no other browser is held
          still for the length of this captain's own animation. */
       publishNow();await liveRender();
-      const evWind=appState.game.tradewind(player);
-      if(evWind){publishNow();await liveRender();await narrateLastEvent();}
-      // /4 playtest 8: entering the current AT its quadrant head gives a zero-square ride, and
-      // silence there reads as a stall. Say why. Draft copy — Wyatt's to rewrite.
-      else if(appState.game.onRim(player.pos))await sayFlash("rim.head",{p:seat(player.idx)});
+      await afterSail(player);
     }
   }
   if(appState.turnExpired)return;
@@ -3072,8 +3087,7 @@ export async function botTurn(player){
          still for the length of this captain's own animation. */
       publishNow();await liveRender();
       await botBeat();
-      const evWind=g.tradewind(player);
-      if(evWind){publishNow();await liveRender();await narrateLastEvent();}}
+      await afterSail(player);}
     // G18: a boxed-in bot escapes through the rim, exactly as the engine's own takeTurn does.
     // rimEscape() records its own events (windmove, then tradewind's sweep line).
     /* rimEscape returns whether the ship escaped, not the event, so the sweep it just pushed is

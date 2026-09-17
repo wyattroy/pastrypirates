@@ -323,6 +323,8 @@ const EVENT_SOUND = {
      ⭐ THIS IS THE ONE SOUND NOT HEARD BY THE WHOLE TABLE — see LOCAL_ONLY_SOUND_EVENTS. */
   turn: "bells",
   newround: null, tradewind: null, bakeoff: null,
+  // architecture item 19: a boat that comes into the current AT its head rides no squares — explicit silence, like the ride itself
+  rimhead: null,
   // playtest 21 item 3: the storm's one summary line. Deliberately SILENT — every ship in it has
   // already played its own cue (windmove/blownOut -> ship-move, anchorHold -> fishing) as it moved,
   // so a sound here would be a fifth noise describing four that just happened.

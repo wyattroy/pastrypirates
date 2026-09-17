@@ -533,17 +533,28 @@ class Game{
      the engine that records it — the alternative, guessing in the narration table from whatever
      event came before, is the kind of second source of truth this project keeps paying for.
      Only windLeg's storm push passes true; a chosen sail, a rim escape and a flight from a battle
-     are all the ship moving under its own canvas. */
+     are all the ship moving under its own canvas.
+     ⭐ THE ONE TRADE-WIND STEP AFTER A BOAT LANDS, FOR EVERY CAPTAIN (architecture item 19, 2026-09-17). A human's sail, a human's
+     Move instead and a bot's sail (src/ui/flow.js afterSail), a bot's sail in a headless voyage (takeTurn), a boxed-in bot's escape
+     (rimEscape) and a flight from a battle (flee) all come through here. */
   tradewind(p,blown){
     if(!this.isRound)return false;
     const head=this.rimHead[p.pos[0]+","+p.pos[1]];
-    if(head&&(head[0]!==p.pos[0]||head[1]!==p.pos[1])){
+    if(!head)return false;
+    if(head[0]!==p.pos[0]||head[1]!==p.pos[1]){
       /* RETURNS THE EVENT IT PUSHED, for the same reason ev() does: a caller that wants to draw
          this sweep can hold the event itself instead of reaching back for the top of the pile.
          Still falsy when no sweep happened, so every `if(tradewind(...))` reads the same. */
       p.pos=[...head];return this.ev({t:"tradewind",p:p.idx,blown:!!blown});
     }
-    return false;
+    /* A RIDE OF NO SQUARES — the boat came into the current AT its head, so there is nowhere to carry her. /4 playtest 8 (Wyatt):
+       silence there reads as a stall, so it is explained. It used to be explained only to a human who sailed there, by a line
+       humanTurn said itself — a human who took Move instead, a bot, or a captain fleeing a fight got nothing. Recorded HERE, once, so
+       every one of them gets it and every screen hears it (words: "rim.head", worded by the narration table for bots and humans
+       alike). A kind of its own, not a `tradewind` of length 0: every reader of `tradewind` means the current CARRIED a boat (the
+       speed lines, the ride and the lesson before it, the wait for arrival), and a boat that did not move must reach none of them.
+       NOT for a storm: the storm is reported once, in its own summary (Wyatt, 2026-08-23c, item 8). */
+    return blown?false:this.ev({t:"rimhead",p:p.idx});
   }
   // D-21: the FIRST matching cause, same precedence moored()'s || chain already used — null when
   // none match. moored() is now defined in terms of this, not a parallel rule.

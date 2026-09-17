@@ -341,8 +341,10 @@ function measureAll() {
       p.pos = [...c];
       const ev = g.tradewind(p, false);
       const head = g.rimHead[c.join(",")];
-      if (ev) { if (p.pos.join() === head.join()) swept++; }
-      else if (c.join() === head.join()) alreadyAtTheEnd++;
+      /* architecture item 19: the step now RECORDS a ride of no squares too (`rimhead`), so a swept ship is told apart by the
+         event's kind, never by the step merely returning something */
+      if (ev && ev.t === "tradewind") { if (p.pos.join() === head.join()) swept++; }
+      else if (c.join() === head.join() && p.pos.join() === head.join()) alreadyAtTheEnd++;
     }
     claim("tradewind-sweeps-to-the-end", "yer instantly swept to the far corner of that stretch",
       swept + alreadyAtTheEnd === rim.length && swept > 0,

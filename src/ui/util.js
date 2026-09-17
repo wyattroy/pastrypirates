@@ -653,6 +653,11 @@ const EVENT_NARRATION={
     // his pass, 2026-09-13: "Davy Scones slips away!" — the attack itself was announced when the fight opened.
     return {cls:"battle",txt:say("battle.slipsAway",{d:seat(e.d)},viewerSeat),pops:[[at(e.d),"🏃"]]};
   },
+  /* A BOAT THAT COMES INTO THE CURRENT AT ITS HEAD — a ride of no squares, explained (/4 playtest 8, Wyatt: silence there reads as a
+     stall). ONE line for every captain who lands there, bot or human, however they got there — a sail, Move instead, a flight from a
+     fight — and on every screen: the engine records it (Game.tradewind), and this is the only place it is worded. It used to be said
+     by humanTurn alone, for a human's own sail (architecture item 19, 2026-09-17). "ye" or the captain's name is words.js's business. */
+  rimhead:(e,at,cellPx,viewerSeat)=>({txt:say("rim.head",{p:seat(e.p)},viewerSeat)}),
   // notes/edits UI-04: on a catch, the emoji that rises from the boat is the SUGARFISH itself, not
   // the fishing line — you just landed a fish, so show the fish coming up out of the boat.
   // NARR-01/D-25/D-38 (Wyatt-approved 2026-07-29): signed catch amounts.
