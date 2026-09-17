@@ -1469,25 +1469,16 @@ export async function runLiveNet(){
   if(appState.replaying)endReplay();   // whole game was in the log: leave replay mode & paint the result
 }
 export async function liveResolveEndNet(){
-  // same guard as Game.resolveEnd: nobody is crowned without a full recipe (v2.1)
-  appState.game.finishOrder=appState.game.eligibleFinishers();
-  if(!appState.game.finishOrder.length)appState.game.winner=null;
-  else if(appState.game.finishOrder.length===1)appState.game.winner=appState.game.finishOrder[0];
-  else{
-    // v2 rule 12: every captain who got home collaborates on ONE bakery — a scene, not a contest —
-    // and Best Baker goes to whoever brought the most to it. Ranked on crates (all of them, recipe
-    // or not), then coins, then who got home first. No flipping: the title is earned across the
-    // whole voyage rather than decided by one last coin. bakeRank is the engine's, so the live
-    // game and the headless simulator can never crown different winners.
-    const ranked=appState.game.finishOrder.slice().sort((x,y)=>appState.game.bakeRank(x,y));
-    appState.game.winner=ranked[0];
-    appState.game.ev({t:"collab",finishers:ranked.slice(),winner:appState.game.winner,
-      crates:ranked.map(i=>appState.game.players[i].ing.length),
-      coins:ranked.map(i=>appState.game.players[i].coins)});
+  /* WHO IS CROWNED IS THE ENGINE'S — Game.crownWinner, then Game.declareEnd (the names and contract of
+     architecture item 2): nobody without a full recipe; several finishers bake together on ONE bakery (v2 rule 12)
+     and Best Baker is ranked by bakeRank. This function used to re-run that eligibility, ranking and both events
+     itself. The two steps are separate so the shared bakery is said here BEFORE the voyage is declared over —
+     and the `end` event now carries the whole result the victory card draws. */
+  if(appState.game.crownWinner()){
     liveRender();
     await narrateLastEvent();
   }
-  appState.game.ev({t:"end",winner:appState.game.winner});
+  appState.game.declareEnd();
   await writeMeta();
   await writeGameLog();
   // WYATT, 2026-07-31 — the drumroll, and why liveDone moved BELOW it.
