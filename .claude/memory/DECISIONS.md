@@ -3530,3 +3530,13 @@ tomorrow's sea overnight, rejecting a seed that cannot be baked or that one seat
   writing · when a host's voyage breaks, every screen is told · "Ready to bake!" is hidden while the crates shuffle · a failed trade of
   his own stays a bubble over his boat · the fight's two "waiting for…" lines are dropped everywhere so a watching phone keeps the
   fight's own words (architecture item 8) · a watching screen frames the waters a PERSON can reach, as it already does for a bot.
+- **A WATCHER'S CAMERA STAYS ON THE BOAT — HIS RULING, 2026-09-17, against our recommendation.** Asked whether a watching screen should
+  frame the waters a PERSON can reach, as it already does for a bot, he said: *"we cannot see other players sail squares (bots or humans)
+  so ALL other players turns should be zoomed in on their boat for maximum immersion."* So the watcher path is re-pointed at the boat for
+  every captain, and architecture item 18's watcher half is re-aimed; the CHOOSER's own screen keeps framing its own squares (that half of
+  item 18 stands). Recorded in docs/INTENDED-BEHAVIOUR.md §0. Mac: Dev and Wy-Blade both recommended the opposite; he was asked and he
+  ruled.
+- **"CRUSTBEARD+12" IS CONFUSING — FIX IT, 2026-09-17:** *"Fix this so it is intuitive -- i've also noticed the confusion when i play."*
+  The circle on a bot's coin counter reads "+12" while 12 is the whole price, not twelve more. Wy-Blade's item, three shapes offered on
+  its page ("Crustbeard 12🌕" · "Crustbeard wants 12🌕" · "Crustbeard 12🌕 in all"); absent his pick it builds "Crustbeard wants 12🌕",
+  matching the answer line beside it, and shows before/after.
