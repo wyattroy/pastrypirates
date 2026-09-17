@@ -220,9 +220,15 @@ if (!source) { console.log("give --selftest, --dir <folder> or --firebase"); pro
 const fromPeople = rec => (isLiveHost(rec.host) || /^staging\./.test(String(rec.host || "")) || flag("--include-dev")) && rec.pid !== QA_PLAYER_ID;
 const players = source.filter(({ rec }) => fromPeople(rec));
 const results = players.map(({ rec }) => askVoyage(rec)).filter(r => flag("--all") || r.won);
-const skipped = results.filter(r => !r.map.ok).length;
+/* WHY A VOYAGE WAS LEFT OUT, SAID HONESTLY. "A map this build no longer draws" was printed for BOTH reasons, and on
+   2026-09-17 that read as a broken build when the truth was the opposite: his two staging voyages were 11 events long with no
+   dock in them, so there was nothing to check the map against. A voyage whose docks DISAGREE with this build's board is the
+   real thing that sentence means; one with no docks is simply too short to ask about. */
+const disagreed = results.filter(r => !r.map.ok && r.map.docks > 0).length;
+const tooShort = results.filter(r => !r.map.ok && r.map.docks === 0).length;
+const skipped = disagreed + tooShort;
 console.log(`${source.length} voyage logs carry a seed; ${players.length} were played by people (the live game or staging); ` +
-  `${results.length} ${flag("--all") ? "asked" : "were won by a human"}${skipped ? ` (${skipped} on a map this build no longer draws, left out)` : ""}`);
+  `${results.length} ${flag("--all") ? "asked" : "were won by a human"}${skipped ? ` (left out: ${[disagreed ? `${disagreed} on a map this build no longer draws` : "", tooShort ? `${tooShort} too short to check — no docks in them` : ""].filter(Boolean).join(", ")})` : ""}`);
 for (const [i, r] of results.entries()) if (r.map.ok) console.log(`  voyage ${i + 1}: ${r.days} days, agreed ${r.agreed}/${r.turns} turns, ${r.buysAgreed}/${r.buys} buys`);
 if (opt("--html")) {
   fs.writeFileSync(opt("--html"), page(results, { whose: flag("--all") ? "the human captains'" : "the winning captain's", wonOnly: !flag("--all"),
