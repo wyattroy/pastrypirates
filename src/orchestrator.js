@@ -101,6 +101,7 @@ import {
 } from "./net/index.js";
 import {
   showNarration, panel, setNeedsAction, flash, fadeOutPanel, narrateLastEvent, liveRender, setClockUI,
+  narrateEvent, // a fight says how it ended from the event its ending recorded (architecture item 9)
   bakeoffPrompt, bakeoffReveal, playBakeoffLive,
   benchChoreoMs, BENCH_STUDY_MS, BENCH_BEAT_MS, // A-2: the choreography's own timings, answered by the file that runs them
   appendChatLine, showChatBubble,
@@ -682,7 +683,7 @@ async function asyncBattleRun(att,def){
   await sleep(hold);
 
   // ---- both tails: the defender's FREE escape (rules 9a + 2c). May they, and where to, are the engine's; a human is asked ----
-  let fledWind=null;   // what the trade wind recorded when the defender landed (a ride, or a ride of no squares) — shown once the card is down
+  let flight={};   // what Game.flee recorded if the defender slips away: the flight itself (evFlee), and what the trade wind did with her (evWind)
   if(appState.game.mayFlee(F)){
     let flee;
     // @copy prompt.battle.flee
@@ -692,7 +693,7 @@ async function asyncBattleRun(att,def){
     if(flee){
       const cells=appState.game.fleeSquares(def);
       const dest=hD?await pickCell(def,cells):appState.game.botFleeSquare(F,cells);
-      fledWind=appState.game.flee(F,dest).evWind;   // move, record, the event with its route, THEN the trade winds — engine flee
+      flight=appState.game.flee(F,dest);   // move, record, the event with its route, THEN the trade winds — engine flee
       /* W9: the table is told BEFORE this tier draws — publishNow() is the broadcast half
          only, so no other browser sits on a frozen board for the length of this flee.
          ⭐ AND THEN IT WAITS ON THE DRAIN, not on the rides. Both events exist by now, and
@@ -738,39 +739,40 @@ async function asyncBattleRun(att,def){
   // battle's over — clear the broadcast scoreboard so every client's watchNarr can take the panel
   // back for the result narration (and so spectatingBattle resets). (#9)
   if(appState.isHost&&appState.db&&appState.room&&!appState.replaying)netRemoveBattle(appState.db,appState.room,netFail("battle clear"));
-  // T-249: a flee is the only one of asyncBattleRun's three exits that skipped settling the side
-  // bets — a NULL battle and a decided win both already tell every caller what happened. A flee
-  // has no winner either, so it gets the same NULL settlement: no bounty for anyone, but a caller
-  // is told their call resolved rather than left silent.
-  /* AND WHAT THE TRADE WIND DID WITH HER IS SAID, the way a won or a null fight says its result, before the calls are settled —
-     for every captain who flees, on every screen: a ship that fled onto the head of the current is told why she went no further
-     (architecture item 19; the one display step, src/ui/flow.js showTheWind). It could not be left to the attacker's closing
-     narration: the calls settle after the flee, so that narration finds a settled call and says nothing. */
-  if(F.fled){await showTheWind(fledWind);await settleSideBets(bets,null);return;}
-  if(!F.winner){
-    // rule 9: NULL — the battle ends with no player gaining anything, and no caller is paid (engine nullBattle)
-    appState.game.nullBattle(F);
-    liveRender();
-    await narrateLastEvent();
-    await settleSideBets(bets,null);
-    return null;
+  /* ⭐ HOW THE FIGHT ENDED IS SAID ONCE, BY THE FIGHT, FROM THE EVENT ITS ENDING RECORDED — before the calls settle, however it ended
+     (architecture item 9, 2026-09-17): a won fight ("Crustbeard wins and takes Cacao Pods."), a stand-off, or a flight ("Davy Scones
+     slips away!" — his line, DECISIONS.md 2026-09-13). Nothing after the fight speaks about it again: not humanAct after a person's
+     attack, and not botTurn's beat after a bot's, which finds only this fight's own wordless `disengage` on top.
+     WHAT STOOD HERE: three ways out. The won and the null way each narrated "whatever event is last" (narrateLastEvent) — the ending
+     only because nothing had been recorded after it yet — and the flight said nothing of itself, so "slips away!" was said by nobody
+     (measured before this change: 0 times in 4 posed flights on a solo phone — two- and four-captain tables, a person or a bot
+     attacking — and 0 on the host and the guest of a crew room), and both callers narrated whatever was last a second time once the
+     fight returned.
+     A stand-off's ending (`battlenull`) has no words of its own — its round has already said "cannonballs collide" or "Both miss." —
+     and it is handed to the narrator all the same, so the one narrator decides that, not this function.
+     ONE WAY OUT keeps T-249 by construction: a flight settles the crow's-nest calls exactly as a win or a null does (no bounty, but
+     every caller is told). What the trade wind did with a ship that fled is said next, in the order it happened (architecture item 19,
+     src/ui/flow.js showTheWind) — before the calls settle, because the settled calls are the last thing anything would find after. */
+  let evEnd;
+  if(F.fled)evEnd=flight.evFlee;
+  else if(!F.winner)evEnd=appState.game.nullBattle(F);   // rule 9: NULL — no player gains anything, and no caller is paid (engine nullBattle)
+  else{
+    const win=F.winner,lose=win===att?def:att;
+    // v2 rule 9d: the prize is a crate, full stop — the only choice left is the WINNER's, picking which crate to take. A human with more
+    // than one kind to choose from is asked; anyone else takes the engine's pick (engine botSpoilPick). The crate moves in engine winBattle.
+    let pick;
+    const uniq=[...new Set(lose.ing)];
+    if(win.strategy==="human"&&uniq.length>1){
+      // @copy prompt.battle.winnerplunder
+      pick=await ask(win.idx,say("battle.plunder",{name:pn(win.idx)}),uniq.map(i=>({label:ilabelImg(i),value:i})));}
+    else pick=appState.game.botSpoilPick(win,lose);
+    evEnd=appState.game.winBattle(F,pick);
   }
-  const win=F.winner,lose=win===att?def:att;
-  // v2 rule 9d: the prize is a crate, full stop — the only choice left is the WINNER's, picking which crate to take. A human with more
-  // than one kind to choose from is asked; anyone else takes the engine's pick (engine botSpoilPick). The crate moves in engine winBattle.
-  let pick;
-  const uniq=[...new Set(lose.ing)];
-  if(win.strategy==="human"&&uniq.length>1){
-    // @copy prompt.battle.winnerplunder
-    pick=await ask(win.idx,say("battle.plunder",{name:pn(win.idx)}),uniq.map(i=>({label:ilabelImg(i),value:i})));}
-  else pick=appState.game.botSpoilPick(win,lose);
-  appState.game.winBattle(F,pick);
   liveRender();
-  // narrate the outcome now — settlement pushes further events right after this, and callers only
-  // narrate the *last* event once asyncBattle returns
-  await narrateLastEvent();
-  await settleSideBets(bets,win===att?"a":"d");
-  return win;
+  await narrateEvent(evEnd);
+  await showTheWind(flight.evWind);
+  await settleSideBets(bets,F.winner?(F.winner===att?"a":"d"):null);
+  return F.winner;
 }
 
 // v2 rule 12: asyncBakeoff is gone — see the note in src/ui/flow.js. Best Baker is decided by

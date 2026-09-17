@@ -107,14 +107,16 @@ function rules(files, narrate = describeFor) {
     const recorders = Object.entries(S).flatMap(([f, s]) => [...s.matchAll(/t\s*:\s*"(tradewind|rimhead)"/g)].map(m => `${m[1]} in ${f}`));
     const tw = method(eng, "tradewind");
     const show = fnBody(flow, "export async function showTheWind("), fight = fnBody(orch, "async function asyncBattleRun(");
-    const fleeExit = (fight.match(/if\s*\(\s*F\.fled\s*\)\s*\{[^}]*\}/) || [""])[0].replace(/\s+/g, "");
-    const fledVar = (fight.match(/(\w+)\s*=\s*appState\.game\.flee\([^)]*\)\.evWind/) || [])[1];   // the flee's own recorded wind
+    /* re-anchored 2026-09-17 (architecture item 9): the fight has one way out now, so a flight's wind is shown on the way to the one
+       settlement — from what Game.flee handed back (the flight and its wind), before the calls settle */
+    const flightVar = (fight.match(/([A-Za-z_$][\w$]*)\s*=\s*appState\.game\.flee\(/) || [])[1];   // what Game.flee recorded: the flight and its wind
+    const windShown = flightVar ? fight.search(new RegExp(`showTheWind\\(\\s*${flightVar}\\.evWind\\s*\\)`)) : -1;
+    const settledAt = fight.search(/settleSideBets\(/);
     rule([
       [callers.length === 1 && /showTheWind\(\s*appState\.game\.tradewind\(\s*player\s*\)\s*\)/.test(after), `the trade-wind step is called ${callers.length} time(s) in the display code (${callers.join(", ") || "none"}) — it must be once, in flow.js afterSail`],
       [skipping.length === 0, `${skipping.join(" and ")} land(s) a boat without going through afterSail`],
       [recorders.length === 2 && /t\s*:\s*"tradewind"/.test(tw) && /t\s*:\s*"rimhead"/.test(tw), `a ride is recorded outside Game.tradewind (${recorders.join(", ")})`],
-      [!/\.tradewind\(/.test(fight) && !!fledVar && fleeExit.includes(`showTheWind(${fledVar})`)
-        && fleeExit.indexOf("showTheWind(") < fleeExit.indexOf("settleSideBets("),
+      [!/\.tradewind\(/.test(fight) && windShown >= 0 && settledAt > windShown,
         "the watched fight does not show its flee's trade wind through showTheWind (with Game.flee's own evWind) before the calls settle"],
       [/narrateEvent\(\s*ev\s*\)/.test(show) && /publishNow\(\)/.test(show) && /liveRender\(\)/.test(show) && !/events\s*\[/.test(show),
         "showTheWind does not tell the table, wait on the drain and narrate the event it is handed"],
@@ -193,7 +195,7 @@ const MUTANTS = [
   ["a second recorder of the head, in the display code", broken(FLOW, "async function afterSail(player){", "async function afterSail(player){\n  if(false)appState.game.ev({t:\"rimhead\",p:player.idx});"), 0],
   ["the engine's step back to silence at the head (the old body)", broken(ENG, "return blown?false:this.ev({t:\"rimhead\",p:p.idx});", "return false;"), 2],
   ["the engine's step explaining a storm too", broken(ENG, "return blown?false:this.ev({t:\"rimhead\",p:p.idx});", "return this.ev({t:\"rimhead\",p:p.idx});"), 2],
-  ["a flee's trade wind left to the attacker's closing narration again", broken(ORCH, "if(F.fled){await showTheWind(fledWind);await settleSideBets(bets,null);return;}", "if(F.fled){await settleSideBets(bets,null);return;}"), 0],
+  ["a flight's trade wind no longer shown by the fight (said by nobody, as before item 19)", broken(ORCH, "  await showTheWind(flight.evWind);\n", ""), 0],
   ["showTheWind narrating the top of the pile instead of its event", broken(FLOW, "publishNow();await liveRender();await narrateEvent(ev);", "publishNow();await liveRender();await narrateLastEvent();"), 0],
   ["a bot's headless sail skipping the trade-wind step", broken(ENG, "{throughRim:false,from:before})]});this.tradewind(p);}", "{throughRim:false,from:before})]});}"), 2],
   ["the line worded with a ready-made name, the same on every screen (never \"ye\")", files, 3, (e) => describeFor(e, NEUTRAL_VIEWER)],

@@ -2795,8 +2795,7 @@ export async function humanAct(player,sailCtx){
       await ask(player.idx,say("act.whom",{}),attackable.map(o=>({label:pn(o.idx),value:o,seat:o.idx})).concat([{label:say("button.back",{}),back:true,value:null,seat:player.idx}]),
         attackable.map(o=>HEXCOL[o.idx]));
     if(t===null){await humanAct(player,sailCtx);return;}
-    await netHandlers().onAsyncBattle(player,t);
-    await narrateLastEvent();
+    await netHandlers().onAsyncBattle(player,t);   // the fight has said how it ended, before the calls settled (architecture item 9)
   }
   else if(v==="trade"){
     // #5d: safety net, same shape as Attack's own two lines up — the button is disabled when P
@@ -3111,6 +3110,8 @@ export async function botTurn(player){
   // decision — the same plan, refusing to pretend it arrived.
   if(plan.type==="attack"&&g.attackTargets(player).includes(plan.target)){
     await netHandlers().onAsyncBattle(player,plan.target);
+    /* the bot's ordinary beat, the one it takes after every move — and it adds no words here: the fight has already said how it ended
+       (architecture item 9), and the event on top of the pile is now the fight's own `disengage`, which has none */
     await botBeat();return;
   }
   // A hail put to the table IS this turn's action, struck or refused; a trade never spoken costs nothing and falls through to
