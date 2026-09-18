@@ -272,12 +272,24 @@ export const WORDS = {
   "trade.accepts": "{icon} {q} {q:accepts|accept}",
   "trade.wants": "💰 {q} {q:wants|want} {what}",
   "trade.wantsInstead": "💰 {q} {q:wants|want} {what} <i>instead</i>",
+  /* ⭐ THE ANSWER CIRCLES — the same sentences the lines above say, short enough for a petal (architecture item 20b, 2026-09-18).
+     WYATT, ON HIS OWN PLAYTEST: "Fix this so it is intuitive -- i've also noticed the confusion when i play." The circle beside a
+     counter-offer read "Crustbeard" over "+12🌕" while the line beside it read "Crustbeard wants Fresh Milk + 12🌕" — and the 12 is
+     the WHOLE price, not twelve MORE. A leading + on a total is a lie a player pays for. HIS RULING ON THE WORDING, and it is the
+     default here: "Crustbeard wants 12🌕". So the circle now says what the line says, in the line's own verb, with the amount in
+     full — {what} is built by flow.js's dealBits, the one place a deal's crate and coin become words.
+     THE PETAL IS A FLEX COLUMN (index.html "#pp4Prompt.radial .apBtn"), so every CHILD of the label is its own row —
+     measured, not assumed: the first cut of this line left the verb, the crate and the price as three separate children
+     and the disc grew from 105px to 122px to hold five rows, which on a 375x812 phone put the circle over the narration
+     box it agrees with. The ask is therefore ONE child: the captain on the first row, what they are askin' on the second,
+     wrapping inside itself the way any sentence does. */
+  "trade.takesShort": "{icon}<br>{q}",
+  "trade.wantsShort": "{q}<span>{q:wants|want} {what}</span>",
   "trade.offer": "offer",
   "trade.nothin": "nothin'",
   "trade.that": "that",
   "trade.notCarrying": "Ye're not carryin' {ing} any more.",
   "trade.tooDear": "That'd cost ye {n}🌕, and ye've only {coins}🌕 aboard.",
-  "trade.coinsShort": "+{n}🌕",
   "trade.walkAway": "🚫 Walk away",
   "trade.refuses": "{q} {q:refuses|refuse} outright",
   "trade.declines": "{q} {q:declines|decline}",

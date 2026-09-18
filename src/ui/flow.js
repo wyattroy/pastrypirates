@@ -2115,6 +2115,22 @@ export async function humanDock(player,port){
    presents gets the slider. See ask()'s own note in util.js. */
 // the engine owns what a counter MEANS (see Game.counterTerms) — this is just the reach.
 const counterTerms=(offer,r)=>appState.game.counterTerms(offer,r);
+/* ⭐ WHAT A DEAL COMES TO, IN WORDS — the crate and the coin, decided here, once (architecture item 20b, 2026-09-18).
+   WYATT, ON HIS OWN PLAYTEST: "Fix this so it is intuitive -- i've also noticed the confusion when i play."
+   Four places in this file turned a deal into words and one of them disagreed with the other three. Measured on a posed
+   counter (a crate offered with 3🌕 on it, countered for 9 more), desktop 1400x900 and phone 375x812 dsf3:
+     the ask line  read  "💰 Crustbeard wants 🥛 Fresh Milk + 12🌕"    — the whole price, correctly
+     the CIRCLE    read  "Crustbeard" / "🥛+12🌕"                      — the same 12, with a + in front of it
+   The + was words.js's "trade.coinsShort" ("+{n}🌕"), a leftover from when a counter really was "+k coins ON TOP".
+   Since counterTerms (engine) started returning the TOTAL, that + has been telling a captain the price is twelve MORE
+   than the offer they are looking at. A trade prompt that misstates the price is worse than one that says nothing —
+   the same fault, one size down, as the circle that once showed only a name (see humanAnswersHail's note).
+   So: ONE builder, and the amount is "coin.amount" ({n}🌕) wherever it is read. `icons` is the only difference a
+   surface may ask for — a petal has room for the crate's picture, not its name — and it changes no word.
+   NOTHING ELSE MAY WORD A DEAL: scripts/qa/counter_price_one_wording_check.mjs fails if a second builder appears, or
+   if either answer circle goes back to a sentence typed into this file instead of one from words.js. */
+const dealBits=(ing,coins,icons)=>[ing?(icons?iconImg(ING_IMG[ing]):ilabelImg(ing)):null,
+  coins?say("coin.amount",{n:coins}):null].filter(Boolean).join(" + ");
 /* THE COUNTER-OFFER, REBUILT — playtest 21 item 7 (Wyatt): "'Ask it' is really confusing because
    i clicked it thinking that i could counteroffer their money with asking for their milk. Instead,
    it simply initiated the trade (which i did not want). I want a way to counteroffer with other of
@@ -2196,10 +2212,9 @@ async function counterOffer(q,player,offer){
        which is the counter's own shape (askFor on top, Game.counterTerms). */
     const room=askIng?g.counterRoom(player,offer,askIng):coinRoom;
     if(!room)continue;                           // no such counter can be made — re-pick
-    const bits=n=>[askIng?ilabelImg(askIng):null,n?say("coin.amount",{n}):null].filter(Boolean).join(" + ");
     // @copy prompt.trade.countercoins — APPROVED as written, Wyatt 2026-08-14 ("draft copy is fine")
     const n=await coinSlider(q.idx,
-      k=>say("counter.asking",{q:pn(q.idx),what:bits(k)||say("trade.nothin",{}),want:ilabelImg(offer.want)}),
+      k=>say("counter.asking",{q:pn(q.idx),what:dealBits(askIng,k)||say("trade.nothin",{}),want:ilabelImg(offer.want)}),
       room.min,room.min,room.max,say("counter.go",{}),null,null,room.base);
     if(n==null)return null;
     if(n==="__back__")continue;                  // BACK MEANS BACK — return to the crate picker
@@ -2351,7 +2366,6 @@ export async function humanTrade(player){
         await ask(player.idx,say("trade.nothingToOffer",{}),[{label:say("button.back",{}),back:true,value:-1}]);
         step=1;continue;
       }
-      const giveBits=n=>[st.baseIng?ilabelImg(st.baseIng):null,n?say("coin.amount",{n}):null].filter(Boolean).join(" + ");
       // @copy prompt.trade.addcoins
       // playtest 21 item 7: the slider here too, not only in the counter. Wyatt's rule is about the
       // ARC, not about one prompt — leaving ±1 circles on the offer-building step and removing them
@@ -2406,11 +2420,17 @@ export async function humanTrade(player){
        - the ASK now enumerates every answer, one captain per line, in full — Wyatt's instruction,
          and the only place there is room for the whole deal;
        - the CIRCLE's short form carries the crate ICON and the coins, so even the compact form can
-         never be read as "just tap the name". Short means SHORTER, not silent. */
+         never be read as "just tap the name". Short means SHORTER, not silent.
+
+     AND SHORTER IS STILL THE SAME SENTENCE — architecture item 20b, 2026-09-18, Wyatt on his own
+     playtest: "Fix this so it is intuitive -- i've also noticed the confusion when i play." The
+     circle had kept the price but lost the VERB, so "Crustbeard" over "+12🌕" read as twelve coins
+     MORE than the offer already on the table, when 12 is the whole of it. Both circles now say
+     what their line says (trade.takesShort / trade.wantsShort), out of the same words table and
+     the same dealBits — so the petal and the sentence beside it cannot mean two prices again. */
   const opts=[];
   const termsOf=r=>counterTerms(offer,r);
-  const bitsOf=t=>[t.giveIng?ilabelImg(t.giveIng):null,t.giveCoins?say("coin.amount",{n:t.giveCoins}):null]
-    .filter(Boolean).join(" + ");
+  const bitsOf=(t,icons)=>dealBits(t.giveIng,t.giveCoins,icons);
   const answerLines=[];
   for(let i=0;i<responses.length;i++){
     const r=responses[i];
@@ -2418,7 +2438,7 @@ export async function humanTrade(player){
       const b=bitsOf(offer);
       answerLines.push(say("trade.takes",{icon:iconImg(CHECKMARK_IMG),q:seat(r.q.idx),what:b||say("trade.offer",{})},player.idx));
       opts.push({label:say("trade.accepts",{icon:iconImg(CHECKMARK_IMG),q:seat(r.q.idx)},player.idx),
-        short:`${iconImg(CHECKMARK_IMG)}<br>${pn(r.q.idx)}`,value:i});
+        short:say("trade.takesShort",{icon:iconImg(CHECKMARK_IMG),q:seat(r.q.idx)},player.idx),value:i});
     }
     else if(r.kind==="counter"){
       /* counterTerms() is the ONE place a counter is turned into the deal it means, and the ask
@@ -2431,7 +2451,8 @@ export async function humanTrade(player){
       const swap=t.giveIng&&t.giveIng!==offer.giveIng;
       answerLines.push(say(swap?"trade.wantsInstead":"trade.wants",{q:seat(r.q.idx),what:bits||say("trade.nothin",{})},player.idx));
       opts.push({label:say("trade.wants",{q:seat(r.q.idx),what:bits||say("trade.nothin",{})},player.idx),
-        short:`${pn(r.q.idx)}<br>${t.giveIng?iconImg(ING_IMG[t.giveIng]):""}${t.giveCoins?say("trade.coinsShort",{n:t.giveCoins}):""}`,
+        // the petal: the crate's picture where the line has its name, and the same price in full
+        short:say("trade.wantsShort",{q:seat(r.q.idx),what:bitsOf(t,true)||say("trade.nothin",{})},player.idx),
         value:i,
         // the engine's one test of what an asker can honour — the same one it applies for a bot
         disabled:!g.canTakeAnswer(player,offer,r),
