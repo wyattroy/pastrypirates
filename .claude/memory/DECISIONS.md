@@ -3540,3 +3540,16 @@ tomorrow's sea overnight, rejecting a seed that cannot be baked or that one seat
   The circle on a bot's coin counter reads "+12" while 12 is the whole price, not twelve more. Wy-Blade's item, three shapes offered on
   its page ("Crustbeard 12🌕" · "Crustbeard wants 12🌕" · "Crustbeard 12🌕 in all"); absent his pick it builds "Crustbeard wants 12🌕",
   matching the answer line beside it, and shows before/after.
+- **WINNING PAYS A FLAT 500 — HIS CALL, 2026-09-17:** *"I think winning should just give you +500, make it a clean number."* It was a
+  derived 445 (twice the best possible non-winner, less what a winner banks on the way). He was told the trade-off in the same breath;
+  the round number is his. IT TURNS OUT TO COST NOTHING: a winner has by definition reached the ovens and finished, so the worst winner
+  scores 100+50+75+500 = 725 against a non-winner's ceiling of 335, and voyage_score_check still proves "any winner doubles any
+  non-winner" over 2000 random voyages, now with a 4th mutant (the win cut to 350) to keep that honest.
+- **HIS BUILD .17.5 PLAYTEST, 2026-09-17.** All 18 Tier-1 cleanup items LOOKS RIGHT, plus the halted voyage, the bake-off buttons, the
+  tap-the-coin fix, "so close", one ending in a crew, the shuffle hint and the rest. Five problems, each taken at its root:
+  · coins leaving a purse when he PASSED at a dock (the dock event carried the crate's price whether or not anybody bought; the engine
+    now records `paid` beside it — 539 of 1,878 docks in 80 voyages were passes) · the victory card's swipe under a MOUSE (release
+    outside the card never ended the drag: measured, the pages still followed the cursor 104px afterwards) · the ceremony off-centre and
+    not re-placed on resize (it was measured in window coordinates while drawn in a layer the page's own transform offsets — the same
+    trap as the flip coin; now 2px off the board's centre at 820, 1280 and 1440 wide) · the win paying a round 500 · the pre-game
+    narration's dark edges (his third ask on that screen — it must use the stage's own darkening, not its own).
