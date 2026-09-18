@@ -36,6 +36,7 @@ import { fileURLToPath } from "node:url";
 import { judgeModeFor } from "./lib/judge_mode.mjs";
 import { gameTreeHash } from "./lib/game_tree_hash.mjs";
 import { findCulprit, renderCulprit } from "./lib/npm_test_culprit.mjs";
+import { chainString } from "./lib/gate_chain.mjs";
 /* WHY EVERY CHILD BELOW CARRIES THIS. When this trial is started by start_trial_detached.mjs it
    has no console of its own, and on Windows a console-less parent makes Windows hand each console
    child a BRAND-NEW console — a visible black window on Wyatt's screen, whose ✕ kills the run.
@@ -287,11 +288,15 @@ try {
 } catch (e) {
   /* `npm test` failed. DO NOT guess the culprit from a tail-slice of the whole run's output — CEO
      Review 185 caught that approach naming two PASSING gates while the real failure went unnamed.
-     Re-run package.json's own chain, one entry at a time, and report whichever one actually exits
+     Re-run the suite's own chain, one entry at a time, and report whichever one actually exits
      non-zero (scripts/lib/npm_test_culprit.mjs). Slower than a tail-slice, but this path is only
-     ever taken when the suite is already red. */
-  const pkg = JSON.parse(fs.readFileSync(path.join(REPO, "package.json"), "utf8"));
-  const result = findCulprit(pkg.scripts && pkg.scripts.test, { cwd: REPO });
+     ever taken when the suite is already red.
+     THE CHAIN NOW COMES FROM THE MANIFEST (architecture item 63): `scripts.test` is one command,
+     `node scripts/run_gates.mjs`, so reading it here would hand findCulprit a ONE-entry chain and
+     this report would name the runner instead of the gate — the exact defect CEO 185 found. The
+     list is scripts/gates.manifest.json, rendered back into the `&&` chain string findCulprit's
+     contract takes (scripts/qa/sea_trial_names_failing_gate_check.mjs holds that contract). */
+  const result = findCulprit(chainString(), { cwd: REPO });
   unitCulpritBlock = renderCulprit(result);
   unitTail = result.failed === true
     ? `FAILING GATE: ${result.entry}\n\n${[result.stdout, result.stderr].filter(Boolean).join("\n")}`

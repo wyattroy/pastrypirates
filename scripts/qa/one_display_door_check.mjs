@@ -106,11 +106,14 @@ else fail(`two narration tracks (narrateEvent exists:${!!narr} bot beat routes t
    It lives HERE, in the doors gate, rather than in a `storm_one_door_check.mjs` of its own, because the
    audit asked for that in its own words (.planning/ARCHITECTURE-AUDIT-2026-09-16.md line 55: this gate
    "checks only flow.js for dock coins, only pickCell for camera calls, and nothing for … stormCam … —
-   extend with items 4, 5, 12, 24") and because a new chain entry will not fit: MEASURED on Wy-Blade by
-   binary search, the longest `scripts.test` cmd.exe will run is 8154 characters and the chain is 8150.
-   Four characters. A gate added under ANY name makes `npm test` die with "The command line is too long"
-   before a single check runs. That ceiling is a finding in its own right and is reported to the lead; it
-   is not a reason to ship this fact ungated, and this is where the fact belongs anyway.
+   extend with items 4, 5, 12, 24") and because, ON THE DAY THIS WAS WRITTEN, a new chain entry would not
+   fit: MEASURED on Wy-Blade by binary search, the longest `scripts.test` cmd.exe will run is 8154
+   characters and the chain was 8150. Four characters. A gate added under ANY name made `npm test` die
+   with "The command line is too long" before a single check ran. That ceiling was a finding in its own
+   right, was reported to the lead, and is GONE: architecture item 63 (2026-09-18) moved the list into
+   `scripts/gates.manifest.json` and made `scripts.test` one 26-character command. The measurement above
+   is left as the record of why the manifest exists — the placement of these six checks stands on the
+   audit's own sentence, which is the reason that did not expire.
 
    THE FACT, in the game's words: when a storm arrives the camera pulls out to show every ship and where
    the wind is driving it, and then each ship is shown running downwind. Two things — the wide shot, and
