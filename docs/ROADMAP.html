@@ -118,7 +118,7 @@
         <tr><td><strong>The tutorial</strong></td><td><span class="tag t-done">Built</span></td><td>The parrot tutorial ships in <code>src/ui/pilot.js</code>, from your eight rulings on 2 September.</td></tr>
         <tr><td><strong>Search</strong></td><td><span class="tag t-part">Half done</span></td><td>The code half is built and gated: robots file, sitemap, and a crawl-intent check that fails the build. The half that matters isn’t started: the brand collision hasn’t been re-measured since 26 August, and there’s no Search Console tag in the page.</td></tr>
         <tr><td><strong>Firebase safety</strong></td><td><span class="tag t-no">Open</span></td><td>The budget alert and the scoped database rules were both recorded as not done on 6 September, and the game writes without signing in. On your pay-as-you-go plan, abuse is a bill, not an outage.</td></tr>
-        <tr><td><strong>The live game vs. the work</strong></td><td><span class="tag t-part">162 behind, closing today</span></td><td>Dev reports the merge in flight as I write: today’s playtest fixes → <code>dev</code> → staging → <code>main</code>. When it lands, players get everything and the gap is zero.</td></tr>
+        <tr><td><strong>The live game vs. the work</strong></td><td><span class="tag t-done">Closing tonight</span></td><td><strong>Your verdict already happened — today.</strong> You played staging .17.5, marked all 18 items “looks right”, gave five problems and said: <em>“do these changes, get them verified, then ship to main.”</em> All five are built. Unless the test re-run finds something real, production goes from 2026.09.13.5 to <strong>2026.09.17.6 tonight</strong>. Dev will confirm when it’s serving.</td></tr>
         <tr><td><strong>Solo and crew polish</strong></td><td><span class="tag t-cut">Cuttable — your call</span></td><td>Your cut line today: polish slips before the date does.</td></tr>
       </tbody>
     </table></div>
@@ -153,7 +153,7 @@
     </ul>
     <h3>Landed this week, and not in any backlog</h3>
     <p>The victory card and the voyage score both shipped: a voyage now ends with a crown, a podium, awards and a score the engine works out once — your words, “SO FUN TO SEE!!!”, with winning now a flat +500. Dev also opened an art list: boats with sails down, sails as separate pieces, and a real trophy per award to retire the placeholder medals.</p>
-    <p>Dev’s own checklist, which it alone writes, is <a href="https://claude.ai/artifact/LvqytfTYCwssQzTcmNFped">here</a>.</p>
+    <p>Dev’s own checklist, which it alone writes, is <a href="https://claude.ai/artifact/LvqytfTYCwssQzTcmNFped">here</a>. (Two links point at it — a short one and a long one — and they are the same page, not two pages. Dev has written that into the repo so nobody publishes a duplicate by mistake.)</p>
     <div class="note"><label for="n-dev">Your notes: What Mac: Dev says</label><textarea id="n-dev" data-note="dev" data-label="What Mac: Dev says" rows="2"></textarea></div>
   </section>
 
@@ -164,7 +164,7 @@
       <div class="goal"><div><b>You can see how it’s going</b>The counting already works. What’s missing is a page you can tap that shows visits, voyages started and voyages finished.<small>Done when: you open one link on your phone and read today’s numbers without asking me. By 22 Sep.</small></div></div>
       <div class="goal"><div><b>The code stops being copyable</b>The repository goes private, and the staging build survives it.<small>Done when: the project reads private and a no-op push still publishes staging. By 25 Sep.</small></div></div>
       <div class="goal"><div><b>A bill can’t run away</b>The Firebase budget alert set, and the database rules scoped.<small>Done when: an alert exists, and an unauthenticated write to a room is refused. By 26 Sep.</small></div></div>
-      <div class="goal"><div><b>What players get is what we’ve built</b>The 161 commits reach the live game, after your verdict on staging.<small>Done when: whole voyages play to the end card in solo, pass-and-play and crew on the final build, then dev merges to main. By 29 Sep.</small></div></div>
+      <div class="goal"><div><b>What players get is what we’ve built</b>Two batches, not one. The first is tonight’s: everything since 13 September, on your verdict today. The second is the “every fact decided in one place” cleanup, about 18 of 45 items done, which needs its own staging round and its own verdict.<small>Done when: production reads 2026.09.17.6 tonight, and the second batch has your yes before 30 Sep.</small></div></div>
       <div class="goal"><div><b>Someone can find it</b>Search Console connected, sitemap complete, and one sentence saying which search we promise to win.<small>Done when: the site is confirmed listed, and the promise is written down. By 30 Sep.</small></div></div>
     </div>
     <div class="note"><label for="n-goals">Your notes: The six goals</label><textarea id="n-goals" data-note="goals" data-label="The six goals" rows="2"></textarea></div>
@@ -185,12 +185,12 @@
       <div class="day his"><b>Thu 25</b><span class="who">You · 10 minutes</span><p>Clear the custom domain in the old host’s settings first, then make the repository private, then push anything to <code>dev</code> and watch staging still build. Delete the old staging repository once it does.</p></div>
       <div class="day his"><b>Fri 26</b><span class="who">You · 10 minutes</span><p>Set the Firebase budget alert. Ten minutes, and it is the difference between a surprise and a bill.</p></div>
       <div class="day mine"><b>Fri 26</b><span class="who">Me</span><p>Scope the database rules so a stranger can’t write into your rooms, and put them in the repo where they can be reviewed.</p></div>
-      <div class="day mine"><b>Sat 27 – Sun 28</b><span class="who">Me</span><p>Whole voyages to the end card, in all three modes, on the final build, both crew windows compared at your phone size. Only real faults get fixed; polish waits.</p></div>
-      <div class="day his"><b>Mon 29</b><span class="who">You · 20 minutes</span><p>Your verdict on the final staging build. On your yes, <code>dev</code> merges to <code>main</code> and players get everything.</p></div>
+      <div class="day mine"><b>Sat 27 – Sun 28</b><span class="who">Me</span><p>Whole voyages to the end card, in all three modes, on the final build, both crew windows compared at your phone size — this time on the Cloudflare-served live domain, which is the thing no earlier test covers. Only real faults get fixed; polish waits.</p></div>
+      <div class="day his"><b>Mon 29</b><span class="who">You · 20 minutes</span><p><strong>The second batch, not the first.</strong> Tonight’s build already carries everything you approved today. This slot is for Wy-Blade’s “every fact decided in one place” cleanup — about 18 of 45 items done — which gets its own staging round and its own verdict. If it isn’t ready, it waits; it is not a launch blocker.</p></div>
       <div class="day mine"><b>Tue 30</b><span class="who">Me</span><p>Search Console connected, sitemap completed, share pictures checked. Freeze: nothing else changes before launch.</p></div>
       <div class="day his"><b>Thu 1 Oct</b><span class="who">Launch</span><p>Post it. Then watch three numbers all week: voyages finished, captains who come back, and the Firebase bill.</p></div>
     </div>
-    <div class="callout"><b>Slack is built in</b>Two working days sit unused between 21 and 24 September, and the polish work is cuttable on your instruction. If something slips, it comes out of polish first, then out of search — never out of the cutover, the analytics, or the safety work.</div>
+    <div class="callout"><b>Slack is built in, and it just grew</b>Two working days sit unused between 21 and 24 September, and the merge that was going to cost the 29th has moved twelve days earlier — it happens tonight. If something slips, it comes out of polish first, then out of search — never out of the cutover or the safety work. <strong>The date now rests on one thing: your five minutes at Squarespace tomorrow.</strong></div>
     <div class="note"><label for="n-days">Your notes: The 14 days</label><textarea id="n-days" data-note="days" data-label="The 14 days" rows="2"></textarea></div>
   </section>
 
