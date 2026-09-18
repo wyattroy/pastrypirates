@@ -63,8 +63,12 @@ const SIZES = [
    a child is a row). `iconImg` renders an <img>; a 26px box is what `#pp4Prompt.radial .apBtn img`
    sizes it to, so the ask is represented at its real width rather than as text.
    ⚠ KEEP THIS IN STEP WITH words.js. It was the old "+{n}🌕" spelling until architecture item 20b
-   (2026-09-18) deleted that: a pose of a label the game no longer draws measures a fiction, however
-   green it comes back. scripts/qa/counter_price_one_wording_check.mjs holds the wording itself.
+   (2026-09-18) deleted that, and it carried "wants" until item 20c the same day, when Wyatt settled
+   the wording himself — the circle names the captain and the price and nothing else. A pose of a
+   label the game no longer draws measures a fiction, however green it comes back. Note which way
+   that error ran: the word made the posed line WIDER than the game's, so the pose was harder on the
+   names than the game is, never easier. scripts/qa/counter_price_one_wording_check.mjs holds the
+   wording itself; this file only measures whether a name fits.
 
    ⚠ IT REMOVES `pp4Center` BEFORE ADDING `radial` — THEY ARE ALTERNATIVES, NEVER BOTH, and the
    first cut of this check got that wrong and measured a fiction for a whole pass. A resting prompt
@@ -92,7 +96,7 @@ const POSE = (names, control) => `(()=>{
   const mk=(html,tag)=>{const b=document.createElement('button');b.className='apBtn';
     b.innerHTML=html;b._shortHtml=html;b.dataset.t017=tag;row.appendChild(b);return b;};
   for(const n of ${JSON.stringify(names)})
-    mk('<b style="color:#c33">'+n+'</b><span>wants <img src="assets/ingredients/sugar.png"> + <span class="nobrk">3🌕</span></span>','name:'+n);
+    mk('<b style="color:#c33">'+n+'</b><span><img src="assets/ingredients/sugar.png"> + <span class="nobrk">3🌕</span></span>','name:'+n);
   mk(${JSON.stringify(control)},'control');
   return "posed";})()`;
 

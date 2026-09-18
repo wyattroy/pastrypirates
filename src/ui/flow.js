@@ -2423,12 +2423,14 @@ export async function humanTrade(player){
        - the CIRCLE's short form carries the crate ICON and the coins, so even the compact form can
          never be read as "just tap the name". Short means SHORTER, not silent.
 
-     AND SHORTER IS STILL THE SAME SENTENCE — architecture item 20b, 2026-09-18, Wyatt on his own
+     AND SHORTER STILL NAMES THE SAME PRICE — architecture item 20b, 2026-09-18, Wyatt on his own
      playtest: "Fix this so it is intuitive -- i've also noticed the confusion when i play." The
-     circle had kept the price but lost the VERB, so "Crustbeard" over "+12🌕" read as twelve coins
-     MORE than the offer already on the table, when 12 is the whole of it. Both circles now say
-     what their line says (trade.takesShort / trade.wantsShort), out of the same words table and
-     the same dealBits — so the petal and the sentence beside it cannot mean two prices again. */
+     circle had kept the price but SIGNED it, so "Crustbeard" over "+12🌕" read as twelve coins
+     MORE than the offer already on the table, when 12 is the whole of it. Both circles now come
+     out of the same words table (trade.takesShort / trade.wantsShort) and the same dealBits — so
+     the petal and the sentence beside it cannot mean two prices again.
+     HIS OWN WORDING FOR THAT CIRCLE, and it is final (item 20c, 2026-09-18): "Crustbeard 12🌕" —
+     the captain and the price, no verb. words.js holds it; nothing in this file picks a word. */
   const opts=[];
   const termsOf=r=>counterTerms(offer,r);
   const bitsOf=(t,icons)=>dealBits(t.giveIng,t.giveCoins,icons);

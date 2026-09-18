@@ -15,7 +15,13 @@
    price was twelve MORE than the offer in front of them. A trade prompt that misstates the price turns a deliberate choice
    into a forfeit — the same fault, one size down, as the circle that once showed a name and no terms at all (playtest 21).
 
-   HIS RULING ON THE WORDING, given with the ask and not invented here: the line should read "Crustbeard wants 12🌕".
+   HIS WORDING FOR THE CIRCLE, answered by him himself when the question reached him (2026-09-18, item 20c) and FINAL:
+
+       Crustbeard 12🌕
+
+   The captain and the price, NOTHING ELSE — no verb. Item 20b worked from a relay of that ruling and drew "Crustbeard wants
+   12🌕" for one commit; he struck the word out. Rules 4 and 7 below hold his wording, so putting any other word on the circle
+   — "wants" included — turns this gate red rather than passing quietly.
 
    BEFORE, FOUR PLACES TURNED A DEAL INTO WORDS (tree 3388f500), and one of them disagreed:
      src/ui/flow.js:2199  counterOffer   `bits`      — the countering captain's slider line   ("🥛 Fresh Milk + 12🌕")
@@ -34,15 +40,17 @@
         nowhere in src/.
      3. THE CIRCLES SPEAK FROM THE TABLE — every `short:` on a trade answer is a say() of a words id, never a sentence
         built in flow.js.
-     4. THE PETAL SAYS WHAT THE LINE SAYS — trade.wantsShort carries trade.wants' own verb clause and its {what}.
+     4. THE PETAL IS THE CAPTAIN AND THE PRICE, NOTHING ELSE — trade.wantsShort carries the line's own {q} and its {what},
+        and not one word besides: no verb, no "for", no punctuation of its own. HIS wording, not a house style.
      5. THE PETAL IS THE CAPTAIN AND THEIR ASK, TWO ROWS — everything after {q} lies inside ONE element. MEASURED, not
         reasoned: the petal is a flex COLUMN (index.html "#pp4Prompt.radial .apBtn"), so every child is its own row; a first
         cut that left the verb, the crate and the price as separate children grew the disc from 105px to 122px and put the
         circle over the narration box on a 375x812 phone.
      6. BEHAVIOURAL, the real humanTrade compiled from flow.js onto the real engine: a crate offered with 3🌕, countered for
-        9 more — the line and the circle name the SAME price, 12, and neither signs it.
-     7. BEHAVIOURAL, his own sentence: a coins-only offer countered the same way puts "Crustbeard wants 12🌕" on the circle,
-        word for word.
+        9 more — the line and the circle name the SAME price, 12, and neither signs it. The circle is the line with the pouch,
+        the verb and the crate's NAME taken off and the crate's picture put back.
+     7. BEHAVIOURAL, his wording: a coins-only offer countered the same way puts "Crustbeard 12🌕" on the circle, character
+        for character.
    WHAT IT DOES NOT SEE, so a PASS is never read as more: the ENGINE's own offerLabel (src/engine/index.js) spells a deal a
    fifth time for the EVENT log ("Fresh Milk + 3 coins", coined by util.js fmtItem). It carries no misleading sign and is a
    different consumer — the voyage record, not a prompt — so it is named here and left alone. */
@@ -117,12 +125,13 @@ function textRules(files, words) {
     "both answer circles are a say() of a words id — trade.takesShort and trade.wantsShort — never a sentence built in flow.js",
     `a trade answer's circle is built in the drawing code again: ${JSON.stringify(shorts)}`);
 
-  // 4. the petal says what the line says
+  /* 4. the petal is the captain and the price and nothing else — HIS wording, "Crustbeard 12🌕". Strip the markup and the two
+     facts it is allowed to carry, and there must be nothing left over: a verb clause, a stray word or a stray mark all fail. */
   const line = words["trade.wants"] || "", petal = words["trade.wantsShort"] || "";
-  const verb = (line.match(/\{q:[^}]*\}/) || [""])[0];
-  rule(!!verb && petal.includes(verb) && petal.includes("{what}") && petal.includes("{q}"),
-    `the circle carries the line's own verb ${verb} and its {what} — "${petal}"`,
-    `the circle and the line no longer say the same thing: line "${line}", circle "${petal}"`);
+  const leftOver = petal.replace(/<[^>]*>/g, "").replace(/\{q\}|\{what\}/g, "").trim();
+  rule(petal.includes("{q}") && petal.includes("{what}") && !/\{q:/.test(petal) && leftOver === "",
+    `the circle is the captain and the price and nothing else — "${petal}"`,
+    `the circle says more than the captain and the price: circle "${petal}"${leftOver ? `, with "${leftOver}" left over after {q} and {what}` : ""} (the line, which keeps its verb, reads "${line}")`);
 
   // 5. the captain, then their ask, in one element  (the flex-column measurement above)
   const after = petal.replace(/^\{q\}(<br>)?/, "");
@@ -189,29 +198,32 @@ async function behaviourRules(files, words) {
   const got = {};
   try {
     /* 6. a crate offered with 3🌕, countered for 9 more. THE CIRCLE IS THE LINE, with the crate's picture where the line
-       spells its name — so take the line, drop the pouch it opens with and the crate's NAME, and what is left must be the
-       circle, character for character. That is the whole convergence, asserted rather than described: a sign, a word or a
-       number that appears on one and not the other fails here. */
+       spells its name — so take the line, drop the pouch it opens with, the VERB (his wording keeps it on the line and off
+       the circle) and the crate's NAME, and what is left must be the circle, character for character. That is the whole
+       convergence, asserted rather than described: a sign, a word or a number on one and not the other fails here. */
     const s = await posedTrade(flow, words, { crate: true, offered: 3, askFor: 9 });
     const opt = s.answer.options.find(o => o.short) || {};
     const petal = opt.short || "", line = opt.label || "";
     const lineAmts = amounts(line), petalAmts = amounts(petal);
-    const lineAsCircle = plain(line).replace(` ${s.crate}`, "").replace(/^\S+\s/, "");
+    const lineAsCircle = plain(line)
+      .replace(/^\S+\s/, "")                                   // the pouch the line opens with
+      .replace(new RegExp(`^(${NAME(1)})\\s\\S+\\s`), "$1 ")   // the line's verb, whatever word the table gives it
+      .replace(` ${s.crate}`, "");                             // the crate's NAME — the circle carries its picture instead
     got.crate = { line: plain(line), petal: plain(petal), lineAsCircle, lineAmts, petalAmts, onScreen: s.answer.msg.includes(line) };
     got.crate.ok = lineAmts.length === 1 && petalAmts.length === 1 && lineAmts[0] === "12🌕" && petalAmts[0] === "12🌕"
       && !/[+−]/.test(lineAmts[0] + petalAmts[0]) && lineAsCircle === plain(petal) && /ing\//.test(petal) && got.crate.onScreen;
-    // 7. his own sentence, on a coins-only offer
+    // 7. his wording, on a coins-only offer: the captain and the price, nothing else
     const c = await posedTrade(flow, words, { crate: false, offered: 3, askFor: 9 });
     const cPetal = (c.answer.options.find(o => o.short) || {}).short || "";
-    got.coins = { petal: plain(cPetal), want: `${NAME(1)} wants 12🌕` };
+    got.coins = { petal: plain(cPetal), want: `${NAME(1)} 12🌕` };
     got.coins.ok = got.coins.petal === got.coins.want;
   } catch (e) { got.threw = String(e && e.stack || e); }
   rule(!!got.crate && got.crate.ok && !got.threw,
-    `the real trade screen on the real engine: a crate offered with 3🌕 and countered for 9 more puts the line "${got.crate ? got.crate.line : "?"}" on screen and the SAME sentence on its circle — "${got.crate ? got.crate.petal : "?"}" — one price, 12🌕, unsigned on both`,
-    `the line and the circle no longer say one thing: ${JSON.stringify({ crate: got.crate, threw: got.threw })}`);
+    `the real trade screen on the real engine: a crate offered with 3🌕 and countered for 9 more puts the line "${got.crate ? got.crate.line : "?"}" on screen and the same deal on its circle — "${got.crate ? got.crate.petal : "?"}" — one price, 12🌕, unsigned on both`,
+    `the line and the circle no longer name one deal: ${JSON.stringify({ crate: got.crate, threw: got.threw })}`);
   rule(!!got.coins && got.coins.ok && !got.threw,
-    `his sentence, word for word, on a coins-only counter: "${got.coins ? got.coins.petal : "?"}"`,
-    `the circle no longer reads "${got.coins ? got.coins.want : "<name> wants 12🌕"}": ${JSON.stringify({ coins: got.coins, threw: got.threw })}`);
+    `his wording, character for character, on a coins-only counter: "${got.coins ? got.coins.petal : "?"}"`,
+    `the circle no longer reads "${got.coins ? got.coins.want : "<name> 12🌕"}": ${JSON.stringify({ coins: got.coins, threw: got.threw })}`);
   return out;
 }
 
@@ -231,11 +243,11 @@ const MUTANTS = [
     broke("const dealBits=", "const otherBits=(i,c)=>[i?ilabelImg(i):null,c?say(\"coin.amount\",{n:c}):null].filter(Boolean).join(\" + \");\nconst dealBits="),
     WORDS, [0]],
   ["the circle signing the price again: trade.wantsShort rendering \"+{n}🌕\"",
-    files, { ...WORDS, "trade.wantsShort": "{q}<span>{q:wants|want} +{what}</span>" }, [5, 6]],
-  ["the circle losing the verb — the name and a bare number, as it was",
-    files, { ...WORDS, "trade.wantsShort": "{q}<span>{what}</span>" }, [3, 6]],
+    files, { ...WORDS, "trade.wantsShort": "{q}<span>+{what}</span>" }, [5, 6]],
+  ["the word he struck out put back: the circle saying \"wants\" again",
+    files, { ...WORDS, "trade.wantsShort": "{q}<span>{q:wants|want} {what}</span>" }, [3, 5, 6]],
   ["the circle's ask split back into separate children (the 122px disc over the narration box)",
-    files, { ...WORDS, "trade.wantsShort": "{q}<br>{q:wants|want} {what}" }, [4]],
+    files, { ...WORDS, "trade.wantsShort": "{q}<br>{what}" }, [4]],
   ["the accept circle built in the drawing code again",
     broke("short:say(\"trade.takesShort\",{icon:iconImg(CHECKMARK_IMG),q:seat(r.q.idx)},player.idx),value:i});",
       "short:`${iconImg(CHECKMARK_IMG)}<br>${pn(r.q.idx)}`,value:i});"), WORDS, [2]],

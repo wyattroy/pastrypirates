@@ -272,19 +272,24 @@ export const WORDS = {
   "trade.accepts": "{icon} {q} {q:accepts|accept}",
   "trade.wants": "💰 {q} {q:wants|want} {what}",
   "trade.wantsInstead": "💰 {q} {q:wants|want} {what} <i>instead</i>",
-  /* ⭐ THE ANSWER CIRCLES — the same sentences the lines above say, short enough for a petal (architecture item 20b, 2026-09-18).
+  /* ⭐ THE ANSWER CIRCLES — the same deal the lines above name, short enough for a petal (architecture item 20b, 2026-09-18).
      WYATT, ON HIS OWN PLAYTEST: "Fix this so it is intuitive -- i've also noticed the confusion when i play." The circle beside a
      counter-offer read "Crustbeard" over "+12🌕" while the line beside it read "Crustbeard wants Fresh Milk + 12🌕" — and the 12 is
-     the WHOLE price, not twelve MORE. A leading + on a total is a lie a player pays for. HIS RULING ON THE WORDING, and it is the
-     default here: "Crustbeard wants 12🌕". So the circle now says what the line says, in the line's own verb, with the amount in
-     full — {what} is built by flow.js's dealBits, the one place a deal's crate and coin become words.
+     the WHOLE price, not twelve MORE. A leading + on a total is a lie a player pays for.
+     HIS WORDING, ANSWERED BY HIM HIMSELF AND FINAL (2026-09-18, item 20c): "Crustbeard 12🌕" — the circle names the CAPTAIN and
+     the PRICE and nothing else. No verb. (Item 20b worked from a relay of his ruling and put "wants" on it for one commit; he
+     struck the word out when the question reached him. Do not put it back — counter_price_one_wording_check.mjs rules 4 and 7
+     go red on any other word.) The amount is {what}, built by flow.js's dealBits, the one place a deal's crate and coin become
+     words, so the circle and the line beside it cannot name two prices.
+     THE KEY KEEPS ITS NAME: a "…Short" id here is the petal form of the LINE it is named after — trade.wantsShort is
+     trade.wants' petal, exactly as trade.takesShort is trade.takes' and carries no "takes" either.
      THE PETAL IS A FLEX COLUMN (index.html "#pp4Prompt.radial .apBtn"), so every CHILD of the label is its own row —
-     measured, not assumed: the first cut of this line left the verb, the crate and the price as three separate children
+     measured, not assumed: a first cut of this line left the verb, the crate and the price as three separate children
      and the disc grew from 105px to 122px to hold five rows, which on a 375x812 phone put the circle over the narration
      box it agrees with. The ask is therefore ONE child: the captain on the first row, what they are askin' on the second,
      wrapping inside itself the way any sentence does. */
   "trade.takesShort": "{icon}<br>{q}",
-  "trade.wantsShort": "{q}<span>{q:wants|want} {what}</span>",
+  "trade.wantsShort": "{q}<span>{what}</span>",
   "trade.offer": "offer",
   "trade.nothin": "nothin'",
   "trade.that": "that",
