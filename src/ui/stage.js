@@ -152,6 +152,18 @@ function stageHoldsAttention(){
   const ap = $("actionPanel");
   return !!(ap && ap.dataset.pp4Stage);
 }
+/* ⭐ HOW LONG THE CAMERA TAKES TO TRAVEL — the one number, named once, because it is now TWO facts and
+   not one. It is how fast the director moves, and since architecture item 48 it is also HOW LONG A
+   WATCHING SCREEN WAITS before a captain's boat is drawn moving: that wait is stageSettled(), and what
+   stageSettled waits for is this tween finishing. Measured on a phone, it is +0.67s on every watched turn
+   and about +31s on a four-captain voyage.
+   SO IF WYATT ASKS FOR "QUICKER", THIS IS THE NUMBER — and it moves every director move with it: the glide
+   between captains, the zoom into a fight, the pull back to the whole ocean. There is no separate knob for
+   the wait, and a second one must not be added: the wait IS the travel, and two numbers for one fact is how
+   they drift apart (SEAT_ZOOM below carries the same warning for the same reason).
+   It sat here as a bare literal until 2026-09-18, which was fine while nobody could tune it and wrong the
+   moment he could. SHIP_GLIDE_MS (util.js, 700) is its sister and is named the same way. */
+const CAM_GLIDE_MS = 650;
 function camTo(x, y, w, immediate){
   if (!immediate && S.active && stageHoldsAttention()){ S.camHeld = [x, y, w]; return; }
   S.camHeld = null;   // a performed move supersedes anything remembered
@@ -160,7 +172,7 @@ function camTo(x, y, w, immediate){
   S.cam.tw = Math.min(640, w);
   if (immediate){ S.cam.x = S.cam.tx; S.cam.y = S.cam.ty; S.cam.w = S.cam.tw; S.tween = null; wake(); return; }
   // Wyatt, playtest 3: the glide was a jerky exponential chase — S-curve it, ~300ms longer.
-  S.tween = { fx: S.cam.x, fy: S.cam.y, fw: S.cam.w, t0: performance.now(), dur: 650 };
+  S.tween = { fx: S.cam.x, fy: S.cam.y, fw: S.cam.w, t0: performance.now(), dur: CAM_GLIDE_MS };
   wake();   // the slow-gear heartbeat must never pace a glide
 }
 const easeInOutCubic = t => t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
@@ -293,7 +305,7 @@ function camFitCells(cells, maxZoom, reservePx, padCells){
    ⭐⭐ AND THE DOOR HANDS BACK THE WAIT FOR ITS OWN GLIDE — ARCHITECTURE ITEM 48, Wyatt's playtest ask
    of 2026-09-17, relayed by Mac: Dev: "the camera should center a bot before they begin to move."
    Item 46 above got the camera AIMED at the right captain. It was only ever asked for, though: the
-   glide is 650ms (camTo) and the next event was drawn the moment this function returned, so the boat
+   glide takes CAM_GLIDE_MS (camTo) and the next event was drawn the moment this function returned, so the boat
    set off while the camera was still travelling. MEASURED at rAF, sampling the SVG's APPLIED viewBox
    against the ship group's own drawn place — a guest phone at 375x812 in a real crew room, 9 of 9
    watched BOT turns: the hull began moving 31-92ms after the frame was asked for and the camera did
@@ -6048,7 +6060,7 @@ export function initStage(){
        It used to centre the MIDPOINT at a fixed 2.0x, which frames two adjacent ships and crops two
        that are not — camFitSeats derives the zoom from the gap instead, so both boats are on screen
        whatever the fight looks like. Re-fitting only when the pair changes: an unchanged re-fit
-       would restart the 650ms tween — and hold the tick loop in its fast gear — on every round. */
+       would restart the CAM_GLIDE_MS tween — and hold the tick loop in its fast gear — on every round. */
     battle: (a, d) => { if (!S.active) return;
       const g = appState.game; if (!g || !g.players[a] || !g.players[d]) return;
       const same = S.battle && S.battle[0] === a && S.battle[1] === d;
