@@ -15,6 +15,61 @@ whole reason the file exists.
 ---
 ---
 
+# 🔴 TOP OF THE LIST — A GRAPHICS OPTIMISATION AUDIT
+
+**His, 2026-09-18, in his own words:** *"the game has started to drop frames on my Mac and I wonder
+if there are ways that the graphics can be optimized better now that there are so many moving things
+on screen."*
+
+**He put it at the top of the backlog himself.** It is not a bug report — he has not named a moment —
+so the first job is to find out *when*, not to start optimising.
+
+### What NOT to do first, and why
+
+**Do not sample a whole voyage and rank the hot spots.** The confetti, the ovens and the crown are
+deliberately expensive for a second or two; an audit that starts with a profile will report those,
+they will look like the answer, and the thing he actually felt will not be in the list. **Get the
+moment first.** He was asked for it on 2026-09-18 — if he has answered by the time you read this,
+his answer is in `DECISIONS.md` and it is the whole brief.
+
+**And do not re-derive what is already measured.** `docs/BOARD-RENDERING.md` §5 holds the finding
+that shaped the current design, measured twice on this project:
+
+| | measured |
+|---|---|
+| an animation running as **SVG** `transform` | ~62 layouts/sec — 97% of all layout work, game idle |
+| the identical animation as **HTML** | **0 layouts/sec** |
+
+So *"Chrome does not composite SVG transform animations at all"* is settled, and the rule it earned —
+anything that animates continuously is HTML, and animates only `transform` and `opacity` — is the
+first thing to check compliance with, not the first thing to rediscover. **The likeliest finding is a
+new overlay that broke that rule**, not a need for a new strategy.
+
+### The shape of the work
+
+1. **His moment**, or his window size and what was on screen. Only he has it.
+2. **Reproduce it with the GPU ON.** `--disable-gpu` hid the entire finding last time
+   (`memory/`, perf note) — a probe that turns off the thing being measured proves nothing.
+3. **Count layouts and long frames, not CPU%.** The two rows above are the units this project
+   already thinks in, and they discriminate; CPU% did not.
+4. **Audit every overlay against the §5 rule** — `CAM_HTML_LAYERS`, and anything animating
+   `width`/`height`/`top`/`left`. Since that rule was written the game has gained: the victory
+   ceremony (crown, confetti, podium, the card and its pages), the coin and crate flights, the
+   departure coins, the sail wave, the cannon recoil and smoke, the speed lines, the storm's
+   lightning and rocking. **Several of those are new since anything was last measured.**
+5. **Only then** propose changes, each with a before/after in the same units.
+
+### What would make it real
+
+There is **no frame-rate harness in this repo** — nothing under `scripts/qa/` measures frames. That
+is the gap that makes "is it faster?" unanswerable today and it is the reason this is an *audit*
+rather than a fix. Building one is in scope; building one *instead of* answering his question is not.
+**His words, and the check on this whole item:** *"I don't really care about the ticket. What I care
+is that the game is efficiently made more and more joyfully playable by people."*
+
+---
+---
+
 # 🧭 HIS PHONE PLAYTEST OF STAGING dd56bb96 — 2026-09-11
 
 His words and the sheet answers are in `.claude/memory/DECISIONS.md` (2026-09-11). He was teaching for

@@ -3577,3 +3577,22 @@ so for one hour on staging a human's PURCHASE stopped drawing its coins leaving.
 green while it was true. Guarded now by rule 11 of `coin_arrival_one_event_check` (both directions),
 and the convergence — one producer for a dock event — is Wy-Blade's Tier 2 item 49. Lesson in
 `docs/HARD-WON-LESSONS.md` §2: *one consumer is not one path*.
+
+---
+
+## 2026-09-18 — A GRAPHICS OPTIMISATION AUDIT GOES TO THE TOP OF THE BACKLOG
+
+**His words:** *"Add to the backlog at the top to do a graphics optimization audit— the game has
+started to drop frames on my Mac and I wonder if there are ways that the graphics can be optimized
+better now that there are so many moving things on screen."*
+
+**Placement is his ruling, not a judgement call** — he said "at the top" and it is at the top.
+
+**Not yet answered by him: WHICH MOMENT.** He has not named when it drops, and that is the one input
+only he holds. Asked on 2026-09-18. Until it arrives, anyone starting this item profiles a whole
+voyage and reports the confetti, the ovens and the crown — which are expensive on purpose — and
+misses what he felt. **The item says so in its own first paragraph; do not skip past it.**
+
+Written up in full at the head of `.planning/BACKLOG.md`, pointing at `docs/BOARD-RENDERING.md` §5
+(SVG vs HTML compositing, measured twice) rather than re-deriving it, and naming the real gap: there
+is no frame-rate harness in this repo, so "is it faster?" is unanswerable today.
