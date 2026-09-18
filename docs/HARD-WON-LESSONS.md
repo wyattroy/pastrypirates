@@ -467,6 +467,34 @@ number would have been green and I would have sent you a clean bill."*
 columns cost nothing and they are where the surprises live. And when a value comes back `undefined`
 where the code should produce `0`, that is never cosmetic — it means a producer you have not read.
 
+### A NUMBER THAT COMES OUT THE SAME ON BOTH SIDES OF THE CHANGE IS NOT MEASURING THE CHANGE
+
+**2026-09-18, and it is the sharpest thing anyone said all night.** Item 48 (hold the camera before
+the board is drawn) made an existing top-bar disagreement much more frequent: four times a voyage
+became **every watched turn, 0.6–0.7 s typical, 3.3 s worst.** The measurer reported it with the
+reassurance that had cleared the original: *"Still 0 tappable in all 13."*
+
+Two faults, and the second is the general one.
+
+**The specific fault: a safety test was used to answer a correctness question.** Wyatt's cover-up
+rule is about ACCESS — something drawn *over* a control a player wants to reach; `0 tappable` is
+exactly its test. A top bar naming the wrong captain is not access, it is **misinformation**. Nothing
+was covered; something was wrong. Reaching for the nearest ruling because its test is already
+implemented is how a rule gets applied outside the thing it was written about. **Check what the rule
+is about, not whether its test happens to pass.**
+
+**The general fault, in the measurer's own words when it took the correction:**
+
+> *"A measurement that returns the same value on both sides of the change I am judging is not
+> measuring the change. I had it in my hand and read it as reassurance."*
+
+`0 tappable` before, `0 tappable` after. That invariance is not evidence the change is harmless — it
+is evidence the instrument is blind to it, and the two are indistinguishable from inside the number.
+**So before quoting a figure in defence of a change, ask what it read on the other side.** If it is
+the same figure, it is not defending anything, and you are one step from shipping a regression with
+a green number beside it. (The other entries in this section are about probes that can only confirm;
+this one is about a probe that cannot *discriminate* — the weaker and commoner failure.)
+
 ### A CHECK BUILT ON YOUR OWN ARITHMETIC IS THE SUSPECT, NOT THE WITNESS
 
 2026-08-14, and the reason it earns its own entry beside the probe-inversion lesson below is the
