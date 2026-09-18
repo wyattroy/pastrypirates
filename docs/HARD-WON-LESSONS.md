@@ -455,6 +455,14 @@ the same shape — the thing that broke sat upstream of what anyone was watching
 The fourth was never seen by anyone: it was found by **reading what `render()` does at a `turn`
 before trusting a reorder**, which is the habit this entry is asking for.
 
+**AND THE REASON THAT FOURTH ONE ACTUALLY GOT FOUND, which is the difference between a habit and a
+slogan.** The other three each needed a *measurement* — a phone run, a gate, a probe. The fourth
+needed **one read of what `render()` does at a `turn`**, about two minutes. An entry that asks for
+diligence gets filed under "be thorough" and skipped; an entry that asks for something cheap gets
+done. So when you reach for this rule, reach for the cheap end of it first: **read the producer**,
+which is free, before you build an instrument to watch the consumer, which is not. Wy-Blade's
+observation, 2026-09-18, and it is why this entry is worth its length.
+
 **The rule: when you change what an event MEANS, grep for every place that emits it before you
 change the place that reads it.** `grep -n 't:"<name>"' src/` costs two seconds. "There is one
 consumer" is a fact about the consumer and says nothing about how many things speak into it.
