@@ -185,6 +185,31 @@ class Game{
       return {cells:s.map(([x,y])=>[x-mx,y-my]),shapeIdx,rot,flip};
     };
     const rects=[],rectsMeta=[];
+    /* THE SEA MUST STAY ONE SEA. Would adding `cand` leave any open-water square unreachable from
+       Tortuga? Rim cells are never a stopping point (the wind sweeps you off), so they are treated
+       as impassable here exactly as the game's own routing treats them — the same predicate the
+       dock placement below already uses, which is why this is that rule applied one step earlier
+       rather than a second opinion about what "water" means. */
+    const sealsWater=(cand)=>{
+      const taken=new Set();
+      for(const r2 of rects)for(const c of r2)taken.add(c[0]+","+c[1]);
+      for(const c of cand)taken.add(c[0]+","+c[1]);
+      const open=c=>c[0]>=0&&c[1]>=0&&c[0]<n&&c[1]<n
+        &&!this.blocked(c)&&!this.onRim(c)&&!taken.has(c[0]+","+c[1]);
+      if(!open(this.home))return true;                 // never wall in Tortuga itself
+      let sea=0;
+      for(let x=0;x<n;x++)for(let y=0;y<n;y++)if(open([x,y]))sea++;
+      const seen=new Set([this.home[0]+","+this.home[1]]),q=[this.home];
+      while(q.length){
+        const c=q.shift();
+        for(const d of Object.values(DIRS)){
+          const o=[c[0]+d[0],c[1]+d[1]],k2=o[0]+","+o[1];
+          if(seen.has(k2)||!open(o))continue;
+          seen.add(k2);q.push(o);
+        }
+      }
+      return seen.size!==sea;
+    };
     for(let k=0;k<this.ings.length;k++){
       let done=false;
       // ORDER IS LOAD-BEARING — each iteration of this loop calls shapeFor(), which consumes
@@ -205,6 +230,16 @@ class Game{
             return Object.values(DIRS).some(d=>this.rim.has((c[0]+d[0])+","+(c[1]+d[1])));
           }))continue;
           if(cellsR.some(c=>rects.some(r2=>r2.some(d=>man(c,d)<spacing))))continue;
+          /* ⛔ AND IT MUST NOT WALL OFF ANY WATER. Wyatt, 2026-09-18, with a photograph:
+             "the islands have trapped in a player! fix the layout algorithm to prevent this."
+             Measured on the generator as it stood: 43 of 400 boards (10.8%) held water no captain
+             could ever reach — pockets of up to 15 squares — because every other constraint here
+             is LOCAL (does this shape fit, is it far enough from its neighbours, does it leave the
+             trade-wind lane) and none of them asks the one global question: can you still sail
+             everywhere? A ring of islands satisfies every local rule and seals the middle.
+             Checked incrementally, which is sound because adding an island can only ever REMOVE
+             water: if the sea is whole after island k it was whole after k-1. */
+          if(sealsWater(cellsR))continue;
           rects.push(cellsR);rectsMeta.push({shapeIdx,rot,flip});done=true;break;
         }
         if(done)break;

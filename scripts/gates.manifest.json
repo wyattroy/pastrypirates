@@ -7,6 +7,7 @@
     "node scripts/gate_count_check.js",
     "node scripts/tree_health_check.js",
     "node scripts/engine_contract_check.js",
+    "node scripts/qa/the_sea_is_one_sea_check.mjs",
     "node scripts/dlog_replay_test.js",
     "node scripts/dlog_quantity_check.js",
     "node scripts/net_registry_test.js",
