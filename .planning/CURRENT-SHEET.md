@@ -18,6 +18,30 @@ serves an artifact under a short slug and under its uuid, and a read of either r
 against the link he is given, and a session came within one step of publishing a replacement.
 **Give him the slug form.** Check identity by reading the URL, never by comparing the two strings.
 
+## ⏳ WAITING TO GO ON THE SHEET — items another session sent that are not testable yet
+
+**Why this section exists:** a session that sends an item "so it does not get lost" is relying on the
+receiving session's memory, which is the one thing that does not survive. It goes here instead, in
+the file whoever writes the sheet already reads.
+
+**An item goes on the sheet only when he can actually test it.** A link that answers someone else's
+404 is worse than no item: he taps it, sees something wrong, and reports a fault that is only the
+item arriving early.
+
+- **`cf-404` — the lost-at-sea page.** From the Cloudflare session (branch `sep18-cloudflare-preflight`,
+  tip `ebfa47b7`). Add on the FIRST staging build after that merges, with that build's real stamp.
+  Two links: `/no-such-page` and `/deep/folder/no-such-page` (the second is the one likely to break —
+  the page uses root-absolute links so it survives at depth). Rendered preview he approved the wording
+  against: https://claude.ai/artifact/S7EDTqrXHWgHawP2NEaNda. Taste on the card and the two lines is
+  HIS; a defect is the game loading instead, or the button not reaching the game.
+  **Say in the item what staging cannot prove:** the page exists because *Cloudflare* Pages otherwise
+  answers every unknown address with the whole game and a 200. GitHub Pages — which serves staging and
+  production today — already 404s on its own. So a staging test shows the page renders and its links
+  work at any depth; it does NOT exercise the behaviour the page was written for. That waits for the
+  cutover.
+  *(Checked 2026-09-18: their `404.html` already carries `noindex, nofollow` in a literal `<head>`, so
+  `crawl_intent_check` will not go red on it. I went looking for that trap; it was not there.)*
+
 ## The others, so nobody re-makes them
 
 - Card-feel tuner — https://claude.ai/code/artifact/b6cfcdac-fa74-425c-9b1b-ba518af4e4fc
