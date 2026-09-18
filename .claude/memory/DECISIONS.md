@@ -3553,3 +3553,27 @@ tomorrow's sea overnight, rejecting a seed that cannot be baked or that one seat
     not re-placed on resize (it was measured in window coordinates while drawn in a layer the page's own transform offsets — the same
     trap as the flip coin; now 2px off the board's centre at 820, 1280 and 1440 wide) · the win paying a round 500 · the pre-game
     narration's dark edges (his third ask on that screen — it must use the stage's own darkening, not its own).
+
+---
+
+## 2026-09-18 — RELEASE: production moved 2026.09.13.5 → 2026.09.17.6 (main 99cb5f05)
+
+**His approval, 2026-09-17, verbatim:** *"do these changes, get them verified, then ship to main."*
+171 commits. The victory card and voyage score, the cleanup's first eighteen, and his five .17.5
+playtest fixes. Verified by `npm test` on Wy-Blade at 389071e8 — 1333 checks, 0 failures — against a
+tree byte-identical in `src/`, `index.html`, `scripts/` and `package.json` to what was merged.
+
+**His ruling that settled the score number, same day:** *"I think winning should just give you +500,
+make it a clean number."* It is flat 500 now, and the doubling property SURVIVES — 2000 random
+voyages, no winner ever under double a non-winner. My warning that it would break was too
+pessimistic and I withdrew it to him in the same session.
+
+**The gap, recorded rather than buried:** the victory card's mouse-release and the ceremony's
+re-centring were measured only by me, on the Mac. The other four of his five have a second witness
+on a phone at his own size.
+
+**And what nearly shipped.** The dock fix reached the ENGINE's dock emitter and not `ui/flow.js`'s,
+so for one hour on staging a human's PURCHASE stopped drawing its coins leaving. Every gate was
+green while it was true. Guarded now by rule 11 of `coin_arrival_one_event_check` (both directions),
+and the convergence — one producer for a dock event — is Wy-Blade's Tier 2 item 49. Lesson in
+`docs/HARD-WON-LESSONS.md` §2: *one consumer is not one path*.
