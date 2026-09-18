@@ -8,7 +8,7 @@ fifteen that already exist.
 here is the one that is wrong.
 
 SHEET: https://claude.ai/artifact/LvqytfTYCwssQzTcmNFped
-BUILD: 2026.09.17.6-staging@389071e8
+BUILD: 2026.09.17.6-staging@18c2bb93
 NAME:  Pastry Pirates Checklist — he renamed it himself on 2026-09-17; it was "The plaque merge sheet".
 
 **ONE PAGE, TWO SPELLINGS — do not "reconcile" these into a second artifact.** The slug above and
@@ -28,23 +28,8 @@ the file whoever writes the sheet already reads.
 404 is worse than no item: he taps it, sees something wrong, and reports a fault that is only the
 item arriving early.
 
-- **`cf-404` — the lost-at-sea page.** From the Cloudflare session (branch `sep18-cloudflare-preflight`,
-  tip `ebfa47b7`). Add on the FIRST staging build after that merges, with that build's real stamp.
-  Two links: `/no-such-page` and `/deep/folder/no-such-page` (the second is the one likely to break —
-  the page uses root-absolute links so it survives at depth). Rendered preview he approved the wording
-  against: https://claude.ai/artifact/S7EDTqrXHWgHawP2NEaNda. Taste on the card and the two lines is
-  HIS; a defect is the game loading instead, or the button not reaching the game.
-  **Say in the item what staging cannot prove — AND where the proof does live.** Staging runs on GitHub
-  Pages, which 404s on its own, so a pass there means the page renders and its root-absolute links
-  survive at depth. The behaviour it was written for — *Cloudflare* Pages, with no root `404.html`,
-  assuming a single-page app and answering every unknown address with the whole game and a 200 — is
-  proven at **runbook step 6, on `pastrypirates-staging.pages.dev`**, which is a real Cloudflare Pages
-  site that exists before any DNS moves. It is step 6's fifth check, and the game loading instead of
-  the card there is a stop-and-tell-him, not a cosmetic note.
-  *(Their correction to my first draft, and the better shape: a caveat that says "untested until X" is
-  an excuse; one that NAMES where the proof lives is a plan. Write the second kind.)*
-  *(Checked 2026-09-18: their `404.html` already carries `noindex, nofollow` in a literal `<head>`, so
-  `crawl_intent_check` will not go red on it. I went looking for that trap; it was not there.)*
+*(Empty right now. `cf-404` was queued here on 2026-09-18 and folded into the sheet the same night,
+once staging served it at `@18c2bb93` — the queue did its job and the item moved on.)*
 
 ## The others, so nobody re-makes them
 
