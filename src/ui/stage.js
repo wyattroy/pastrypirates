@@ -288,7 +288,24 @@ function camFitCells(cells, maxZoom, reservePx, padCells){
 
    `seat` is optional and falls back to the viewer, so any future caller with no seat in hand keeps
    the old local behaviour rather than silently framing seat 0. `local` has no default on purpose:
-   a screen that has not been told it is the one being asked is a watcher. */
+   a screen that has not been told it is the one being asked is a watcher.
+
+   ⭐⭐ AND THE DOOR HANDS BACK THE WAIT FOR ITS OWN GLIDE — ARCHITECTURE ITEM 48, Wyatt's playtest ask
+   of 2026-09-17, relayed by Mac: Dev: "the camera should center a bot before they begin to move."
+   Item 46 above got the camera AIMED at the right captain. It was only ever asked for, though: the
+   glide is 650ms (camTo) and the next event was drawn the moment this function returned, so the boat
+   set off while the camera was still travelling. MEASURED at rAF, sampling the SVG's APPLIED viewBox
+   against the ship group's own drawn place — a guest phone at 375x812 in a real crew room, 9 of 9
+   watched BOT turns: the hull began moving 31-92ms after the frame was asked for and the camera did
+   not arrive until 653-666ms. Every single one. A solo phone watching a bot: 7 of 7, the same.
+   So the ONE PLACE that decides what a watching screen frames also decides that nothing is drawn
+   until that frame has arrived — it hands back stageSettled(), the stage's own settle (the camera's
+   tween over AND every ship standing where the engine says, hard-capped at SETTLE_CAP_MS so a wait
+   can never hold a voyage), and the one event consumer awaits it on the `turn` event.
+   THE SCREEN BEING ASKED IS NEVER HELD: its own sail prompt must not wait on the glide it just asked
+   for, so only the watching branch returns a wait. A wait line's call in stageFlash gets the same
+   promise and does not await it — nothing is waiting on a narration's own glide, and that is correct.
+   scripts/qa/camera_settles_before_the_move_check.mjs holds all of it. */
 function camFrameTurn(seat, pos, local){
   S.lock = false;                                    // a new turn releases any gesture hold
   const g = appState.game; if (!g) return;
@@ -300,9 +317,10 @@ function camFrameTurn(seat, pos, local){
   const who = g.players[seat ?? appState.mySeat ?? 0];
   const own = (pos && Number.isFinite(+pos[0])) ? pos : (who && who.pos);
   if (!own) return;
-  // A WATCHING SCREEN FRAMES THE BOAT. His ruling above, and the whole of the branch it replaced:
-  // a fallback that asked the engine for squares this screen is not drawing and cannot draw.
-  if (!local){ camToCell(own, SEAT_ZOOM); return; }
+  // A WATCHING SCREEN FRAMES THE BOAT, AND WAITS FOR THE CAMERA TO GET THERE. His ruling above, and
+  // the whole of the branch it replaced: a fallback that asked the engine for squares this screen is
+  // not drawing and cannot draw. The wait is item 48's half — one place decides both.
+  if (!local){ camToCell(own, SEAT_ZOOM); return stageSettled(); }
   // playtest 20: the squares carry their own grid coordinates now (sailHighlightRect writes
   // data-gx/gy). This used to invert that function's inset arithmetic by hand — a second copy of
   // the same maths that had to be kept in step with it, and it stopped being possible at all once
@@ -6019,8 +6037,12 @@ export function initStage(){
        that captain's choice — decisionIsLocal, the one display door's own second input, passed by the
        one event consumer on the `turn` event. `pos` (optional) is the asked captain's authoritative
        square off the prompt spec; renderPickPrompt passes it along with local:true, because the screen
-       drawing the squares IS the screen being asked. See camFrameTurn. */
-    turnFrame: (seat, pos, local) => { if (S.active) camFrameTurn(seat, pos, local); },
+       drawing the squares IS the screen being asked. See camFrameTurn.
+       ⭐ IT RETURNS WHAT THE DOOR HANDS BACK (architecture item 48): on a WATCHING screen that is the
+       wait for the glide this call just started, which the one event consumer awaits before it draws
+       anything else of that turn. A promise nobody returns and a promise nobody awaits are the same
+       defect twice, so the bridge must not swallow it. */
+    turnFrame: (seat, pos, local) => { if (S.active) return camFrameTurn(seat, pos, local); },
     /* THE SHOT IS THE FIGHT, AND IT IS HELD. Called by the one event consumer on the fight's `engage` — drawn before the opening line,
        so the camera is already there when it speaks — and let go (battleEnd) on its `disengage`, on every screen (architecture item 4).
        It used to centre the MIDPOINT at a fixed 2.0x, which frames two adjacent ships and crops two
