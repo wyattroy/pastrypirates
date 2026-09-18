@@ -452,7 +452,7 @@ const STORM_PUSH=3;
 
 /* ================= THE BAKE-OFF (v2.1, experimental) =================
    The end-of-voyage minigame: five mixing bowls, shuffled, named back in the recipe's own order.
-   See v2bakeoff/src/engine/bakeoff.js for the pure core and RULES-V2.md for the ruleset.
+   See src/engine/bakeoff.js for the pure core and RULES-V2.md for the ruleset.
 
    BAKEOFF_ENABLED IS A ROLLBACK SWITCH, NOT A TUNING KNOB. False restores the pre-bake-off game
    exactly — the instant finish and the one-lap final round — and scripts/bakeoff_baseline.js proves  [UNGATED-IN-4: bakeoff_baseline.js reads the root tree, not this one]

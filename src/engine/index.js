@@ -3334,7 +3334,7 @@ class Game{
   /* ================= THE BAKE-OFF (v2.1) =================
      Arriving at Tortuga with a full recipe no longer wins the voyage — it lights the ovens. The
      captain must then name their five ingredients back in the recipe's own order, under bowls that
-     have been shuffled. See v2bakeoff/src/engine/bakeoff.js for the pure core. */
+     have been shuffled. See src/engine/bakeoff.js for the pure core. */
   // Same predicate checkFinish has always used, extracted so both endings share one gate and can
   // never drift apart.
   /* IN PLAY — one predicate, and the ONLY thing that decides whether a captain is on the board.
