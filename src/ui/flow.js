@@ -1281,6 +1281,11 @@ export function stormCamForEvent(ev){
    exactly as liveRender's publish line is (ui-tier may never import src/net/, D-07), and pushEvents
    is a monotonic while-loop over appState.evPushed, so an early call costs one extra no-op pass and
    can never double-send or reorder.
+   ⚠ "CAN NEVER DOUBLE-SEND" WAS TRUE OF LIVE PLAY ONLY, and architecture item 47 (2026-09-18) found
+   the exception: during a host's reload-replay the frontier had been reset to 0 while the engine
+   rebuilt the whole voyage, so the first call from here flushed every record the crew already held
+   — thirty-six duplicate serials in the measured room. liveRender's own `replaying` return covered
+   its own path and this one had nothing. Fixed on the publisher, not here (see below).
    WHY NOT SIMPLY MOVE liveRender() ABOVE THE RIDE — the tempting one-line version: liveRender's
    drain is FIRE-AND-FORGET (`_nh.onConsumeEvent(e).catch(...)`, deliberately not awaited, because
    liveRender's body must stay synchronous for EVERY call site — the count is not the point and a
@@ -1294,7 +1299,8 @@ export function stormCamForEvent(ev){
    build when one did, correctly: this file DRAWS, and a conditional on who is playing has no
    business in it. The publish is host-only because PUBLISHING is host-only, so the guard sits on
    pushEvents itself (src/orchestrator.js), where rule 23 sanctions "who computes" and where it
-   protects every caller rather than this one. */
+   protects every caller rather than this one. The same is now true of "a screen rebuilding its own
+   history publishes nothing" — item 47 put it on the publisher for exactly this reason. */
 export function publishNow(){
   const h=netHandlers();
   if(h.onEvents)h.onEvents();
@@ -3654,7 +3660,11 @@ export function endReplay(){
     return;                 // leave evPushed where it was — pushEvents() resumes from the real
                             // frontier instead of skipping everything the replay failed to rebuild
   }
-  appState.evPushed=appState.resumeEvLen;   // events 0..resumeEvLen-1 are already in Firebase; push only what's new
+  /* (`appState.evPushed=appState.resumeEvLen` STOOD HERE — architecture item 47, 2026-09-18. It said
+     the right thing at the wrong moment: the replay's own publishNow() calls had already flushed the
+     whole rebuilt history to the crew by the time this line ran. The frontier is set where the number
+     is learned — resumeHostGame, src/orchestrator.js — and nothing between there and here may publish,
+     because pushEvents now refuses while this screen is rebuilding its own history.) */
   // The resumed host is live again: re-arm the full host-gone kit (onDisconnect + the reconnect
   // re-assert watcher). resumeHostGame already re-marked the bare onDisconnect for the reconnect
   // window; this is the durable arming, deliberately AFTER replaying clears so armHostGone()'s

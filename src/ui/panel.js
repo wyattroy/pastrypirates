@@ -179,7 +179,7 @@ const DRAINED = Promise.resolve();
    property the note below calls load-bearing (a sail's own sound, instant). */
 let _tail = DRAINED, _busy = false;
 export function liveRender(){
-  if(appState.replaying)return DRAINED;  // during reload-replay we rebuild state silently, no render/broadcast
+  if(appState.replaying)return DRAINED;  // during reload-replay we rebuild state silently: nothing is DRAWN. (It used to be the broadcast guard too — architecture item 47 moved that onto pushEvents, where publishNow's path reaches it as well.)
   appState.evIdx=Math.max(0,appState.game.events.length-1);
   if(!appState.game.events.length)return DRAINED;
   const _nh=netHandlers();

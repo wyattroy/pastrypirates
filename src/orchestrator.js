@@ -1467,6 +1467,22 @@ export function pushEvents(){
      one thing that must never happen twice. */
   if(!appState.isHost)return;
   if(!appState.db||!appState.room)return;
+  /* ⭐ A SCREEN REBUILDING ITS OWN HISTORY HAS TOLD THE CREW NOTHING NEW — architecture item 47,
+     2026-09-18. THE RULE LIVES HERE, ON THE PUBLISHER, for the same reason the host guard above
+     does: it protects every caller instead of asking each one to remember.
+     WHAT IT COST BEFORE, measured in two windows (host 1200x950 + guest 375x812, room YGMF): a host
+     that reloaded on day 2 of a 36-record voyage put ALL THIRTY-SIX RECORDS BACK ON THE WIRE, every
+     serial from n0 to n35 a second time, every copy byte-identical to the original. The guest's own
+     feed went from 35 records to 72 for a 36-event voyage; its captain's log grew from 8 rows to 18
+     as the whole voyage was told again — Day 1's wind, the beluga, the docks, the trade — and three
+     coins flew across the board a second time. The engine came out right (both screens ended on the
+     same four squares and the same four purses); the crew were simply told the voyage twice.
+     WHY IT ESCAPED: liveRender (src/ui/panel.js) does carry this test, but publishNow (src/ui/flow.js)
+     — the other publish path, added by W9 so an animating call site can hand the table its event
+     early — does not, and it is called from a dozen places in the replay's own fast-forward. With
+     the frontier still at 0 (beginGame's reset, see below) the first of those calls flushed the
+     entire rebuilt history. This predates architecture item 10; it is not a regression from it. */
+  if(appState.replaying)return;
   while(appState.evPushed<appState.game.events.length){
     /* Q-18 — THE SERIAL IS STAMPED ON THE WIRE COPY, NEVER ON THE ENGINE'S OWN EVENT. Adding a
        field inside Game.ev would change what the engine emits into the event stream, which
@@ -2730,9 +2746,15 @@ export function beginGame(cfg,seed){
   // rebuilt from scratch on a resume, where the base must come from the SAVE, not from storage.
   appState.game.seaSeat=appState.mySeat;
   appState.game.seaBase=(appState.soloMeta&&appState.soloMeta.seaBase)||0;
-  appState.live=true;appState.liveDone=false;appState.evIdx=0;appState.evPushed=0;appState.evConsumed=0;appState.evSeen=null;appState.narrGen=0;appState.narrEvIdx=null;appState.appliedMeta=false;
-  // fresh start resets the decision log; a reload-replay keeps the log loaded by resumeHostGame
-  if(!appState.replaying){appState.dlog=[];appState.dlogIdx=0;appState.dlogN=0;}
+  appState.live=true;appState.liveDone=false;appState.evIdx=0;appState.evConsumed=0;appState.evSeen=null;appState.narrGen=0;appState.narrEvIdx=null;appState.appliedMeta=false;
+  /* fresh start resets the decision log; a reload-replay keeps the log loaded by resumeHostGame
+     ⭐ AND THE CREW'S FRONTIER MOVED IN HERE — architecture item 47. `evPushed` was the one number
+     on the line above that describes the CREW'S FEED rather than this screen's own engine, and it
+     sat on the unconditional reset: a resumed host announced "the crew have seen nothing" before it
+     had rebuilt a single event, which is the zero the whole voyage then went back out from.
+     A rebuilt engine starts at zero; the crew's feed does not. resumeHostGame has already said how
+     many records that feed holds by the time this runs, so on a resume this leaves it alone. */
+  if(!appState.replaying){appState.dlog=[];appState.dlogIdx=0;appState.dlogN=0;appState.evPushed=0;}
   appState.logLines=[];resetBoardLog(-2);$("log").innerHTML=""; // notes/edits 11-03: logRenderedTo now lives in src/ui/board.js
   $("chatLog").innerHTML="";clearChatBubbles();
   $("chatPanel").style.display=(appState.db&&appState.room)?"":"none"; // no chat in solo/pass-and-play — no one else to talk to
@@ -3003,7 +3025,18 @@ export async function resumeHostGame(r){
   appState.dlog=Object.keys(draw).map(Number).sort((a,b)=>a-b).map(k=>decodeDec(draw[k]));
   appState.dlogIdx=0;appState.dlogN=0;
   let evval={};try{evval=(await netReadEv(appState.db,appState.room)).val()||{};}catch(e){appState.resumeReadFailed=true;netFail("resume events")(e);}
+  /* ⭐ WHICH RECORDS THE CREW HAS ALREADY SEEN — architecture item 47, 2026-09-18. THIS IS THE ONE
+     MOMENT ANY SCREEN LEARNS IT: the feed's own length, read straight off `rooms/<room>/ev`, which
+     is the list the crew's watchEvents has been fed record by record. So the frontier is set HERE,
+     beside the number it comes from, and before the replay begins — not afterwards in endReplay,
+     which is one step too late for the publishes the replay itself makes (see pushEvents).
+     TWO USES, ONE READ: `resumeEvLen` is also the yardstick replayShortfall measures the rebuild
+     against ("did we actually get back?", src/ui/util.js), which is a different question and keeps
+     its own name. (wireRestoreFail answers a third one — what a player who chose to carry on from a
+     knowingly-incomplete voyage is numbering from — and deliberately uses the REBUILT length; BUG-04,
+     `5e29eab9`. It is not a copy of this and is left exactly as it was.) */
   appState.resumeEvLen=evval?Object.keys(evval).length:0;
+  appState.evPushed=appState.resumeEvLen;
   showGameView();
   // @copy prompt.net.reconnecting
   panel(`<div class="apMsg">${say("resume.reconnecting",{})}</div>`);
