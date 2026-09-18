@@ -126,7 +126,13 @@ async function rules(files) {
   const ended = /this\.ev\(\{\s*t\s*:\s*"disengage"\s*,\s*a\s*:\s*att\.idx\s*,\s*d\s*:\s*def\.idx/.test(end);
   const headlessEnds = /\bfinally\s*\{\s*this\.endBattle\(\s*att\s*,\s*def\s*\)/.test(headless);
   const run = fn(orch, "asyncBattleRun"), wrap = fn(orch, "asyncBattle");
-  const bAt = run.search(/\.beginBattle\(\s*att\s*,\s*def\s*\)/), drainAt = run.search(/await\s+liveRender\(\s*\)/), openAt = run.search(/"battle\.opening"/);
+  const bAt = run.search(/\.beginBattle\(\s*att\s*,\s*def\s*\)/), drainAt = run.search(/await\s+liveRender\(\s*\)/), openAt = run.search(/await\s+flash\(\s*opening\.html/);
+  /* ⚠ ANCHORED ON THE BEAT, NOT ON THE LINE'S NAME. This read `/"battle\.opening"/` until
+     2026-09-18, when Wyatt had the opening beat say "{a} loads the cannon…" instead — the ORDER
+     this rule exists to guard (begin -> drain -> speak) was untouched and the gate still went red,
+     because it was looking for a string rather than for the thing the string was in. Same fault as
+     the parity gate that anchored on local variable names. What is load-bearing is that the fight
+     SPEAKS after the drain; which words it speaks is his. */
   const refusedFirst = wrap.search(/if\s*\(\s*!\s*appState\.game\.canAttack\(\s*att\s*,\s*def\s*\)\s*\)\s*return\s+null/), tryAt = wrap.search(/\btry\s*\{\s*return\s+await\s+asyncBattleRun\(\s*att\s*,\s*def\s*\)/);
   const wrapEnds = /\bfinally\s*\{\s*appState\.game\.endBattle\(\s*att\s*,\s*def\s*\)\s*;\s*liveRender\(\s*\)/.test(wrap);
   const order = bAt >= 0 && drainAt > bAt && openAt > drainAt && refusedFirst >= 0 && tryAt > refusedFirst && wrapEnds;

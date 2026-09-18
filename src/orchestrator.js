@@ -648,9 +648,27 @@ async function asyncBattleRun(att,def){
      it announces, the order the host has always had (architecture item 4). */
   await liveRender();
   const need=1;
-  // D-08/D-25: the opening names both combatants, each reading it addressed to themselves.
-  // his pass, 2026-09-13: "Crustbeard attacks Davy Scones!" — words.js writes each fighter's "ye" version
-  const opening=sayAll("battle.opening",{a:seat(att.idx),d:seat(def.idx)});
+  /* ⭐ THE OPENING BEAT SAYS THE CANNON, NOT THE DECISION — Wyatt, 2026-09-18:
+       "'wyargh -- ye attack flaky jack' is a useless narration -- you're the one who just decided
+        to attack. instead, show the narration that comes immediately after it there but is
+        immediately covered up by the flippenator -- it says something about loading a cannon but i
+        can never read it in time. and yes, this should happen for all players, of all types."
+
+     He is describing a beat spent on a fact the reader already owns. "Ye attack Flaky Jack" is the
+     button they just pressed; "{a} loads the cannon…" is the only new thing in the sequence, and it
+     was being published to the battle card 40 lines below and then buried by the flip stage within
+     half a beat — the one line worth reading, in the one slot nobody can read.
+
+     So the LINES swap slots, not the timings: `battle.loads` takes the readable beat (the same
+     max(900, stepDelay()) the opening had), and the card below still publishes it, so the words on
+     the card and the words in the box agree rather than one replacing the other.
+
+     "ALL PLAYERS, OF ALL TYPES" is why this is sayAll and not say: it composes every seat's reading
+     of the same line, so the attacker sees "ye load the cannon…" and everyone else sees the captain
+     named — one line, every screen, the same beat. D-08/D-25's rule, applied to the new line.
+     (`battle.opening` stays in words.js: it is still what a battle CARD's header says, and deleting
+     a line because one caller stopped using it is how a phrase gets rewritten from scratch later.) */
+  const opening=sayAll("battle.loads",{a:seat(att.idx)});
   // @copy adhoc.battle.opening
   await flash(opening.html,Math.max(900,stepDelay()),undefined,opening.variants);
   const bets=await collectSideBets(att,def,F.downwind);   // the engine's reading of the wind, handed over — a bot caller must not take its own

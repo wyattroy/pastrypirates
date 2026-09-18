@@ -3190,17 +3190,32 @@ function rcCourseRelease(){
   const c = rcCourseCard; rcCourseCard = null;
   if (c && c.isConnected) chartFrontRecipe(c);
 }
+/* ⭐ A COURSE ALREADY ON THE WATER IS NOT REDRAWN. Wyatt, 2026-09-18: "recipe picker: DON'T redraw
+   the dotted line when the player clicks the recipe that's already on top; that line is already
+   there; we don't want the line to redraw itself."
+
+   The guard is the ANSWER, not the gesture — what is remembered is the course that is currently
+   drawn (which captain, which ingredients), so ANY repeat that would produce the same dashes is
+   skipped: tapping the front card, a paint with nothing changed, a swap that lands back where it
+   started. Keying it on "was this the same card element" would only cover the one path he named
+   and would let the other two keep flickering.
+   Cleared by clearGlow(), which is the one teardown — so a course that has been taken off the
+   water is always drawn afresh, and the memo can never claim dashes that are not there. */
+let rcChartedKey = null;
 function chartFrontRecipe(card){
   if (rcCourseHeld) { rcCourseCard = card; return; }
   const g = appState.game; if (!g || !card) return;
   const ids = [...card.querySelectorAll("[data-ing]")].map(e => e.dataset.ing).filter(Boolean);
   const seat = appState.askedSeat;   // the captain the picker is asking (util.js raiseLocalPrompt) — see the cream box's note
+  const key = seat + "|" + ids.join(",");
+  if (key === rcChartedKey) return;                       // the same course, already on the water
+  rcChartedKey = key;
   const me = (seat != null && g.players) ? g.players[seat] : null;
   if (me) showCourseFor(g, me, svgEl(), cellPx(), ids, { trace: true });   // the picker's route draws itself (course.js)
   else paintMarks(ids.map(i => (g.dockOf && g.dockOf[i]) || (g.islandOf && g.islandOf[i])).filter(Boolean), cellPx());
 }
 
-function clearGlow(){ document.querySelectorAll(".pp4Glow").forEach(e => e.remove()); forgetCourse(); }
+function clearGlow(){ document.querySelectorAll(".pp4Glow").forEach(e => e.remove()); forgetCourse(); rcChartedKey = null; }
 /* Put the picker back to "nothing chosen yet" — his 6.7. It exists because THREE things carry the
    selected state and all three have to go together: the module's `focusBtn`, the card's .pp4Focus
    outline, and the "Bake this!" pill. recipeGuard's own second-tap branch already did exactly this
