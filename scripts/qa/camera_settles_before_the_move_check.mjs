@@ -28,9 +28,14 @@
      1. ONE PLACE DECIDES BOTH — camFrameTurn's `!local` branch is `camToCell(own, SEAT_ZOOM); return
         stageSettled();`, the wait is the stage's own capped settle, and there is NO SECOND RULE
         BESIDE IT: the one consumer's `turn` statement asks the door and waits for nothing else.
-     2. THE PATH CARRIES IT — the stage bridge RETURNS camFrameTurn's answer, and the one event
-        consumer AWAITS turnFrame(e.p, null, decisionIsLocal(e.p)). A promise nobody returns and a
-        promise nobody awaits are the same defect twice.
+     2. THE PATH CARRIES IT, IN THE RIGHT ORDER — the stage bridge RETURNS camFrameTurn's answer; the
+        one event consumer ASKS for the frame from the event plus decisionIsLocal(e.p) BEFORE
+        render(), and AWAITS it AFTER. A promise nobody returns and a promise nobody awaits are the
+        same defect twice — and awaiting it on the ask's own line is a third, MEASURED: with the wait
+        before render(), the ring and the captains row reached the new captain a whole camera-settle
+        after the top bar did, so the three surfaces that say whose turn it is disagreed for 0.6-0.7s
+        on EVERY watched turn (13 runs a voyage, longest 3.3s, against 4 runs and 1.9s before this
+        item). Asking early costs nothing and starts the glide; waiting late costs the board nothing.
      3. THE SCREEN BEING ASKED IS NEVER HELD — stageSettled is reached exactly once inside
         camFrameTurn, and it stands inside the watching branch, before the Game.sailChoices read.
      4. POSED STREAMS — camFrameTurn compiled from the source text (real or broken) and run on every
@@ -95,11 +100,24 @@ async function rules(files) {
   }
   // 2. THE PATH CARRIES IT
   {
+    const askAt = consume ? consume.search(/e\.t\s*===\s*"turn"[^;]*window\.__pp4\.turnFrame\s*\(\s*e\.p\s*,\s*null\s*,\s*decisionIsLocal\s*\(\s*e\.p\s*\)\s*\)/) : -1;
+    const waitAt = consume ? consume.search(/await\s+turnFramed\b/) : -1;
+    const renderAt = consume ? consume.search(/(^|\n)\s*render\s*\(\s*\)\s*;/) : -1;
     rule([
       [/\bturnFrame\s*:\s*\(\s*seat\s*,\s*pos\s*,\s*local\s*\)\s*=>\s*\{\s*if\s*\(\s*S\.active\s*\)\s*return\s+camFrameTurn\s*\(/.test(stage),
         "the stage bridge does not RETURN camFrameTurn's answer — the door's wait is swallowed at the door, and no caller can wait on it"],
-      [!!consume && /e\.t\s*===\s*"turn"[^;]*await\s+window\.__pp4\.turnFrame\s*\(\s*e\.p\s*,\s*null\s*,\s*decisionIsLocal\s*\(\s*e\.p\s*\)\s*\)/.test(consume),
-        "the one event consumer does not AWAIT the turn frame — it asks for the camera and draws the next event without waiting for it, which is the fault this item closes"],
+      [askAt >= 0, "the one event consumer does not ask for the turn's frame from the event plus decisionIsLocal(e.p)"],
+      [waitAt >= 0, "the one event consumer does not AWAIT the turn frame — it asks for the camera and draws the next event without waiting for it, which is the fault this item closes"],
+      /* 2c. THE ORDER, AND IT IS A MEASUREMENT, NOT A PREFERENCE. With the await on the ask's own line,
+         the ring and the captains row reached the new captain a whole camera-settle after the top bar
+         did — 0.6-0.7s of disagreement on EVERY watched turn, 13 runs a voyage against 4, longest 3.3s
+         against 1.9s. render() is what moves the ring and the row, and it moves no boat at a `turn`
+         event, so the board is drawn first and the wait is honoured after it. It also keeps a guest's
+         render on THIS turn's playhead rather than on a sail that landed during the wait. */
+      [askAt >= 0 && renderAt >= 0 && askAt < renderAt,
+        "the turn's frame is not ASKED FOR before render() — the glide would start a whole board-draw late, and every millisecond of it is paid out of the turn"],
+      [waitAt >= 0 && renderAt >= 0 && waitAt > renderAt,
+        "the turn's frame is WAITED FOR before render() — the ring and the captains row would then reach the new captain a camera-settle after the top bar does, on every watched turn (measured: 13 runs a voyage, longest 3.3s, against 4 runs and 1.9s)"],
     ]);
   }
   // 3. THE SCREEN BEING ASKED IS NEVER HELD
@@ -184,7 +202,7 @@ const walk = d => fs.readdirSync(path.join(REPO, d), { withFileTypes: true })
 const files = Object.fromEntries(walk("src").map(f => [f.split(path.sep).join("/"), fs.readFileSync(path.join(REPO, f), "utf8")]));
 const NAMES = [
   "one place decides both: the watching branch frames the boat AND hands back the stage's own capped wait, and the consumer waits for nothing else of its own",
-  "the path carries it: the stage bridge returns the door's answer and the one event consumer awaits it on the turn event",
+  "the path carries it, in the right order: the stage bridge returns the door's answer, the one event consumer asks for the frame BEFORE render() and awaits it AFTER",
   "the screen being asked is never held: the wait is reached once, inside the watching branch, before the sail window is read",
   "posed streams: on every sea square of seeded boards, a watched captain's move — bot or human — is never drawn before the camera has arrived, and the chooser is not held",
 ];
@@ -196,21 +214,34 @@ real.forEach((r, i) => console.log(`  ${r.ok ? "PASS" : "FAIL"}  ${i + 1}. ${NAM
 /* RED-PROOF: each mutant is the real source with the wait broken in ONE way, and the rule(s) named
    must go red. The first is the fault this item closes, written as one line. */
 const broken = (file, from, to) => files[file].includes(from) ? { ...files, [file]: files[file].replace(from, to) } : null;
+/* two edits to one file, both of which must land — a mutant that only half-applied would be a
+   red-proof passing for the wrong reason. */
+const twice = (file, a, b) => {
+  let s = files[file];
+  for (const [from, to] of [a, b]) { if (!s.includes(from)) return null; s = s.replace(from, to); }
+  return { ...files, [file]: s };
+};
 const WAIT_LINE = "  if (!local){ camToCell(own, SEAT_ZOOM); return stageSettled(); }";
-const TURN_LINE = `if(e.t==="turn"&&!appState.replaying&&window.__pp4&&window.__pp4.turnFrame)await window.__pp4.turnFrame(e.p,null,decisionIsLocal(e.p));`;
+const ASK_LINE = `  const turnFramed=(e.t==="turn"&&!appState.replaying&&window.__pp4&&window.__pp4.turnFrame)?window.__pp4.turnFrame(e.p,null,decisionIsLocal(e.p)):null;`;
+const WAIT_IN_CONSUMER = "  if(turnFramed)await turnFramed;";
 const MUTANTS = [
   [[1, 4], "the wait taken out of the door — the frame is asked for and the move drawn without waiting for it (the fault this item closes)",
     broken(STAGE, WAIT_LINE, "  if (!local){ camToCell(own, SEAT_ZOOM); return; }")],
-  [[2], "the one consumer asking for the frame and not awaiting it",
-    broken(ORCH, TURN_LINE, TURN_LINE.replace("await window.__pp4.turnFrame", "window.__pp4.turnFrame"))],
+  [[2], "the one consumer asking for the frame and never awaiting it",
+    broken(ORCH, WAIT_IN_CONSUMER, "")],
   [[2], "the stage bridge swallowing the door's answer, so no caller has anything to wait on",
     broken(STAGE, "turnFrame: (seat, pos, local) => { if (S.active) return camFrameTurn(seat, pos, local); }",
       "turnFrame: (seat, pos, local) => { if (S.active) camFrameTurn(seat, pos, local); }")],
+  /* THE ORDER, TIDIED BACK — the shape this item had for one commit, and the one a later reader is
+     most likely to "simplify" to, because awaiting on the ask's own line looks neater. It costs the
+     ring and the captains row a whole camera-settle on every watched turn. */
+  [[2], "the wait moved back onto the ask's own line, before render() — neater to read, and it puts the board a camera-settle behind the top bar on every watched turn",
+    twice(ORCH, [ASK_LINE, ASK_LINE.replace("const turnFramed=(", "const turnFramed=await (")], [WAIT_IN_CONSUMER + "\n", ""])],
   [[3, 4], "the screen BEING ASKED held too — a captain's own sail prompt waiting on the glide it just asked for",
     broken(STAGE, "  camFitCells(cells, 4.0, need || S.lastPromptNeed || 0, 1);\n}",
       "  camFitCells(cells, 4.0, need || S.lastPromptNeed || 0, 1);\n  return stageSettled();\n}")],
   [[1], "a second rule beside the door — the consumer waiting for the stage itself on a turn event",
-    broken(ORCH, TURN_LINE, TURN_LINE + `\n  if(e.t==="turn"&&window.__pp4&&window.__pp4.settled)await window.__pp4.settled();`)],
+    broken(ORCH, ASK_LINE, ASK_LINE + `\n  if(e.t==="turn"&&window.__pp4&&window.__pp4.settled)await window.__pp4.settled();`)],
 ];
 let proofOk = true;
 for (const [ns, what, mutant] of MUTANTS) {
