@@ -395,15 +395,17 @@ async function dropMidBake(owner) {
 }
 
 /* ---------- teardown, on every path ---------- */
+/* ⭐ THE ROOM DELETE USED TO BE HERE AND IT NEVER WORKED — removed 2026-09-17. It asked the host's
+   page to run `(()=>{…s.db.ref('rooms/'+s.room).remove();return 1})()`: a SYNCHRONOUS eval, so the
+   promise was never awaited, and killAll() SIGKILLed Chrome a millisecond later with the delete
+   still in flight. The room survived every run. mp_rig's killAll() now deletes it over REST — no
+   browser needed, awaited, and on every way out of this probe. One deleter, not two. */
 async function finish(code) {
-  try {
-    if (room && H) await H.ev(`(()=>{try{const s=__pp_app_state_debug();if(s.db&&s.room)s.db.ref('rooms/'+s.room).remove();return 1}catch(e){return 0}})()`);
-  } catch {}
   out.finishedAt = new Date().toISOString();
   out.exit = code;
   fs.writeFileSync(path.join(OUT, "result.json"), JSON.stringify(out, null, 2));
   log(`\nresult.json written to ${OUT}`);
-  try { killAll(); } catch {}
+  try { await killAll(); } catch {}
   await sleep(400);
   process.exit(code);
 }
