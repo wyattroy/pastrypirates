@@ -168,7 +168,7 @@ import {
 } from "./util.js";
 import { mayRevealRecipe, offersRecipeCheck } from "../shared/visibility.js";
 import { recipeTitle, recipeInfo, winRecipeSpan, recipeArticle } from "./recipe.js";
-import { playFlip, startFlipSpinSound, stopFlipSpinSound, onThunder, playCoinTick, playCoinChink, playAwardWhoosh } from "./audio.js";
+import { playFlip, startFlipSpinSound, stopFlipSpinSound, onThunder, playCoinTick, playCoinChink, playCrateLand, playAwardWhoosh } from "./audio.js";
 import { victoryCard } from "./victory.js";
 import { popInHolds } from "./popin.js";
 
@@ -2161,7 +2161,7 @@ function departures(seat,coins){
    position between two things drawn in different places — the board and the captains box — so both ends are measured as
    drawn and brought into the one fixed space (fixedOrigin, util.js) before a single number is taken between them. */
 /* ⭐ HIS NUMBERS, 2026-09-16, off the Game Feel Tuner. Each carries the value it replaced. */
-const TREASURE_MS=630, TREASURE_GAP_MS=470, TREASURE_MAX=20, CRATE_FLY_MS=1330;   // was 1400 · 700 · 20 · 1240, then 1200 · 325 · 20 · 1360
+const TREASURE_MS=630, TREASURE_GAP_MS=282, TREASURE_MAX=20, CRATE_FLY_MS=1330;   // was 1400 · 700 · 20 · 1240, then 1200 · 325 · 20 · 1360, then 470 — his 2026-09-18 "decrease the timing gap between collected coins by 40% so they go into your purse quicker" (470 × 0.6)
 /* THE STAGGER IS CAPPED, SO THE GAP IS NOT A PRICE LIST: a haul too big to space at the full gap within TREASURE_STAGGER_MS tightens
    up on its own, so eight coins never make the game wait six seconds for its own purse. */
 const TREASURE_STAGGER_MS=1600;
@@ -2336,6 +2336,10 @@ function landInHold(flight,im,chip,dx,dy,h,base){
   const show=()=>{if(shown)return;shown=true;im.remove();chip.style.visibility="";};
   const land=()=>{
     if(!im.isConnected||typeof im.animate!=="function"){show();return;}
+    /* His 2026-09-18 ask: the old crate "woomp" (store-ingredient) as the bounce BEGINS, not when
+       the flight ends and not when the chip appears — this line is that moment, the one frame
+       before the hop's first keyframe runs. */
+    playCrateLand();
     const hop=im.animate(hopFrames(dx.toFixed(1),dy.toFixed(1),h,CRATE_BOUNCE,CRATE_SQUASH,{base}),{duration:ms,easing:"linear",fill:"both",id:"crate-land"});
     hop.onfinish=hop.oncancel=show;
   };
