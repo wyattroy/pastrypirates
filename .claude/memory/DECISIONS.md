@@ -3693,6 +3693,42 @@ now used, fitted to his three complaints and written up in `docs/AUDIO.md` §1c:
 
 > target loudness = −16.9 dB − 1.71 dB × log2(plays per voyage)
 
+**⭐⭐ AND THEN HE SET ALL EIGHTEEN BY EAR HIMSELF, in the tuner, the same day. THOSE ARE THE
+SHIPPED NUMBERS.** A measured proposal was built first; he overrode it, which is what his ear is
+for. Where they differ, his number wins. The method is kept in `docs/AUDIO.md` §1c because it was
+right about the SHAPE and is the yardstick for the next stem — but it was WRONG about the ceremony
+sounds, wanting them up 9-12 dB where he put them up 0.4-5.8. **The line treated "rare" as
+"important", and those are different things.** A bake-off chime is decoration, not a beat, and no
+measurement can tell you which a sound is.
+
+**HIS EIGHTEEN, 2026-09-18:** ship-move 0.57 - bells 0.63 - coin-flip 0.57 - fishing 0.38 -
+coin-chink 0.66 - store-ingredient 1.82 - abacus-click 1.00 - storm 0.57 - cannon 1.00 -
+battle-swords 0.46 - crate-chime 1.00 - crate-marimba 1.94 - crate-squawk 2.10 - card-swish 1.76 -
+drumroll 1.41 - cork-pop 1.73 - award-whoosh 1.48 - battle-won 1.00.
+**Measured against the ceiling: NOTHING CLIPS.** The closest is the cork pop at -2.6 dBFS.
+
+**AND HE RAISED THE BED IN THE SAME BREATH — a new ruling that supersedes his 2026-09-07 dials:**
+sea 0.596 -> **0.695**, gulls 0.168 -> **0.335**, creaks 1.122 -> **1.585**. Music unchanged at
+0.141; the rates unchanged (creaks every 8s, gulls every 14s). `ambience_one_seam_check.mjs` pinned
+the old three and went red on cue — it was updated in the same commit, with the superseded values
+kept in it as the record.
+
+**THE SHAPE OF WHAT HE DID: he raised the bed and lowered almost everything heard often.** Sailing
+1.72 -> 0.57, the muse 0.81 -> 0.38, the flip 1.45 -> 0.57, the turn bell 1 -> 0.63, a crate
+2.79 -> 1.82, the coin tick 3 -> 1. The rare ceremony sounds went up. **The sea comes up and the
+game's chatter comes down** — a different mix, not a quieter one. That is the frequency axis,
+arrived at by ear.
+
+**⚠ ONE OF HIS NUMBERS REVERSES AN EARLIER ONE OF HIS.** `abacus-click` goes 3 -> 1.00, a 9.5 dB
+drop and the largest single move in the pass — and the 3 existed because HE asked for it on
+2026-09-14 (*"The ticking sound isn't happening as it should... i don't hear it"*). Both are his;
+recorded rather than reconciled, so nobody restores the 3 from the older note believing it is live.
+
+**⚠ THE CONDITION HE TUNED UNDER, and it is not a footnote: THE AMBIENCE BED WAS OFF, the music was
+on, master 0.80.** So the bed he raised was not audible while he placed the effects against each
+other, and **the balance between the sea and the effects has not been heard as a whole.** Nothing
+was adjusted for it. He judges that in the game.
+
 **Two of his complaints were also a PILE, not a stem.** The Muse plays two sounds on one beat —
 `fishing` plus the muse coin's chink — measured together at **−1.2 dBFS, a whisker off full scale**.
 That is why that one earned his strongest wording, and why cutting the stem alone would have
@@ -3721,3 +3757,47 @@ pretending the measurement is different. Nothing downstream may carry it as open
 available, the measurement tells you *what is true of the file* and only the ear tells you *whether
 it is a problem*. A session that cannot hear must report the number and ask — never convert it into
 a defect on its own authority.
+
+---
+
+## 2026-09-18 — WHERE THE SOUNDS ACTUALLY PLAY (he caught a mislabelling, and he was right)
+
+**His words:** *"You mislabeled some of the sounds from where they actually appear I think."* And,
+specifically: *"crate-chime: This is not the sound of a crate landing in the hold."*
+
+**He was right, and the cause is worth knowing: EIGHT of the eighteen stems never touch
+`EVENT_SOUND` at all.** They are played directly from code — `playCoinTick`, `playCoinChink`,
+`playCardSwish`, `playLidNote`, `playCrateVerdict`, `playAwardWhoosh`, `playPop`, `playFlip`,
+`playDrumroll`, `playWinScreen`, `playCrateLand`. **A label derived from the event map alone is a
+guess for nearly half the game's sounds.** Sweep the call sites, not the map. The corrected
+one-line description for every stem is in `docs/AUDIO.md` §1c.
+
+**The `crate-chime` answer, and the two possibilities needed different fixes — which is why it was
+worth establishing rather than assuming:**
+
+- **THE LABEL WAS WRONG. THE WIRING IS RIGHT.** `crate-chime` is `playCrateVerdict(true)`: a crate
+  you got **RIGHT on the bake-off reveal**, plus the "BAKED!" wax seal and the "best" pill stamping
+  down at the End of Voyage. Three call sites, none of them a hold.
+- **The sound of a crate landing in the hold is `store-ingredient`** — his own 2026-09-18 ask, *the
+  old crate "woomp" as the bounce BEGINS*.
+- **Nothing was re-wired.** The stem's *name* is what invites the confusion. Renaming a shipped
+  file is a bigger change than a mixing pass and is not worth doing quietly.
+
+---
+
+## 2026-09-18 — SEVEN `EVENT_SOUND` KEYS NAME EVENTS NOTHING EMITS. REPORTED, NOT DELETED.
+
+A CEO review flagged `fish` and `shipwrecked` as matching no emitted event. **Confirmed — and there
+are seven, not two.** Measured two ways: 200 seeded voyages (every event kind the engine produced)
+and a grep of every emitter in `src/`. Four name a real stem — `fish`→`fishing`, `anchor`→`fishing`,
+`shipwrecked`→`storm`, `dodge`→`battle-swords` — and three are explicit silence (`moored`, `idle`,
+`bakeoff`).
+
+**Not changed, and that is the decision.** They cost nothing at runtime: an event that never fires
+never reaches the lookup. Deleting four records of intent is a person's call, not a gate's, and the
+standing ruling is that **the default is KEEP**. `audio_map_check.js` says so in its own header
+rather than failing on them.
+
+⚠ **One deserves a human eye: `shipwrecked: "storm"`.** If that event ever came back it would put
+the 8-second storm bed on the **master** bus at full level — which is DEFECT-2 exactly, the bug that
+cost this project weeks. Worth deleting or re-pointing the day anyone touches that map.
