@@ -2304,7 +2304,9 @@ export function watchNarr(){
         const applySubject=()=>{
           if(!window.__pp4)return;
           const ev=evAt(v.evN);
-          if(ev){window.__pp4.subject=subjectOf(ev);window.__pp4.subjectSet=true;window.__pp4.evType=ev.t;return;}
+          // (…;window.__pp4.evType=ev.t stood on this line — deleted with its only reader, stage.js's
+          //  dead storm camFull(), by architecture item 24, 2026-09-18.)
+          if(ev){window.__pp4.subject=subjectOf(ev);window.__pp4.subjectSet=true;return;}
           if(v.subj!=null){window.__pp4.subject=(v.subj===-1?null:v.subj);window.__pp4.subjectSet=true;}};
         /* ONE SLOT, ONE LIVE LINE. `narr` is written with .set(), so only the newest sentence is
            real — but each arriving line now runs its own timer, and a held line firing after a

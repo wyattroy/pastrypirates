@@ -2022,7 +2022,11 @@ export async function narrateEvent(e){
        re-anchored the very line this rule had just decided to centre. The flag says "an event was
        read and it yielded no subject", which the sniff must not override. */
     window.__pp4.subjectSet = true;
-    window.__pp4.evType=e.t;
+    /* (window.__pp4.evType=e.t stood here — deleted with its only reader by architecture item 24,
+       2026-09-18. It fed a storm camera cue in stage.js that could never fire, because this line is
+       reached only AFTER describeFor() has returned a line and there is no `storm` entry in
+       EVENT_NARRATION, so a storm event returns above. Four measured crew-room storms, host and guest,
+       never showed the whole-ocean viewBox that cue would have produced.) */
   }
   const variants=narrationVariants(e);
   // notes/edits #1 follow-up: this used to be netNarrate()+a flat 3000ms sleep, a leftover from

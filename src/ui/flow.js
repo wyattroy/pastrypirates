@@ -1736,9 +1736,18 @@ let stormGate=null;
 export function armStormGate(p){ stormGate=p; }
 export async function runStormLive(dirKey){
   const g=appState.game;
-  const evStorm=g.ev({t:"storm",dir:dirKey,dist:STORM_PUSH});
+  g.ev({t:"storm",dir:dirKey,dist:STORM_PUSH});
+  /* THE WIDE SHOT IS NOT ASKED FOR HERE — architecture item 24, 2026-09-18. `stormCamForEvent(evStorm)`
+     stood on the next line, one statement after this tier handed the same event to the drain — so the
+     HOST aimed the storm's camera twice and every other screen once. MEASURED in a crew room (host
+     1200x950, guest iPhone-13-mini 375x812 dsf3), both calls caught at the stage bridge with their stacks:
+       t=-0.004s  stormCamForEvent <- consumeEvent (src/orchestrator.js) <- liveRender (src/ui/panel.js)
+       t=-0.003s  stormCamForEvent <- runStormLive (this function)      <- runLiveNet
+     One millisecond apart, off the same board, so the second re-aimed the camera at the frame the first
+     was already gliding to and nothing ever looked wrong — which is exactly why it survived. The cue
+     belongs to the one event consumer, off the `storm` event, on every screen; liveRender() below is
+     simply how this tier reaches it. Both screens arrived at the identical viewBox, 55-65ms apart. */
   liveRender();
-  stormCamForEvent(evStorm);
   await narrateLastEvent();
   if(stormGate){ const gate=stormGate; stormGate=null; await gate; }
   // furthest downwind moves first, so the lead ship clears its square before the ship behind it
@@ -1747,56 +1756,61 @@ export async function runStormLive(dirKey){
     const wasDocked=g.adjPort(player)!==null;
     const before=[...player.pos];
     let outcome="moved";
-    /* D-53 (Wyatt, 2026-09-01): "the storm should smoothly move players to their final square in
-       one move" — measured first (scripts/qa/w_storm_step_probe.mjs, a driven live storm, ship
-       transform sampled every ~35ms): his named cause (an indexing bug) is NOT what's happening —
-       a full 3-square push is timed evenly, ~780ms per square, exactly STORM_STEP_MS apart. What
-       IS happening is by design: every ORDINARY square (no event) gets its own renderLiveShips()
-       + a fixed STORM_STEP_MS pause, one square at a time, so a 3-square push reads as three
-       separate hops rather than one glide to wherever the ship ends up.
-       pendingSquares defers that paint: ordinary squares accumulate silently (player.pos already
-       moved in engine state; nothing on screen has caught up yet) and are flushed as ONE
-       renderLiveShips() call, so the ship's own CSS transition (SHIP_GLIDE_MS, same one every
-       other ship move already uses) glides it directly from its pre-push square to wherever it
-       actually stops — 1, 2 or 3 squares away — in one continuous move.
-       NOT touched: the event-driven liveRender() below. That call is the ONE consumer or broadcast
-       path (rule 23, src/ui/panel.js's own liveRender() drains+broadcasts events, it does not
-       merely repaint) — windmove/anchorHold/blocked/swept all still fire it exactly where they did
-       before, at the moment their event lands, for multiplayer correctness. Deferring THAT would
-       delay what a guest receives, which is a sync risk this fix has no reason to take for a purely
-       cosmetic win. Where an event does land, its own render already reflects the current (already
-       mutated) position, so any pending ordinary squares are covered by it for free — flushed
-       without a second paint. */
-    let pendingSquares=false;
+    /* ⭐ THIS LOOP DRAWS NO SHIP — architecture item 24, 2026-09-18. It keeps the storm's BEAT; the one
+       event consumer moves every hull, on every screen, off that ship's own record. `drivenSquares` is
+       the beat's condition and nothing else: true once this ship has been driven at least one ordinary
+       square that no record has spoken for yet.
+
+       D-53 (Wyatt, 2026-09-01): "the storm should smoothly move players to their final square in one
+       move" — measured then (scripts/qa/w_storm_step_probe.mjs, a driven live storm, ship transform
+       sampled every ~35ms): his named cause (an indexing bug) was NOT what was happening — a full
+       3-square push was timed evenly, ~780ms per square, exactly STORM_STEP_MS apart. Those digits
+       record that run; they are not a claim about today. D-53's fix deferred this tier's own per-square
+       paints and flushed them as ONE renderLiveShips(), which got the picture right and left the SECOND
+       MOVE PATH standing: the host drew the push itself, every other screen drew it off the engine.
+
+       AND THREE QUARTERS OF THAT PAINT WAS ALREADY BEING THROWN AWAY. Measured 2026-09-18, two windows,
+       a real crew room, every write to a ship's group recorded with the value it replaced:
+         0.773s seat 3  [3,6] -> [3,3]    the flush
+         0.773s seat 3  [3,3] -> [3,6]    undone in the same millisecond, by the PREVIOUS ship's record
+                                          reaching render() inside the one consumer
+         1.545s seat 3  [3,6] -> [3,3]    the hull actually moves — on its OWN record, like a guest's
+       A flush survived only where nothing was in flight to overwrite it: the first ship the storm
+       reaches, and any ship following an awaited drain (a rim sweep). Those ships were drawn moving
+       0.83s, 0.87s, 0.83s and 0.80s ahead of the guest across three runs; every other ship agreed to
+       within 38-54ms, which is the wire. One boat in a storm had a head start and the rest paid a
+       wasted write for it.
+
+       NOW: the engine's record moves the hull here as everywhere, and it is PUBLISHED BEFORE THE BEAT
+       (below) rather than after it — so every screen draws a ship inside its own 770ms slot and the
+       storm's summary still lands after the last hull has arrived. That is the picture D-53 earned, and
+       a guest gets it too: before this, a guest's boats each moved a full slot late and the last one
+       could still be gliding while the summary was being read out. The storm takes exactly as long as
+       it did — the beats are unchanged and there are still as many of them. */
+    let drivenSquares=false;
     for(let s=0;s<STORM_PUSH;s++){
       const was=[...player.pos];
       const evBefore=g.events.length;
       outcome=g.stormStep(player,dirKey);
       const movedSquare=(player.pos[0]!==was[0]||player.pos[1]!==was[1]);
-      if(movedSquare&&outcome!=="swept")pendingSquares=true;
+      if(movedSquare&&outcome!=="swept")drivenSquares=true;
       if(outcome==="swept"){
-        /* CEO REVIEW 72 CAUGHT THIS: stormStep() already wrote player.pos to the RIM-ENTRY square
-           before returning "swept" (tradewind(), src/engine/index.js), so painting from the LIVE
-           position here — as a plain renderLiveShips() does — glides the ship onto the whirlpool
-           itself and holds it there, before animateRimSweepIfAny() snaps it back to ride around.
-           Teleport, pause, snap-back, ride: exactly the bug D-22 excluded a swept step to avoid,
-           reintroduced by reading current state instead of the pre-sweep one.
-           `was`, captured at the top of THIS iteration, is the fix: it is the position as it stood
-           immediately before this (sweeping) stormStep call, which already carries every ordinary
-           square walked in earlier iterations of this same push (each mutated player.pos in turn)
-           and excludes only the sweep itself — precisely the D-22/W9 contract, restored.
-           ONE TICK (RIM_SWEEP_TICK_MS), NOT STORM_STEP_MS — CEO REVIEW 72's follow-up caught a
-           second issue: with no yield at all here, this paint and PART A's own paintShipAt(seat,
-           from) below (animateRimSweepRun) land in the same task, and "a browser paints once per
-           task" is the exact hazard that function's own comment two screens down names for the
-           identical shape — so `was` would never reach the screen. A full STORM_STEP_MS (770ms)
-           wait was tried first and pulled in a SEPARATE, likely pre-existing artifact (a probe
-           caught the ship's transform reverting to its pre-push cell mid-wait — recorded in
-           .planning/CTO-LEDGER.md, not yet root-caused). One tick is the minimum that still forces
-           a real paint (the same unit SAIL_ROUTE_TICK_MS/RIM_SWEEP_TICK_MS both use for exactly
-           this "guarantee at least one frame" purpose elsewhere in this file) without holding the
-           window open long enough, in every probe run since, to reproduce that artifact. */
-        if(pendingSquares){paintShipAt(player.idx,was);await sleep(RIM_SWEEP_TICK_MS);pendingSquares=false;}
+        /* (THE LAST HOST-ONLY PAINT STOOD HERE and is deleted by architecture item 24, 2026-09-18:
+           `if(pendingSquares){paintShipAt(player.idx,was);await sleep(RIM_SWEEP_TICK_MS);…}` — this tier
+           putting the hull back on its pre-sweep square so the ride began from the right place, plus a
+           one-tick yield so that paint could reach the screen at all. CEO REVIEW 72 earned both, and the
+           reasons are worth keeping: painting from the LIVE position glided the ship onto the whirlpool
+           and held it there before the ride snapped it back (teleport, pause, snap-back, ride — the very
+           bug D-22 excluded a swept step to avoid), and with no yield the corrective paint and the ride's
+           own first paint landed in one task, where a browser paints once, so `was` never reached the
+           screen. A full STORM_STEP_MS wait was tried instead and pulled in a separate artifact
+           (.planning/CTO-LEDGER.md, not root-caused).
+           IT IS DELETED RATHER THAN TUNED because it was the second move path: no other screen has it,
+           and no other screen needs it. stormStep emits `windmove` AT the rim-entry square before it
+           sweeps, so the one consumer's render() carries the hull there and animateRimSweepIfAny rides
+           it round — which is what a guest has always done. MEASURED on a posed sweep, two windows: the
+           ride drew [1,6] -> [2,2], five squares, on both screens, 131ms apart. There is nothing left
+           for a yield to make visible.) */
         /* THE HOST-ONLY ESCAPE HATCH IS GONE (W9, rule 23). This used to reconstruct the rim-entry
            square by hand — from `was` plus the wind — because the event stream did not contain it,
            and then call animateRimSweepRun directly. runStormLive is host-only, and that was
@@ -1835,12 +1849,9 @@ export async function runStormLive(dirKey){
          the board state, and an ordinary sail's narration all hang off it — only its mid-storm
          bubble is withheld here, and the summary's swept clause reports it once the storm is done
          (noteStormOutcome now notes "swept"). */
-      if(g.events.length>evBefore){liveRender();pendingSquares=false;if(g.events[g.events.length-1].t!=="tradewind")await narrateLastEvent();}
+      if(g.events.length>evBefore){liveRender();drivenSquares=false;if(g.events[g.events.length-1].t!=="tradewind")await narrateLastEvent();}
       if(outcome!=="moved")break;
     }
-    // flush any ordinary squares nothing above already painted — the whole push (however many
-    // squares it actually covered) becomes this ONE glide.
-    if(pendingSquares){renderLiveShips();await sleep(STORM_STEP_MS);}
     const moved=(player.pos[0]!==before[0]||player.pos[1]!==before[1]);
     const evBefore=g.events.length;
     g.noteStormOutcome(player,outcome,moved,wasDocked);
@@ -1849,6 +1860,18 @@ export async function runStormLive(dirKey){
     // src/ui/util.js). liveRender still runs so the square it landed on is painted at the moment it
     // lands, which is the thing D-22 exists to protect; only the awaited bubble is gone from here.
     if(g.events.length>evBefore)liveRender();
+    /* ⭐ THE RECORD FIRST, THEN THE BEAT — architecture item 24, and the order is the whole of it.
+       The wait used to stand ABOVE noteStormOutcome, beside a renderLiveShips() that drew this ship
+       here: the hull moved at the top of its slot on this tier and the record that moves it everywhere
+       else was published 770ms later, at the bottom. That is how the head start was built. Published
+       first, every screen — this one included — draws the push at the top of its own slot and the beat
+       is the rest AFTER it, so a 700ms glide always lands inside its 770ms slot and the storm's summary
+       still arrives with every hull already home.
+       ⚠ THE BEAT IS THE STORM'S PACE AND THERE IS NO SECOND KNOB. STORM_STEP_MS (src/ui/util.js) is the
+       one number; if Wyatt asks for a quicker storm it moves, and it moves the rim-sweep pace with it.
+       Do not add a smaller number here for one case — that is two places deciding one fact, on the item
+       that removed them. */
+    if(drivenSquares)await sleep(STORM_STEP_MS);
   }
   // ...and THEN the one line that reads the whole storm at once. Emitted here rather than left to
   // the engine's runStorm() because the live path drives the push itself, square by square, and

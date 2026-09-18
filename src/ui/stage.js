@@ -101,7 +101,6 @@ const S = {
   battle: null,             // [attacker, defender] while a fight is live — the camera holds on it
   subject: null,            // seat index the next flash() line is about (stashed by panel.js)
   subjectSet: false,        // …and whether that was DECIDED from an event (so the colour sniff must not override it)
-  evType: null,
   hurry: null,              // resolver for tap-to-hurry on the live bubble
   bubPlace: null,           // live bubble's positioner — run every tick, same loop as the camera
   frameKey: "",             // the prompt the director last re-framed for (once per ask, never per frame)
@@ -1905,8 +1904,16 @@ function stageFlash(msg, ms, holdMs, variants, opts){
   // playtest 5: a manual pinch/pan holds the camera only until the next action — then the
   // director takes the wheel again, so other captains' moves never play off screen.
   S.lock = false;
-  const evType = S.evType; S.evType = null;
-  if (evType === "storm") camFull();                 // watch the shove land from above
+  /* (A SECOND STORM CAMERA STOOD HERE and never once fired — deleted by architecture item 24, 2026-09-18:
+     `const evType = S.evType; S.evType = null; if (evType === "storm") camFull();`, "watch the shove land
+     from above". It could not fire: `evType` was written only by narrateLastEvent (src/ui/util.js) and by
+     a guest's watchNarr, and both set it AFTER describeFor() has returned a line — and there is no `storm`
+     entry in EVENT_NARRATION, so describeFor returns null for a storm and both writers return before the
+     assignment. MEASURED in four crew-room storms, host and guest, sampling the board's applied viewBox at
+     every animation frame: neither screen ever showed "0 0 640 640", which is the only thing camFull()
+     produces. The storm's wide shot is stormCam, asked for once, by the one event consumer.
+     The whole `evType` bridge went with it — S.evType, its accessor, and both writers — because this was
+     its only reader, and a flag three places write and nobody reads is worse than the dead line it fed.) */
   /* playtest 12 item 10: while a battle card is live, the camera HOLDS on the battle — a flee
      call can only be made by someone who can see the fight, not the caller's own boat.
      playtest 22 extends that ruling to the WHOLE fight rather than to the card alone (Wyatt: "the
@@ -1916,7 +1923,7 @@ function stageFlash(msg, ms, holdMs, variants, opts){
      whoever the opening line named, and then every "X calls Y" line glided it to the CALLER. So
      the hold is now armed by the battle itself (S.battle — held by the one event consumer on the fight's `engage` and let go on its
      `disengage`, on every screen: architecture item 4); the card, and the test that read it, were removed at his ask on 2026-09-14. */
-  else if (S.battle) { /* hold the shot on the fight until it resolves */ }
+  if (S.battle) { /* hold the shot on the fight until it resolves */ }
   /* A WAIT LINE IS NOT A SECOND DIRECTOR — architecture item 46. "…is choosing where to sail…" and
      "…is deciding…" are drawn ONLY on a screen that is not the one being asked (waitLineIsSelfAddressed,
      at the top of this function), so a wait line is a watcher's line by construction — and what a
@@ -6038,15 +6045,13 @@ export function initStage(){
     narr: (html, opts, variants) => (S.active ? stageFlash(html, undefined, undefined, variants, opts) : null),
     set subject(v){ S.subject = v; }, get subject(){ return S.subject; },
     /* subjectSet NEEDS ITS OWN ACCESSOR, and forgetting it made W4-2's fix a no-op that MEASURED as
-       working. This object is a BRIDGE, not the state — `subject` and `evType` reach S only through
-       the pairs above. panel.js writes `window.__pp4.subjectSet = true`; without this line that set
+       working. This object is a BRIDGE, not the state — `subject` reaches S only through the pair above. panel.js writes `window.__pp4.subjectSet = true`; without this line that set
        a plain property on the bridge and never arrived, so `decided` was always false, the colour
        sniff always ran, and a battle result naming one captain was re-anchored exactly as before.
        Caught by driving the real flash() path and reading the bubble's class — the seam test that
        matters, as opposed to the one I ran first, which evaluated panel.js's expression alone and
        reported success on a fix that did nothing. */
     set subjectSet(v){ S.subjectSet = v; }, get subjectSet(){ return S.subjectSet; },
-    set evType(v){ S.evType = v; }, get evType(){ return S.evType; },
     /* THE ONE DOOR FOR A TURN'S FRAME (architecture item 46). `local` is this screen's locality for
        that captain's choice — decisionIsLocal, the one display door's own second input, passed by the
        one event consumer on the `turn` event. `pos` (optional) is the asked captain's authoritative
