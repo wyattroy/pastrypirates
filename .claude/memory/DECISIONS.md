@@ -3596,3 +3596,36 @@ misses what he felt. **The item says so in its own first paragraph; do not skip 
 Written up in full at the head of `.planning/BACKLOG.md`, pointing at `docs/BOARD-RENDERING.md` §5
 (SVG vs HTML compositing, measured twice) rather than re-deriving it, and naming the real gap: there
 is no frame-rate harness in this repo, so "is it faster?" is unanswerable today.
+
+---
+
+## 2026-09-18 — PAST GAME DATA IS KEPT. ONLY THE ROOM CODES ARE RECYCLED.
+
+**His ruling, overruling my recommendation, verbatim:** *"is there any reason to clear them? do you
+need to delete the data? is there anything to learn from it if we keep it? I thought we weren't
+deleting past game data, so we can learn from it. You can clear the room codes though so that
+they're reusable."*
+
+**I had recommended deleting 23 finished rooms. That was wrong and he caught it.** The question to
+ask of a sweep is not "is this safe to delete" but **"is there anything to learn from it"** — and a
+finished voyage is exactly the data the bot work is starved of. A room is worth keeping; a room
+*code* is a scarce name, and that is the only part worth reclaiming.
+
+**So the sweeper's job changes: free the CODE, keep the RECORD.** Never `remove()` a room's
+contents to reclaim a code. Anyone who writes that sweep proves the record survives before it runs.
+
+**And it generalises past rooms** — this is the second time a session has proposed deleting game
+history for tidiness. **The default is keep.** Storage is not the constraint; the bots' evidence is.
+
+## The numbers, measured 2026-09-18 (read-only, live database)
+
+| node | count | what it is |
+|---|---|---|
+| `gamelogs` | **658** | completed voyages, solo and crew — the long-standing log |
+| `rooms` | 346 | crew rooms ever created; 111 never recorded a captain's name |
+| `starts` | 59 | newer per-voyage counter, only since 2026-09-16 |
+| `fins` | 11 | newer completed counter, same date |
+
+**⚠ "346 games were played" IS WRONG and I nearly let it stand.** 346 is crew rooms *created* —
+many abandoned before anyone played. The number he was actually pleased about is **658 completed
+voyages**, which is larger and is the real one. A room created is not a game played.
