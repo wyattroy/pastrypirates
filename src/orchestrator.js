@@ -131,7 +131,7 @@ import {
   sliderWrapHTML, wireSlider,        // 05-01 Task 3 (MP-08): the ONE coin slider, shared with localAsk
   pn, pname, updateRecipeBanner, describe, seatLocal,
   decisionIsLocal, resolveOpt, raiseLocalPrompt, stepDelay, ask, pickNarrVariant,
-  expectEventDrawing, finishEventDrawing, eventDrawn, afterLine, flipDockCoin, flipFor,
+  expectEventDrawing, finishEventDrawing, eventDrawn, afterLine, lineWritten, flipDockCoin, flipFor,
   sleepMs, BOARD_LAST_LOOK_MS,
   mountKofi, openKofi, // KOFI-01: the embedded Ko-Fi panel and its modal opener
   coinShortfall, // G6: the shared coin re-validation, reached through the barrel (module_graph_check tiering)
@@ -2347,7 +2347,13 @@ export function watchNarr(){
            only once this device's own consumer has finished drawing that event — so a guest cannot read
            "HEADS!" over a coin still in the air. Capped inside eventDrawn, and the generation guard still
            drops a line a newer one has overtaken. */
-        const drawIt=()=>{const ev=evAt(v.evN);return Promise.resolve(ev?eventDrawn(ev):null).then(()=>{if(appState.narrGen!==myGen)return;applySubject();return flash(v.html,undefined,undefined,v.variants,v.wait?{wait:true}:undefined);}).catch(()=>{});};
+        /* ⭐ AND THIS SCREEN SAYS THE LINE WAS WRITTEN, THE SAME WAY THE HOST'S NARRATOR DOES — util.js lineWritten,
+           the one place that turns written words into the release of anything waiting on them (a muse coin's flight).
+           It sits INSIDE the draw, beside flash and after both guards, because that is the instant the words start
+           being written on THIS screen: before eventDrawn a dock's line has not begun, and a line a newer one has
+           overtaken is never written at all. Without this call the guest had no answer but afterLine's 8-second cap —
+           measured, five muse coins out of five, a whole turn late (the note at lineWritten has the numbers). */
+        const drawIt=()=>{const ev=evAt(v.evN);return Promise.resolve(ev?eventDrawn(ev):null).then(()=>{if(appState.narrGen!==myGen)return;applySubject();lineWritten(v.html,ev);return flash(v.html,undefined,undefined,v.variants,v.wait?{wait:true}:undefined);}).catch(()=>{});};
         if(v.evN!=null&&v.evN>=0&&(appState.evSeen==null||appState.evSeen<v.evN)){
           const until=Date.now()+NARR_EVENT_GRACE_MS;
           const tick=()=>{

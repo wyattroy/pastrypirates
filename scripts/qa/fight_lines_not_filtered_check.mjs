@@ -84,6 +84,11 @@ async function rules(files) {
       appState: p, window: {}, netWatchNarr: (db, room, cb) => { listener = cb; },
       flash: (html) => { drawn.push(html); return Promise.resolve(); },
       eventDrawn: () => Promise.resolve(), subjectOf: () => null,
+      /* the one door that says a line has been written (util.js lineWritten) — drawing a line calls it, and an
+         unstubbed name here resolves to undefined, throws inside drawIt's own catch, and reads exactly like a
+         FILTER: "drew 0 of 1 line". Stubbed, never asserted on: whether the coin is released is
+         scripts/qa/line_written_one_place_check.mjs's rule, not this one's. */
+      lineWritten: () => {},
     });
     if (!watchNarr) throw new Error("watchNarr not found in src/orchestrator.js");
     watchNarr();
