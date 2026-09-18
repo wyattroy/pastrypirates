@@ -888,17 +888,42 @@ export function pickNarrVariant(payload,seat){
 // whole (append-only) game.events history on every single new event. A long-running game racks up
 // thousands of events, and re-describing all of them on every tick made each new event O(n) —
 // O(n²) over a multi-hour session — which is exactly the kind of session that gets visibly
-// laggier the longer it runs. Safe because events are only ever pushed, never spliced/reordered;
-// any real reset reassigns logLines directly (see the two `logLines=[...]` resets) rather than
-// going through this path.
+// laggier the longer it runs. Safe because events are only ever pushed, never spliced/reordered.
 // D-24: the captain's log is a THIRD-PERSON stream — a neutral record of what happened, not a
 // retelling aimed at whoever happens to be sitting here. describe() would resolve viewerSeat to
 // the live appState.mySeat (via isLocalTo's null-fallback to seatLocal), so the log used to read
 // "Crustbeard — you pay 1<coin> and sail" for your own moves. Passing NEUTRAL_VIEWER explicitly
 // forces every builder's un-addressed branch, so every seat is named the same way. The message
 // box is unaffected — it keeps addressing you directly via its own per-seat variants.
+/* ⭐ WHAT THE CAPTAIN'S LOG HOLDS IS DECIDED HERE AND NOWHERE ELSE — architecture item 50, 2026-09-18.
+   MEASURED FIRST, two crew windows, both runs: a host that reloaded mid-voyage opened its own
+   captain's log on an EMPTY card. 10 rows -> 0 (run 1, 42 events) and 8 -> 0 (run 2, 33 events),
+   and the rows did not come back on their own — they were still 0 fifteen seconds later with
+   nobody playing. A guest that reloads keeps every row. That asymmetry named the cause:
+     · this function was called from ONE place, the event consumer, so the log held only the events
+       this screen WATCHED GO BY. A guest rebuilds its history by replaying the feed THROUGH the
+       consumer, so its log rebuilds with it. A host rebuilds by fast-forwarding its own engine with
+       `replaying` true, which liveRender refuses to drain — so no rebuilt event was ever described.
+     · and beginGame emptied `logLines` on that rebuild, exactly as it does on a fresh start.
+   The record of a voyage is not a REACTION to an event: it is a reading of `game.events`, which
+   every screen holds in full however it came by them. So it is derived here, from the game, and
+   the one function that DRAWS the log (renderLog, src/ui/board.js) calls it — the log is filled by
+   the act of showing it. The consumer still causes that, through its own render() step; the direct
+   call it used to make (src/orchestrator.js) is deleted, not duplicated.
+   ⚠ AND NOTHING OUTSIDE THIS FUNCTION MAY EMPTY `logLines`. It knows which voyage it is describing
+   and starts over when that changes — the same `!==appState.game` identity test the stowed-recipe
+   card uses — which is what let beginGame's `appState.logLines=[]` be deleted rather than left
+   standing as a second opinion. (playtest #12, 6012fe66, learned this shape the hard way: "a hide
+   that depends on having WITNESSED a moment cannot survive a reload; the moment has to be readable
+   from the game.")
+   Returns TRUE when it started a new voyage's log, so the renderer can drop what it painted for the
+   last one. */
+let loggedVoyage=null;
 export function syncLogLines(){
+  const fresh=loggedVoyage!==appState.game;
+  if(fresh){loggedVoyage=appState.game;appState.logLines.length=0;}
   for(let i=appState.logLines.length;i<appState.game.events.length;i++)appState.logLines.push(describeFor(appState.game.events[i],NEUTRAL_VIEWER));
+  return fresh;
 }
 
 /* ---------- playback ---------- */

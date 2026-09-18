@@ -112,16 +112,18 @@
 // these classic-script top-level `let`s — drawBoard()/render()/renderLog() are their sole
 // mutators — so they move here verbatim as ordinary module-scope `let`s (src/state/index.js's
 // header already documents these 7 render-handle names as deliberately excluded from Phase 10's
-// appState migration and left for this phase). Three of them — `cell`, `shipEls`,
-// `logRenderedTo` — also have external still-classic readers/writers that are NOT moving this
-// wave (localPickCell/remotePickHighlights read `cell`; showChatBubble reads `shipEls`; beginGame
-// resets `logRenderedTo` before a fresh game — all panel/flow/lobby functions slated for later
-// waves). A classic script's bare read of a module-local `let` can't resolve at all (no
+// appState migration and left for this phase). Two of them — `cell` and `shipEls` — also have
+// external still-classic readers/writers that are NOT moving this wave (localPickCell/
+// remotePickHighlights read `cell`; showChatBubble reads `shipEls` — all panel/flow/lobby
+// functions slated for later waves). `logRenderedTo` was a third until architecture item 50
+// (2026-09-18) deleted its outside writer: renderLog recognises a new voyage itself now, so the
+// cursor has no external call site left and resetBoardLog went with it. A classic script's bare
+// read of a module-local `let` can't resolve at all (no
 // `import`), and the (now-deleted, Phase 11) bridge's one-time global-object-spread snapshot
 // couldn't have helped either — it copied primitive/reassigned-array VALUES once at boot, not a
 // live binding, so a
-// later `cell=W/n` inside this module would never reach a stale global copy. Exported three
-// narrow accessor functions (boardCell/boardShipEls/resetBoardLog) for exactly those external
+// later `cell=W/n` inside this module would never reach a stale global copy. Exported two
+// narrow accessor functions (boardCell/boardShipEls) for exactly those external
 // call sites instead; index.html's 6 call sites were updated to use them (see this plan's
 // SUMMARY). Removed once those still-classic callers move into src/ui/ in a later wave.
 // activeRing/spinNeedle/stormText/stormDial/windLabels have zero readers outside this cluster
@@ -162,6 +164,7 @@ import {
   fitHold,   // 2026-09-11: every hold on one line (his check-9 note)
   fitRecipeName,   // 2026-09-12: the recipe's name at the largest size that fits its card
   whoseTurn,       // architecture item 3: the ONE answer to whose turn the screen shows
+  syncLogLines,    // architecture item 50: the ONE place that decides what the captain's log holds
 } from "./util.js";
 import { mayRevealRecipe, offersRecipeCheck } from "../shared/visibility.js";
 import { recipeTitle, recipeInfo, winRecipeSpan, recipeArticle } from "./recipe.js";
@@ -2799,12 +2802,23 @@ export function render(){
 }
 let logRenderedTo=-1;
 
-// Exported accessor for beginGame() (still-classic, a later wave) to reset this cluster's log
-// render cursor before a fresh game — see the file header's deviation note.
-export function resetBoardLog(v){logRenderedTo=v;}
-
+/* (`export function resetBoardLog(v){logRenderedTo=v;}` STOOD HERE — architecture item 50, 2026-09-18.
+   Its one caller was beginGame's log-reset line, which is deleted: a voyage that is not the one this
+   box last painted is now recognised HERE, from syncLogLines' own answer, so nothing outside this
+   file has to remember to reset the cursor. beginGame could only ever run once per page anyway
+   (`if(appState.gameStarted)return;` and every Play again goes through leaveGame's location.reload),
+   so all three of those resets were describing a state the page already started in.) */
 export function renderLog(){
   const box=$("log");
+  /* ⭐ THE CAPTAIN'S LOG IS FILLED BY BEING DRAWN — architecture item 50, 2026-09-18, and this one
+     line is the fix. syncLogLines() used to be called from the event consumer, so the log held only
+     the events THIS SCREEN WATCHED GO BY: a host that reloaded mid-voyage rebuilt its history with
+     `replaying` true, which the drain refuses, and opened its own log on an empty card (measured,
+     both runs: 10 rows -> 0 and 8 -> 0, still 0 fifteen seconds later). A guest keeps every row
+     because its rebuild IS the feed replaying through the consumer. Reading the record from
+     `game.events` at the moment it is shown makes both screens right for the same reason, and it
+     returns TRUE when the voyage changed under us — then the rows painted for the last one go. */
+  if(syncLogLines()){box.innerHTML="";logRenderedTo=-2;}
   const atBottom=box.scrollHeight-box.scrollTop-box.clientHeight<50;
   if(appState.evIdx===logRenderedTo+1){
     const prev=box.querySelector(".line.cur");if(prev)prev.classList.remove("cur");

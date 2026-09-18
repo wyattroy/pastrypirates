@@ -104,7 +104,7 @@ import {
   bakeoffPrompt, bakeoffReveal, playBakeoffLive, retireBakeCard,
   benchChoreoMs, BENCH_STUDY_MS, BENCH_BEAT_MS, // A-2: the choreography's own timings, answered by the file that runs them
   appendChatLine, showChatBubble,
-  setFlipActive, armFlipTap, landFlipCoin, boardCell, boardShipEls, drawBoard, render, resetBoardLog, bobTheTurn, sailSetsOff, sailArrives, payInto, payOut, crateFlightFrom, crateFlightTo, holdMovesFrom, holdMovesTo, rideStreaks, firstHomeConfetti, shotLands, loserKnocked, stopTurnBob,
+  setFlipActive, armFlipTap, landFlipCoin, boardCell, boardShipEls, drawBoard, render, bobTheTurn, sailSetsOff, sailArrives, payInto, payOut, crateFlightFrom, crateFlightTo, holdMovesFrom, holdMovesTo, rideStreaks, firstHomeConfetti, shotLands, loserKnocked, stopTurnBob,
   seedIdleGameState, syncBoardSizing, watchMutePlacement, clearChatBubbles,
   showSeatCoins, // MP-06: the ONE purse renderer, shared with render() (04-01 Task 2)
   battleSnapshot, renderBattleFromSnap,
@@ -121,7 +121,7 @@ import {
   openNameModal, // NAME-02: the room screen's "Change yer name" reuses the one naming modal
   setNameWarning, nameTakenMsg, // item 16/D-19: the inline "that name's taken" line and its words
   SESSION_SCHEMA_V, SOLO_SCHEMA_V,
-  encodeDec, decodeDec, saveSoloState, clearSoloState, fixEv, syncLogLines, spawnPops, apBtnStyle,
+  encodeDec, decodeDec, saveSoloState, clearSoloState, fixEv, spawnPops, apBtnStyle,
   // (optionButtonsHTML/backButtonHTML no longer imported here — the guest's hand-rolled draft
   //  renderer was the last caller, and it now goes through localAsk like every other tier.
   //  prompt_one_renderer_check.mjs holds that.)
@@ -1735,7 +1735,14 @@ export async function consumeEvent(e){
        pace. A guest simply reads it while it waits for the crew. */
     stowedGate=pilotGate("recipe.stowed",t=>t.replace("{name}",pn(e.p))).catch(()=>{});
   }
-  syncLogLines();
+  /* (`syncLogLines()` STOOD HERE and was the first step of this consumer — architecture item 50,
+     2026-09-18. The captain's log is not a REACTION to an event, it is the voyage's written record,
+     and a record that only ever holds the events this screen watched go by cannot survive a reload:
+     a host rebuilds its history with `replaying` true, the drain refuses it, and the host opened its
+     own log on an empty card (measured, both runs: 10 rows -> 0, 8 -> 0, still 0 with nobody
+     playing). It is read from `game.events` where the log is DRAWN now — src/ui/util.js
+     syncLogLines, called by renderLog — so this consumer still fills it, through its own render()
+     step below, and every screen is right for the same reason whatever rebuilt its history. */
   /* AUDIO-01/D-07: the per-event sound moment, every tier — and THE ONE PLACE the whole game turns
      an event into a sound, host and guest alike. That is why the seat answer is computed HERE and
      handed down: both clients run this same line and each answers for ITSELF, so the your-turn bell
@@ -2755,7 +2762,13 @@ export function beginGame(cfg,seed){
      A rebuilt engine starts at zero; the crew's feed does not. resumeHostGame has already said how
      many records that feed holds by the time this runs, so on a resume this leaves it alone. */
   if(!appState.replaying){appState.dlog=[];appState.dlogIdx=0;appState.dlogN=0;appState.evPushed=0;}
-  appState.logLines=[];resetBoardLog(-2);$("log").innerHTML=""; // notes/edits 11-03: logRenderedTo now lives in src/ui/board.js
+  /* (`appState.logLines=[];resetBoardLog(-2);$("log").innerHTML="";` STOOD HERE — architecture item 50,
+     2026-09-18. Three resets of the captain's log, on the one line a RESUMING host runs too, and all
+     three were describing a state the page already started in: beginGame cannot run twice
+     (`if(appState.gameStarted)return;` above, and every Play again goes through leaveGame's
+     location.reload), so the log, the box and the paint cursor are always untouched when it runs.
+     What the log holds is decided in src/ui/util.js syncLogLines, which knows which voyage it is
+     describing; renderLog drops the box's rows on the same answer. No caller has to remember. */
   $("chatLog").innerHTML="";clearChatBubbles();
   $("chatPanel").style.display=(appState.db&&appState.room)?"":"none"; // no chat in solo/pass-and-play — no one else to talk to
   drawBoard();buildPlayerRows();
