@@ -225,7 +225,11 @@ export function renderAskPrompt(spec,answer){
   }
   const backIdx=opts.findIndex(o=>o&&o.back);
   const flipIdx=opts.findIndex(o=>o&&o.flip);
-  const done=v=>{setFlipActive(null);setNeedsAction(false);delete $("actionPanel").dataset.pp4Stage;panel("");answer(v);};
+  /* THE BOX SAYS THIS SEAT IS NO LONGER BEING ASKED — architecture item 9b. `setNeedsAction(false)` stood
+     here, one statement before the clear, and renderPickPrompt's teardown below had no such line: two
+     prompt renderers, one fact, two answers. panel("") drops the mark itself now (src/ui/panel.js), so both
+     renderers say it the same way and neither says it twice. */
+  const done=v=>{setFlipActive(null);delete $("actionPanel").dataset.pp4Stage;panel("");answer(v);};
   if(opts.some(o=>o&&o.stage))$("actionPanel").dataset.pp4Stage="1";
   if(flipIdx!==-1){
     if(!spec.battle&&window.__pp4)window.__pp4.flipMsg={m:msg||"",s:sub||""};   // same stash as the pure flip
@@ -683,6 +687,11 @@ export function renderPickPrompt(spec,answer){
      dashes off the water again, so the course flickered away between turns. With the parrot on, the
      next prompt redraws it from the LIVE game anyway, so leaving it up is both correct and
      continuous. */
+  /* AND panel("") IS ALSO WHAT SAYS THIS SEAT IS NO LONGER BEING ASKED (architecture item 9b) — the mark
+     the one narrator reads before it will say a word. It used to ride out on the box's CONTENT timer, 60ms
+     after the tap, and a flight is recorded and narrated inside that window: the captain who chose to flee
+     was the one screen never told, and on a host so was every other screen, because the host never reached
+     the broadcast either. Nothing to add here; do NOT add a second setNeedsAction(false) beside it. */
   const teardown=()=>{hs.forEach(h=>h.remove());panel("");appState.currentPrompt=null;
     if(!pilotIsOn())forgetCourse();};
   const done=v=>{teardown();answer(v);};
