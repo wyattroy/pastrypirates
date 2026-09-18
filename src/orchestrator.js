@@ -1012,7 +1012,10 @@ function flashCaptainsBox(){
 
    The per-attempt sequence lives in Game.bakeAttempt and NOWHERE ELSE — this driver supplies only
    which promise to await, never what to compute. That is what keeps the live and headless loops
-   from drifting, and scripts/bakeoff_parity_test.js asserts it rather than trusting the comment.  [UNGATED-IN-4: bakeoff_parity_test.js reads the root tree, not this one] */
+   from drifting, and scripts/bakeoff_parity_test.js asserts it rather than trusting the comment.
+   THE DEBT IS PAID (architecture item 54, 2026-09-18): that gate used to import a tree deleted at the
+   cutover and was in nobody's chain, so this sentence carried an UNGATED-IN-4 marker. It reads THIS
+   engine now, it is in `npm test`, and it pins its copy of this loop to the real thing below. */
 async function runLiveDayBakeoff(order){
   const g=appState.game;
   for(const i of order){
