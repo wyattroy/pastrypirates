@@ -48,3 +48,4 @@ BUILD: 2026.09.16.1-staging@7fb54490
 - **Build 2026.09.16.1** adds the bot work that survived measurement: one buy decision (`wantsCrate` + its gate, 117 now)
   and the dock rate derived. His cheap-crate rule was built and removed with the numbers written into the engine;
   the open question for him is whether to make a spare crate *worth* something to the objective (sheet v39).
+- Pastry Pirates Roadmap (2026-09-17 — the plan to launch 1 Oct: measured state, six goals, the 14 days with his jobs marked, after-launch phases, AND every ruling and research finding from the business-planning session so they survive a cleared chat; 2 open questions, a notes box per section; his marks in localStorage `roadmap/wyatt-r1`) — https://claude.ai/artifact/7U9Cex8FxPtwA1ZPSAJ29w

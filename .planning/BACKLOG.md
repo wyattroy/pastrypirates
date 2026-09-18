@@ -1701,6 +1701,20 @@ cutover come first. He calls that "the first level of success".
   architecture (F-6, F-7), every streaming and screenshot lead (F-3, F-4), and the economy. **Written 2026-09-15:** `docs/PRD-AFTER-LAUNCH.html`, published at
   https://claude.ai/artifact/6DGyHdVj4SShy3tZumPNQn. Four open questions sit at its top.
 
+### ⛵ THE ROADMAP TO 1 OCTOBER — 2026-09-17
+
+**https://claude.ai/artifact/7U9Cex8FxPtwA1ZPSAJ29w** (`docs/ROADMAP.html`). **His cut line, verbatim:**
+*"polish is my cut line; we need to be cutover to cloudflare and have working analytics."*
+
+**MEASURED 2026-09-17, and two are worse than the plan assumed:** production still answers
+`server: GitHub.com` — **the Cloudflare cutover has NOT happened**; the repo is **PUBLIC**; there is
+**no analytics tag in index.html** (it lives only in `.planning/ANALYTICS-PLAN.html`); `main` is **161
+commits behind `dev`**. Done: the parrot tutorial. Open: Search Console, the Firebase budget alert and
+scoped rules.
+
+**The binding constraint:** DNSSEC's DS record has a 24-hour life, so Wyatt turns it off at
+Squarespace a full DAY before the nameservers move. His jobs total about an hour across four days.
+
 ### Added 2026-09-15 by his notes
 
 - **⛵ LAUNCH DATE: 1 OCTOBER 2026** (phase 1). A second expansion sea starts the moment we launch.
