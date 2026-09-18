@@ -2470,13 +2470,15 @@ function flipArmed(el, onClick){
     // that settles a quarter of all fights. Read straight off the battle card's own wind badge
     // rather than re-deriving the geometry, so the card and the ceremony can never disagree about
     // who holds the wind. Built with DOM nodes, not innerHTML: the captain's name is player-typed.
-    /* THE WIND'S RULE FOR A TIE, READ FROM THE GAME — the battle box it used to be read off is gone (2026-09-14). S.battle holds the
-       two fighters this stage frames (window.__pp4.battle), and the engine's own downwindSide says who holds the wind, so the stage
-       and the bubble that opens the fight (orchestrator.js renderBattle) ask the same function and cannot disagree.
+    /* THE WIND'S RULE FOR A TIE, READ FROM THE FIGHT ITSELF — architecture item 25, 2026-09-18. S.battle is [attacker, defender, wind],
+       all three written by the ONE event consumer from the fight's `engage` event, which is where Game.beginBattle recorded the engine's
+       single reading of the wind. This used to call g.downwindSide(A, D) here: a second reading, taken off whatever this screen's board
+       held at the moment the ceremony rose. On a guest that is a board which may be several records behind — measured, a phone said
+       "CROSSWIND · ties collide" in its bubble and "HostCap is firin' downwind" on this stage, about the same fight.
        Built with DOM nodes, not innerHTML: the captain's name is player-typed. */
     if (!fm && S.battle && appState.game){
       const g = appState.game, A = g.players[S.battle[0]], D = g.players[S.battle[1]];
-      const dw = A && D && g.downwindSide ? g.downwindSide(A, D) : null;
+      const dw = S.battle[2];
       const holder = dw === "a" ? A : dw === "d" ? D : null;
       t.textContent = sayText("ceremony.broadside",{});
       st.textContent = "";
@@ -6060,11 +6062,14 @@ export function initStage(){
        It used to centre the MIDPOINT at a fixed 2.0x, which frames two adjacent ships and crops two
        that are not — camFitSeats derives the zoom from the gap instead, so both boats are on screen
        whatever the fight looks like. Re-fitting only when the pair changes: an unchanged re-fit
-       would restart the CAM_GLIDE_MS tween — and hold the tick loop in its fast gear — on every round. */
-    battle: (a, d) => { if (!S.active) return;
+       would restart the CAM_GLIDE_MS tween — and hold the tick loop in its fast gear — on every round.
+       ⭐ AND IT CARRIES THE WIND (architecture item 25, 2026-09-18): S.battle is [attacker, defender, wind] — the third slot is the
+       engine's own reading, off the `engage` event, so the flip ceremony's stakes line names the captain the engine named instead of
+       working it out from the board this screen happens to be drawing. One slot, one lifetime: battleEnd drops all three together. */
+    battle: (a, d, dw) => { if (!S.active) return;
       const g = appState.game; if (!g || !g.players[a] || !g.players[d]) return;
       const same = S.battle && S.battle[0] === a && S.battle[1] === d;
-      S.battle = [a, d]; S.lock = false;
+      S.battle = [a, d, dw === undefined ? null : dw]; S.lock = false;
       if (!same) camFitSeats([a, d]); },
     battleEnd: () => { S.battle = null; },
     flip: flipArmed,

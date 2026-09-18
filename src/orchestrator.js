@@ -313,9 +313,17 @@ export function renderBattle(o){
      finished string with its own span — kept it. The hit line is a result like those two now, so the one renderer wraps all three. */
   if(txt&&typeof o.result==="object"&&o.result.cls)txt=`<span class="${o.result.cls}">${txt}</span>`;
   if(first){
-    const dw=o.dw!==undefined?o.dw:(appState.game&&appState.game.downwindSide?appState.game.downwindSide(o.att,o.def):null);
+    /* ⭐ THE WIND THIS SHOT WAS FIRED IN COMES WITH THE FIGHT, NOT OFF THIS SCREEN'S BOARD — architecture item 25, 2026-09-18.
+       `o.dw` is the engine's own reading, taken ONCE in Game.beginBattle and carried on every publish (asyncBattleRun's `base`) and
+       across the wire (flow.js battleSnapshot). This line used to fall back to `appState.game.downwindSide(o.att,o.def)` — a second
+       reading of the fact, taken from whatever the screen drawing it happened to have on its board. MEASURED in a two-window crew
+       room: a guest whose signal dropped for four seconds drew "CROSSWIND · ties collide" 4.52 s into a fight the host was calling
+       "⬇ HOSTCAP FIRES DOWNWIND — WINS TIES", because its ships had not been mirrored yet; its own flip stage then said "HostCap is
+       firin' downwind" six seconds later. Three readings of one fact, two of them wrong on the same phone.
+       A screen that was not told does not guess: no `dw` on the publish means a crosswind, which is what the engine's own null means,
+       and Firebase deletes a null field — so absent and null are the same answer here, on purpose. */
     // @copy misc.battlecard.windtag — APPROVED as written, Wyatt 2026-08-15 (said with the fight's first line now, not pinned in a box)
-    const wind=dw==null?say("battle.crosswindTag",{}):say("battle.downwindTag",{name:pname(dw==="a"?o.att.idx:o.def.idx).toUpperCase()});
+    const wind=o.dw==null?say("battle.crosswindTag",{}):say("battle.downwindTag",{name:pname(o.dw==="a"?o.att.idx:o.def.idx).toUpperCase()});
     txt=`${txt||""}<br>${wind}`;
   }
   if(txt&&window.__pp4&&window.__pp4.flash)window.__pp4.flash(txt,undefined,undefined,undefined,{cls:"btl"});   // not awaited: the fight keeps its own pace; `btl` is the dark blue skin (index.html)
@@ -645,7 +653,7 @@ async function asyncBattleRun(att,def){
   const opening=sayAll("battle.opening",{a:seat(att.idx),d:seat(def.idx)});
   // @copy adhoc.battle.opening
   await flash(opening.html,Math.max(900,stepDelay()),undefined,opening.variants);
-  const bets=await collectSideBets(att,def);
+  const bets=await collectSideBets(att,def,F.downwind);   // the engine's reading of the wind, handed over — a bot caller must not take its own
   let a=0,d=0;
   const hA=att.strategy==="human",hD=def.strategy==="human";
   let round=0;
@@ -658,7 +666,11 @@ async function asyncBattleRun(att,def){
      because there is one flip, not because two copies agree. */
   const beat=Math.max(300,Math.min(900,bd*0.9));  // suspense pause before the defender answers
   const hold=Math.max(500,Math.min(1500,bd*1.1)); // pause to read the round result
-  const base=o=>Object.assign({att,def,a,d,round,need},o);
+  /* `dw` IS THE ENGINE'S READING OF THE WIND, ON EVERY PUBLISH — architecture item 25. beginBattle took it once (Game.downwindSide,
+     positions never change mid-fight) and it rides here so the fight's own words carry it: renderBattle says it, battleSnapshot puts
+     it on the wire, and no screen re-reads it off the board it is drawing. Null in a crosswind, which is also what its absence means
+     after Firebase has dropped the field. */
+  const base=o=>Object.assign({att,def,a,d,round,need,dw:F.downwind},o);
   /* THE FIGHT'S FLIPS, THROUGH THE ONE TOSS — architecture item 6, 2026-09-17. Two routines stood here, hFlip for a captain and
      bFlip for a bot, each painting the spin, sleeping, broadcasting the face on the `flip` wire node, holding and clearing on its own —
      the D-49 and T-34 fixes had to be applied to both, and every watching screen heard the spin sound twice (measured: a bot's flip on a
@@ -1845,7 +1857,10 @@ export async function consumeEvent(e){
      Now two engine facts and this one door: `engage` (Game.beginBattle) holds, `disengage` (Game.endBattle, once the calls are settled)
      lets go; the clash is `engage`'s own sound on the line below. The hold is armed BEFORE the sound, as the host always did it.
      scripts/qa/fight_on_screen_one_door_check.mjs holds it. */
-  if(e.t==="engage"&&window.__pp4&&window.__pp4.battle)window.__pp4.battle(e.a,e.d);
+  /* …AND IT CARRIES THE WIND THE FIGHT WAS CALLED IN (architecture item 25, 2026-09-18): the flip stage's stakes line used to ask
+     appState.game.downwindSide for the two ships it frames — a second reading of a fact the engine had already taken and put on this
+     very event. The one door hands it over with the pair, so the stage names the captain the engine named, on every screen. */
+  if(e.t==="engage"&&window.__pp4&&window.__pp4.battle)window.__pp4.battle(e.a,e.d,e.downwind==null?null:e.downwind);
   if(e.t==="disengage"&&window.__pp4&&window.__pp4.battleEnd)window.__pp4.battleEnd();
   playForEvent(e, decisionIsLocal(e.p));
   /* ⭐ THE TINY DOCK COIN IS DRAWN HERE, FOR EVERY CAPTAIN WHOSE CHOICE WAS NOT MADE ON THIS SCREEN —

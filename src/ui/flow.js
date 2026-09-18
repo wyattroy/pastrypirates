@@ -3465,7 +3465,12 @@ export async function showTurnOrderIntro(order){
 }
 export function battleSnapshot(o){
   const snap={};
-  for(const k of ["round","a","d","atState","dfState","atBs","dfBs","live","winCoin","result","waiting","need","title","roleA","roleD"])
+  /* `dw` — THE WIND THE FIGHT WAS CALLED IN, CARRIED WITH THE FIGHT'S WORDS (architecture item 25, 2026-09-18). Without it a watching
+     screen worked the wind out from whatever its own board said at the moment it drew the line, which is a different day's board while
+     its event queue is behind: measured, a guest said "CROSSWIND · ties collide" about a fight the host was calling "⬇ HOSTCAP FIRES
+     DOWNWIND — WINS TIES". Firebase deletes a null field, so a crosswind arrives as no `dw` at all — renderBattle reads absent and null
+     as the same answer, which is the only reason that is safe. */
+  for(const k of ["round","a","d","atState","dfState","atBs","dfBs","live","winCoin","result","waiting","need","title","roleA","roleD","dw"])
     if(o[k]!==undefined)snap[k]=o[k];
   snap.attIdx=o.att.idx;snap.defIdx=o.def.idx;
   return snap;
@@ -3488,7 +3493,10 @@ export function renderBattleFromSnap(snap,extra){
    Every non-combatant may call, from anywhere on the board, and bots call too. A NULL battle
    (rule 9: crosswind stand-off, attacker declines to pay) has no winner, so no call is correct
    and nobody is paid. */
-export async function collectSideBets(att,def){
+/* `downwind` is the fight's own reading of the wind (Game.beginBattle), handed over by asyncBattleRun — architecture item 25. A bot
+   caller used to ask appState.game.downwindSide for itself, which is the same fact decided a second time, in a file that must not
+   decide game facts at all. */
+export async function collectSideBets(att,def,downwind){
   const bets=[];
   const spectators=appState.game.players.filter(player=>player!==att&&player!==def&&!player.done);
   for(const s of spectators){
@@ -3512,8 +3520,7 @@ export async function collectSideBets(att,def){
     }else{
       // Bots read the same board a player does: the wind decides a both-heads round, so the
       // downwind ship is the sharper call — then the fuller purse as a tiebreak.
-      const dw=appState.game.downwindSide(att,def);
-      const fav=dw||(att.coins>=def.coins?"a":"d");
+      const fav=downwind||(att.coins>=def.coins?"a":"d");
       const on=appState.game.r()<.72?fav:(fav==="a"?"d":"a");
       bets.push({idx:s.idx,on});
     }
