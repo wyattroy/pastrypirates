@@ -34,11 +34,15 @@ item arriving early.
   the page uses root-absolute links so it survives at depth). Rendered preview he approved the wording
   against: https://claude.ai/artifact/S7EDTqrXHWgHawP2NEaNda. Taste on the card and the two lines is
   HIS; a defect is the game loading instead, or the button not reaching the game.
-  **Say in the item what staging cannot prove:** the page exists because *Cloudflare* Pages otherwise
-  answers every unknown address with the whole game and a 200. GitHub Pages — which serves staging and
-  production today — already 404s on its own. So a staging test shows the page renders and its links
-  work at any depth; it does NOT exercise the behaviour the page was written for. That waits for the
-  cutover.
+  **Say in the item what staging cannot prove — AND where the proof does live.** Staging runs on GitHub
+  Pages, which 404s on its own, so a pass there means the page renders and its root-absolute links
+  survive at depth. The behaviour it was written for — *Cloudflare* Pages, with no root `404.html`,
+  assuming a single-page app and answering every unknown address with the whole game and a 200 — is
+  proven at **runbook step 6, on `pastrypirates-staging.pages.dev`**, which is a real Cloudflare Pages
+  site that exists before any DNS moves. It is step 6's fifth check, and the game loading instead of
+  the card there is a stop-and-tell-him, not a cosmetic note.
+  *(Their correction to my first draft, and the better shape: a caveat that says "untested until X" is
+  an excuse; one that NAMES where the proof lives is a plan. Write the second kind.)*
   *(Checked 2026-09-18: their `404.html` already carries `noindex, nofollow` in a literal `<head>`, so
   `crawl_intent_check` will not go red on it. I went looking for that trap; it was not there.)*
 
