@@ -169,9 +169,13 @@ function camToCell(c, zoom){
   const w = 640 / zoomCap(zoom || 1.9);              // D-36: less zoom on a big board
   camTo((c[0] + 0.5) * cellPx() - w / 2, (c[1] + 0.5) * cellPx() - w / 2, w);
 }
+/* HOW CLOSE THE DIRECTOR STANDS TO ONE CAPTAIN — the one number, named once, because two places
+   now frame a single ship: a narration line about a captain, and a watching screen on that
+   captain's turn (camFrameTurn below). Typing 1.9 twice is how those two drift apart. */
+const SEAT_ZOOM = 1.9;
 function camToSeat(i){
   const g = appState.game; if (!g || !g.players[i]) return;
-  camToCell(g.players[i].pos, 1.9);
+  camToCell(g.players[i].pos, SEAT_ZOOM);
 }
 /* FRAME A SET OF CELLS: the box that holds every one of them, padded, at whatever zoom that box
    allows — capped, so a tight subject is not magnified into abstraction. THE ZOOM IS DERIVED FROM
@@ -245,12 +249,28 @@ function camFitCells(cells, maxZoom, reservePx, padCells){
    scripts/qa/sail_containment_probe.mjs --mode=crew --seed=7: the same room (ZTNK), the same
    board, the same moment (20 squares, day 1), before and after. Before: square (3,8) at x=-23,
    centre outside, elementFromPoint = nothing. And the missing HALF of the story, found by reading
-   the call graph rather than theorising geometry: camFitSail had ONE caller — pickCell(), which
+   the call graph rather than theorising geometry: camFitSail (camFrameTurn now) had ONE caller — pickCell(), which
    runs on the machine running the ENGINE — so a crew GUEST drew its squares and never asked the
    director to frame them at all; its camera sat wherever the last narration's camToSeat() glide
    (640/1.9 = the 336.84-unit window in every probe trace) had parked it. renderPickPrompt now
    asks for the frame on whichever client draws the squares (rule 23's converge move). */
-/* FRAME THE CAPTAIN BEING ASKED, NOT THE CAPTAIN LOOKING — Wyatt, 2026-08-20, from a two-window
+/* ⭐ ONE RULE PER SCREEN FOR A CAPTAIN'S TURN — ARCHITECTURE ITEM 46, AND IT IS WYATT'S OWN RULING,
+   given on 2026-09-17 against the recommendation Mac: Dev and Wy-Blade both made to him:
+   "we cannot see other players sail squares (bots or humans) so ALL other players turns should be
+   zoomed in on their boat for maximum immersion."
+
+   TWO INPUTS, the one display door's own pair: the turn's captain, and whether this screen is where
+   that choice is being made (`local` — decisionIsLocal, passed by the one event consumer).
+     · NOT the screen being asked -> that captain's BOAT, at the same distance a line about them
+       glides to. The gold squares are drawn only on the chooser's own screen, so a watcher framing
+       them frames empty water — which is exactly what it did.
+     · THE screen being asked -> its own sail window, below.
+   Neither branch asks whether a person or a bot is choosing, and that is the fault this closes: a
+   PERSON's turn was framed by the "…is choosing where to sail…" narration (camToSeat, the boat) and
+   a BOT's turn — which has no such line — was left on the squares. Two deciders, and which one you
+   got depended on who the captain was. The wait line now asks this same function (stageFlash).
+
+   FRAME THE CAPTAIN BEING ASKED, NOT THE CAPTAIN LOOKING — Wyatt, 2026-08-20, from a two-window
    screenshot: "on guest's turn the host's director moved back up to the host's boat while waiting
    for guest to sail... it should not center on host at the beginning of their turn at all."
 
@@ -267,31 +287,37 @@ function camFitCells(cells, maxZoom, reservePx, padCells){
    window because their cells ARE drawn locally.
 
    `seat` is optional and falls back to the viewer, so any future caller with no seat in hand keeps
-   the old local behaviour rather than silently framing seat 0. */
-function camFitSail(seat, pos){
+   the old local behaviour rather than silently framing seat 0. `local` has no default on purpose:
+   a screen that has not been told it is the one being asked is a watcher. */
+function camFrameTurn(seat, pos, local){
   S.lock = false;                                    // a new turn releases any gesture hold
   const g = appState.game; if (!g) return;
   /* `pos` is the AUTHORITATIVE square of the captain being asked, carried on the prompt spec for
      both tiers (renderPickPrompt passes it) — on a guest, g.players[].pos is a stale render shell
      and must never be read for this, the same rule the stay square earned (T-02). The seat lookup
-     remains the fallback for callers with no pos in hand: the spectating host's pickCell call. */
+     remains the fallback for the caller with no square in hand: the one event consumer's own call on
+     the `turn` event, which carries the captain and nothing else. */
   const who = g.players[seat ?? appState.mySeat ?? 0];
   const own = (pos && Number.isFinite(+pos[0])) ? pos : (who && who.pos);
   if (!own) return;
+  // A WATCHING SCREEN FRAMES THE BOAT. His ruling above, and the whole of the branch it replaced:
+  // a fallback that asked the engine for squares this screen is not drawing and cannot draw.
+  if (!local){ camToCell(own, SEAT_ZOOM); return; }
   // playtest 20: the squares carry their own grid coordinates now (sailHighlightRect writes
   // data-gx/gy). This used to invert that function's inset arithmetic by hand — a second copy of
   // the same maths that had to be kept in step with it, and it stopped being possible at all once
   // the squares became HTML sized in cqw rather than SVG rects with x/width attributes.
-  /* THE SQUARES ON SCREEN — OR, ON A SCREEN WATCHING SOMEBODY ELSE'S TURN THAT HAS DRAWN NONE, THE SAME
-     SQUARES FROM THE ENGINE. Only the captain choosing gets gold squares, so a frame built from the DOM
-     alone could only ever be right on one device (Wyatt, 2026-09-13, note 6: the guest camera was not
-     framing anybody's sail). Game.sailChoices is the engine's one answer to "where may this captain
-     sail", and the chooser's gold squares are drawn from that same call (ui/flow.js reachable).
+  /* THE SQUARES ON SCREEN — OR, BEFORE THEY ARE DRAWN, THE SAME SQUARES FROM THE ENGINE. This screen
+     is the one being asked, and the turn event reaches it BEFORE its own prompt renders, so the first
+     fit of a turn has an empty DOM to measure. Game.sailChoices is the engine's one answer to "where
+     may this captain sail", and the gold squares this screen is about to draw come from that same call
+     (ui/flow.js reachable) — so the early frame and the drawn one cannot disagree.
      ARCHITECTURE ITEM 18, 2026-09-17: this used to ask reachableFrom — the same search WITHOUT the
      trade winds' rim — under a comment claiming the two "agree by construction". They did not: on 40
-     seeded boards, from 3,430 of 4,432 sea squares the watchers' frame left out rim squares the chooser
-     was offered, and on 3,296 the framed rectangle was smaller. One call now; the gate is
-     scripts/qa/sail_frame_same_squares_check.mjs. */
+     seeded boards, from 3,430 of 4,432 sea squares the chooser was offered rim squares the frame left
+     out, and on 3,296 the framed rectangle was smaller. One call now; the gate is
+     scripts/qa/sail_frame_same_squares_check.mjs. (Item 18's OTHER half — a WATCHING screen framing
+     these same squares — is gone: item 46 above, his ruling.) */
   const drawn = [...document.querySelectorAll(".sailCell")]
     .map(r => [+r.dataset.gx, +r.dataset.gy])
     .filter(c => Number.isFinite(c[0]) && Number.isFinite(c[1]));
@@ -1861,7 +1887,15 @@ function stageFlash(msg, ms, holdMs, variants, opts){
      the hold is now armed by the battle itself (S.battle — held by the one event consumer on the fight's `engage` and let go on its
      `disengage`, on every screen: architecture item 4); the card, and the test that read it, were removed at his ask on 2026-09-14. */
   else if (S.battle) { /* hold the shot on the fight until it resolves */ }
-  else if (subj != null) camToSeat(subj);
+  /* A WAIT LINE IS NOT A SECOND DIRECTOR — architecture item 46. "…is choosing where to sail…" and
+     "…is deciding…" are drawn ONLY on a screen that is not the one being asked (waitLineIsSelfAddressed,
+     at the top of this function), so a wait line is a watcher's line by construction — and what a
+     watching screen frames for that captain's turn is already decided, once, by camFrameTurn. It asks
+     that same function rather than aiming a camera of its own. Before this the two disagreed: this line
+     zoomed a watcher onto a PERSON's boat, while a BOT's turn — which has no wait line at all — was left
+     on the sail squares by the turn's own fit. Bot and human framed by different code is exactly what
+     Wyatt's ruling forbids ("ALL other players turns should be zoomed in on their boat"). */
+  else if (subj != null){ if (opts && opts.wait) camFrameTurn(subj, null, false); else camToSeat(subj); }
   return new Promise(res => {
     // HOW LONG A NARRATION LINE STAYS UP -- one call, and the model behind it lives in util.js
     // beside the curve it replaced (narrationHoldMs, D-34/D-45).
@@ -4771,7 +4805,7 @@ function promptTick(force){
        correctly center my boat, so the board looks weird"), from a screenshot with his own ship
        drawn up over the ribbon and the wind pill, its action fan hanging beneath it.
 
-       Only the SAIL prompt framed anything: camFitSail fits the sail window (which contains the
+       Only the SAIL prompt framed anything: camFrameTurn fits the sail window (which contains the
        ship by construction), and every other prompt simply inherited whatever shot the last
        narration left. A ship that had just sailed to the edge of that shot therefore got its
        question asked off the board. This became worth fixing rather than tolerating the moment
@@ -5808,7 +5842,7 @@ function tick(){
     if (S.camHeld && !stageHoldsAttention()){ const t = S.camHeld; S.camHeld = null; camTo(t[0], t[1], t[2]); }
     // pill and ribbon change on human timescales — 10Hz in the fast gear, every beat in slow
     if (S.slow || S.tween || fc % 6 === 0){ pillTick(); ribbonTick(); }
-    // sail squares on screen are FRAMED on screen — the containment pass (see camFitSail's
+    // sail squares on screen are FRAMED on screen — the containment pass (see camFrameTurn's
     // sibling above). Same human-timescale cadence as the pill; it self-throttles further.
     if (S.slow || fc % 6 === 0) sailContainTick();
     promptTick();
@@ -5981,9 +6015,12 @@ export function initStage(){
        reported success on a fix that did nothing. */
     set subjectSet(v){ S.subjectSet = v; }, get subjectSet(){ return S.subjectSet; },
     set evType(v){ S.evType = v; }, get evType(){ return S.evType; },
-    // `pos` (optional) is the asked captain's authoritative square off the prompt spec — see
-    // camFitSail. renderPickPrompt passes it; the spectating host's pickCell call passes seat only.
-    sailCells: (seat, pos) => { if (S.active) camFitSail(seat, pos); },
+    /* THE ONE DOOR FOR A TURN'S FRAME (architecture item 46). `local` is this screen's locality for
+       that captain's choice — decisionIsLocal, the one display door's own second input, passed by the
+       one event consumer on the `turn` event. `pos` (optional) is the asked captain's authoritative
+       square off the prompt spec; renderPickPrompt passes it along with local:true, because the screen
+       drawing the squares IS the screen being asked. See camFrameTurn. */
+    turnFrame: (seat, pos, local) => { if (S.active) camFrameTurn(seat, pos, local); },
     /* THE SHOT IS THE FIGHT, AND IT IS HELD. Called by the one event consumer on the fight's `engage` — drawn before the opening line,
        so the camera is already there when it speaks — and let go (battleEnd) on its `disengage`, on every screen (architecture item 4).
        It used to centre the MIDPOINT at a fixed 2.0x, which frames two adjacent ships and crops two
