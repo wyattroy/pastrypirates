@@ -14,9 +14,10 @@
  * WHY THAT IS NOT A PEDANTRY. A guest's board is mirrored inside the one event consumer, which is a queue; the fight's words arrive on
  * a different wire and are drawn the moment they land. MEASURED in a two-window crew room (host 1200x950, guest iPhone-13-mini 375x812
  * dsf3), one fight, the guest's signal dropped for 3.9 s the way a phone's does:
- *     host  +4.48 s  "HostCap — ye load the cannon… / ⬇ HOSTCAP FIRES DOWNWIND — WINS TIES"
- *     guest +4.85 s  "HostCap loads the cannon… / CROSSWIND · ties collide"
+ *     host  +4.56 s  "HostCap — ye load the cannon… / ⬇ HOSTCAP FIRES DOWNWIND — WINS TIES"   (on screen 4.56-9.20 s)
+ *     guest +4.90 s  "HostCap loads the cannon… / CROSSWIND · ties collide"                    (on screen 4.90-5.50 s)
  *     guest +11.1 s  the flip stage: "HostCap is firin' downwind — two heads and the tie is theirs."
+ *   (all four numbers are ONE run — the guest's own board did not catch up with the fight until +5.13 s, 230 ms after it had spoken.)
  *   The engine had recorded downwind="a" (the host) on the `engage` event. Two of the three readings were wrong, both on the phone, and
  *   they disagreed with each other. It also happens with nothing dropped at all: 2026-09-17, a plain crew room, item 8's own before-run
  *   (host "⬇ HOSTCAP FIRES DOWNWIND — WINS TIES" 4.36-8.98 s, guest "CROSSWIND · ties collide" 4.41-8.95 s — four and a half seconds of

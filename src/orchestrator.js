@@ -317,7 +317,7 @@ export function renderBattle(o){
        `o.dw` is the engine's own reading, taken ONCE in Game.beginBattle and carried on every publish (asyncBattleRun's `base`) and
        across the wire (flow.js battleSnapshot). This line used to fall back to `appState.game.downwindSide(o.att,o.def)` — a second
        reading of the fact, taken from whatever the screen drawing it happened to have on its board. MEASURED in a two-window crew
-       room: a guest whose signal dropped for four seconds drew "CROSSWIND · ties collide" 4.52 s into a fight the host was calling
+       room: a guest whose signal dropped for four seconds drew "CROSSWIND · ties collide" 4.9 s into a fight the host was calling
        "⬇ HOSTCAP FIRES DOWNWIND — WINS TIES", because its ships had not been mirrored yet; its own flip stage then said "HostCap is
        firin' downwind" six seconds later. Three readings of one fact, two of them wrong on the same phone.
        A screen that was not told does not guess: no `dw` on the publish means a crosswind, which is what the engine's own null means,
