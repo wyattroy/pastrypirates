@@ -1821,10 +1821,15 @@ export async function consumeEvent(e){
      camera director does not seem to be zooming in and out dynamically or correctly -- were these
      changes somehow made only to the host?" They were: the sail-window frame lived in pickCell(), which
      runs only on the machine running the engine. The turn event reaches every device through this
-     consumer and the engine can say where ANY captain may sail (sailChoices, read by camFitSail — the same call as the chooser's gold squares, architecture item 18), so
-     the frame is decided here, once, from the event. A captain's own sail prompt still refines it with
-     the pill's room (renderPickPrompt) — the same function, asked again with more to go on. */
-  if(e.t==="turn"&&!appState.replaying&&window.__pp4&&window.__pp4.sailCells)window.__pp4.sailCells(e.p);
+     consumer, so the frame is decided here, once, from the event.
+     ⭐⭐ AND FROM THIS SCREEN'S LOCALITY — architecture item 46, Wyatt's ruling of 2026-09-17: "we cannot
+     see other players sail squares (bots or humans) so ALL other players turns should be zoomed in on
+     their boat for maximum immersion." The two inputs this door is built on, again: the engine's event
+     and whether the choice is being made HERE. A watching screen frames that captain's boat, bot or
+     human alike; the screen being asked frames its own sail window (Game.sailChoices — the same call as
+     its gold squares, architecture item 18) and refines it a moment later with the pill's room
+     (renderPickPrompt), which is the same function asked again with more to go on. */
+  if(e.t==="turn"&&!appState.replaying&&window.__pp4&&window.__pp4.turnFrame)window.__pp4.turnFrame(e.p,null,decisionIsLocal(e.p));
   if(!appState.replaying)bobTheTurn();   // his game feel audit, then 2026-09-14: the boat whose turn it is bobs for the whole turn, on every screen — read from the one helper, so a baking captain's boat bobs too (board.js; architecture item 3)
   if(e.t==="end")stopTurnBob();                         // …and nothing bobs once the voyage is over
   $("scrub").max=Math.max(0,appState.game.events.length-1);
