@@ -103,7 +103,7 @@
   </header>
 
   <nav aria-label="Sections">
-    <a href="#now">Where we stand</a><a href="#goals">The six goals</a><a href="#days">The 14 days</a><a href="#settle">To settle</a><a href="#after">After launch</a><a href="#decided">What we decided</a><a href="#found">What the research found</a><a href="#risks">Risks</a><a href="#links">Where things live</a>
+    <a href="#now">Where we stand</a><a href="#dev">Mac: Dev</a><a href="#goals">The six goals</a><a href="#days">The 14 days</a><a href="#settle">To settle</a><a href="#after">After launch</a><a href="#decided">What we decided</a><a href="#found">What the research found</a><a href="#risks">Risks</a><a href="#links">Where things live</a>
   </nav>
 
   <section id="now" aria-labelledby="now-h">
@@ -114,11 +114,11 @@
       <tbody>
         <tr><td><strong>Who serves the live game</strong></td><td><span class="tag t-no">GitHub, not Cloudflare</span></td><td>playpastrypirates.com answers with <code>server: GitHub.com</code>. The cutover has not happened.</td></tr>
         <tr><td><strong>The repository</strong></td><td><span class="tag t-no">Public</span></td><td>GitHub reports the project as public, so the code is still copyable.</td></tr>
-        <tr><td><strong>Analytics</strong></td><td><span class="tag t-no">Not in the game</span></td><td>No analytics tag anywhere in the game’s page. It exists only inside a planning document.</td></tr>
+        <tr><td><strong>Analytics</strong></td><td><span class="tag t-done">Live</span></td><td>Cookieless Google Analytics runs on the game, About and Rules, from one file. <strong>I got this wrong first time</strong> — my check looked only inside the page’s own text and missed the file it loads. Corrected by asking the live site: it serves the tag today. What’s missing is a page <em>you</em> can tap to read the numbers.</td></tr>
         <tr><td><strong>The tutorial</strong></td><td><span class="tag t-done">Built</span></td><td>The parrot tutorial ships in <code>src/ui/pilot.js</code>, from your eight rulings on 2 September.</td></tr>
-        <tr><td><strong>Search</strong></td><td><span class="tag t-part">Partly</span></td><td>No Search Console, so nobody knows whether the game is even listed. The sitemap covers a handful of pages. There is a name collision with a Warner Bros. property on the bare phrase.</td></tr>
+        <tr><td><strong>Search</strong></td><td><span class="tag t-part">Half done</span></td><td>The code half is built and gated: robots file, sitemap, and a crawl-intent check that fails the build. The half that matters isn’t started: the brand collision hasn’t been re-measured since 26 August, and there’s no Search Console tag in the page.</td></tr>
         <tr><td><strong>Firebase safety</strong></td><td><span class="tag t-no">Open</span></td><td>The budget alert and the scoped database rules were both recorded as not done on 6 September, and the game writes without signing in. On your pay-as-you-go plan, abuse is a bill, not an outage.</td></tr>
-        <tr><td><strong>The live game vs. the work</strong></td><td><span class="tag t-part">161 commits behind</span></td><td>Everything since 13 September is on <code>dev</code> and not yet served to players.</td></tr>
+        <tr><td><strong>The live game vs. the work</strong></td><td><span class="tag t-part">162 behind, closing today</span></td><td>Dev reports the merge in flight as I write: today’s playtest fixes → <code>dev</code> → staging → <code>main</code>. When it lands, players get everything and the gap is zero.</td></tr>
         <tr><td><strong>Solo and crew polish</strong></td><td><span class="tag t-cut">Cuttable — your call</span></td><td>Your cut line today: polish slips before the date does.</td></tr>
       </tbody>
     </table></div>
@@ -126,11 +126,42 @@
     <div class="note"><label for="n-now">Your notes: Where we stand</label><textarea id="n-now" data-note="now" data-label="Where we stand" rows="2"></textarea></div>
   </section>
 
+  <section id="dev" aria-labelledby="dev-h">
+    <h2 id="dev-h">What Mac: Dev says</h2>
+    <p>Asked this morning, answered in full. Dev owns current development; this is its read, not mine.</p>
+    <div class="tablewrap"><table>
+      <thead><tr><th>Launch-bar item</th><th>State</th><th>What’s actually left</th></tr></thead>
+      <tbody>
+        <tr><td>Solo and crew feel finished</td><td><span class="tag t-part">In progress, closest to done</span></td><td>You marked all 18 items “looks right” today, with five problems; all five are fixed and being verified now. Still missing: <strong>the crew rematch</strong> — in a crew, “play again” still drops you out of the game.</td></tr>
+        <tr><td>Tutorial</td><td><span class="tag t-done">Live</span></td><td>Nothing to build. <strong>Nobody has watched a real first-timer play it</strong>, and nobody knows whether anyone opens “How to play”.</td></tr>
+        <tr><td>Analytics</td><td><span class="tag t-done">Live</span></td><td>No banner, no cookie, your ruling. Missing: anything that turns the numbers into something you can read.</td></tr>
+        <tr><td>Private source</td><td><span class="tag t-no">Not started</span></td><td>The only launch-bar item with nothing built, and it can’t be done without the Cloudflare move, because a private repository needs a host that serves from one.</td></tr>
+        <tr><td>Search</td><td><span class="tag t-part">Half</span></td><td>See above. Dev’s words: “measured broken, and it is a BRAND COLLISION, not a tags problem”.</td></tr>
+      </tbody>
+    </table></div>
+    <div class="callout"><b>Dev’s number one risk is you, and it says so plainly</b>The cutover is <strong>not started and blocked on step 0</strong>, which is your five minutes at Squarespace — and it has been the standing blocker on your sheet for days. Dev’s estimate once it’s off: 2–3 working days for the move, plus a day watching the live domain. <strong>The clock starts when you do.</strong></div>
+    <h3>Dev’s other two risks</h3>
+    <ol>
+      <li><strong>Firebase, unauthenticated and uncapped.</strong> About a day for the alert and scoped rules, plus a full crew pass, because rules that are too tight break multiplayer quietly. Today the exposure is a few players; on launch day it’s whoever finds it.</li>
+      <li><strong>The brand collision.</strong> Not a code fix, and being listed takes weeks, not days — so starting on 25 September is the same as not starting. Half a day to measure how bad it actually is.</li>
+    </ol>
+    <h3>Three cheap things only you can do</h3>
+    <ul>
+      <li><strong>Win one voyage on staging</strong> (five minutes). The smarter bots learn only from voyages a human won, and none has been logged since the logs stopped keeping names. This single game unblocks a whole workstream.</li>
+      <li><strong>Watch one first-timer play</strong> (one afternoon). Nobody in this project ever has, and it’s the only item on any list that touches a player directly.</li>
+      <li><strong>Rule on twelve narration lines</strong> that still name a captain by hand, where the storm and the co-baker line name a <em>group</em>, which the one narration rule can’t say at all.</li>
+    </ul>
+    <h3>Landed this week, and not in any backlog</h3>
+    <p>The victory card and the voyage score both shipped: a voyage now ends with a crown, a podium, awards and a score the engine works out once — your words, “SO FUN TO SEE!!!”, with winning now a flat +500. Dev also opened an art list: boats with sails down, sails as separate pieces, and a real trophy per award to retire the placeholder medals.</p>
+    <p>Dev’s own checklist, which it alone writes, is <a href="https://claude.ai/artifact/LvqytfTYCwssQzTcmNFped">here</a>.</p>
+    <div class="note"><label for="n-dev">Your notes: What Mac: Dev says</label><textarea id="n-dev" data-note="dev" data-label="What Mac: Dev says" rows="2"></textarea></div>
+  </section>
+
   <section id="goals" aria-labelledby="goals-h">
     <h2 id="goals-h">The six goals to hit by 1 October</h2>
     <div class="goals">
       <div class="goal"><div><b>The game lives on Cloudflare</b>Staging first, then the live domain, with the game untouched while staging proves it.<small>Done when: playpastrypirates.com answers as Cloudflare and a voyage plays start to finish on it. By 24 Sep.</small></div></div>
-      <div class="goal"><div><b>Analytics counts real visits</b>The tag in the game, verified with your own visit showing up.<small>Done when: you open the game on your phone and see yourself in the dashboard. By 22 Sep.</small></div></div>
+      <div class="goal"><div><b>You can see how it’s going</b>The counting already works. What’s missing is a page you can tap that shows visits, voyages started and voyages finished.<small>Done when: you open one link on your phone and read today’s numbers without asking me. By 22 Sep.</small></div></div>
       <div class="goal"><div><b>The code stops being copyable</b>The repository goes private, and the staging build survives it.<small>Done when: the project reads private and a no-op push still publishes staging. By 25 Sep.</small></div></div>
       <div class="goal"><div><b>A bill can’t run away</b>The Firebase budget alert set, and the database rules scoped.<small>Done when: an alert exists, and an unauthenticated write to a room is refused. By 26 Sep.</small></div></div>
       <div class="goal"><div><b>What players get is what we’ve built</b>The 161 commits reach the live game, after your verdict on staging.<small>Done when: whole voyages play to the end card in solo, pass-and-play and crew on the final build, then dev merges to main. By 29 Sep.</small></div></div>
@@ -141,14 +172,14 @@
 
   <section id="days" aria-labelledby="days-h">
     <h2 id="days-h">The 14 days</h2>
-    <p>Gold is yours, teal is mine, red is a gate nothing passes until it’s green. Your share adds up to about an hour, spread over four days.</p>
+    <p>Gold is yours, teal is mine, red is a gate nothing passes until it’s green. Your share adds up to about an hour, spread over four days — plus one voyage you win on staging, which costs five minutes and unblocks the bots.</p>
     <div class="days">
-      <div class="day his"><b>Thu 18</b><span class="who">You · 5 minutes</span><p>Turn off DNSSEC at Squarespace. Nothing else moves today; the lock takes a day to expire. Read the domain name in the address bar before you touch anything — hycudesign.com’s panel looks identical and a record went to the wrong domain once.</p></div>
+      <div class="day his"><b>Thu 18</b><span class="who">You · 5 minutes</span><p><strong>The whole schedule starts here.</strong> Turn off DNSSEC at Squarespace. Nothing else moves today; the lock takes a day to expire, and Dev names this as the one thing blocking everything else. Read the domain name in the address bar before you touch anything — hycudesign.com’s panel looks identical and a record went to the wrong domain once.</p></div>
       <div class="day mine"><b>Thu 18</b><span class="who">Me</span><p>Cutover pre-flight: the not-found page, the Node version pinned, caching rules matched to what Cloudflare actually serves, the teardown commit written but not landed.</p></div>
-      <div class="day mine"><b>Fri 19</b><span class="who">Me</span><p>Analytics into the game, and the privacy wording updated in the same change so the front card stays true.</p></div>
+      <div class="day mine"><b>Fri 19</b><span class="who">Me</span><p>A numbers page you can tap: visits, voyages started, voyages finished, today and this week. The counting already happens; this just shows it to you.</p></div>
       <div class="day mine"><b>Sat 20</b><span class="who">Me</span><p>Staging published on Cloudflare. The live game is untouched all day.</p></div>
       <div class="day his"><b>Sun 21</b><span class="who">You · 20 minutes</span><p>Play staging on your phone and your laptop. Check the build stamp reads <code>-staging@</code>. Confirm you can see your own visit in analytics.</p></div>
-      <div class="day gate"><b>Mon 22</b><span class="who">Gate</span><p>Analytics counts you, or the cutover waits. This is one of your two must-haves.</p></div>
+      <div class="day gate"><b>Mon 22</b><span class="who">Gate</span><p>Staging runs on Cloudflare and you can read your own numbers. If either is red, the live domain waits — and polish gives up its days, not the cutover.</p></div>
       <div class="day his"><b>Wed 24</b><span class="who">You · 15 minutes</span><p>Move the nameservers to Cloudflare. The live game changes hands today; the game itself doesn’t change.</p></div>
       <div class="day mine"><b>Wed 24 – Thu 25</b><span class="who">Me</span><p>Watch it settle: a full voyage on the live domain, a crew game across two windows, and the old host kept warm until it’s certain.</p></div>
       <div class="day his"><b>Thu 25</b><span class="who">You · 10 minutes</span><p>Clear the custom domain in the old host’s settings first, then make the repository private, then push anything to <code>dev</code> and watch staging still build. Delete the old staging repository once it does.</p></div>

@@ -1706,11 +1706,19 @@ cutover come first. He calls that "the first level of success".
 **https://claude.ai/artifact/7U9Cex8FxPtwA1ZPSAJ29w** (`docs/ROADMAP.html`). **His cut line, verbatim:**
 *"polish is my cut line; we need to be cutover to cloudflare and have working analytics."*
 
-**MEASURED 2026-09-17, and two are worse than the plan assumed:** production still answers
-`server: GitHub.com` — **the Cloudflare cutover has NOT happened**; the repo is **PUBLIC**; there is
-**no analytics tag in index.html** (it lives only in `.planning/ANALYTICS-PLAN.html`); `main` is **161
-commits behind `dev`**. Done: the parrot tutorial. Open: Search Console, the Firebase budget alert and
-scoped rules.
+**MEASURED 2026-09-17:** production still answers `server: GitHub.com` — **the Cloudflare cutover has
+NOT happened**, and Mac: Dev confirms it is not started and blocked on HIS step 0 (DNSSEC off at
+Squarespace). The repo is **PUBLIC**, and the private-source item has nothing built. `main` was 162
+commits behind `dev`; Dev had that merge in flight on 17 Sep.
+
+⚠ **A CORRECTION OF MINE, WORTH THE SPACE.** I reported "no analytics tag in the game". **Wrong.**
+Cookieless GA (G-2KK6EZDZSP) is LIVE on the game, About and Rules, loaded from `src/analytics.js`
+(`index.html:4001`); production serves it — measured by fetching the file off the live domain. My
+check grepped `index.html` for a `gtag` snippet and a module import is invisible to that. **Suspect
+the check first.** What IS missing is a page Wyatt can tap to read the numbers.
+
+Done: the parrot tutorial (live). Open: the numbers page, Search Console and the brand collision
+(not re-measured since 26 Aug), the Firebase budget alert and scoped rules.
 
 **The binding constraint:** DNSSEC's DS record has a 24-hour life, so Wyatt turns it off at
 Squarespace a full DAY before the nameservers move. His jobs total about an hour across four days.
