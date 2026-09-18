@@ -1,5 +1,36 @@
 # Wyatt's standing decisions
 
+
+## ONEHELM — the name of the convergence project (2026-09-18)
+
+**He named it himself.** Offered "One Helm", "Second Wheel" and "Twin Watch", he answered:
+*"Onehelm!"*
+
+**What it means, and why the name is the design.** A ship has one wheel. Every fact the game decides
+— where a boat is drawn, when a coin lands, what the wind was in a fight, whether a captain may dock
+— should be steered from ONE place. A second place deciding the same fact is **a second helm**, and
+that is the finding's name: *"a second helm on the fight's wind"*.
+
+**Every bug he reported on 2026-09-18 was a second helm, and none of them looked like duplication in
+the code:**
+- a guest's muse coin flew 6,989 ms after the host's, with a whole turn in between — three places
+  decided when a coin is let go;
+- a bot's hit drew no smoke and no sound where his did;
+- he suspected a bot's coin flew at a different speed from his (it did not — that was the haul-size
+  derivation, his own separate report, wearing this one's clothes).
+
+**THE REASON THE PROJECT EXISTS RATHER THAN MORE CODE-READING.** The 46-item audit that preceded it
+was produced by READING the code, and it is blind by construction to a fact that diverges across
+TIERS (host vs guest), across ACTORS (bot vs human) or across MODES (solo, pass-and-play, crew) —
+because those look like ONE function reached by TWO ROUTES. His method finds them in minutes: play
+the game, and compare the twin. *"It's right when docking, wrong when musing"* is the sentence that
+found the muse coin, and no gate in the chain had anything to say about it.
+
+**What he asks of a fix, in his own words (2026-09-18):** not a different phrasing from him, but a
+different deliverable from us — *the fact in the game's words, how many places decided it before and
+after, and the name of the check that goes red if a second one ever appears.* An answer without
+those three is a one-off wearing the word "architectural".
+
 ## PUBLISH TO STAGING FROM A THROWAWAY CLONE, NEVER FROM THE SHARED CHECKOUT
 
 **Earned 2026-09-06, the day three sessions worked in one folder and HEAD was moved under a working
@@ -3629,3 +3660,64 @@ history for tidiness. **The default is keep.** Storage is not the constraint; th
 **⚠ "346 games were played" IS WRONG and I nearly let it stand.** 346 is crew rooms *created* —
 many abandoned before anyone played. The number he was actually pleased about is **658 completed
 voyages**, which is larger and is the real one. A room created is not a game played.
+
+---
+
+## 2026-09-18 — THE SFX LEVELLING PASS IS HIS q7 PASS, AND ALL EIGHTEEN STEMS ARE IN IT
+
+**What he asked for, verbatim:** *"Sfx leveling adjustment: the coin flips are too loud, the sailing
+sound is too loud; please do another mixing pass"* — then, minutes later, **"Muse sound is also too
+loud by a lot."**
+
+**And the ruling that set its scope, verbatim:** *"It should relevel them too; I haven't heard them
+properly."*
+
+That answers a question this project had been holding open since q7 (2026-09-06, *"level everything
+together, once, after all files are in"*). **Five stems had been ruled untouchable** — the cork pop
+and the four "Sounds of the Voyage" picks — because they were rendered at the level he auditioned on
+their own tuner pages, so a gain of 1 played them exactly as he dialled them. **He has overruled
+that himself**, and his reason is the important part: **auditioning a sound alone on a tuner page is
+not hearing it in the game.** On the page it plays by itself; in the game it sits under an ocean
+bed, a fiddle and eight other effects. Measured, those five were 9–12 dB under the mix.
+
+**So this IS the q7 pass, not an interim adjustment to two sounds.** Do not re-open it as "still
+outstanding". The first-home fanfare is still with Luis; when it lands it is placed on the same
+line, which is one number, not another pass.
+
+**AND LOUDNESS ALONE IS THE WRONG YARDSTICK — this is the lesson to carry.** The 2026-08 pass
+levelled six stems by EBU R128 integrated loudness to a flat −23 LUFS. That measures how loud a
+sound is *when it plays* and is blind to *how often it plays*, so the cues a player hears fifty
+times a voyage were boosted to match cues heard once. **The muse proves it: R128 had already turned
+`fishing` DOWN to 0.81 and he still called it much too loud.** A mix must weight both axes. The line
+now used, fitted to his three complaints and written up in `docs/AUDIO.md` §1c:
+
+> target loudness = −16.9 dB − 1.71 dB × log2(plays per voyage)
+
+**Two of his complaints were also a PILE, not a stem.** The Muse plays two sounds on one beat —
+`fishing` plus the muse coin's chink — measured together at **−1.2 dBFS, a whisker off full scale**.
+That is why that one earned his strongest wording, and why cutting the stem alone would have
+under-delivered. **When he says a sound is too loud, measure the MOMENT, not only the file.**
+
+---
+
+## 2026-09-18 — THE SWORD CLASH IS NOT A DEFECT. LUIS CHECKED IT.
+
+**His words, verbatim:** *"Also luis checked the sword clash and found it fine; fix your notes it is
+not a problem."*
+
+`battle-swords` measures **+0.2 dBFS true peak**. **That measurement stands and is not to be
+edited** — it was taken correctly and re-confirmed on 2026-09-18. What is **withdrawn** is the
+*verdict* three sessions attached to it: "clipped in the file, distorted, needs a fresh export."
+
+**A peak reading is not a verdict on how a file sounds.** That inference sat in `docs/AUDIO.md` and
+in `src/ui/audio.js` as outstanding work for weeks, carried by sessions that **cannot hear audio**,
+while the one person who could hear it had never been asked. Asking cost one message.
+
+**The −1 dBFS ceiling still stands for every other stem**, enforced by `scripts/audio_map_check.js`
+rule (d). This one file is a **known, judged exception**, and the gate names it as such rather than
+pretending the measurement is different. Nothing downstream may carry it as open work.
+
+**The general form, and it is the more valuable half:** when a measurement and a human ear are both
+available, the measurement tells you *what is true of the file* and only the ear tells you *whether
+it is a problem*. A session that cannot hear must report the number and ask — never convert it into
+a defect on its own authority.
