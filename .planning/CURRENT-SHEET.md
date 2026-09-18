@@ -7,8 +7,16 @@ fifteen that already exist.
 **Update the URL here in the same commit that republishes the sheet.** If they disagree, the URL
 here is the one that is wrong.
 
-SHEET: https://claude.ai/code/artifact/a1623d69-328c-417e-920f-8a99782ebce2
-BUILD: 2026.09.16.1-staging@7fb54490
+SHEET: https://claude.ai/artifact/LvqytfTYCwssQzTcmNFped
+BUILD: 2026.09.17.5-staging@25583484
+NAME:  Pastry Pirates Checklist — he renamed it himself on 2026-09-17; it was "The plaque merge sheet".
+
+**ONE PAGE, TWO SPELLINGS — do not "reconcile" these into a second artifact.** The slug above and
+`https://claude.ai/code/artifact/a1623d69-328c-417e-920f-8a99782ebce2` are THE SAME PAGE: claude.ai
+serves an artifact under a short slug and under its uuid, and a read of either returns
+`Artifact a1623d69-…`. This file carried the uuid form until 2026-09-17, which read as a mismatch
+against the link he is given, and a session came within one step of publishing a replacement.
+**Give him the slug form.** Check identity by reading the URL, never by comparing the two strings.
 
 ## The others, so nobody re-makes them
 
