@@ -15,14 +15,18 @@
 // Everything here is render-side. The engine, its RNG, and the dlog are never touched.
 "use strict";
 import { appState } from "../state/index.js";
-import { boardShipEls, setFlipCoin } from "./board.js";
+import { boardShipEls, setFlipCoin, boardArtReady, FLIP_SPIN_MS } from "./board.js";
+import { soundReady, playCardSwish } from "./audio.js";
 import { narrationHoldMs, vwPx, vhPx, isDisabledBtn, fixedOrigin, fixedRect, refreshNameMarquees,
   waitLineIsSelfAddressed, pname } from "./util.js";
 import { typewriterReveal } from "./panel.js";
 import { HEXCOL, emojify, DIRS, STORM_PUSH, BOAT_IMG } from "../shared/index.js";
+import { say, sayText, whoseTurn } from "./util.js";   // every word from src/shared/words.js; whose turn it is (architecture item 3)
 import { showsThinkingIndicator } from "../shared/visibility.js";
 import { pilotToggle, pilotIsOn, pilotMsg, pilotSee } from "./pilot.js";
 import { showCourseFor, paintMarks, clearCourse, forgetCourse, redrawCourse } from "./course.js";
+import { startPopIn, releasePopIn } from "./popin.js";
+import { wirePressSquish } from "./press.js";
 
 const $ = id => document.getElementById(id);
 const AR = { N: "↑", S: "↓", E: "→", W: "←" };
@@ -42,7 +46,7 @@ const AR = { N: "↑", S: "↓", E: "→", W: "←" };
 //   YYYY.MM.DD.N  —  N is the Nth build published that day, bumped by hand exactly as the letter was.
 //
 // Staging appends its own suffix at publish time and never here — see scripts/deploy-staging.sh.
-const PP4_STAMP = "2026.09.13.5";
+const PP4_STAMP = "2026.09.17.6";
 
 /* HIDE THE WHOLE STAGE LAYER — T-12 (Wyatt, 2026-08-26, with a screenshot).
    "They are successfully brought back to port (the homepage) BUT there is a bug -- the homepage
@@ -110,7 +114,21 @@ const S = {
   lastPill: "",
   geomAt: 0,                // D-31: Date.now() of the last computeStageGeometry() measurement pass
   geomBound: false,         // …and whether the resize listener has been registered yet
+  settleUntil: 0,           // the board's arrival (settleBoardIn): until this moment camFrame reads the board's width from before it
+  stripW: 0,                // …the board window's last untransformed width, which is what it reads instead
+  bandWatch: null,          // the ResizeObserver on the ribbon and the wind pill (see buildStage)
 };
+/* THE WHEEL HAS CHANGED HANDS — the counter the prompt-placement memos key on (the pill lock, the fan's placement key, the
+   director's frame key, the sail window's retry budget), so a NEW turn re-anchors the ask pill and an ongoing one never
+   moves it (playtest 15). It was bumped by __pp4.actor whenever the slot every prompt and every event wrote changed seat —
+   the slot architecture item 3 deleted. It is counted here instead, at the moment it is READ, from the one answer to whose
+   turn it is: a read can never see a stale count, and nothing but a change of turn moves it. */
+let serialTurn;
+function turnSerial(){
+  const t = whoseTurn();
+  if (t !== serialTurn){ serialTurn = t; S.turnSerial = (S.turnSerial || 0) + 1; }
+  return S.turnSerial;
+}
 
 /* ================= camera ================= */
 function svgEl(){ return $("board"); }
@@ -266,15 +284,20 @@ function camFitSail(seat, pos){
   // the squares became HTML sized in cqw rather than SVG rects with x/width attributes.
   /* THE SQUARES ON SCREEN — OR, ON A SCREEN WATCHING SOMEBODY ELSE'S TURN THAT HAS DRAWN NONE, THE SAME
      SQUARES FROM THE ENGINE. Only the captain choosing gets gold squares, so a frame built from the DOM
-     alone could only ever be right on one device. reachableFrom() is the engine's own answer to "where
-     may this captain sail", and the picker's squares are drawn from it, so the two agree by
-     construction (Wyatt, 2026-09-13, note 6: the guest camera was not framing anybody's sail). */
+     alone could only ever be right on one device (Wyatt, 2026-09-13, note 6: the guest camera was not
+     framing anybody's sail). Game.sailChoices is the engine's one answer to "where may this captain
+     sail", and the chooser's gold squares are drawn from that same call (ui/flow.js reachable).
+     ARCHITECTURE ITEM 18, 2026-09-17: this used to ask reachableFrom — the same search WITHOUT the
+     trade winds' rim — under a comment claiming the two "agree by construction". They did not: on 40
+     seeded boards, from 3,430 of 4,432 sea squares the watchers' frame left out rim squares the chooser
+     was offered, and on 3,296 the framed rectangle was smaller. One call now; the gate is
+     scripts/qa/sail_frame_same_squares_check.mjs. */
   const drawn = [...document.querySelectorAll(".sailCell")]
     .map(r => [+r.dataset.gx, +r.dataset.gy])
     .filter(c => Number.isFinite(c[0]) && Number.isFinite(c[1]));
   let cells = drawn;
-  if (!drawn.length && who && typeof g.reachableFrom === "function"){
-    try { cells = g.reachableFrom(who).filter(c => Array.isArray(c) && Number.isFinite(c[0]) && Number.isFinite(c[1])); }
+  if (!drawn.length && who && typeof g.sailChoices === "function"){
+    try { cells = g.sailChoices(who).filter(c => Array.isArray(c) && Number.isFinite(c[0]) && Number.isFinite(c[1])); }
     catch (err) { cells = []; }
   }
   cells.push(own);
@@ -341,7 +364,7 @@ function sailContainTick(){
   const sq = document.querySelectorAll(".sailCell");
   if (!sq.length){ scKey = ""; return; }
   const now = Date.now();
-  const key = (S.turnSerial || 0) + "|" + sq.length;
+  const key = turnSerial() + "|" + sq.length;
   if (key !== scKey){ scKey = key; scTries = 0; scAt = now; return; }
   if (scTries >= 3 || now - scAt < 350) return;
   const svg = svgEl(); if (!svg) return;
@@ -433,7 +456,7 @@ const swellPeak = () => parseFloat(getComputedStyle(document.documentElement)
   .getPropertyValue("--pp4GrowPeak")) || 1.15;
 function swellRect(el, r){
   const cl = el && el.classList;
-  if (!cl || !(cl.contains("apBtn") || cl.contains("btlBtn"))) return r;
+  if (!cl || !cl.contains("apBtn")) return r;
   const k = swellPeak();
   const w = (el.offsetWidth || r.width) * k, h = (el.offsetHeight || r.height) * k;
   const cx = r.left + r.width / 2, cy = r.top + r.height / 2;   // scale origin is the centre
@@ -511,7 +534,7 @@ function boatUXY(i){
 // belongs here — BOARD-RENDERING §3 calls adding it "the step that gets forgotten", and #rimHost
 // was forgotten exactly this way: the current stayed parked on the full-board layout while the
 // water zoomed away beneath it. A LIST, not named consts, for the same reason.
-const CAM_HTML_LAYERS = ["rippleHost", "sailHost", "rimHost", "courseHost", "dockCoinHost"];
+const CAM_HTML_LAYERS = ["rippleHost", "sailHost", "rimHost", "courseHost", "dockCoinHost", "popHost", "bobHost"];   // popHost: the ingredients popping onto the islands (popin.js)
 let ribHCache = 48, ribHAt = -1e9, lastVB = "", lastRipT = "";
 /* THE TOP BAND — where the board's top edge goes: the bottom of the ribbon, or of the wind pill
    when that sits lower (playtest 17, Wyatt: "the wind/forecast pip covers the top of the trade
@@ -519,6 +542,29 @@ let ribHCache = 48, ribHAt = -1e9, lastVB = "", lastRipT = "";
    (playtest 11, a hot phone). Read by camFrame() every frame AND by computeStageGeometry() when it
    sizes the desktop board — one measurement, so the square it derives and the strip the camera
    paints cannot drift apart (rule 23). */
+/* Something in the header changed size or row. Re-read the band NOW and, if the board's top edge moved, re-size and
+   re-frame the board in this same frame — so a change reaches the screen as one layout, never as the old board for half
+   a second followed by a jump. */
+function bandChanged(){
+  const before = ribHCache;
+  ribHAt = -1e9;
+  if (!S.active) return;
+  if (topBandPx() !== before){ lastVB = ""; computeStageGeometry(); camFrame(); }
+}
+/* ⭐ THE PLAQUE UNDER THE BOARD IS PART OF THE BOARD'S SIZE, AND IT ARRIVES ONE FRAME AFTER THE BOARD IS MEASURED. Wyatt,
+   2026-09-15: "The board square still glitches during the intial ingredients popping in -- it starts a lilttle smaller, and then
+   settles to its right side... i noticed it in tablet size." Measured at 768x1024: buildStage sizes the board while #pp4Cap is 228
+   tall (its recipe band still hidden, 0 pictures); the voyage's first render() writes the band 20ms later and the plaque becomes
+   273. Nothing watched the plaque — the observer below watched only the ribbon and the pill — so the board stayed 31px too wide
+   until the 900ms geometry clock caught it, which is the snap he saw: 31px narrower and the left edge sliding 15.5px right, a
+   third of the way through the pop-in. Same shape as bandChanged above, one row down. */
+function capChanged(){
+  if (!S.active) return;
+  const cap = $("pp4Cap"); if (!cap) return;
+  const h = cap.scrollHeight;
+  if (Math.abs(h - (S.capSeen || 0)) <= 1) return;
+  S.capSeen = h; lastVB = ""; computeStageGeometry(); camFrame();
+}
 function topBandPx(){
   if (performance.now() - ribHAt > 500){
     const rib = $("pp4Ribbon");
@@ -583,10 +629,10 @@ let peekArmedAt = 0;
 function peekUses(){ try { return +localStorage.getItem(PEEK_KEY) || 0; } catch (e) { return PEEK_LEARNED; } }
 function notePeekUse(){ try { localStorage.setItem(PEEK_KEY, String(Math.min(PEEK_LEARNED, peekUses() + 1))); } catch (e) {} }
 function holdVerb(){
-  try { return matchMedia("(pointer: coarse)").matches ? "Tap and hold" : "Click and hold"; }
-  catch (e) { return "Tap and hold"; }
+  try { return matchMedia("(pointer: coarse)").matches ? say("peek.tapHold",{}) : say("peek.clickHold",{}); }
+  catch (e) { return say("peek.tapHold",{}); }
 }
-export function peekHintText(){ return `${holdVerb()} the sea to reveal the board`; }
+export function peekHintText(){ return say("peek.hint",{verb:holdVerb()}); }
 /* Shows/hides the hint inside whichever prompt box is up. Placed at the FOOT of the board band so
    it never joins the crowd around the boat (which is where D-38 has just sent everything else). */
 function peekHintTick(box){
@@ -782,7 +828,7 @@ function liftAskClearOfFan(ap, tSafeV, capTV){
      the first could spend all three and leave the second none. The question's own text is what
      makes a prompt distinct, and this file already uses exactly that key for `S.frameKey` — reused
      here rather than invented. (CEO review 4 caught the coarse key.) */
-  const stamp = S.turnSerial + "|" + (msg.textContent || "").slice(0, 60) + "|" + btns.length;
+  const stamp = turnSerial() + "|" + (msg.textContent || "").slice(0, 60) + "|" + btns.length;
   if (_refan.key !== stamp) _refan = { key: stamp, n: 0 };
   if (sitsOn(fixedRect(msg)) && _refan.n < 3){ _refan.n++; S.radKey = null; }
 }
@@ -989,7 +1035,9 @@ function camFrame(){
      the viewBox was cut 4% wider than the window it was drawn into and the board came out
      739 x 708 — ten rows tall against ten and a half columns wide. Read off the element that
      actually holds it, after the square cap above has been applied to it. */
-  const stripW = wrap ? (wrap.getBoundingClientRect().width || vwPx()) : vwPx();
+  const settling = S.settleUntil && performance.now() < S.settleUntil && S.stripW;   // see settleBoardIn
+  const stripW = settling ? S.stripW : (wrap ? (wrap.getBoundingClientRect().width || vwPx()) : vwPx());
+  if (!settling) S.stripW = stripW;
   const aspect = availH / stripW;
   let h = c.w * aspect;
   if (h > 640) h = 640;                       // whole board fits vertically; width stays filled
@@ -1059,7 +1107,7 @@ function camFrame(){
          pan by viewBox, and toScreen() already reads the SVG's own rect. This is that same
          measurement, for the HTML layers. */
       const bw = $("boardwrap");
-      const W = (bw && bw.getBoundingClientRect().width) || vwPx(), s2 = 640 / c.w;
+      const W = (settling ? S.stripW : (bw && bw.getBoundingClientRect().width)) || vwPx(), s2 = 640 / c.w;
       const t = `scale(${s2}) translate(${-(c.x / 640) * W}px, ${-(vy / 640) * W}px)`;
       if (t !== lastRipT){
         lastRipT = t;
@@ -1399,12 +1447,12 @@ function wireEovDrag(){
    taller until the first wind landed and shoved everything down, once, in every single voyage.
    Saying "?" costs one line and makes the band constant from the first frame. */
 function pillHTML(){
-  const g = appState.game; if (!g || !g.windNow || !AR[g.windNow]) return "WIND NOW: ? · FORECAST: ?";
+  const g = appState.game; if (!g || !g.windNow || !AR[g.windNow]) return `${say("pill.now",{})} ? · ${say("pill.forecast",{})} ?`;
   const now = g.windNow, fc = g.forecastWind();
-  const nowS = `WIND NOW: ${now}${AR[now]}`;
+  const nowS = `${say("pill.now",{})} ${now}${AR[now]}`;
   const fcS = g.stormNext
-    ? ` · FORECAST: ⛈<span class="pp4Spin">↑</span>`
-    : (fc ? ` · FORECAST: ${fc}${AR[fc] || ""}` : "");
+    ? ` · ${say("pill.forecast",{})} ${say("pill.storm",{spin:`<span class="pp4Spin">↑</span>`})}`
+    : (fc ? ` · ${say("pill.forecast",{})} ${fc}${AR[fc] || ""}` : "");
   return nowS + fcS;
 }
 /* WHERE THE WIND PILL LIVES — ONE DECISION, READ TWICE (D-47 + D-52, rule 23).
@@ -1454,12 +1502,21 @@ function pillTick(){
      left group, wind, right group. Guarded on the current parent, so this is a no-op on all but
      the one tick a window actually crosses the boundary; the phone keeps its own fixed pill below
      the ribbon (D-18/D-31, the phone stays as it is). */
+  /* ⭐ THE WORDS GO IN BEFORE THE ROW IS CHOSEN — the board jitter Wyatt passed on the game feel audit: "The board
+     currently jitters when it comes in, and seems to choose a few differnt sizes before settling. It may be caused by
+     the navbar row/other elements fighting/jostling". Measured 2026-09-14, first five seconds of a solo voyage: the
+     pill was placed while still EMPTY (24px wide), so it fitted the header row, then filled to 217px and no longer
+     did — it hopped rows on the phone, and the board under it moved 18px at 663ms (phone) and 24px at 537ms, then
+     grew 24px at 936ms (laptop), each time the band under the header was next re-read. So: fill it, THEN place it,
+     and when either changes, the board is re-measured on the spot rather than on the half-second cache. */
   const rib = $("pp4Ribbon");
-  const wantRibbon = !!rib && pillFitsRibbon(rib, p);
-  if (wantRibbon && p.parentNode !== rib) rib.insertBefore(p, $("pp4FF") || rib.lastElementChild);
-  else if (!wantRibbon && p.parentNode !== document.body) document.body.appendChild(p);
   const h = pillHTML();
-  if (h !== S.lastPill){ p.innerHTML = h; S.lastPill = h; }
+  let moved = false;
+  if (h !== S.lastPill){ p.innerHTML = h; S.lastPill = h; moved = true; }
+  const wantRibbon = !!rib && pillFitsRibbon(rib, p);
+  if (wantRibbon && p.parentNode !== rib){ rib.insertBefore(p, $("pp4FF") || rib.lastElementChild); moved = true; }
+  else if (!wantRibbon && p.parentNode !== document.body){ document.body.appendChild(p); moved = true; }
+  if (moved) bandChanged();
   // statsWrap's visibility is toggled via its inline style — read that, never getComputedStyle
   // (which forces style recalc and was running every frame; see the HOT-PHONE note above)
   const sw = $("statsWrap");
@@ -1513,7 +1570,7 @@ function syncHelpChip(){
   const on = pilotIsOn();
   b.classList.toggle("off", !on);
   b.setAttribute("aria-pressed", String(on));
-  b.title = on ? "Yer parrot's watchin'" : "Yer parrot's restin'";
+  b.title = sayText(on ? "parrot.watching" : "parrot.resting",{});
 }
 
 /* ================= ribbon ================= */
@@ -1525,9 +1582,15 @@ function ribbonTick(){
   // whole stage, not two that can drift apart.
   if (Date.now() - S.geomAt > 900) computeStageGeometry();
   const r = $("pp4Round"), g = appState.game;
-  if (r && g) r.textContent = "DAY " + (g.round || 1);
+  if (r && g) r.textContent = sayText("ribbon.day",{n:g.round || 1});
   const boats = document.querySelectorAll("#pp4Ribbon .pp4Boat");
-  const act = (S.activeSeat != null) ? S.activeSeat : (appState.curSeat ?? -1);
+  /* WHOSE TURN IT IS — the one helper every surface reads (architecture item 3, 2026-09-16). This line used to draw a slot
+     every PROMPT wrote (`S.activeSeat ?? appState.curSeat`), so asking the defender to flip lit the defender, and the
+     ⏩ chip below — which reads the same `act` — then offered to skip "a bot's turn" in the middle of his own. His ruling:
+     "The top bar shows whose turn it is -- which is the active player who decided to attack. this does not need to
+     change during a battle; it should not." */
+  const turn = whoseTurn();
+  const act = turn == null ? -1 : turn;
   // playtest 15 item 1: the circles read LEFT TO RIGHT in the drawn TURN ORDER, not seat order
   const ord = g && g.turnOrder;   // the engine's record, so a reloaded voyage keeps it (his note 4, 2026-09-11)
   boats.forEach((b, i) => {
@@ -1586,7 +1649,7 @@ function ribbonTick(){
   const sw = $("statsWrap");
   if (sw && sw.style.display !== "none" && !sw.querySelector(".pp4Again")){
     const again = document.createElement("button");
-    again.className = "pp4Again"; again.type = "button"; again.textContent = "🔁 Play again!";
+    again.className = "pp4Again"; again.type = "button"; again.textContent = sayText("end.playAgain",{});
     again.onclick = () => { const orig = $("btnPlayAgain"); if (orig && orig.onclick) orig.onclick(); };
     /* APPENDED TO THE WRAP, NOT THE PANEL — it is a FOOTER now, a flex sibling of #statsScroll
        rather than the last child of the scrolling content. That is the whole fix for the button
@@ -1698,6 +1761,23 @@ const plain = h => String(h).replace(/<[^>]*>/g, "").replace(/\s+/g, " ").trim()
    fire-and-forget: netIntroBarrier's waitMsg, watchDraftPrompt's waitMsg, recipeDraftNet's two
    lines, and ask()'s "…is deciding…" broadcast. None is awaited by the game loop. If a future wait
    line IS awaited, it must not use this flag. */
+/* ⭐ THE PARROT BOBS WHEN IT SPEAKS — PASSED on his game feel audit (2026-09-13), as proposed: "A small hop each time a new
+   line of narration appears, so the voice has a body." The parrot is the header's parrot chip. Its PICTURE hops, never
+   the button, so a hop cannot fight the button's own press squish. A resting parrot (switched off) stays still. */
+const PARROT_HOP_PX = 4;
+const PARROT_HOP_MS = 380;
+function hopParrot(){
+  const img = document.querySelector("#pp4Help img");
+  if (!img || typeof img.animate !== "function" || !pilotIsOn()) return;
+  if (typeof matchMedia === "function" && matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  img.animate([
+    { transform: "translateY(0px)" },
+    { transform: `translateY(${-PARROT_HOP_PX}px)`, offset: .35 },
+    { transform: "translateY(0px)", offset: .7 },
+    { transform: "translateY(-1px)", offset: .85 },
+    { transform: "translateY(0px)" },
+  ], { duration: PARROT_HOP_MS, easing: "ease-out" });
+}
 function stageFlash(msg, ms, holdMs, variants, opts){
   if (!S.active) return null;                        // pre-game: let the panel handle it
   /* A REPLAY IS SILENT AND INSTANT — playtest 22, the other half of the stall report (Wyatt: "when
@@ -1731,6 +1811,10 @@ function stageFlash(msg, ms, holdMs, variants, opts){
      a wait line for a captain sitting at THIS browser is not drawn, because they are getting the
      question itself. Everyone else still reads "…is deciding…". */
   if (waitLineIsSelfAddressed(variants, opts)) return Promise.resolve();
+  /* AN EMPTY LINE IS NO LINE. A seat's variant can be deliberately blank — the captain about to flip gets no narration box, because
+     the flip stage is about to say the same words as its own title (orchestrator battleAsk). Wyatt, 2026-09-15: "There is still a
+     narration box that appears for a moment before the flippenator appears. we can get rid of that." */
+  if (!String(msg == null ? "" : msg).replace(/<[^>]*>/g, "").trim()) return Promise.resolve();
   let subj = S.subject; S.subject = null;
   /* DECIDED BEATS SNIFFED. `subjectSet` means an event was actually read and yielded this subject —
      including a deliberate null for a line about two captains or the whole table. The sniff below
@@ -1771,13 +1855,13 @@ function stageFlash(msg, ms, holdMs, variants, opts){
      call can only be made by someone who can see the fight, not the caller's own boat.
      playtest 22 extends that ruling to the WHOLE fight rather than to the card alone (Wyatt: "the
      director should focus battles on the players fighting, not the player calling the battle").
-     The card is built after the calls are collected, so the `.btl` test could not cover the part
+     The card was built after the calls were collected, so its own test could not cover the part
      of a battle that asks a spectator anything: the crow's-nest call ran with the camera still on
      whoever the opening line named, and then every "X calls Y" line glided it to the CALLER. So
-     the hold is now armed by the battle itself (S.battle, set at the top of asyncBattle) and the
-     card test stays as the belt to that braces. */
+     the hold is now armed by the battle itself (S.battle — held by the one event consumer on the fight's `engage` and let go on its
+     `disengage`, on every screen: architecture item 4); the card, and the test that read it, were removed at his ask on 2026-09-14. */
   else if (S.battle) { /* hold the shot on the fight until it resolves */ }
-  else if (subj != null && !document.querySelector("#actionPanel .btl")) camToSeat(subj);
+  else if (subj != null) camToSeat(subj);
   return new Promise(res => {
     // HOW LONG A NARRATION LINE STAYS UP -- one call, and the model behind it lives in util.js
     // beside the curve it replaced (narrationHoldMs, D-34/D-45).
@@ -1795,13 +1879,18 @@ function stageFlash(msg, ms, holdMs, variants, opts){
     // util.js, derived from D-10's own hold, and this call site names no milliseconds at all.
     const hold = narrationHoldMs(msg);
     const b = document.createElement("div");
-    b.className = "pp4Bub" + (subj == null ? " ambient" : "");
-    if (subj != null) b.style.borderColor = HEXCOL[subj] || "#177";
+    /* `opts.cls` — a line that wants its own skin. Today: the fight's lines, in dark blue (Wyatt, 2026-09-15: "the first narration
+       box is showed in white, not dark blue -- so it covers up the attacker's coin flip! 1. the battle narrations should be in dark
+       blue."). The tail follows the bubble rather than the captain's colour, or a dark box would sprout a bright beak. */
+    b.className = "pp4Bub" + (subj == null ? " ambient" : "") + (opts && opts.cls ? " " + opts.cls : "");
+    const tailCol = (opts && opts.cls === "btl") ? "#12323a" : (HEXCOL[subj] || "#177");
+    if (subj != null) b.style.borderColor = (opts && opts.cls === "btl") ? "#0d2830" : (HEXCOL[subj] || "#177");
     // playtest 10 item 7: bubbles bypass panel()'s emojify chokepoint, so ad-hoc narration lines
     // (turn banners, flip results) kept raw ⚪/🌕 emoji instead of the game art. Emojify here.
-    b.innerHTML = `<div class="pp4BubIn">${emojify(String(msg))}</div>` + (subj != null ? `<div class="pp4Tail" style="border-color:${HEXCOL[subj] || "#177"}"></div>` : "");
+    b.innerHTML = `<div class="pp4BubIn">${emojify(String(msg))}</div>` + (subj != null ? `<div class="pp4Tail" style="border-color:${tailCol}"></div>` : "");
     const host = fxHost();
     host.appendChild(b);
+    hopParrot();
     // playtest 4: lines type themselves in, the game's own reveal — and fade out on replace
     try { typewriterReveal(b.querySelector(".pp4BubIn"), 9); } catch (e) {}
     /* ONLY AS WIDE AS THE WORDS — playtest 23 item 3 (Wyatt): "the narration text boxes should only
@@ -1890,7 +1979,7 @@ function stageFlash(msg, ms, holdMs, variants, opts){
          it." Two changes to this search were shipped on run-to-run counts that night and both
          were reverted; the trials read 22 -> 26 -> 31 on the same ten legs. §5e of
          docs/DRIVING-THE-GAME.md poses the state; two screenshots settle it in minutes. */
-      const OBST = [[".sailCell", 1000], [".apBtn,.btlBtn,#apStay", 60], [".apMsg", 40], [".apSub,.apSliderWrap", 15]]
+      const OBST = [[".sailCell", 1000], [".apBtn,#apStay", 60], [".apMsg", 40], [".apSub,.apSliderWrap", 15]]
         .flatMap(([sel, w]) => [...document.querySelectorAll(sel)]
           .filter(e => e !== b && !b.contains(e) && e.getBoundingClientRect().width > 4)
           .map(e => ({ r: swellRect(e, fixedRect(e)), w })));   // the PEAK box, as the hint does
@@ -2151,6 +2240,88 @@ function cerTeardown(){
    is a constant, and a new one here would be a third clock to keep in step with these two). */
 const CER_REVEAL_MS = 1100, CER_FALLBACK_MS = 6000;
 const CER_VEIL_WAIT_CAP_MS = CER_FALLBACK_MS + CER_REVEAL_MS;
+/* ⭐ THE COIN FLIP, WITH WEIGHT — four PASSED ideas from his game feel audit (2026-09-13), as proposed:
+     "The coin sinks down before it flips — your example: it dips 10–15% and squashes wide for a beat, then launches —
+      anticipation makes the flip feel like a throw." · "It lands with weight — a squash on landing, one small bounce, and a
+      dust ring — then the result." · "HEADS or TAILS stamps in — the word punches in at 130% and settles." · "A tiny
+      screen nudge on tails — a 2px, 150ms shake — just enough to feel the bad luck."
+   All four live in the flip CEREMONY, the stage every flip ye make is thrown on. The coin's sink and launch ride the whole
+   spin (FLIP_SPIN_MS), so the flip still lands on the same frame its sound's landing blip peaks. `translate`/`scale`, so
+   they compose with the spin's own rotateX. The two stings named in the audit are sounds, and come with the sound page. */
+const COIN_SINK = 0.12, COIN_SQUASH = 0.2, STAMP_MS = 380, NUDGE_PX = 2, NUDGE_MS = 150, DUST_MS = 620;
+/* …AND IT COMES UP OUT OF THE SCREEN — Wyatt, 2026-09-14: "the coin's motion out towards the viewer should be more accentuated,
+   as if it's flipping up out of the screen towards them." His recording showed the coin turning in place: at every edge-on
+   frame the socket showed empty behind it. So the launch now GROWS the coin to COIN_LIFT of its size at the top of the throw,
+   lifts it COIN_RISE of its height, and throws a deeper, softer shadow while it is up — and the socket stops clipping it for
+   the length of the throw. */
+const COIN_LIFT = 1.7, COIN_RISE = 0.22;
+const cerReduced = () => typeof matchMedia === "function" && matchMedia("(prefers-reduced-motion: reduce)").matches;
+function coinSinksAndLaunches(){
+  const c = $("flipCoinWrap");
+  if (!c || cerReduced() || typeof c.animate !== "function") return;
+  cerClearStamp();
+  const slot = $("pp4CerSlot"); if (slot) slot.classList.add("pp4Lift");
+  const up = 1 + (COIN_LIFT - 1) * .6;
+  const a = c.animate([
+    { translate: "0 0", scale: "1", filter: "drop-shadow(0 4px 5px rgba(0,0,0,.45))" },
+    { translate: `0 ${COIN_SINK * 100}%`, scale: `${1 + COIN_SQUASH} ${1 - COIN_SQUASH}`, filter: "drop-shadow(0 2px 3px rgba(0,0,0,.5))", offset: .14 },
+    { translate: `0 ${-COIN_RISE * 100}%`, scale: `${COIN_LIFT}`, filter: "drop-shadow(0 38px 26px rgba(0,0,0,.38))", offset: .45 },
+    { translate: `0 ${-COIN_RISE * 55}%`, scale: `${up}`, filter: "drop-shadow(0 22px 16px rgba(0,0,0,.42))", offset: .74 },
+    { translate: "0 0", scale: "1", filter: "drop-shadow(0 4px 5px rgba(0,0,0,.45))" },
+  ], { duration: FLIP_SPIN_MS, easing: "ease-in-out", id: "coin-sink" });
+  a.onfinish = a.oncancel = () => { const s2 = $("pp4CerSlot"); if (s2) s2.classList.remove("pp4Lift"); };
+}
+/* THE STAMP TAKES THE PLACE OF "TAP THE COIN" — his recording showed TAILS stamped straight over "Tap the coin, captain — let fate
+   decide.", which nothing hid once the coin had been tapped. The stamp now stands where that line stands (placed over its box, so
+   nothing else on the stage moves) and the line hides while it does; both come back the moment the coin is armed again. */
+/* ⭐ WHICH WORDS THE FLIP STAGE SHOWS — DECIDED IN ONE PLACE, FROM ONE PHASE. Wyatt, 2026-09-16: "during flippenator flips, the TAILS or
+   HEADS text that appears at the end is written on top of other text. the other text shouldn't be there, or should be removed first."
+   The stage carries three lines of words — the prompt over the coin (.pp4CerTitle), the stakes or the wind's rule (.pp4CerStakes), and
+   "Tap the coin" (.pp4CerSub) — and whether each showed was decided in three places: this file showed "Tap the coin" (cerClearStamp) and hid
+   it under the landing word (coinLandsWithWeight), and index.html faded it while the coin spun. The prompt and the stakes were decided
+   NOWHERE, so the big word stamped straight over the stakes line. Now the stage has a phase — "ask", "spinning", "verdict" — set only
+   here, and index.html's one [data-cer] block says what every line does in each (scripts/qa/flip_stage_words_one_place_check.mjs). */
+function cerPhase(v, phase){ if (v) v.dataset.cer = phase; }
+/* TAKES THE LAST WORD AWAY, AND DECIDES NO PHASE. It used to set "ask" too — and the tap's launch calls it just AFTER the tap set
+   "spinning", so "Tap the coin" came straight back for the whole spin (Wy-Blade's item-6 run, 2026-09-17, every tap measured; mine,
+   695dd5ae). The phase is set by what happens — armed ("ask", flipArmed), tapped ("spinning"), landed ("verdict") — never by tidying. */
+function cerClearStamp(){
+  const v = $("pp4Veil"); if (!v) return;
+  v.querySelectorAll(".pp4CerStamp").forEach(s => s.remove());
+}
+function coinLandsWithWeight(heads){
+  const c = $("flipCoinWrap"), v = $("pp4Veil");
+  if (!c || !v || cerReduced() || typeof c.animate !== "function") return;
+  // a squash on landing and one small bounce — `scale`/`translate`, on top of the gavel shudder's own transform
+  c.animate([
+    { scale: "1.22 0.8", translate: "0 6%" }, { scale: "0.95 1.05", translate: "0 -7%", offset: .4 },
+    { scale: "1.02 0.98", translate: "0 0", offset: .7 }, { scale: "1", translate: "0 0" },
+  ], { duration: 420, easing: "ease-out", id: "coin-land" });
+  // the dust ring, round the coin where it sits
+  const slot = $("pp4CerSlot");
+  if (slot){
+    const r = c.getBoundingClientRect(), sr = slot.getBoundingClientRect(), dust = document.createElement("div");
+    dust.className = "pp4Dust";
+    Object.assign(dust.style, { left: (r.left - sr.left - r.width * .1) + "px", top: (r.top - sr.top - r.height * .1) + "px",
+      width: (r.width * 1.2) + "px", height: (r.height * 1.2) + "px" });
+    slot.appendChild(dust);
+    const a = dust.animate([{ opacity: .75, scale: "0.7" }, { opacity: 0, scale: "1.55" }], { duration: DUST_MS, easing: "ease-out", fill: "both" });
+    a.onfinish = a.oncancel = () => dust.remove();
+  }
+  // the word stamps in, where the tap-the-coin line stood — over that line's own box, and the line hides (cerClearStamp's note)
+  let stamp = v.querySelector(".pp4CerStamp");
+  if (!stamp){ stamp = document.createElement("div"); v.appendChild(stamp); }
+  stamp.className = "pp4CerStamp " + (heads ? "heads" : "tails");
+  const sub = v.querySelector(".pp4CerSub");
+  if (sub) stamp.style.top = (sub.offsetTop + sub.offsetHeight / 2) + "px";
+  cerPhase(v, "verdict");   // every other line leaves before the word lands (index.html [data-cer="verdict"])
+  stamp.textContent = sayText(heads ? "flip.stampHeads" : "flip.stampTails", {});
+  stamp.animate([{ opacity: 0, scale: "1.3" }, { opacity: 1, scale: "0.96", offset: .6 }, { opacity: 1, scale: "1" }],
+    { duration: STAMP_MS, easing: "ease-out", fill: "both", id: "coin-stamp" });
+  // and on tails, the screen flinches
+  if (!heads) v.animate([{ translate: "0 0" }, { translate: `${-NUDGE_PX}px 0` }, { translate: `${NUDGE_PX}px 0` },
+    { translate: `${-NUDGE_PX / 2}px 0` }, { translate: "0 0" }], { duration: NUDGE_MS, easing: "linear", id: "tails-nudge" });
+}
 function cerWatchResult(){
   // the flip flow swaps faces on #flipCoinWrap: spin -> heads/tails. Hold the veil until a face
   // lands, show it a beat, then leave. Fallback teardown if nothing lands (e.g. prompt cancelled).
@@ -2165,6 +2336,7 @@ function cerWatchResult(){
       // playtest 10 item 6: the landed face hits like a gavel — shudder + golden flare
       c.classList.add("pp4Land");
       setTimeout(() => c.classList.remove("pp4Land"), 700);
+      coinLandsWithWeight(c.classList.contains("heads"));
       /* If the coin re-armed during the reveal beat, this used to do NOTHING — and the interval
          above was already cleared, so the veil was left standing with no watcher at all. Watch
          the new flip instead; the watchdog is the backstop, not the mechanism. */
@@ -2185,7 +2357,13 @@ function flipArmed(el, onClick){
   if (!onClick){
     // disarmed: the tap landed and the spin is starting — hold the stage and watch for the face
     const veil = $("pp4Veil");
-    if (veil){ veil.classList.add("resolving"); cerWatchResult(); }
+    /* …ONLY IF THE COIN WAS ARMED. His recording: the next question's housekeeping disarm, 850ms after TAILS had landed, came
+       through here too — it re-ran the launch (taking the stamp away) and started a SECOND watcher, which saw the landed face
+       and "landed" the coin again: a second dust ring and TAILS stamping back in over an empty socket. A coin that is not armed
+       was not tapped; there is nothing to launch and nothing new to watch. */
+    const coin = $("flipCoinWrap");
+    if (veil && coin && !coin.classList.contains("active")) return true;
+    if (veil){ cerPhase(veil, "spinning"); coinSinksAndLaunches(); cerWatchResult(); }
     return true;
   }
   let veil = $("pp4Veil");
@@ -2193,14 +2371,14 @@ function flipArmed(el, onClick){
     veil = document.createElement("div"); veil.id = "pp4Veil";
     // playtest 15 item 5: no "CALL IN THE AIR…" header — the coin and the stakes say it all
     veil.innerHTML = `<div id="pp4CerSlot"></div>
-      <div class="pp4CerSub">Tap the coin, captain — let fate decide.</div>`;
+      <div class="pp4CerSub">${say("ceremony.tapCoin",{})}</div>`;
     document.body.appendChild(veil);
     veil.addEventListener("pointerdown", ev => {
       const coin = $("flipCoinWrap");
       if (coin && coin.onclick){ ev.stopPropagation(); coin.onclick(); }
     });
   }
-  veil.classList.remove("resolving");
+  cerClearStamp(); cerPhase(veil, "ask");   // armed again: the last flip's word leaves, and "Tap the coin" is back
   // …and before the first paint, not on the next tick: the slow gear is 125ms away, which is long
   // enough for the ceremony to be seen once in the wrong place (Group G fault 1).
   cerBandTick();
@@ -2228,32 +2406,25 @@ function flipArmed(el, onClick){
     // that settles a quarter of all fights. Read straight off the battle card's own wind badge
     // rather than re-deriving the geometry, so the card and the ceremony can never disagree about
     // who holds the wind. Built with DOM nodes, not innerHTML: the captain's name is player-typed.
-    const btl = document.querySelector("#actionPanel .btl");
-    if (!fm && btl){
-      const dwTag = btl.querySelector(".windTag.dw");
-      /* READ THE MARKED COLUMN, NOT THE BADGE'S NEIGHBOURHOOD. This was
-         `dwTag.parentElement.querySelector(".who")`, and `dwTag.parentElement` is `.btl-wind` —
-         a div that holds the badge and nothing else (src/orchestrator.js). `.who` lives two
-         branches away inside `.btl-col`, so this returned null on EVERY downwind battle and the
-         `else` below told the player "Crosswind" over a downwind fight. Measured and photographed:
-         judge-1914Z-shots/solo-tablet-wk-018.png says CROSSWIND, and -018-settled.png, the same
-         leg seconds later, says DAVY SCONES FIRES DOWNWIND.
-         renderBattle now stamps that column `.btl-col.dw` from the same `dw` that writes the
-         badge, so the card and the ceremony read ONE value and cannot disagree — which is what
-         the comment above always claimed and did not have.
-         Gate: scripts/qa/flip_ceremony_names_the_wind_check.mjs (RED before this line changed). */
-      const who = dwTag ? btl.querySelector(".btl-col.dw .who") : null;
-      t.textContent = "⚔️ Broadside!";
+    /* THE WIND'S RULE FOR A TIE, READ FROM THE GAME — the battle box it used to be read off is gone (2026-09-14). S.battle holds the
+       two fighters this stage frames (window.__pp4.battle), and the engine's own downwindSide says who holds the wind, so the stage
+       and the bubble that opens the fight (orchestrator.js renderBattle) ask the same function and cannot disagree.
+       Built with DOM nodes, not innerHTML: the captain's name is player-typed. */
+    if (!fm && S.battle && appState.game){
+      const g = appState.game, A = g.players[S.battle[0]], D = g.players[S.battle[1]];
+      const dw = A && D && g.downwindSide ? g.downwindSide(A, D) : null;
+      const holder = dw === "a" ? A : dw === "d" ? D : null;
+      t.textContent = sayText("ceremony.broadside",{});
       st.textContent = "";
-      if (who){
+      if (holder){
         const b = document.createElement("b");
-        b.textContent = who.textContent.trim();
-        b.style.color = who.style.color || "";      // the captain's own boat colour, as everywhere else
+        b.textContent = pname(holder.idx);
+        b.style.color = HEXCOL[holder.idx] || "";      // the captain's own boat colour, as everywhere else
         st.appendChild(b);
         // @copy misc.ceremony.windstakes — APPROVED as written, Wyatt 2026-08-14
-        st.appendChild(document.createTextNode(" is firin' downwind — two heads and the tie is theirs."));
+        st.appendChild(document.createTextNode(" "+sayText("ceremony.downwind",{})));
       } else {
-        st.textContent = "Crosswind — two heads and the cannonballs collide.";
+        st.textContent = sayText("ceremony.crosswind",{});
       }
     }
   });
@@ -2262,6 +2433,69 @@ function flipArmed(el, onClick){
 
 /* ================= recipe compare (two-tap focus + island glow) ================= */
 let focusBtn = null;
+/* ⭐ THE CHOSEN CARD FLIES INTO THE CAPTAIN'S BOX — PASSED on his game feel audit (2026-09-13), as proposed: "On "Bake
+   this!" the card shrinks and flies to the recipe band at the top of your box, and its five ingredients ripple in one
+   after another — so you see where your recipe went."
+   THE CHOICE WAITS FOR THE CARD: the confirming tap is held while the card flies (RC_COMMIT_MS) and sent on when it
+   lands, so the picker cannot be torn down from under its own card. A dropped animation still sends it (the timeout).
+   The card animates `translate`/`scale`, which compose with the stack's own transforms, and whatever it is drawn inside
+   stops clipping it for the journey (#actionPanel scrolls, so it clips). The band's ingredients ripple in the first
+   time the band shows a recipe after a choice — at once in solo; in a crew, when the last captain has chosen. */
+let rcCommitting = null, rcRippleWanted = null;   // rcRippleWanted: the chosen card's ingredient pictures, in order
+const RC_COMMIT_MS = 620;
+function flyChosenCard(btn){
+  if (typeof btn.animate !== "function") return false;
+  if (typeof matchMedia === "function" && matchMedia("(prefers-reduced-motion: reduce)").matches) return false;
+  const band = $("capRecipeBand"), cap = $("pp4Cap");
+  const tgt = [band, cap].find(el => el && !el.hidden && el.getBoundingClientRect().width > 2);
+  const a = btn.getBoundingClientRect();
+  if (!tgt || a.width < 2) return false;
+  const b = tgt.getBoundingClientRect();         // a DELTA between two gBCRs: one space for both (see boardDrawnRect)
+  const dx = Math.round((b.left + b.width / 2) - (a.left + a.width / 2));
+  const dy = Math.round((b.top + b.height / 2) - (a.top + a.height / 2));
+  const s = Math.max(0.12, Math.min(0.6, b.height / a.height));
+  const lifted = [];
+  for (let el = btn.parentElement; el && el !== document.body; el = el.parentElement){
+    const cs = getComputedStyle(el);
+    if (cs.overflowX !== "visible" || cs.overflowY !== "visible"){ lifted.push([el, el.style.overflow]); el.style.overflow = "visible"; }
+  }
+  rcCommitting = btn;
+  /* THE RIPPLE WAITS FOR THIS RECIPE. Every captain already holds a seeded recipe before the draft (capEmptyTick's note),
+     so the band can be showing a DIFFERENT one the frame the box appears — the ripple is keyed to the chosen card's own
+     ingredient pictures, which are the same files the band draws. */
+  rcRippleWanted = [...btn.querySelectorAll(".recipeList img")].map(i => i.getAttribute("src")).join("|") || null;
+  const an = btn.animate([
+    { translate: "0px 0px", scale: "1", opacity: 1 },
+    { translate: `${Math.round(dx * .08)}px ${Math.round(dy * .08) - 24}px`, scale: "1.05", opacity: 1, offset: .22 },   // lifts first
+    { translate: `${dx}px ${dy}px`, scale: String(s), opacity: 0 },
+  ], { duration: RC_COMMIT_MS, easing: "cubic-bezier(.55,0,.35,1)", fill: "forwards" });
+  let landed = false;
+  const land = () => {
+    if (landed) return;
+    landed = true;
+    lifted.forEach(([el, v]) => { el.style.overflow = v; });
+    if (btn.isConnected) btn.click(); else rcCommitting = null;
+  };
+  an.onfinish = land; an.oncancel = land;
+  setTimeout(land, RC_COMMIT_MS + 300);
+  return true;
+}
+function rcRippleTick(){
+  if (!rcRippleWanted) return;
+  const band = $("capRecipeBand"), cap = $("pp4Cap");
+  if (!band || band.hidden || band.classList.contains("bandEmpty") || (cap && cap.style.visibility === "hidden")) return;
+  const chips = [...band.querySelectorAll(".capRecipeIng .chip")];
+  if (!chips.length) return;
+  const shows = chips.map(c => { const i = c.querySelector("img"); return i ? i.getAttribute("src") : ""; }).join("|");
+  if (shows !== rcRippleWanted) return;          // not the chosen recipe yet
+  rcRippleWanted = null;
+  if (typeof matchMedia === "function" && matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  chips.forEach((c, k) => {
+    if (typeof c.animate === "function")
+      c.animate([{ scale: "0.3", opacity: 0 }, { scale: "1.18", opacity: 1, offset: .6 }, { scale: "1", opacity: 1 }],
+        { duration: 340, delay: k * 80, fill: "backwards", easing: "ease-out" });
+  });
+}
 function recipeGuard(){
   document.addEventListener("click", e => {
     if (!S.active) return;
@@ -2272,7 +2506,13 @@ function recipeGuard(){
        glow) all stayed. Pixels and state disagreed, and the next tap re-selected instead of
        confirming. The internal state now follows the visible one: an outside tap changes nothing. */
     if (!btn || !btn.querySelector(".recipeList")) return;
-    if (focusBtn === btn) { clearGlow(); clearBake(); focusBtn = null; return; }  // second tap: let it through
+    if (rcCommitting === btn) { rcCommitting = null; return; }                // the choice, re-sent as its card lands
+    if (rcCommitting) { e.stopPropagation(); e.preventDefault(); return; }    // a card is already on its way
+    if (focusBtn === btn) {                                                   // second tap: the choice
+      clearGlow(); clearBake(); focusBtn = null;
+      if (flyChosenCard(btn)) { e.stopPropagation(); e.preventDefault(); }   // it goes through when the card lands
+      return;
+    }
     e.stopPropagation(); e.preventDefault();                          // first tap: focus + glow
     if (rcSwapCancel) rcSwapCancel();   // a tap mid-swap keeps the tapped card in front (see cancelSwap in mountRecipeStack)
     focusBtn = btn;
@@ -2294,7 +2534,7 @@ function recipeGuard(){
       bake.className = "pp4Bake";
       // @copy misc.stage.bakethis — APPROVED as written, Wyatt 2026-08-14. In-world register (the voice boundary:
       // this is the game speaking to a captain, not the credits).
-      bake.textContent = "Bake this!";
+      bake.textContent = sayText("recipe.bakeThis",{});
       btn.appendChild(bake);
     }
     const g = appState.game; if (!g) return;
@@ -2337,7 +2577,8 @@ function recipeGuard(){
          voyage for three of the four. S.activeSeat is the seat whose prompt is actually up — the
          same source ribbonTick already reads — so this draws one captain's course from one rule
          rather than forking on who is looking. (scripts/qa's mode-fork gate caught this on the
-         first run; it is exactly the class of thing that gate exists for.) */
+         first run; it is exactly the class of thing that gate exists for.) It is appState.askedSeat now —
+         the same fact under its own name, published by raiseLocalPrompt (architecture item 3). */
       chartFrontRecipe(btn);      // ONE place decides which docks a recipe sends you to
     }
   }, true);
@@ -2450,6 +2691,8 @@ const RC_CARD_MAX = 400;
    the show a fact about a board that has stopped moving. His tuner numbers are untouched: they all
    run from the end of this wait. */
 const RC_DELAY_MS = 2000;    // board alone, before anything arrives
+const RC_ART_WAIT_MS = 5000; // the longest the show waits for the board's pictures and the pop's sound before it goes anyway
+let rcWaitKey = null, rcWaitFrom = 0;
 const RC_FADE_MS  = 1160;    // the entrance
 const RC_FROM     = 1.25;    // starts 25% LARGER and settles down — his choice, not a typo
 const RC_OVER     = 1.03;    // and dips a little past 1 on the way
@@ -2516,6 +2759,11 @@ function rcFlightRun(key, brd){
      picker did not appear at all, at any size. Return before touching any state: nothing has been
      reset and no key has been claimed, so this is simply "try again next tick". */
   if (!rcAlignReady) return;
+  /* …AND THE BOARD'S PICTURES AND THE POP'S SOUND MUST HAVE ARRIVED — Wy-Blade's sea trial of 2026.09.14.2 caught both crew
+     guests playing the pop-in over an empty grid, and a slow guest heard only 10 of its 21 pops. The sheet stays pinned
+     invisible while this declines, so waiting costs only time — and never more than RC_ART_WAIT_MS per picker. */
+  if (rcWaitKey !== key){ rcWaitKey = key; rcWaitFrom = performance.now(); }
+  if (performance.now() - rcWaitFrom < RC_ART_WAIT_MS && !(boardArtReady(Infinity) && soundReady("cork-pop"))) return;
   rcFlightReset();
   rcFlightKey = key;
 
@@ -2524,8 +2772,14 @@ function rcFlightRun(key, brd){
      cannot flash un-animated; any path that does not attach the entrance owes it a release, or the
      picker is invisible for the rest of the voyage. Reduced motion is the loudest case: the whole
      show is skipped, so the sheet must simply BE there. */
-  const rcShow = () => { const b = $("pp4Prompt"); if (b) b.style.opacity = ""; };
-  if (REDUCED) { rcShow(); return; }        // parked, immediately, and no demo swap: the show IS motion
+  /* …and the dotted line waits for the cards: his "Don't draw the dotted line UNTIL the recipe cards appear"
+     (2026-09-13). A path that skips the entrance draws it at once; the entrance itself draws it when the cards have
+     faded fully in (see rcFlightShow) — measured, a line drawn as the fade merely began led the cards by a frame or two. */
+  /* …and the cards' SWISH arrives with them on every path (his pick, 2026-09-14). The fly-in times its own swish off the entrance
+     (rcFlightShow, lineFollows=true); every path that shows the cards WITHOUT flying them — reduced motion, a sheet already parked
+     in the middle (a phone, measured: no swish at all when it hung off the fly-in alone) — swishes as they appear. */
+  const rcShow = (lineFollows) => { const b = $("pp4Prompt"); if (b) b.style.opacity = ""; if (!lineFollows){ rcCourseRelease(); if (b) playCardSwish(); } };
+  if (REDUCED) { releasePopIn(); rcShow(); return; }        // parked, immediately, and no demo swap: the show IS motion
 
   /* ⭐ THE WHOLE SHOW IS MEASURED WHEN IT STARTS, NOT WHEN IT IS SCHEDULED — and his two-second
      delay is what makes that possible. dx is computed ONCE and every beat hangs off it, so reading
@@ -2538,7 +2792,11 @@ function rcFlightRun(key, brd){
      between two different coordinate spaces is off by exactly the item-22 shift. Both sides in one
      space or neither. */
   rcInFlight = true;                 // from NOW: the sheet is the show's, and promptTick keeps off it
-  rcLater(() => rcFlightShow(box, brd, rcShow), RC_DELAY_MS);
+  /* ⭐ THE FIRST PICKER OF A VOYAGE WAITS FOR THE INGREDIENTS TO POP IN, AND NO LONGER. startPopIn() plays them and says
+     how long until the last one has landed plus his 300ms — that replaces the two-second wait, so the cards can never
+     arrive over a crate still popping. Every later picker (the next captain in pass-and-play) keeps the two seconds. */
+  const popWait = startPopIn();
+  rcLater(() => rcFlightShow(box, brd, rcShow), popWait != null ? popWait : RC_DELAY_MS);
 }
 
 /* The show itself, one tick of the clock after rcFlightRun claimed the picker. Split out so the
@@ -2582,12 +2840,18 @@ function rcFlightShow(box, brd, rcShow){
   /* the delay is already spent — these are his numbers, from now */
   const rcAt = ms => ms;
 
-  ANIMS.push(box.animate([
+  const entrance = box.animate([
     { opacity: 0, transform: `${hold} scale(${RC_FROM})`, offset: 0 },
     { opacity: 1, transform: `${hold} scale(${RC_OVER})`, offset: .62 },
     { opacity: 1, transform: `${hold} scale(1)`,          offset: 1 },
-  ], { duration: RC_FADE_MS, easing: "cubic-bezier(.2,.7,.3,1)", fill: "both" }));
-  rcShow();   // the keyframes own opacity from here — they fill backwards through the delay
+  ], { duration: RC_FADE_MS, easing: "cubic-bezier(.2,.7,.3,1)", fill: "both" });
+  ANIMS.push(entrance);
+  /* THE SWISH AS THE CARDS FLY IN — his pick on the Sounds of the Voyage page, 2026-09-14: "Paper swish", the swish alone. Timed
+     off the entrance actually starting (its `ready`), not beside it: a sound set beside an animation leads the eye by a frame,
+     measured on the pop-in. A show cancelled before it starts plays nothing. */
+  entrance.ready.then(() => { if (entrance.playState !== "idle") playCardSwish(); }).catch(() => {});
+  rcShow(true);   // the keyframes own opacity from here — they fill backwards through the delay
+  rcLater(rcCourseRelease, Math.round(RC_FADE_MS * .62));   // the dotted line, once the cards are fully in (the .62 keyframe)
 
   /* AND IT HOLDS THERE. Without this the entrance's fill:both ends and the box snaps to its parked
      place the instant the fade finishes — a second animation pinned to the same transform is what
@@ -2648,6 +2912,7 @@ function rcChromeTeardown(box){
   const a0 = box.querySelector(".pp4RcAsk");  if (a0) a0.remove();
   const p0 = box.querySelector(".pp4RcHelp"); if (p0) p0.remove();
   rcFlightReset();        // a transform must never outlive the box it moved
+  rcCourseHeld = false; rcCourseCard = null;   // and a held dotted line never outlives its picker
   /* ⚠ AND NEITHER MAY THE OPACITY PIN. #pp4Prompt is the ONE box every prompt in the game is drawn
      in, so a picker torn down between "pinned to 0" and "the entrance took over" would hand the
      next question — a trade, a battle, the end card — a permanently invisible box. Same reasoning
@@ -2677,6 +2942,8 @@ function mountRecipeStack(ap){
   const key = cards.map(c => (c.querySelector(".recipeTitle") || {}).textContent || "").join("|");
   if (key === rcKey) return;
   rcKey = key;
+  rcCourseHeld = true;      // a new picker: its dotted line waits for its cards (rcCourseRelease)
+  rcCourseCard = null;
 
   /* ⭐ EACH TITLE RESERVES ITS PARTNER'S NAME, so a swap cannot move the stack — his 2026-09-10
      item 1, the jump he filmed. The front card is the one in flow, so whichever recipe is in FRONT
@@ -2782,7 +3049,7 @@ function mountRecipeStack(ap){
     const stop = (fn) => (e) => { e.preventDefault(); e.stopPropagation(); fn(); };
     const sw = document.createElement("button");
     sw.type = "button"; sw.className = "pp4RcSwap";
-    sw.setAttribute("aria-label", "Show the other recipe");
+    sw.setAttribute("aria-label", sayText("recipe.swapAria",{}));
     /* HIS OWN ARROW, DRAWN — never a glyph (see .pp4RcSwap svg in index.html for why a character
        cannot be vertically centred). A return arrow: across, round, and back on itself. */
     sw.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" ' +
@@ -2840,12 +3107,23 @@ function mountRecipeStack(ap){
 
 /* The front card's docks, charted. Shared by the stack above and by recipeGuard's first tap, so
    "which docks does this recipe send me to" is answered in ONE place. */
+/* THE DOTTED LINE WAITS FOR THE CARDS — Wyatt, 2026-09-13: "Don't draw the dotted line UNTIL the recipe cards appear."
+   While a new picker's cards are still on their way, the request is remembered rather than drawn, and the show's
+   release (rcShow) charts whichever card is in front at that moment. */
+let rcCourseHeld = false, rcCourseCard = null;
+function rcCourseRelease(){
+  if (!rcCourseHeld) return;
+  rcCourseHeld = false;
+  const c = rcCourseCard; rcCourseCard = null;
+  if (c && c.isConnected) chartFrontRecipe(c);
+}
 function chartFrontRecipe(card){
+  if (rcCourseHeld) { rcCourseCard = card; return; }
   const g = appState.game; if (!g || !card) return;
   const ids = [...card.querySelectorAll("[data-ing]")].map(e => e.dataset.ing).filter(Boolean);
-  const seat = (S.activeSeat != null) ? S.activeSeat : appState.curSeat;
+  const seat = appState.askedSeat;   // the captain the picker is asking (util.js raiseLocalPrompt) — see the cream box's note
   const me = (seat != null && g.players) ? g.players[seat] : null;
-  if (me) showCourseFor(g, me, svgEl(), cellPx(), ids);
+  if (me) showCourseFor(g, me, svgEl(), cellPx(), ids, { trace: true });   // the picker's route draws itself (course.js)
   else paintMarks(ids.map(i => (g.dockOf && g.dockOf[i]) || (g.islandOf && g.islandOf[i])).filter(Boolean), cellPx());
 }
 
@@ -2955,11 +3233,11 @@ function buildStage(){
   // ribbon
   const rib = document.createElement("div"); rib.id = "pp4Ribbon";
   const order = [0, 1, 2, 3];
-  rib.innerHTML = `<span id="pp4Round">DAY 1</span>
+  rib.innerHTML = `<span id="pp4Round">${sayText("ribbon.day",{n:1})}</span>
     <span class="pp4Boats">${order.map(i => `<img class="pp4Boat" src="${BOAT_IMG[i]}">`).join("")}</span>
-    <button id="pp4FF" type="button" title="Skip to yer next turn">⏩</button>
-    <button id="pp4Chat" type="button" title="Scuttlebutt">💬<span id="pp4ChatDot"></span></button>
-    <button id="pp4Help" type="button" title="Yer parrot">${emojify("🦜?")}</button>
+    <button id="pp4FF" type="button" title="${sayText("ribbon.ff",{})}">⏩</button>
+    <button id="pp4Chat" type="button" title="${sayText("ribbon.chat",{})}">💬<span id="pp4ChatDot"></span></button>
+    <button id="pp4Help" type="button" title="${sayText("ribbon.parrot",{})}">${emojify("🦜?")}</button>
     <button id="pp4Menu" type="button">☰</button>`;
   document.body.appendChild(rib);
   /* THE PARROT IS A TWO-STATE TOGGLE — his ruling, chosen over a three-step, because an
@@ -2996,7 +3274,7 @@ function buildStage(){
        the moment he was most likely to press it. Polly gets her own element and her own place
        (pinned under the ribbon, never in the narration column), so there is nothing left to
        collide with and the suppression can go. Named `polly`, not `narr`, at his instruction. */
-    pollySay(on ? "🦜 Polly's helping!" : "🦜 Polly's not helping");
+    pollySay(say(on ? "parrot.helping" : "parrot.notHelping",{}));
   };
   syncHelpChip();
   // FAST-FORWARD (Wyatt's spec, 2026-08-12): ONE tap arms ONE skip — everything paces instantly
@@ -3082,7 +3360,7 @@ function buildStage(){
      `capture:true` so the decision is made before the panel's own handlers run, and no
      preventDefault anywhere — this never consumes an event, it only ever hurries alongside one. */
   prompt.addEventListener("pointerdown", ev => {
-    if (ev.target.closest(".apBtn,.btlBtn,button,a,input,select,textarea,.recipeCard,.bkoBowl,#flipCoinWrap")) return;
+    if (ev.target.closest(".apBtn,button,a,input,select,textarea,.recipeCard,.bkoBowl,#flipCoinWrap")) return;
     const msg = prompt.querySelector(".apMsg:not(.fadeOut)");
     if (msg && typeof msg._revealNow === "function") msg._revealNow();
   }, { capture: true });
@@ -3149,7 +3427,30 @@ function buildStage(){
   camFull();
   S.active = true;
   S.recipePicked = false;      // a new voyage starts with an empty captains box again (capEmptyTick)
+  rcCommitting = null; rcRippleWanted = null;   // …and no chosen card still in the air from the last one
+  /* ⭐ ONE LAYOUT BEFORE THE FIRST PAINT. The pill's words and row, then the board measured under them, then the pill
+     once more in case the ribbon's fit moved it, then the camera — all before the browser paints, so the board's
+     first frame is its final one. Before this the stage painted a frame at the full window height (732x800 on a
+     laptop) before camFrame had run at all. */
+  pillTick();
   computeStageGeometry();   // D-31: size the stage before the first paint, not after
+  pillTick();
+  camFrame();
+  /* A late change to the header — a font arriving, a name growing, the ribbon's fit — re-measures the board in the
+     frame it happens (a ResizeObserver runs before paint), instead of on the next half-second read. */
+  /* ⚠ ONE FRAME LATER, NOT INSIDE THE CALLBACK: re-measuring re-fits the ribbon, which resizes the very element being
+     observed, and a resize caused inside a ResizeObserver callback is reported by the browser as a console error.
+     Re-observed on every build, because a new voyage builds a new ribbon and pill. */
+  if (typeof ResizeObserver === "function"){
+    if (!S.bandWatch) S.bandWatch = new ResizeObserver(() => requestAnimationFrame(bandChanged));
+    S.bandWatch.disconnect();
+    for (const id of ["pp4Ribbon", "pp4Pill"]){ const el = $(id); if (el) S.bandWatch.observe(el); }
+    /* …and the plaque UNDER the board, for the same reason and with the same one-frame-later rule — see capChanged(). */
+    if (!S.capWatch) S.capWatch = new ResizeObserver(() => requestAnimationFrame(capChanged));
+    S.capWatch.disconnect();
+    const capEl = $("pp4Cap"); if (capEl) S.capWatch.observe(capEl);
+  }
+  settleBoardIn(wrap);
   if (!S.geomBound){
     S.geomBound = true;
     let t = 0;
@@ -3161,6 +3462,26 @@ function buildStage(){
     /* and when Safari's bottom bar expands or collapses on his phone, which moves the visual viewport */
     if (window.visualViewport) window.visualViewport.addEventListener("resize", again);
   }
+}
+
+/* ⭐ THE BOARD SETTLES IN — PASSED on his game feel audit, 2026-09-13, as proposed there: "The whole board arrives a touch
+   large (about 104%) and settles to size in half a second, so the first frame feels like arriving somewhere rather than
+   a page loading." A quick fade over the first third, so the first frame is not a hard cut.
+   ⚠ camFrame MEASURES THIS ELEMENT, and a scale changes what getBoundingClientRect reports — a 104% width would cut the
+   viewBox 4% short and the board would crop and then snap at the end. So for the arrival camFrame reads the board
+   window's width from before it (S.stripW), and the layout underneath never moves. */
+const BOARD_SETTLE_FROM = 1.04;
+const BOARD_SETTLE_MS = 500;
+function settleBoardIn(wrap){
+  if (!wrap || typeof wrap.animate !== "function") return;
+  if (typeof matchMedia === "function" && matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  S.settleUntil = performance.now() + BOARD_SETTLE_MS + 50;
+  const an = wrap.animate([
+    { opacity: 0, transform: `scale(${BOARD_SETTLE_FROM})` },
+    { opacity: 1, offset: .3 },
+    { opacity: 1, transform: "scale(1)" },
+  ], { duration: BOARD_SETTLE_MS, easing: "cubic-bezier(.2,.7,.3,1)" });
+  an.onfinish = an.oncancel = () => { S.settleUntil = 0; lastVB = ""; };
 }
 
 /* ================= D-31: the desktop stage's own size ================= */
@@ -3374,7 +3695,7 @@ function menuButtons(ap){
      the slider bar silently stopped applying and the whole prompt fell back to a flat card.
      It is exempted by class rather than by type: any OTHER input still disqualifies, which is the
      behaviour this guard exists for. */
-  if (ap.querySelector(".btlBtn,.bkoRow,.recipeList,input:not(.apSlider),select")) return null;
+  if (ap.querySelector(".bkoRow,.recipeList,input:not(.apSlider),select")) return null;
   const btns = [...ap.querySelectorAll(".apBtn")];
   // playtest 15: up to EIGHT circles — the trade's what-do-ye-WANT step (7 crates) fans too;
   // the open-side fan wraps to a second arc row past four, so big menus stay one tight group
@@ -3739,17 +4060,21 @@ function capEmptyTick(){
       && appState.game.events.some(e => e && e.t === "recipeSet")) S.recipePicked = true;
   const want = (appState.game && !S.recipePicked) ? "hidden" : "";
   if (cap.style.visibility !== want) cap.style.visibility = want;
+  /* THE SAME FACT RELEASES THE CRATES: once the draft is over, a screen that never showed a picker (a voyage of bots, a
+     late guest, a reload) shows its ingredients at once. A no-op when the pop-in has played. */
+  if (S.recipePicked) releasePopIn();
 }
 function promptTick(force){
   const box = $("pp4Prompt"), ap = $("actionPanel");
   if (!box || !ap) return;
   capEmptyTick();
+  rcRippleTick();
   // AT PORT: this loop keeps running (it is the shared stage rAF, not per-game), and it owns
   // box.style.display. Without this it re-shows the prompt one frame after hideStageLayer() hides
   // it — T-12's second half. Returning early leaves the hidden display exactly as set.
   if (stageDown) return;
   // textContent, not innerText — innerText forces a layout pass, and this runs every frame
-  const has = ap.textContent.trim().length > 0 || ap.querySelector(".apBtn,.btlBtn,.bkoRow");
+  const has = ap.textContent.trim().length > 0 || ap.querySelector(".apBtn,.bkoRow");
   /* D-20 (playtest 22 item 11 / 02.2 item 11, Wyatt): "no popup appears until the director camera
      AND the ships have stopped moving." panel.js's `pendingReveal` gate already exists and already
      waits on exactly that — stageSettled() (the camera tween AND the ship's rendered transform,
@@ -3762,8 +4087,8 @@ function promptTick(force){
      Reusing the SAME flag for the wrapper's own visibility (rather than inventing a second gate
      that could disagree with the first) means the whole popup — box, dim and buttons alike — now
      waits together. `pendingReveal` is only ever added when the prompt HAS buttons (panel.js:546),
-     so a buttonless wait-line or battle flip-card (already framed synchronously by
-     window.__pp4.battle, and not what D-20 was complaining about) is untouched by this and keeps
+     so a buttonless wait-line or battle flip-card (already framed by the fight's hold, the
+     engage event's __pp4.battle, and not what D-20 was complaining about) is untouched by this and keeps
      appearing immediately, exactly as before. */
   /* pendingStage, NOT pendingReveal (Wyatt's blank-space lag, 2026-08-23 tier 1). The paragraph
      above still holds — the whole popup waits for the BOARD — but the flag it read also waited for
@@ -4192,9 +4517,10 @@ function promptTick(force){
        byte-identically, and a captain who typed markup does not get to render it. */
     /* ⚠ NEVER appState.curSeat. That is whichever seat the ENGINE is on, which on a guest is the
        HOST — and naming the host on the guest's own picker is exactly the bug Wyatt caught in crew
-       (see draftDispatch's note in flow.js, where the real fix lives). S.activeSeat is now
-       published by the dispatcher on EVERY local ask rather than only on the pass-play path, so it
-       is authoritative here.
+       (see draftDispatch's note in flow.js, where the real fix lives). The asked seat is published by
+       the one door every local ask comes through (raiseLocalPrompt, util.js) — appState.askedSeat since
+       architecture item 3, when it stopped sharing a slot with whose turn it is — so it is
+       authoritative here.
        ⚠ AND THERE IS NO FALLBACK AT ALL, WHICH THE MODE-FORK GATE IS RIGHT TO INSIST ON. My first
        attempt fell back to appState.mySeat and the gate caught it the same minute: stage.js went
        9 forks to 10, "a place two captains can see different games". It was also the wrong instinct
@@ -4202,7 +4528,7 @@ function promptTick(force){
        on the guest's screen in the first place. Both seams that raise a local prompt now publish
        the seat before the panel is drawn, so this is never null in practice; if it somehow is, the
        box simply does not appear for a tick. No name beats the wrong name. */
-    const askSeat = S.activeSeat;
+    const askSeat = appState.askedSeat;
     let ask = box.querySelector(".pp4RcAsk");
     if (askSeat == null){ if (ask) ask.remove(); ask = null; }
     else if (!ask){
@@ -4225,7 +4551,7 @@ function promptTick(force){
          max-content, and its content includes a name being capped at a fraction of the result. As
          two real flex items — an unshrinkable tail and a name that takes the rest — the split is
          MEASURED by the browser instead of guessed by me, and "Wyargh phone" simply fits. */
-      const askHtml = `<span class="pp4RcWho" style="color:${HEXCOL[who] || "#1f2d33"}">${pname(who)}</span><span class="pp4RcSay">, pick yer recipe:</span>`;
+      const askHtml = `<span class="pp4RcWho" style="color:${HEXCOL[who] || "#1f2d33"}">${pname(who)}</span><span class="pp4RcSay">${say("draft.pickSay",{})}</span>`;
       if (ask.dataset.rcAsk !== askHtml){ ask.dataset.rcAsk = askHtml; ask.innerHTML = emojify(askHtml); }
     }
     /* THE SEA HINT SITS OUT THE SHOW. peekHintTick() places this pill by dodging whatever else is
@@ -4269,7 +4595,7 @@ function promptTick(force){
       box.appendChild(help);          // last child of the column: under the cards, and it travels with them
     }
     {
-      const words = pilotMsg("recipe.draft", "Tap a recipe to see its route");
+      const words = pilotMsg("recipe.draft", say("draft.tapHint",{}));
       const sp = help.firstElementChild;
       if (sp.textContent !== words){ sp.textContent = words; pilotSee("recipe.draft"); }
     }
@@ -4485,7 +4811,7 @@ function promptTick(force){
     if (!S.lock && sx != null){
       const gp = appState.game && appState.game.players;
       const where = gp ? anchorSeats.map(s => (gp[s] && gp[s].pos ? gp[s].pos.join(".") : "?")).join(",") : "";
-      const key = S.turnSerial + "|" + (ap.querySelector(".apMsg") || {}).textContent
+      const key = turnSerial() + "|" + (ap.querySelector(".apMsg") || {}).textContent
                 + "|" + anchorSeats.join(",") + "|" + where;
       if (S.frameKey !== key){
         S.frameKey = key;
@@ -4612,7 +4938,7 @@ function promptTick(force){
     // the anchors are a placement INPUT, so they belong in the memo key — without them the layout
     // would be computed once, on the first frame of the camera's glide into the fight, and frozen
     // there while the boats slid across the screen underneath it
-    const radKey = [S.turnSerial, menu.length, sx | 0, sy | 0, Math.round(capT), Math.round(tSafe),
+    const radKey = [turnSerial(), menu.length, sx | 0, sy | 0, Math.round(capT), Math.round(tSafe),
       cellRects.length, vwPx(), hasSlider, menu.map(b => b.textContent.length).join(","),
       anchors.map(a => a ? (a[0] | 0) + "," + (a[1] | 0) : "-").join(";")].join("|");
     /* THE MEMO KEY DESCRIBES THE LAYOUT, NOT THE BUTTONS — so two consecutive prompts that happen
@@ -4758,7 +5084,7 @@ function promptTick(force){
          low spot, with the whole sea empty above it. Adding the ship's square to the key keeps the
          pill still while the ship is still, which is what he actually asked for, and re-picks the
          moment the ship has moved. */
-      else if (S.pillLock && S.pillLock.key === S.turnSerial && S.pillLock.at === (sx|0)+","+(sy|0)){
+      else if (S.pillLock && S.pillLock.key === turnSerial() && S.pillLock.at === (sx|0)+","+(sy|0)){
         cxA = S.pillLock.cx; mTop = S.pillLock.top;
       } else {
         cxA = sx;
@@ -4768,7 +5094,7 @@ function promptTick(force){
         // a sail prompt's pill dodges the whole sail window: above it if there's room under
         // the ribbon, else just below it
         if (cb){ mTop = (cb.t - 42 >= tSafe - 34) ? cb.t - 42 : clampTop(Math.min(cb.b + 8, capT - 44)); }
-        S.pillLock = { key: S.turnSerial, at: (sx|0)+","+(sy|0), cx: cxA, top: mTop };
+        S.pillLock = { key: turnSerial(), at: (sx|0)+","+(sy|0), cx: cxA, top: mTop };
       }
       /* …AND THE PILL'S BOTTOM CLEARS THE CAPTAINS CARD, WHICHEVER SPOT WAS CHOSEN (Group G
          fault 3, judged on solo-phone-023: "the ask pill's bottom edge meets the top edge of the
@@ -5376,12 +5702,11 @@ function promptTick(force){
      tween. And `top = sy + 34` is NOT clamped to the viewport the way `left` is, which is the
      "sometimes it's offscreen" half: an anchor ship above the visible band sends top negative.
 
-     CENTRED IS ALREADY A SOLVED CASE HERE — it is what an over-tall card does, one line up. So the
-     battle card joins it rather than getting placement logic of its own. This function runs on both
+     CENTRED IS ALREADY A SOLVED CASE HERE — it is what an over-tall card does, one line up. The battle
+     card that joined it was removed at his ask, 2026-09-14. This function runs on both
      tiers, so host and guest take the rule from the same line; nothing is branched on who is
      watching. */
-  const isBattle = !!box.querySelector(".btl");
-  if (big || isBattle || !u){ box.classList.add("centered"); box.style.left = ""; box.style.top = ""; return; }
+  if (big || !u){ box.classList.add("centered"); box.style.left = ""; box.style.top = ""; return; }
   box.classList.remove("centered");
   const W = Math.min(330, vwPx() - 16);
   box.style.width = W + "px";
@@ -5582,7 +5907,50 @@ export function cleanupLegacyTimerKey(store){
   } catch (e) { return false; }
 }
 
+/* ⭐ THE DARK REACHES EVERY EDGE OF THE WINDOW — A LAYER OF ITS OWN, ABOVE THE PAGE. Wyatt, 2026-09-16, on "The dark covers the whole window
+   now": "Nope, see screenshot. there has to be a simpler way -- can you just make a new fullscreen div that's on top of everything else, and
+   put the stage modal on top of that?"
+   The dark used to be #pp4Veil's box-shadow, spread past the stage's box. But #pp4Veil lives inside body, and body.pp4Stage is the capped
+   column — transformed so every fixed box lays out against it, and overflow:hidden — so whatever it paints beyond the column is the
+   browser's to clip, and his Safari clipped it. So, his idea, with one change: a layer that is a child of <html> itself, above the page and
+   inside no column, so nothing can clip it — with a clear window cut exactly where the column stands (a transparent box the column's size,
+   its 100vmax shadow the dark). The stage modal does not have to move: the coin, the words and the stamp stay in the column, where every
+   position they take is measured, and show through the window; the column's own dark is still #pp4Veil. Up only while #pp4Veil is, read off
+   its presence by an observer rather than a second switch anyone must remember (and not a :has() rule — Safari's reactivity gaps with
+   :has() are recorded in index.html). */
+/* ⭐⭐ AND EVERY CENTRE STAGE RAISES IT, NOT ONLY THE COIN'S. Wyatt, 2026-09-17, for the third time on that screen: "the pre-game stage
+   is STILL not rendered correctly -- this should use the same darkening render code as the stage; not its own bespoke code."
+   He is right, and it was bespoke: an intro card dimmed with `#pp4Prompt.pp4Center`'s own backdrop, which lives INSIDE the capped
+   column — so on a desktop it darkened the column and left the page either side of it undimmed, the exact fault this layer was built
+   to end. Now the one layer answers for both, and the only difference is how dark: the coin's ceremony meets a veil that reaches
+   rgba(4,16,22,.92) at its edge, a centre-stage card meets .6, and the surround is told which so the two meet without a seam. */
+const CENTRE_STAGED = () => { const b = $("pp4Prompt"); return !!(b && b.classList.contains("pp4Center")); };
+function syncSurround(){
+  let s = document.getElementById("pp4Surround");
+  if (!s){ s = document.createElement("div"); s.id = "pp4Surround"; s.setAttribute("aria-hidden", "true"); document.documentElement.appendChild(s); }
+  const veil = !!$("pp4Veil"), up = (veil || CENTRE_STAGED()) && document.body.classList.contains("pp4Stage");
+  if (up){
+    const r = document.body.getBoundingClientRect();
+    s.style.left = r.left + "px"; s.style.width = r.width + "px";
+    s.style.setProperty("--pp4SurroundDark", veil ? "rgba(4,16,22,.92)" : "rgba(4,16,22,.6)");
+  }
+  s.hidden = !up;
+}
+function watchSurround(){
+  if (typeof MutationObserver === "function"){
+    // the body's own children and class, AND the prompt box's class — pp4Center goes on and off there, and it is what a card's dark follows
+    new MutationObserver(syncSurround).observe(document.body, { childList: true, attributes: true, attributeFilter: ["class"] });
+    const watchBox = () => { const b = $("pp4Prompt"); if (b && !b.__surroundWatched){ b.__surroundWatched = true; new MutationObserver(syncSurround).observe(b, { attributes: true, attributeFilter: ["class"] }); } };
+    new MutationObserver(() => { watchBox(); syncSurround(); }).observe(document.body, { childList: true });
+    watchBox();
+  }
+  if (typeof ResizeObserver === "function") new ResizeObserver(syncSurround).observe(document.body);
+  window.addEventListener("resize", syncSurround);
+  syncSurround();
+}
 export function initStage(){
+  watchSurround();   // the full-window dark follows the stage (see syncSurround)
+  wirePressSquish();   // every button in the game squishes when pressed (src/ui/press.js) — welcome screen included
   // FIX-01: clear the shared legacy key once per browser, BEFORE the seed below reads anything.
   // Wrapped again here because a browser can throw on merely touching localStorage (Safari private
   // mode) — the boot path must not go down for a housekeeping call.
@@ -5616,8 +5984,8 @@ export function initStage(){
     // `pos` (optional) is the asked captain's authoritative square off the prompt spec — see
     // camFitSail. renderPickPrompt passes it; the spectating host's pickCell call passes seat only.
     sailCells: (seat, pos) => { if (S.active) camFitSail(seat, pos); },
-    /* THE SHOT IS THE FIGHT, AND IT IS HELD. Called at the top of asyncBattle (before the opening
-       line, so the camera is already there when it speaks) and again by every battle-card render.
+    /* THE SHOT IS THE FIGHT, AND IT IS HELD. Called by the one event consumer on the fight's `engage` — drawn before the opening line,
+       so the camera is already there when it speaks — and let go (battleEnd) on its `disengage`, on every screen (architecture item 4).
        It used to centre the MIDPOINT at a fixed 2.0x, which frames two adjacent ships and crops two
        that are not — camFitSeats derives the zoom from the gap instead, so both boats are on screen
        whatever the fight looks like. Re-fitting only when the pair changes: an unchanged re-fit
@@ -5629,14 +5997,16 @@ export function initStage(){
       if (!same) camFitSeats([a, d]); },
     battleEnd: () => { S.battle = null; },
     flip: flipArmed,
-    // turnSerial: bumps whenever the wheel changes hands — the pill-lock and placement memo key
-    // on it, so a NEW turn re-anchors the ask pill and an ongoing one never moves it (playtest 15)
     // the captains box stops hiding the instant a recipe is actually chosen — see capEmptyTick
     recipePicked: () => { S.recipePicked = true; },
-    actor: seat => { if (S.activeSeat !== seat) S.turnSerial = (S.turnSerial || 0) + 1; S.activeSeat = seat; },
+    /* (actor: stood here — the writer of S.activeSeat, the slot the top bar drew and every prompt wrote, which also bumped
+       turnSerial. Deleted by architecture item 3; turnSerial() at the top of this file reads whose turn it is instead.) */
     // a rim ride spans the whole board — pull out so the sweep never plays off screen; the
     // narration that follows glides the camera back down to the ship at its whirlpool
     sweepCam: () => { if (S.active){ S.lock = false; camFull(); } },
+    /* THE VICTORY CARD'S LEAN-IN (src/ui/victory.js): the crown comes down on the winner, so the camera glides in on
+       their ship — his dial, 205%, within zoomCap like every other shot. The podium calls sweepCam to come back out. */
+    leanCam: (seat, zoom) => { const g = appState.game; if (S.active && g && g.players[seat]){ S.lock = false; camToCell(g.players[seat].pos, zoom); } },
     /* THE STORM IS THE ONE MOMENT THE WHOLE TABLE MOVES AT ONCE — playtest 22 item 1 (Wyatt): "The
        director should zoom out to show all boats and their end squares before moving them in a
        storm." A storm takes every ship three squares downwind simultaneously; framed on one boat,

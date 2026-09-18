@@ -405,6 +405,68 @@ out.** The honest check was comparing the highlight rect's centre against where 
 
 The general form: **verify against an independent path, never against the suspect itself.**
 
+### ONE CONSUMER IS NOT ONE PATH — look where the fact is PRODUCED, not only where it is read
+
+**2026-09-17, and it reached staging.** Wyatt reported coins leaving his purse when he *passed* at a
+dock. The dock event carried only `price`, and the screen was reading `price` as a spend. The fix
+looked textbook: the engine's dock event gained a `paid` field, and the one event consumer's spend
+line changed from `e.price` to `e.paid`.
+
+Asked whether a bot's purse could stand in for his, the session read `consumeEvent`, found **one**
+spend line with no human-vs-bot branch anywhere on it, and said so:
+
+```js
+const spent   = (e.t==="dock" && e.paid>0) ? e.paid : …   // one line
+const spender = (e.t==="refire"||e.t==="powder") ? e.a : e.p;
+if (spent>0 && spender!=null) payOut(spender, spent);      // one door
+```
+
+Every word of that was true. **It was also worthless, because a dock event has two producers:**
+
+| | |
+|---|---|
+| `src/engine/index.js:1173` | a **bot's** dock — got the new `paid` field |
+| `src/ui/flow.js:2023` | a **human's** dock — did not |
+
+So on a human's *purchase*, `e.paid` was `undefined`, `spent` fell to 0, `payOut` was never called,
+and the coins stopped being drawn leaving — **the opposite of the reported fault, on the commonest
+action in the game.** The number still landed correctly, set silently a moment later by
+`showSeatCoins`, so nothing looked wrong unless you were watching for flights. His *pass* was clean
+on that build, but by accident: with no `paid` field at all, `e.paid>0` is false either way.
+
+Measured on a phone, his own seat, same gesture, the two builds differing only in the commit:
+
+| | before | after |
+|---|---|---|
+| the event | `paid=undefined` | `paid=3` |
+| his purse | 5→6→7→8 then **5 in one step** | 3→4→5→6 then 5→4→3 |
+| coins drawn leaving | **0** | 13 |
+
+**The rule: when you change what an event MEANS, grep for every place that emits it before you
+change the place that reads it.** `grep -n 't:"<name>"' src/` costs two seconds. "There is one
+consumer" is a fact about the consumer and says nothing about how many things speak into it.
+
+The gate that guards it is rule 11 of `scripts/qa/coin_arrival_one_event_check.mjs`: every emitter
+of a dock event must carry the same field set, failing in **both** directions. The existing rule 10
+stayed green throughout, because it reads the consumer and the consumer was right — the divergence
+was upstream of everything that was looking. **That is the argument for convergence over gates:** a
+splint holds two things in step, and the repair is having one of them (backlog item 49).
+
+### A PROBE THAT PRINTS ONLY WHAT IT SET OUT TO MEASURE CAN ONLY CONFIRM
+
+The same episode, and it is the half worth copying. The fault above was found because the probe
+printed the dock event's **raw fields** beside the purse trace — wanted for the report, not for the
+check — and `paid=undefined` was sitting in that line. Nothing downstream can tell `undefined` from
+`0`: both make `e.paid>0` false, so the purse trace it set out to measure was **green**.
+
+In the measurer's own words: *"I did not catch this by being careful, I caught it by being LUCKY in
+what I chose to print. If I had printed only what I set out to measure — did the purse move — every
+number would have been green and I would have sent you a clean bill."*
+
+**So print the raw inputs of the thing you are judging, not only your verdict on it.** The extra
+columns cost nothing and they are where the surprises live. And when a value comes back `undefined`
+where the code should produce `0`, that is never cosmetic — it means a producer you have not read.
+
 ### A CHECK BUILT ON YOUR OWN ARITHMETIC IS THE SUSPECT, NOT THE WITNESS
 
 2026-08-14, and the reason it earns its own entry beside the probe-inversion lesson below is the
@@ -1015,6 +1077,43 @@ The headline is counted from the OS after a beat now, never from what the killer
 **The general lesson, which is not about browsers:** when a guard has never fired, that is not
 evidence the thing it guards against is not happening. Go and create the failure it claims to catch
 and watch it fire. This one had never fired.
+
+### AND THE FOLDER OUTLIVES THE BROWSER — 9.8 GB IN A WORKTREE WITH NOTHING RUNNING
+
+**2026-09-15. 188 dead Chrome profile directories, 9.8 GB, in one worktree — and every instrument
+on the machine said it was clean, because it was.** `stray_probe_check` printed *"no debug-port
+browsers are running at all"* and that was TRUE. No process had leaked. The folders had.
+
+**Everything built after the twenty-two-browser night reaps PROCESSES.** `launch()` wipes its
+profile directory on the way IN, never on the way out; `killAll()` and `reapOrphans()` only ever end
+processes. So a probe that exits perfectly still leaves its ~50 MB folder standing forever — and
+`checks_pointer_events_redproof.mjs` is IN `npm test`, so every suite run on this machine dropped
+another one. 188 is what a fortnight of doing everything right looks like.
+
+**The general lesson, which is the same shape as the one above it:** a guard that has never fired is
+not evidence of safety, and **a guard that answers a narrower question than the one you care about
+reads exactly like an answer to the wide one.** "Are there abandoned browsers?" was being asked and
+answered honestly. "Is this machine clean?" was never asked by anything.
+
+**`sweepStaleProfiles()` (`scripts/lib/stray_probes.mjs`) is the other half,** and both launchers now
+call one memoised `reapOnce()` — `mp_rig.launch()` did tidy up, `cdp.openChrome()` did not, and one
+launcher tidying is how the worktree that used the other one collected 9.8 GB.
+
+**Three restraints, each with its own red-proof in `stray_probe_reaper_check.mjs` (cases 6 and 7):**
+1. **Never a profile a browser is HOLDING** — asked of the process table, not of a clock. Same rule
+   as the reaper: an in-flight posed board must survive a tidy-up, or whoever it hurts turns it off.
+2. **Never something that is not a Chrome profile.** `.tmp-quant` is `asset_quantize.mjs`'s OUTPUT
+   and `.tmp-*-before.html` is a posed-pair input; they wear the same prefix. So "is it a profile?"
+   is answered by Chrome's own `Local State`/`Default`, never by the name.
+3. **Never anything under a day old**, which is far longer than a probe runs.
+
+**And `mtime`, deliberately not `ctime`.** The first version took the newest of mtime/ctime/birthtime
+— "only sweep when every clock agrees it is old" — and the gate caught it RED on a three-day-old
+profile it refused to delete. `ctime` is the inode-change time: it answers *when did the metadata
+change*, not *when was this last used*, **and nothing can set it, so no test could ever pose an old
+folder.** It would have shipped never deleting anything and never saying so.
+
+---
 
 ## 8. Rules that lived only in the laptop's memory — ported here so a CLOUD session has them
 

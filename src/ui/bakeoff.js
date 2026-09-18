@@ -27,7 +27,8 @@ import { panel, setNeedsAction, GHOST_FADE_MS } from "./panel.js";
 // util.js sits BELOW panel.js in the graph (panel.js imports this same function from it, and util.js
 // imports neither panel.js nor this file), so this adds no cycle — see the note beside the bake-off's
 // export in ./index.js, updated in this same commit.
-import { narrationHoldMs } from "./util.js";
+import { narrationHoldMs, say, sayText } from "./util.js";
+import { playLidNote, playCrateVerdict, playCoinTick, playCardSwish } from "./audio.js";
 
 const $=(id)=>document.getElementById(id);
 // module-local, as every other src/ui/ file keeps its own
@@ -90,6 +91,67 @@ try{
   }
 }catch(err){}
 
+/* ⭐ THE LIDS SLAM DOWN — PASSED on his game feel audit (2026-09-13), as proposed: "Each lid drops with a squash and a small
+   dust puff, left to right." (Each a note higher is a sound, and comes with the sound page.) The lid falls on an ease-in, so it
+   gathers speed and LANDS; it squashes the moment it does, and dust leaves both sides of the crate. The drop's timing is set
+   here, beside the moment that answers it, so the two cannot disagree; the lid comes OFF on the stylesheet's own gentle ease.
+   THE SQUASH IS ON THE LID, NEVER THE CRATE: readPitch() measures the crates' own boxes at the top of the shuffle, and a crate
+   still squashing then would hand the swaps a wrong spacing. Every bench closes through coverBench — the baker's, a
+   watcher's, a paid rewatch — so every screen sees the same slam. */
+const LID_DROP_MS=190, SLAM_MS=240, PUFF_MS=420;
+function dropLid(bowl,k){
+  const dome=bowl.querySelector(".bkoDome");
+  if(!dome||typeof dome.animate!=="function"){bowl.classList.add("covered");return;}
+  /* THE FALL IS PLAYED HERE AND THE SQUASH WAITS FOR IT TO FINISH — not for a timer set to the same length. MEASURED with a
+     timer, on a busy laptop: two of five lids squashed at 372ms and 97ms, one well after its lid had landed and one while it
+     was still in the air. The same lesson as the pop-in's sound, which now times off its animation too. */
+  dome.style.transition="none";
+  bowl.classList.add("covered");
+  const fall=dome.animate([{transform:"translateY(-18%)",opacity:0},{opacity:1,offset:.4},{transform:"translateY(0)",opacity:1}],
+    {duration:LID_DROP_MS,easing:"cubic-bezier(.55,0,1,.45)",id:"bake-drop"});
+  fall.finished.then(()=>{
+    dome.style.transition="";
+    if(!bowl.isConnected||!bowl.classList.contains("covered"))return;
+    playLidNote(k);   // his pick, 2026-09-14: a marimba note as the lid LANDS, a step up the scale for each lid of the sweep
+    dome.animate([{scale:"1 1"},{scale:"1.1 .84",offset:.3},{scale:".97 1.04",offset:.65},{scale:"1 1"}],
+      {duration:SLAM_MS,easing:"ease-out",id:"bake-slam"});
+    for(const side of [-1,1]){
+      const puff=document.createElement("span");
+      puff.className="bkoPuff";
+      bowl.appendChild(puff);
+      const a=puff.animate([{opacity:.85,translate:"0 0",scale:".4"},{opacity:0,translate:`${side*60}% -40%`,scale:"1.25"}],
+        {duration:PUFF_MS,easing:"ease-out",fill:"both",id:"bake-puff"});
+      a.onfinish=a.oncancel=()=>puff.remove();
+    }
+  },LID_DROP_MS);
+}
+/* ⭐ A RIGHT CRATE BURSTS GREEN, A WRONG ONE SAGS — PASSED on his game feel audit (2026-09-13), as proposed: "A correct crate
+   pops up with a green sparkle burst ...; a wrong one sags." (The rising chime and the dull thud are sounds, and come with the
+   sound page.) Both play inside the reveal's own beat, on every screen that renders the verdict (applyBenchSnap). */
+const RIGHT_POP_MS=440, SPARKS=8;
+function crateRight(bowl){
+  bowl.animate([{translate:"0 0",scale:"1"},{translate:"0 -18%",scale:"1.12",offset:.35},{translate:"0 0",scale:"1"}],
+    {duration:RIGHT_POP_MS,easing:"cubic-bezier(.3,.7,.4,1)",id:"bake-right"});
+  for(let k=0;k<SPARKS;k++){
+    const spark=document.createElement("span");
+    spark.className="bkoSpark";
+    bowl.appendChild(spark);
+    // a translate in % is of the spark's own size (a third of the crate), so 200% carries it to the crate's edge and past
+    const ang=(k/SPARKS)*Math.PI*2+0.3, r=190+((k*37)%3)*30;
+    const at=f=>`${(Math.cos(ang)*r*f).toFixed(0)}% ${(Math.sin(ang)*r*f).toFixed(0)}%`;
+    const a=spark.animate([{opacity:0,translate:"0 0",scale:".3",rotate:"0deg"},
+      {opacity:1,translate:at(.6),scale:"1",offset:.35},
+      {opacity:0,translate:at(1),scale:".6",rotate:"90deg"}],
+      {duration:RIGHT_POP_MS+120,easing:"ease-out",fill:"both",id:"bake-spark"});
+    a.onfinish=a.oncancel=()=>spark.remove();
+  }
+}
+function crateWrong(bowl){
+  bowl.animate([{translate:"0 0",rotate:"0deg",scale:"1 1"},{translate:"0 9%",rotate:"-5deg",scale:"1.04 .9",offset:.35},
+    {translate:"0 6%",rotate:"-3deg",scale:"1.02 .94",offset:.7},{translate:"0 0",rotate:"0deg",scale:"1 1"}],
+    {duration:REVEAL_MS,easing:"ease-in-out",id:"bake-wrong"});
+}
+
 /* ================= the recipe card ================= */
 // One line per step: the ordinal, the ingredient's OWN ICON, and the wording. The icon is drawn
 // from the same array the answer is built from (recipeSteps().ings), so the card physically cannot
@@ -137,7 +199,7 @@ function benchHTML(bake,slots){
   return `<div class="bkoRow">`+slots.map((ing,pos)=>{
     const lk=bake.locked[pos];
     return `<button class="bkoBowl${lk?" locked":""}" data-pos="${pos}" type="button"
-       aria-label="${lk?`Crate ${pos+1}, step ${step[pos]}, already placed`:`Crate ${pos+1}`}">
+       aria-label="${lk?sayText("bake.crateLocked",{n:pos+1,step:step[pos]}):sayText("bake.crate",{n:pos+1})}">
        <span class="bkoBack"></span>
        <img class="bkoIng" src="${ING_IMG[ing]}" alt="">
        <span class="bkoDome"></span>
@@ -152,6 +214,12 @@ function benchHTML(bake,slots){
    the baker's paint() and by the watcher's pick stream, and neither knows where its list came from.
    A LOCKED CRATE IS NEVER TOUCHED: its badge is the step number the captain already earned. */
 function paintBadges(bowls,openSteps,picks){
+  /* A TICK FOR EVERY GUESS — Wyatt, 2026-09-14: "I want a "tick" sound (same as the coin tick up/down sound?) when a player makes
+     their guesses for the bakeoff". One per crate named or un-named, on the baker's screen and every watcher's alike, because both
+     paint through here. A whole bench clearing at once (a paid rewatch) is not a guess, so it makes no sound. */
+  const was=bowls.__picks;
+  if(was!=null&&Math.abs(picks.length-was)===1)playCoinTick();
+  bowls.__picks=picks.length;
   bowls.forEach((b,pos)=>{
     if(b.classList.contains("locked"))return;
     const at=picks.indexOf(pos);
@@ -165,7 +233,7 @@ function paintBadges(bowls,openSteps,picks){
 function listSteps(steps){
   const n=steps.map(k=>k+1);
   if(n.length<=1)return String(n[0]||"");
-  return n.slice(0,-1).join(", ")+" and "+n[n.length-1];
+  return n.slice(0,-1).join(", ")+" "+say("bake.and",{})+" "+n[n.length-1];
 }
 
 // `p` used to be the first argument here and was never read in the body — the whole shell is
@@ -179,13 +247,13 @@ function listSteps(steps){
    published by an older client still renders a sensible heading rather than "undefined's". */
 function bakeTitle(bake,watching){
   const who=bake&&bake.baker;
-  if(!who)return "The Bake-Off";
+  if(!who)return say("bake.title",{});
   /* ONE SPAN, NOT THREE. `.bkoHd` is display:flex with gap:6px, so every child is a flex ITEM:
      returning `<span>Name</span>, Yer Bake-Off` made the coloured name one item and the rest an
      anonymous second one, separated by the row gap -- "Davy Probe , Yer Bake-Off", with the comma
      adrift. Caught on the rendered card by bakeoff_surface.mjs, which read the title back as
      "Davy Probe\n, Yer Bake-Off". Wrapping makes the whole heading a single item again. */
-  const inner=watching?`${who}'s Bake-Off`:`${who}, Yer Bake-Off`;
+  const inner=say(watching?"bake.titleWatching":"bake.titleMine",{who});
   return `<span class="bkoWho">${inner}</span>`;
 }
 /* ⭐ WHICH PASTRY IS THIS, ACTUALLY — Wyatt, 2026-09-09: "Add the recipe name to the bakeoff under
@@ -209,13 +277,13 @@ function shellHTML(bake,slots,hint,btnLabel,btnEnabled,watching){
      watcher has nothing to answer. That is the whole shape of this convergence: the response
      mechanism is what differs between tiers, never the drawing. */
   return `<div class="bko${watching?" bkoWatching":""}">
-    <div class="bkoHd">${iconImg(CUPCAKE_IMG)} ${bakeTitle(bake,watching)}<span class="bkoAtt">attempt ${att}</span></div>
+    <div class="bkoHd">${iconImg(CUPCAKE_IMG)} ${bakeTitle(bake,watching)}<span class="bkoAtt">${say("bake.attempt",{n:att})}</span></div>
     ${bakeRecipeName(bake)}
     ${cardHTML(bake)}
     ${benchHTML(bake,slots)}
     <div class="bkoHint" id="bkoHint">${hint}</div>
     ${watching?"":`<div class="bkoBtns">
-      <button class="apBtn bkoWatch" id="bkoWatch" type="button" hidden>Watch again ${iconImg(COIN_IMG)}1</button>
+      <button class="apBtn bkoWatch" id="bkoWatch" type="button" hidden>${say("bake.watchAgain",{icon:iconImg(COIN_IMG)})}</button>
       <button class="apBtn bkoGo" id="bkoGo" type="button"${btnEnabled?"":" disabled"}>${btnLabel}</button>
     </div>`}
   </div>`;
@@ -268,12 +336,11 @@ function bakeoffIntroCard(bake){
        standing rule two comments up. Note for him rather than a silent edit: the line above already
        says "addin' them in the correct order", so the two sit close together — his call whether to
        tighten, not mine. */
-    panel(`<div class="apMsg">${iconImg(CUPCAKE_IMG)} The ovens be roarin'! Yer ingredients be
-      waitin'. Ye must bake yer recipe by addin' them in the <b>correct order</b>.<br><br>
-      <b>${escHtml(recipeTitle(bake.order))} Recipe</b>
+    panel(`<div class="apMsg">${say("bake.introLead",{icon:iconImg(CUPCAKE_IMG)})}<br><br>
+      <b>${say("bake.recipeName",{name:escHtml(recipeTitle(bake.order))})}</b>
       ${cardHTML(bake)}<br>
-      Add them in this exact order or it's a ruined mess.</div>
-      <div class="apBtns bkoIntroBtns"><button class="apBtn" id="bkoIntroGo" type="button">Get bakin'!</button></div>`,true);
+      ${say("bake.introWarn",{})}</div>
+      <div class="apBtns bkoIntroBtns"><button class="apBtn" id="bkoIntroGo" type="button">${say("bake.introGo",{})}</button></div>`,true);
     const go=$("bkoIntroGo");
     if(!go){res();return;}
     go.onclick=()=>{go.onclick=null;res();};
@@ -316,7 +383,7 @@ function bakeoffIntroCard(bake){
 // already moved on to something else it would take THAT down instead — so it only runs while a .bko
 // is still the thing on screen. That is what makes this safe to call from every exit below,
 // including the ones that can race a shot-clock forfeit.
-function retireBakeCard(){
+export function retireBakeCard(){
   delete $("actionPanel").dataset.pp4Stage;
   if(document.querySelector("#actionPanel .bko"))panel("");
 }
@@ -441,8 +508,8 @@ export async function playBakeoffLive(spec,io){
   // disabled and enabling it at the exact moment it works removes the dead window instead of hiding
   // it. Found by a probe that clicked at 800ms and hung.
   panel(shellHTML(bake,shown,
-    watch?watch.hint:"Study the order. Start the shuffle when yer ready.",
-    "Ready to bake!",false,!!watch),true);
+    watch?watch.hint:say("bake.study",{}),
+    say("bake.ready",{}),false,!!watch),true);
   // the shell is in the DOM and carries .bko — from here the content keeps the stage lit, so the
   // intro's flag can go (see the note at the top of this function)
   delete $("actionPanel").dataset.pp4Stage;
@@ -462,7 +529,7 @@ export async function playBakeoffLive(spec,io){
     for(const b of bowls) b.addEventListener("click",()=>{
       if(!hint)return;
       if(hint._t)clearTimeout(hint._t); else hint._was=hint.textContent;
-      hint.textContent="Now yer just watchin'";   // his words, exactly
+      hint.textContent=sayText("bake.justWatching",{});   // his words, exactly
       hint._t=setTimeout(()=>{hint.textContent=hint._was||"";hint._t=null;},1800);
     });
   }
@@ -531,6 +598,14 @@ export async function playBakeoffLive(spec,io){
       go.onclick=()=>{go.onclick=null;go.disabled=true;res();};
     });
     bench({phase:"shuffle"});
+    /* AND THE BUTTON GOES WITH IT. Wyatt, 2026-09-17: AGREED, hide "Ready to bake!" while the crates shuffle — it is spent, greyed and
+       offering a tap that does nothing until the crates stop. It comes back as "Bake it!" with the tap instructions below (phase 4). */
+    { const g=$("bkoGo"); if(g)g.classList.add("bkoAway"); }   // a class, not an inline style: the reveal rules force `visibility:visible !important` (index.html)
+    /* THE LINE UNDER THE BENCH SAYS WHAT IS HAPPENING NOW. Wyatt, 2026-09-17: "yes, change the hint during the shuffle" — it still
+       read "Study the order. Start the shuffle when yer ready." while the lids came down and the crates crossed (seen mid-crossing
+       in Wy-Blade's bake-off probe, 2026-09-16). A paid re-watch already said "Watch closely — the crates move again." (below); the
+       first shuffle now has its own line, and the tap instructions replace it once the crates stop (bake.tapOrder). */
+    { const h=$("bkoHint"); if(h)h.textContent=sayText("bake.shuffling",{}); }
   }
 
   // ---- phase 2: crates down, ONE BY ONE, LEFT TO RIGHT ----
@@ -551,9 +626,10 @@ export async function playBakeoffLive(spec,io){
       await sleep(60);
       return;
     }
+    let k=0;
     for(const b of bowls){
       if(b.classList.contains("locked"))continue;
-      b.classList.add("covered");
+      dropLid(b,k++);
       await sleep(COVER_MS);
     }
   }
@@ -561,6 +637,9 @@ export async function playBakeoffLive(spec,io){
   // ---- phase 3: the swaps, one at a time ----
   await runSwaps();
 
+  /* A SWISH AS THE CRATES ARE SHUFFLED — Wyatt, 2026-09-15: "we want a swish sound as the crates are shuffled." One per crossing; how
+     close two may come is audio.js's to decide (playCardSwish). This spot once held its own copy of that clock, declared BELOW the
+     `await runSwaps()` above, and the shuffle threw before its first crate moved (2026-09-16). */
   async function runSwaps(){
   /* READ IT HERE, once, at the moment the crates are about to move — every phase that can reflow
      the panel has already run by now. This is the whole of W3-2's fix. */
@@ -568,6 +647,7 @@ export async function playBakeoffLive(spec,io){
   for(const [a,b] of swaps){
     const A=bowls[a],B=bowls[b];
     if(!A||!B)continue;
+    playCardSwish();
     if(reduced){
       A.classList.add("flash");B.classList.add("flash");
       await sleep(340);
@@ -664,8 +744,8 @@ export async function playBakeoffLive(spec,io){
   // player playing.
   if(hint)hint.textContent=watch?watch.hint
     :openSteps.length===n
-    ?"Tap the crates in recipe order. Tap again to undo."
-    :`${openSteps.length} left — tap them for step${openSteps.length>1?"s":""} ${listSteps(openSteps)}. Tap again to undo.`;
+    ?sayText("bake.tapOrder",{})
+    :sayText(openSteps.length>1?"bake.leftMany":"bake.leftOne",{n:openSteps.length,steps:listSteps(openSteps)});
 
   /* ---- THE WATCHER'S HALF OF PHASE 4 (04-01 Task 3, MP-05) ----
      Everything above ran identically. What a watcher does not have is a hand on the bench: no
@@ -695,7 +775,7 @@ export async function playBakeoffLive(spec,io){
   // The same button served as "Ready to bake!"; it becomes the confirm control now, disabled until
   // every open step has been assigned.
   const goBtn=$("bkoGo");
-  if(goBtn){goBtn.textContent="Bake it!";goBtn.disabled=true;}
+  if(goBtn){goBtn.textContent=sayText("bake.go",{});goBtn.disabled=true;goBtn.classList.remove("bkoAway");}   // back from the shuffle, as "Bake it!"
 
   let rewatches=0;                        // paid replays, logged so a resume charges the same coins
 
@@ -745,7 +825,7 @@ export async function playBakeoffLive(spec,io){
       paintButtons();
       const hintEl=$("bkoHint");
       const was=hintEl?hintEl.textContent:"";
-      if(hintEl)hintEl.textContent="Watch closely — the crates move again.";
+      if(hintEl)hintEl.textContent=sayText("bake.watchClosely",{});
       paintBench(shown);
       row.classList.add("bkoStudy");
       bowls.forEach(b=>{ if(!b.classList.contains("locked"))b.classList.remove("covered"); });
@@ -849,8 +929,8 @@ export async function bakeoffReveal(view,result){
   // clickable right through the reveal (visible in the 360px screenshot), inviting a second press on
   // a decision that has already resolved.
   const go=$("bkoGo");
-  if(go){go.disabled=true;go.textContent="In the oven…";}
-  if(hint)hint.textContent="Opening the crates…";
+  if(go){go.disabled=true;go.textContent=sayText("bake.inOven",{});}
+  if(hint)hint.textContent=sayText("bake.opening",{});
   for(let k=0;k<bake.order.length;k++){
     const bowl=bake.slots.indexOf(bake.order[k]);
     const el=bowls[bowl];
@@ -882,12 +962,14 @@ export async function bakeoffReveal(view,result){
     if(num)num.textContent=String(k+1);
     el.classList.add(result.correct[k]?"right":"wrong");
     if(alreadyLocked)continue;
+    playCrateVerdict(!!result.correct[k]);   // his pick, 2026-09-14: a chime for a right crate, a thud for a wrong one — with or without the motion
+    if(!reduced&&typeof el.animate==="function")(result.correct[k]?crateRight:crateWrong)(el);
     await sleep(reduced?Math.round(REVEAL_MS*0.5):REVEAL_MS);
   }
   if(hint){
     const got=result.correct.filter(Boolean).length;
-    hint.textContent=result.perfect?"Every crate in its place — ye baked it!"
-      :`${got} of 5 in place. Those stay put; the rest get shuffled again tomorrow.`;
+    hint.textContent=result.perfect?sayText("bake.perfect",{})
+      :sayText("bake.partial",{got,of:result.correct.length});
   }
   // THE VERDICT'S HOLD IS SIZED BY ITS OWN WORDS, and it has to be now that the card LEAVES at the
   // end of it. Until this change the flat VERDICT_MS did not have to be long enough to read by —

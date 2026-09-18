@@ -246,7 +246,7 @@ and every prompt promise** (`docs/DISPLAY-RULES.md` Rule C) — which is where t
 | # | Item |
 |---|---|
 | **W7-1** | ✅ **DONE 2026-09-12 — all four non-game pages now sit in the pregame screen's own cream card, floating over the blurred board.** His words: *"I want all of the non game pages to follow the same format as the index pregame page where the content sits in a cream rounded corner box floating over a blurry background of the game board itself."* `about.html`, `credits.html`, `privacy.html`, `rules.html`. The backdrop is the GAME'S own picture — `assets/welcome-backdrop.jpg`, a capture of a real board — blurred exactly as `#welcomeBackdrop` blurs it, down to the `scale(1.06)` that hides a blur's soft edge; the card is `.modalCard`'s own values. ⚠ **Two of the four are GENERATED** (`scripts/lib/rules_page.mjs`, `scripts/lib/credits_page.mjs`) and a gate fails the build if the file drifts from its generator by one byte — so those two were edited in the generator and rebuilt, not by hand. **The voice is untouched:** credits and About are outside the game world and stay out of pirate speak. Posed at phone and desktop in `.planning/posed/pages/`. |
-| **W7-2** | 🟢 **THE PAGE IS UP, 2026-09-13 night — "The Narration Pass" (link in `.planning/CURRENT-SHEET.md`), his rewrites stored in `narration/wyatt`; applied by hand when he hands them back.** ⚠ MEASURED THE SAME NIGHT: the game's words are NOT in one engine. Of 224 places it can speak, 68 live in shared tables (the event table `EVENT_NARRATION` in src/ui/util.js, the awards, the dock flavour) and 156 are written inline where they are used — 99 in src/ui/flow.js, 31 in src/orchestrator.js, 8 in src/ui/board.js, the rest in lobby.js and panel.js. The "ye" twin of a line is a hand-written second branch at most sites, not derived. And the review tool itself has drifted: `npm run audit:extract` refuses to write (89 checks fail), `audit:check` fails 3 of 23 groups, and 17 lines cannot be drawn by it (the page shows their code instead). A one-place design for all player-facing text is his call — proposed in that night's reply. 🟡 AFTER THE 2026-09-13 MERGE: A PASS AT THE NARRATION — SHORTER AND CLEARER, EVERYWHERE. His words: *"Add to backlog: a pass at the narration to make it shorter and more clear, across the board. I'll want you to make an artifact for me to give feedback on. this is after we merge dev to main."* So: every narration line the game can say, gathered into ONE artifact per docs/ARTIFACT-GUIDELINES.md (commentable per line, Passed/Problem), each shown as it is today beside a proposed shorter version, with the event that triggers it. Nothing changes in the game until he has marked the sheet. ⚠ Credits and About are NOT narration and are not in pirate speak — out of scope. |
+| **W7-2** | 🟢 **HIS PASS IS APPLIED, AND EVERY WORD LIVES IN ONE PLACE — 2026-09-13, late night.** His rewrites, cuts and keeps are in the game (dev 1b9e3698), recorded in DECISIONS.md. Every sentence, button, reason, error, tutorial rung and trophy now comes out of `src/shared/words.js`, written once as another captain reads it, with the "ye" form derived by one function; the bot and human narrators became ONE (`narrateEvent`), and the turn-start line is one silent entry for every captain. Gate: `scripts/qa/words_one_place_check.mjs` (every entry renders; no sentence typed into the code). ⚠ WHAT THE PASS PAGE GOT WRONG: it was built on the retired audit tool's stored copy, so about a third of his 163 rows were lines the game no longer had (fishing, the storm anchor-or-flip, the bot's hail, backed calls, bribes…) and many live rows showed old wording. The page is rebuilt on words.js itself (same link, marks stored fresh in `narration/wyatt-words`). NOT in words.js, deliberately: the recipe book, the island/ingredient/sea-creature names, slider aria labels, and index.html's static text. The drifted audit tooling (art-review/narration-*, scripts/extract_narration_lines.js, narration_audit_check.js, `npm run audit:*`) is now superseded and can be deleted — ui_contract_check still imports its PRONOUN_RE. Earlier status: 🟢 **THE PAGE IS UP, 2026-09-13 night — "The Narration Pass" (link in `.planning/CURRENT-SHEET.md`), his rewrites stored in `narration/wyatt`; applied by hand when he hands them back.** ⚠ MEASURED THE SAME NIGHT: the game's words are NOT in one engine. Of 224 places it can speak, 68 live in shared tables (the event table `EVENT_NARRATION` in src/ui/util.js, the awards, the dock flavour) and 156 are written inline where they are used — 99 in src/ui/flow.js, 31 in src/orchestrator.js, 8 in src/ui/board.js, the rest in lobby.js and panel.js. The "ye" twin of a line is a hand-written second branch at most sites, not derived. And the review tool itself has drifted: `npm run audit:extract` refuses to write (89 checks fail), `audit:check` fails 3 of 23 groups, and 17 lines cannot be drawn by it (the page shows their code instead). A one-place design for all player-facing text is his call — proposed in that night's reply. 🟡 AFTER THE 2026-09-13 MERGE: A PASS AT THE NARRATION — SHORTER AND CLEARER, EVERYWHERE. His words: *"Add to backlog: a pass at the narration to make it shorter and more clear, across the board. I'll want you to make an artifact for me to give feedback on. this is after we merge dev to main."* So: every narration line the game can say, gathered into ONE artifact per docs/ARTIFACT-GUIDELINES.md (commentable per line, Passed/Problem), each shown as it is today beside a proposed shorter version, with the event that triggers it. Nothing changes in the game until he has marked the sheet. ⚠ Credits and About are NOT narration and are not in pirate speak — out of scope. |
 
 ## ⛔ PARKED — needs Wyatt's ruling, the CTO may NOT default these
 
@@ -1533,14 +1533,45 @@ replaced with his explicit width, not just mirrored.
       because i intentionally asked them to appear after a few seconds. we want users to see the board first to get acquainted
       with it; but the problem is the recipe pickers come in rather suddenly, and for no discernable reason. we can solve that with
       our popping in animation of the ingredients. this should feel juicy and fun and bouncy and "candy crush" like -- make me a
-      tuner artifact to dial in my ideal settings."* THE TUNER IS BUILT (link in `.planning/CURRENT-SHEET.md`); build the game
-      side from HIS dials, not defaults. Known constraints: the picker's arrival is RC_DELAY_MS (2000) + RC_FADE_MS (1160) in
+      tuner artifact to dial in my ideal settings."* THE TUNER IS BUILT (link in `.planning/CURRENT-SHEET.md`). ⭐ HIS SETTINGS, 2026-09-13 (DECISIONS.md, verbatim):
+      clockwise island by island · board alone 300ms · islands 130ms apart · crates 75ms apart · pop 770ms · cards 300ms after the last
+      pop (3.20s) · start 17% · overshoot 160% · 3 bounces · squash 34% · wobble 8° · drop 4% · 6 sparkles · rising pitch. The SOUND is
+      being re-picked ("higher pitch, more like juicy popping in") and gets rendered to a file in sfx/ for the game. Known constraints: the picker's arrival is RC_DELAY_MS (2000) + RC_FADE_MS (1160) in
       src/ui/stage.js, so the pop's length and the cards' start must be one timeline, not two clocks; the crate icons are SVG
       `<image id="crate_<ing>_<n>">` on the board, and anything that animates continuously must be HTML, not SVG (CLAUDE.md:
       Chrome cannot composite an SVG transform), so the pop is drawn as an HTML layer in CAM_HTML_LAYERS and hands over to the
       SVG crate when it lands; the dotted course line is drawn by the picker's chartFrontRecipe — it must wait for the cards.
       Both screens (host and guest, one at his iPhone 13 mini size) must pop in step.
-- [ ] **A GAME FEEL AUDIT — EVERY MOMENT THAT COULD HAVE MORE OOMPH, JUICE AND GLOSS.** His words: *"a "game feel" audit that looks
+- [x] **HIS GAME FEEL AUDIT MARKS ARE IN — 2026-09-13 late night (verbatim in DECISIONS.md).** Build every PASSED idea; do not build
+      the PROBLEM ones as written. What he passed, by moment: the board settles in (AND fix today's load jitter, where the board picks
+      several sizes before settling — "the navbar row/other elements fighting/jostling -- you'll have to fix this simultaneously") ·
+      buttons squish · the parrot bobs · recipe cards whoosh in and thump · the chosen card flies into the captain's box · the dotted
+      route draws itself · your row lifts · your boat bobs once · squares pop in from the boat outward · the tapped square squishes and
+      flashes · the boat leans back before it sails, leaves a wake, arrives with a bob and a splash ring · the coin sinks before it
+      flips, lands with weight, HEADS/TAILS stamps in, a tiny screen nudge on tails · treasure bursts out on heads · the bought crate
+      flies from the island to the hold, coins count down, a juicier store sound · traded crates swap in arcs · the cannon kicks, a hit
+      flashes and shakes, the loser gets knocked about · lightning with the thunder ("make this subtle") · boats rock and the sea
+      darkens in a storm · speed lines on the trade-wind ride · a short fanfare and confetti for the first captain home · bake-off lids
+      slam down with a puff, a right answer bursts green · the end card's awards deal in like cards, stats count up, confetti for the
+      winner.
+      NOT THIS WAY: the camera settling at your turn ("could be nauseating"); the handshake stamp (REMOVED 2026-09-13, fb1da47f); the
+      bake-off shuffle speeding up ("We need them to be trackable"); fishing (there is none — the audit page built that moment from the
+      Muse's old sound name, "fishing", without checking the rules; the page's error, not the game's).
+      ⭐ THREE PROJECTS HE ADDED IN THE NOTES, each its own item below:
+- [ ] **SAILING: EVERY SQUARE TAKES TWO TAPS, AND THE SECOND TAP ZOOMS IN TO CONFIRM; THE TRADE WINDS GO YELLOW-GOLD.** His words: *"I think
+      all squares that are tapped should take two taps -- and on the second tap, the board should zoom in to let you accurately confirm
+      it. Also, the trade winds squares should also appear yellowgold, not blue -- but they should clearly be seen as "special" -- the line
+      projecting where the trade winds take you should be yellow/gold too, this way all wind-sailing-related movement cues are
+      yellow-gold."* Today blue squares (trade winds) take two taps and ordinary ones take one (pilot ladder "sail.twotap").
+- [ ] **BATTLES HAPPEN OVER THE BOARD — THE BATTLE CARD GOES.** His words: *"I don't like any part of the battle screen, to be honest --
+      after you do these changes, we can get rid of the battle screen entirely so that the whole battle happens over the gameboard. when
+      you're the one engaging in the battle, the coin flipper stage should still appear; but the moment it's finished flipping, the board
+      should reveal itself again with the two ships battling."* Its words (the battle card lines) already live in words.js.
+- [ ] **THE END OF VOYAGE CARD, BLUE-SKY: 5–10 PROPOSALS.** His words: *"Somehow bring this end of voyage card to life -- I'm not sure how,
+      but it should feel more exciting. I'm giving you blue-sky redesign here -- research other game victory cards and make 5-10 more
+      proposals. Intention: someone feels SO excited to win that they HAVE to play again immediately"*. Deliverable: an artifact of
+      proposals grounded in how other games' victory screens do it, his pick before anything is built.
+- [ ] **A GAME FEEL AUDIT — EVERY MOMENT THAT COULD HAVE MORE OOMPH, JUICE AND GLOSS.** 🟢 THE PAGE IS UP, 2026-09-13 ("Game Feel Audit", link in `.planning/CURRENT-SHEET.md`): 16 moments, what each does and sounds like today (read from the code), 39 sized ideas with Passed/Problem, photographed in a real phone-size voyage; 8 moments the voyage never reached (coin, dock, buy, storm, winds, fishing, home, the boat sailing) say so rather than show a wrong screen. Build only what he passes. His words: *"a "game feel" audit that looks
       for all the areas where we can increase game feel satisfaction, eg during the coin flip by making the coin sink down before
       flipping, and lots of other moments where we can give the game more oomph, juice, and gloss."* Deliverable: an artifact that
       walks the voyage moment by moment (the picker, sailing, docking and the coin, buying, trade, battle, storms, the bake-off,
@@ -1558,6 +1589,21 @@ replaced with his explicit width, not just mirrored.
       board at his phone size and the laptop window before anything ships — and his call on which four, and on whether a ship's
       style follows the seat or the captain.
 
+## 🏆 THE TROPHIES — his ask of 2026-09-13
+
+- [ ] **ORIGINAL ART FOR EVERY END-OF-VOYAGE TROPHY.** His words: *"add to the backlog: we need original art as trophies for each of
+      the endgame trophies"*. Today each award card on the end screen carries a placeholder emblem from `assets/badges/` (the
+      pool's own note: "placeholders Wyatt will repaint"). The ten trophies a voyage can hand out today (`BADGE_POOL` +
+      `FALLBACK_BADGE`, src/ui/util.js): The Cutlass of a Thousand Notches (cutlass.png), The Open Purse (doubloon.png), The
+      Horizon-Chaser's Compass (compass.png), The Iron Gut Medal (medal.png), The Black Spot of Bad Tides (blackspot.png), The Lucky
+      Streak (herring.png — a fish on a luck trophy, left over from the retired Golden Herring), The Silver-Tongued Ledger
+      (ledger.png), The Painted Target (target.png), The Splintered Timbers (timbers.png), Good Mate (anchor.png).
+      `barnacle.png` belongs to the retired Barnacle Brain and nothing draws it. ⚠ The narration pass page of 2026-09-13 showed
+      three trophies that no longer exist (The Golden Herring, The Lucky Doubloon, The Barnacle Brain) — build from `BADGE_POOL`, not
+      from that page. Process when built: the art pipeline (scripts/art/gen.mjs, in the style of the approved ingredient art, outlined
+      at the same weight), a line-up first, then each trophy on the real end card at his phone size and the laptop window, his
+      approval before anything ships.
+
 ## ⬇ LAST, BY HIS WORD — not urgent
 
 - [ ] **THE EMPTY HOLD'S CRATE: DARK, WITH THE CRATE'S TEXTURE SHOWING — NOT A SOLID BLACK SHAPE.** His words, 2026-09-13:
@@ -1568,3 +1614,168 @@ replaced with his explicit width, not just mirrored.
       itself (`assets/plaque/crate.webp`), darkened so the planks and posts still read, never regenerated; shown to him in the
       captain's box at his phone's size and the laptop window beside today's before it ships. The islands' ingredient
       silhouettes are not part of this.
+
+---
+
+## 🧭 FUTURE PLANS — from the 2026-09-14 interview
+
+His words, verbatim: `.planning/his-words/FUTURE-PLANS-INTERVIEW-2026-09-14.md`. The questions and
+the research behind them: https://claude.ai/code/artifact/5e7a7947-702f-4f81-b510-4d1fc9a19353
+**Cite these; do not re-ask.** None of this is before launch. The launch bar and the Cloudflare
+cutover come first. He calls that "the first level of success".
+
+### His rulings
+
+- **The ladder of success, in his order:** (1) stable on Cloudflare, playable by anyone, strong
+  code base; (2) launched, hundreds of daily players; (3) thousands of daily players and some
+  donations; (4) a licence or a real revenue model. Money target: it pays its own Firebase bill,
+  then **$4,000/month** to him, then enough to pay a helper.
+- **Always free to play. Sell expansions and looks, never power.** No pay-to-win. No selling data.
+  No charging to play with friends. No subscriptions ("cheesy").
+- **Ads: morally opposed.** "You're giving Pastry Pirates your precious attention." He would only
+  consider them if nothing else works, and only where they steal no attention (loading, waiting
+  for a friend's turn). Nothing may lag the game.
+- **Mystery boxes: "could be cool."** ⚠ Not yet ruled. Paid mystery boxes carry legal rules in some
+  countries, and those rules are being verified now; see the open items.
+- **One buyer carries the crew.** A captain's expansion is played by the whole crew, like Jackbox or
+  Colonist. The owner's exclusive look is the advert for it.
+- **Worlds as expansions:** Pasta Pirates (Mediterranean), Planetary Pirates (space), Sushi Pirates
+  (Japanese sea), a winter or night sea. Each brings its own captains, ships, flags, islands,
+  ingredients and recipes. Music packs yes; sound packs he's unsure. Also pets, pet outfits, bakery
+  decor, ovens, custom Flippinator coins, sails you can draw on.
+- **Bought looks carry no clout; earned things do.** Trophies and recipes (won by baking them) are
+  always earned. He asked for my proposal on where the line falls; it's on the page.
+- **Dubloons left at the end of a voyage become yours to spend**, so a kid can slowly earn what
+  others buy. His example: $1 buys 100 dubloons.
+- **The cookie button is a short-term test.** It should grow into a supporter flag or a name in the
+  credits (like Lichess's patron wings), which is clout you get for supporting.
+- **Accounts: never required to play.** Invite a sign-in at the END of a voyage, to save progress
+  and spend points. An account keeps: win count, recipes won (sellable in your bakery), recipes
+  seen but not won, trophies, unlocked looks, coins, boats, pets, purchases on every device, and a
+  friends list with visits to friends' bakeries. A voyage log is not needed.
+- **Chat only between people who know each other.** Strangers get no chat, only the board plus
+  something like a high-five. No content moderation, ever.
+- **Ways to play he wants:** a Daily Voyage or recipe of the day, played like a puzzle; a public
+  leaderboard; an emoji share grid; daily challenges made from the mechanics (all bots against you,
+  an archipelago maze, a needle to thread); "Find me a crew" with strangers matched by rank;
+  campaign or story voyages; a five-minute blitz; 2-vs-2 crews; spectating and streaming; a map
+  painter that places the islands.
+- **Ways to play he does not want:** ships with powers, or any rule change. "The current rule set is
+  gospel." Slow voyages over days are low priority unless a strong business case appears.
+- **Platforms:** Steam, iOS and Google Play are in scope. Native feels better and works offline
+  ("when you're flying").
+- **Selling or licensing:** open to both, **not under ~$100,000**. More willing to license the
+  PHYSICAL game than the digital one. Netflix Games: yes.
+- **Physical:** the wooden board is a handmade premium edition in small numbers, and the first draft
+  of a cheaper boxed game. No print-and-play (too many pieces). Open to Kickstarter. No capital for
+  a manufacturing run.
+- **Merch:** digital first. Physical only through no-stock shops, ideally set up by a hired helper.
+  Art reference: *Root*. Captains aren't cute; pets and animals are.
+- **Food:** yes to an official cookbook, a social channel baking every in-game recipe, a
+  bake-your-recipe contest with in-game prizes, and a real bakery sponsoring an island for a day.
+- **What he wants his time on:** design and whimsy. Money should one day pay for someone to do the
+  "CEO-style work" of taxes and logistics.
+
+### Work he asked for, and where it stands
+
+| # | His ask | Status |
+|---|---|---|
+| F-1 | "What should that pipeline be about the physical board, and whether it's viable" / ways to market without upfront capital | **Researched 2026-09-15, on the page.** Viable without capital via, cheapest first: (1) pitch ~10 publishers with a sell sheet and a 2-minute video, near zero cost, Stonemaier $10k advance and 7–10%; (2) the wooden edition cut to order via Ponoko or SendCutSend; (3) crowdfund a cardboard edition, factory minimum ~500. **His call, asked on the page:** pitch first or crowdfund first. Stonemaier won't take crowdfunded games. Proposed first gate: a "Get the board game" sign-up on the end card |
+| F-2 | "Go talk to that session about how I'm planning on scoring the voyages" | **Done.** The victory card score is per voyage and per captain, luck-free (flips and storms pay nothing), and not yet a rating. Parked for accounts: the slipway, "New best voyage!", "3 of 21 recipes baked". Sheet: https://claude.ai/code/artifact/a7e8dae4-42d9-4f01-891a-ef2c782f091f |
+| F-3 | "A brainstorm around viral ways of spreading" | First pass done and on the page. The two leads: a caption that explains a stolen crate on screen plus a "Ye sank yerself" card; and the Daily Voyage, then its emoji grid (the grid needs the daily sea to work). The brainstorm with him is still to come |
+| F-4 | "Scope out what would make Pastry Pirates more streamable" | First pass done: streamer mode (hide the room code), a readable-on-stream pass, high-five stickers only, audience voting (large), a Discord Activity (large). On the page |
+| F-5 | Where bought ends and earned begins | Proposal on the page; awaiting his verdict |
+| F-6 | Worlds generatable through a pipeline (art review, narration pass); a ledger the game asks; parallel sessions without merge conflicts | Proposal on the page: one folder per world, which the game reads and never names; one "entitlements and inventory" record per captain, written only by a trusted server. First step, with no visible change: move today's sea into the first world folder. **Not measured against the code yet** |
+| F-7 | Steam / iOS / Google Play, playable offline | On the page: Capacitor (iPhone and Android) and Tauri or Electron (Steam) keep one set of game files, and solo play works offline. Apple lets a web purchase unlock in the app if the app sells it too (3.1.3(b)). Steam's rule on web purchases is not verified |
+| F-8 | "Who are your first thousand captains? I don't know where they are, my friend. I would love your help." | Folded into F-3 and F-4; a launch-channel plan is still to write |
+| F-9 | The screenshot moment: losing a battle, worse one you started, "needs to really hit" and read without context | ➜ **for the game feel work**, not this branch |
+
+### Settled 2026-09-15 (his sheet answers; verbatim in DECISIONS.md)
+
+- **13 and up.** Money never buys dubloons. Dubloons buy looks, not seas. Pitch publishers first.
+- **The bought/earned line holds, with MORE earned:** things others can see, like the Flippinator
+  coin, may have to be earned. *"We want social capital/klout to have a clear marker in the game."*
+- **No paid mystery boxes.** Every voyage you win earns a mystery box for your bakery. Grinding all
+  day is fine (the daily cap is withdrawn). Players may gift dubloons to each other.
+- **F-10 — THE PRD.** *"Fold all of this into a PRD today, not execute the work."* It covers the
+  architecture (F-6, F-7), every streaming and screenshot lead (F-3, F-4), and the economy. **Written 2026-09-15:** `docs/PRD-AFTER-LAUNCH.html`, published at
+  https://claude.ai/artifact/6DGyHdVj4SShy3tZumPNQn. Four open questions sit at its top.
+
+### ⛵ THE ROADMAP TO 1 OCTOBER — 2026-09-17
+
+**https://claude.ai/artifact/7U9Cex8FxPtwA1ZPSAJ29w** (`docs/ROADMAP.html`). **His cut line, verbatim:**
+*"polish is my cut line; we need to be cutover to cloudflare and have working analytics."*
+
+**MEASURED 2026-09-17:** production still answers `server: GitHub.com` — **the Cloudflare cutover has
+NOT happened**, and Mac: Dev confirms it is not started and blocked on HIS step 0 (DNSSEC off at
+Squarespace). The repo is **PUBLIC**, and the private-source item has nothing built. `main` was 162
+commits behind `dev`; Dev had that merge in flight on 17 Sep.
+
+⚠ **A CORRECTION OF MINE, WORTH THE SPACE.** I reported "no analytics tag in the game". **Wrong.**
+Cookieless GA (G-2KK6EZDZSP) is LIVE on the game, About and Rules, loaded from `src/analytics.js`
+(`index.html:4001`); production serves it — measured by fetching the file off the live domain. My
+check grepped `index.html` for a `gtag` snippet and a module import is invisible to that. **Suspect
+the check first.** What IS missing is a page Wyatt can tap to read the numbers.
+
+Done: the parrot tutorial (live). Open: the numbers page, Search Console and the brand collision
+(not re-measured since 26 Aug), the Firebase budget alert and scoped rules.
+
+**The binding constraint:** DNSSEC's DS record has a 24-hour life, so Wyatt turns it off at
+Squarespace a full DAY before the nameservers move. His jobs total about an hour across four days.
+
+### Added 2026-09-15 by his notes
+
+- **⛵ LAUNCH DATE: 1 OCTOBER 2026** (phase 1). A second expansion sea starts the moment we launch.
+- **No trading, no gifting** — he withdrew gifting himself. Everything is earned or bought.
+- **A coin per sea, tiers earned inside it.** My guard, awaiting his eye: the bought sea's plain coin
+  must LOOK plain, or an expensive sea reads as skill.
+- **The pet trails the boat** and wears pirate clothes.
+- **Every voyage offers a recipe ye don't own, and says so.** The engine already deals TWO recipe
+  choices (`src/engine/index.js:272`), so only WHICH two changes. Needs accounts to remember.
+- **THE DAILY RECIPE** replaces the daily voyage: one recipe for everyone, ranked by the victory card
+  score, with the sea trial's bots vetting tomorrow's seed overnight. Puzzles move to campaign.
+- **Back burner:** viewers vote, voyage recap, Discord.
+- **Board game:** waitlist on the end card (his word); he makes the sell sheet and video. **Pitch
+  today: Pandasaurus, AEG, Gamewright** (all open, all want a sell sheet + 2–3 min video).
+  ⚠ **His four-seat rule shuts Stonemaier and Calliope on player count alone** — a design question,
+  his call. UK Games Expo (June 2027) runs free 5-minute publisher pitches by application.
+- **The contest is scoped** (skill-judged, free entry, photos only, 13+, one hashtag and one form,
+  one judging evening). The rules page's 15 required lines are listed in the PRD.
+- **Cookbook: next year**, his timing.
+
+### Still open
+
+- **The legal grey zone: researched 2026-09-15, in the PRD.** Low risk as he ruled it. Belgium does not
+  count a currency nobody can buy as a stake, and the UK says items that can't be cashed out are
+  "unlikely to be caught". The grey edge is TRADING prizes: the Dutch test treats a transferable item as
+  having a money value. His call, asked in the PRD: can box prizes change hands?
+- **Which visible items are earned-only — RESEARCHED 2026-09-15, his call still open.** The rule every
+  game studied follows: never sell what signals skill, sell what signals taste. League of Legends has
+  never re-released a ranked-season skin; Blizzard promised its skill mounts would never be sold;
+  Overwatch's gold guns cost competitive points and no money. **Recommendation in the PRD:** coin
+  faces, flags and pets are earned; paint, sails, bakery decor, pet outfits and music are bought. Plus
+  ONE reserved look for earned things (gold edge + a gentle idle movement; bought things never
+  animate), a date stamped on each, a streak mark that fades, two labelled shelves in the bakery, and
+  no retired trophy ever re-awarded.
+# 🚢 WAITING ON USER ACCOUNTS — 2026-09-14
+
+- [ ] **A new ship on the slipway (Victory Card idea 9).** After the end of voyage card, a ship's frame sits on a slipway and
+      every voyage adds planks (a win three, reaching home two, sailing at all one) until it launches as a boat ye can sail.
+      His ruling, 2026-09-14: *"This is an awesome idea -- put it in the backlog for when we have user accounts -- otherwise the
+      player will lose their "viking longship" after they leave the game"*. **Blocked on user accounts**, not on design: progress
+      kept only in one browser is progress a player loses. Ties to the backlog item "every boat a different kind of pirate ship".
+      Mockup lives on the Victory Card Proposals sheet (idea 9).
+
+# 🎨 ART, FOR THE VICTORY CARD — his notes, 2026-09-17
+
+Wyatt, on playing the victory card for the first time: *"This is SO FUN TO SEE!!! Slight tweaks: … 2. Add to the art review
+backlog: make boats with sails down, and separate sails, so the end animation looks better than flat boats; also, create
+trophies for each of the awards se we can retire the placeholder svg medals"*.
+
+- [ ] **Boats with their sails down, and sails as separate art.** The end of voyage leans the camera in on the winner and drops
+      a crown on a boat drawn flat, sails up, as it is on the board. A hull with the sails struck — and sails that are their own
+      picture, so they can be raised, dropped and caught by the wind — is what the crowning moment wants. Every captain's boat
+      needs both, at the sizes in .planning/ASSET-DISPLAY-SIZES.md. Pipeline: notes/art-generation-process.md.
+- [ ] **A trophy for each award, to retire the placeholder medals.** Polly's awards page flips each award in big, then shrinks
+      it into a column; the art under that is a placeholder SVG medal. Each award gets its own trophy. The award list lives in
+      src/shared/index.js (computeAwards / assignBadges) and their words in src/shared/words.js.

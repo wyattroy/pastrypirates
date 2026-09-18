@@ -32,7 +32,7 @@
 const SFX_DIR = "sfx/";
 // The closed literal array — the ONLY source of a fetch URL anywhere in this module, never a
 // runtime string (threat T-21-02). Adding a 7th stem later means adding it here, nowhere else.
-const SFX_FILES = ["battle-swords", "battle-won", "bells", "cannon", "coin-flip", "drumroll", "fishing", "ship-move", "store-ingredient", "storm"];
+const SFX_FILES = ["abacus-click", "award-whoosh", "coin-chink", "battle-swords", "battle-won", "bells", "cannon", "card-swish", "coin-flip", "cork-pop", "crate-chime", "crate-marimba", "crate-squawk", "drumroll", "fishing", "ship-move", "store-ingredient", "storm"];
 // Per-stem relative gain — CONTEXT.md "Claude's Discretion": the single tuning point for loudness
 // normalising, so a by-ear browser pass adjusts one number per sound without restructuring
 // anything else. Every stem defaults to 1 (no normalising applied yet).
@@ -68,6 +68,25 @@ const SFX_VOLUME = {
   "bells": 1,
   "cannon": 1,
   "drumroll": 1,
+  /* THE CORK POP — also 1, and for a stronger reason than q7: his 55% is already IN the file. It was rendered from the
+     pop-in tuner's own recipe at the volume he dialled, so at 1 it plays exactly as loud as the tuner played it. */
+  "cork-pop": 1,
+  /* THE SOUNDS OF THE VOYAGE HE PICKED (2026-09-14) — 1 for the cork pop's reason: each was rendered from the "Sounds of the
+     Voyage" page's own recipe at the level he auditioned it (every candidate levelled to one loudness, times the page's 70%). */
+  /* THE COIN CLICK AT 3 — Wyatt, 2026-09-14: "The ticking sound isn't happening as it should (or i don't hear it, but i hear
+     every other sound)." It was the quietest stem in the game by far: -38 dB mean against store-ingredient's -31 at a volume of
+     2.79. Three times louder puts it level with the cork pop, which he hears. */
+  "abacus-click": 3,
+  /* THE CHINK SITS AT THE TICK'S LEVEL, on purpose. Wyatt, 2026-09-15: "the 'tick' sound of the coin is the wrong sound
+     -- we want a coin 'chink' sound whenever a coin goes into the purse." It replaces the tick in the purse, so it must
+     arrive at the same loudness or the swap reads as a volume change. Measured: the tick renders at 0.084 peak and is
+     lifted x3 here (0.25); chink A renders at 0.175, so x1.45 lands on the same 0.25. (His pick became B on 2026-09-16, a touch fuller: 0.41 of full scale at this gain, measured — left at the same volume setting; if B sits too loud against the other sounds in play, this one number is what moves.) */
+  "coin-chink": 1.45,
+  "award-whoosh": 1,
+  "card-swish": 1,
+  "crate-chime": 1,
+  "crate-marimba": 1,
+  "crate-squawk": 2,   // rendered level peaks -19 dB, under the thud it replaces (-12); doubled so a wrong crate lands as firmly
 };
 // pp_-prefixed per-browser preference convention pp_timerOff already established
 // (src/orchestrator.js:168) — mute follows it exactly, same key-naming shape.
@@ -260,9 +279,8 @@ const CANNON_SOUND = "cannon";
 // 260801-7f4 — a REAL choice, and so is WIN_SOUND above now (it stopped being a placeholder at
 // departed SHOTCLOCK one); this stem literally is a sword clash; it is not on any shopping
 // list for Luis. Named as a constant (not inlined) so the DOM-free harness can assert it by name.
-// This is the moment cue for a battle being JOINED — see playBattleEngage() below — fired from the
-// orchestrator's own battle-opening seams, never from the `battle` event, because that event does
-// not exist until the whole fight has already resolved.
+// This is the moment cue for a battle being JOINED — EVENT_SOUND.engage below, the event the engine records the moment a fight is
+// called (Game.beginBattle) — never the `battle` event, because that event does not exist until the whole fight has already resolved.
 const BATTLE_ENGAGE_SOUND = "battle-swords";
 
 // D-01/D-03/D-04/D-06/D-21: the 25-key event->sound mapping, mirroring EVENT_NARRATION's exact
@@ -304,16 +322,31 @@ const EVENT_SOUND = {
      ⭐ THIS IS THE ONE SOUND NOT HEARD BY THE WHOLE TABLE — see LOCAL_ONLY_SOUND_EVENTS. */
   turn: "bells",
   newround: null, tradewind: null, bakeoff: null,
+  // architecture item 19: a boat that comes into the current AT its head rides no squares — explicit silence, like the ride itself
+  rimhead: null,
   // playtest 21 item 3: the storm's one summary line. Deliberately SILENT — every ship in it has
   // already played its own cue (windmove/blownOut -> ship-move, anchorHold -> fishing) as it moved,
   // so a sound here would be a fifth noise describing four that just happened.
   stormSummary: null,
   end: null, finish: null,
   // 260801-7f4 — explicit silence, not an oversight. The `battle` event only fires once the whole
-  // fight has resolved (src/engine/index.js:581), which is exactly why the clash used to land at
-  // the end instead of the start. The clash moved to engage time — see playBattleEngage() and its
-  // two call sites in src/orchestrator.js (asyncBattle and watchBattle).
+  // fight has resolved (engine winBattle), which is exactly why the clash used to land at the end
+  // instead of the start. The clash plays at engage time — the entry below.
   battle: null,
+  /* ⭐ THE CLASH IS THE FIGHT BEING CALLED, ON EVERY SCREEN, THROUGH THIS ONE DISPATCHER — architecture item 4, 2026-09-17. His ruling
+     (2026-09-06): "I want the clashing sound to happen when battles are first called; the sound is exciting." It was played by two
+     named calls instead: the host's fight played it before its opening line, and a crew guest played it on the first battle snapshot it
+     heard — measured 4.35 s after the opening line, and 9.6 s after it when the guest was asked for a crow's-nest call. The engine now
+     records the call (`engage`, Game.beginBattle) and this map sounds it wherever that event is drawn. The fight's end (`disengage`,
+     the camera letting go) is silent. */
+  engage: BATTLE_ENGAGE_SOUND, disengage: null,
+  /* ⭐ THE CANNON RIDES THE LANDED SHOT, ON EVERY SCREEN — Wyatt, 2026-09-14: "Fix this too" (a crew guest heard no cannon).
+     It used to be played by the fight itself (`if(scorer)playCannon()` in src/orchestrator.js), and the fight runs only on
+     the device that owns it, so every other screen in a crew watched the hit in silence. The fight now RECORDS the hit as a
+     `shotLands` event — emitted only when a shot gets through, and again when a paid re-fire lands — and this line is the
+     whole of the wiring: every screen's one consumer plays it. His 2026-09-06 ruling holds unchanged, "cannon sound happens
+     only when a shot lands": a miss and a crosswind collision record no shot, so they stay silent. */
+  shotLands: CANNON_SOUND,
   // D-21 — explicit silence: an offer is not a deal; sidebet is already narration-suppressed
   parley: null, sidebet: null,
   // v2 events, explicit silence rather than merely absent (D-06). `purse` especially: it exists
@@ -341,12 +374,14 @@ const EVENT_SOUND = {
   // a battle that ends with nobody hit has no hit to sound; the paid re-fire is covered by the
   // flip that follows it
   battlenull: null, refire: null,
+  // the powder a fight burns: its coins are SEEN leaving the purse (board.js coinsLeave), and the fight's own engage cue already sounds
+  powder: null,
   // v2.1: the ovens going cold rides the battle sound of the raid that caused it — it is the
   // consequence of that same broadside, one beat later, not a second event to be scored.
   unfinish: null,
-  // v2.1 bake-off: EXPLICIT silence, not an omission (D-06 — the two are different things here).
-  // Whether a successful bake earns its own cue is a design call for Wyatt, not a side effect.
-  ovens: null, bake: null,
+  // v2.1 bake-off: a successful bake stays EXPLICIT silence (D-06). Firing up the ovens is the cannon — Wyatt, 2026-09-16: "use the
+  // cannon sound when someone fires up the bakery". On every screen, like every sound in this map.
+  ovens: CANNON_SOUND, bake: null,
 };
 
 // PURE — no ctx, no DOM, no side effect, safe to call under plain Node. Returns null, or an
@@ -387,6 +422,11 @@ function soundForEvent(e) {
      bus, so STORM_VOLUME governs it and fadeStorm() ends it.
      `bus: "storm"` and no `loop`: playForEvent hands this to the scatter starter below. */
   if (e.t === "newround" && e.storm) return { name: "storm", bus: "storm", scatter: true };
+  /* A JUICIER STORE SOUND — PASSED on his game feel audit (2026-09-13), as proposed: "The same pop you are picking in the
+     tuner, so buying and the pop-in speak the same language." A crate BOUGHT at a dock plays his cork pop (BUY_POP_SLOT
+     semitones above its starting pitch); scrubbing the docks and every trade keep the store sound. */
+  if (e.t === "dock" && e.got === "bought")
+    return { name: "cork-pop", bus: "master", from: BUY_POP_SLOT * POP_SLOT_S + POP_START_S - 0.01, dur: POP_SLOT_S - POP_START_S };
   const name = EVENT_SOUND[e.t];
   if (!name) return null;
   const out = { name, bus: "master" };
@@ -867,12 +907,95 @@ function play(name, opts) {
   /* (opts.loop stood here for one day, for the looping storm. His 2026-09-08 ruling replaced that
      loop with scattered thunder — see stormScatterStart — and nothing else ever asked to loop, so
      the branch is deleted rather than left as a feature with no caller.) */
-  src.start();
+  /* opts.from/opts.dur play ONE SLICE of a file — the cork pop is one file holding every pitch its climb reaches. */
+  if (opts && opts.from != null) src.start(0, opts.from, opts.dur); else src.start();
   return { src, gain };
 }
 
-// The single exported flip sound — every flip in the game passes through
-// src/ui/board.js's setFlipCoin() "spin" branch, on both host and guest (D-02/D-07).
+/* ⭐ THE POP-IN'S SOUND — his cork pop, one per ingredient, climbing a semitone each (src/ui/popin.js).
+   sfx/cork-pop.mp3 holds 19 slots of 300ms: slot s is the pop pitched s semitones above his starting pitch, each
+   rendered from the tuner's own recipe (.planning/research/audio-sourcing/render_cork_run.mjs) — so a high pop is as
+   long as a low one, which a sped-up sample would not be. Each pop starts 40ms into its slot; playback starts 10ms
+   before it, so an mp3 decoder's priming delay can shift the pop but never clip its attack. */
+const POP_SLOT_S = 0.3, POP_START_S = 0.04, POP_SLOTS = 19;
+const BUY_POP_SLOT = 7;   // a bought crate's pop: seven semitones up (a fifth) — bright against the pop-in's low start
+function playPop(step) {
+  const s = Math.max(0, Math.min(POP_SLOTS - 1, Math.round(step || 0)));
+  play("cork-pop", { from: s * POP_SLOT_S + POP_START_S - 0.01, dur: POP_SLOT_S - POP_START_S });
+}
+
+/* ⭐ THE SOUNDS OF THE VOYAGE HE PICKED — 2026-09-14, on the page of that name, each rendered from the page's own recipe
+   (.planning/research/audio-sourcing/render_voyage_sounds.mjs + sounds-of-the-voyage.html beside it). His picks, and his notes:
+     card-swish     the recipe cards arrive — "Paper swish", "remove the "boop boop" at the end -- just use the swish at the beginning."
+     abacus-click   coins tick as they count, and the End of Voyage stats as they roll up — "Abacus click", and "The coin tick"
+     crate-marimba  each bake-off lid lands a note higher — "Marimba", "make them lower pitched so they sound more like big crates."
+                    ONE FILE OF SLOTS, like the cork pop: slot k is the k-th lid of a sweep, 600ms each, the note 40ms in.
+     crate-chime /  a right crate / a wrong crate on the reveal — "Chime & thud", then 2026-09-14: "I want the "wrong" sound to be a
+     crate-squawk   squawk during the bakeoff" — the page's own squawk, his pick over re-downloading the macaw recording
+     award-whoosh   each award card dealt in — "Soft whoosh"
+   Refused, on purpose: a sting under HEADS/TAILS ("the coin already has a landing sound baked in"), and the first-home fanfare,
+   which is Luis's to make (SOUND-BRIEF.csv). */
+const MARIMBA_SLOT_S = 0.6, MARIMBA_LEAD_S = 0.04, MARIMBA_SLOTS = 8;
+/* ⭐ HOW CLOSE THE SAME SOUND MAY PLAY TO ITSELF — DECIDED HERE, AND ONLY HERE. Two copies of this rule existed: the coin tick's, here,
+   and the crate shuffle's swish, written inside the bake-off (bakeoff.js, 2026-09-15). The bake-off's copy was declared a few lines
+   BELOW the shuffle that called it, so the shuffle threw before its first crate moved — Wyatt, 2026-09-16: "during the bakeoff ... the
+   crates are never swapped around, they're just static and then they come down multiple times" (each watcher rebuilt its bench, dropped
+   the lids again, and threw again). A sound that must not stack names its gap here; nothing outside this file keeps a clock for a sound.
+   scripts/qa/sound_spacing_one_place_check.mjs holds it. */
+const SOUND_LAST_AT = new Map();
+function playSpaced(name, gapMs) {
+  const now = typeof performance !== "undefined" ? performance.now() : Date.now();
+  if (now - (SOUND_LAST_AT.has(name) ? SOUND_LAST_AT.get(name) : -1e9) < gapMs) return;
+  SOUND_LAST_AT.set(name, now);
+  play(name);
+}
+/* A swish per crossing of the shuffle, never two inside SWISH_GAP_MS, so a fast shuffle is a sweep and not a hiss (his 2026-09-15 ask:
+   "we want a swish sound as the crates are shuffled"). The recipe cards use the same swish. */
+const SWISH_GAP_MS = 110;
+function playCardSwish() { playSpaced("card-swish", SWISH_GAP_MS); }
+/* A coin leaving a purse clicks — one click per coin SEEN leaving (board.js coinLeft), SPEND_GAP_MS apart. Two captains can pay at once,
+   so a click closer than TICK_GAP_MS to the last is dropped rather than stacked into a buzz. */
+const TICK_GAP_MS = 35;
+function playCoinTick() { playSpaced("abacus-click", TICK_GAP_MS); }
+/* ⭐ THE CHINK A COIN MAKES LANDING IN THE PURSE — Wyatt, 2026-09-15: "the 'tick' sound of the coin is the wrong sound -- we want
+   a coin 'chink' sound whenever a coin goes into the purse." sfx/coin-chink.mp3 is ONE FILE OF THREE SLOTS — the three on his Game Feel
+   Tuner, rendered from that page's own recipe (.planning/research/audio-sourcing/render_coin_chink.mjs). 2026-09-16 he picked: "the
+   chink I pick: B".
+   LAYERED, NEVER SKIPPED. The same day: "Instead of least time between chinks, can you layer the sounds so they don't clip? i don't see
+   this being a problem but pls verify." Verified by mixing the real file at this gain exactly as Web Audio sums it
+   (scratch chink_clip.mjs, 2026-09-16): one chink peaks at 0.41 of full scale; three at his 325ms spacing, 0.41; a 20-coin haul at its
+   tightest 84ms, 0.41; even 40ms apart, 0.42 — each has decayed to a whisper before the next begins. Two on the same instant, 0.81;
+   only THREE on the same instant would clip (1.22), and no path does that: a haul's coins are at least 84ms apart, and at most two
+   purses fill at once (two side-bet winners in a four-seat game). So every chink plays.
+   RE-MEASURED FOR SILVER, 2026-09-16 (scratch chink_clip_silver.mjs, the rendered file at this gain): one chink 0.38; three at his 470ms,
+   five at 400ms, twenty at 84ms and even at 40ms, all 0.38; two on the same instant 0.75; three on the same instant 1.13 — the same
+   picture as B: only a path that lands three coins on one instant would clip, and none does. */
+/* ROUND 2, 2026-09-16: "I also don't love the coin chink sound." Three coins built like real ones went on the tuner — a struck disc
+   ringing at several pitches at once — and he picked: "the chink I pick: A". The file now holds those three, in longer slots (Silver
+   rings for 0.45s). */
+const CHINK_SLOT_S = 0.5, CHINK_LEAD_S = 0.03, CHINK_SLOTS = 3;
+const CHINK_PICK = 0;          // 0 = A, Silver — his pick · 1 = B, Into the purse · 2 = C, On the pile
+function playCoinChink() {
+  const s = Math.max(0, Math.min(CHINK_SLOTS - 1, CHINK_PICK));
+  play("coin-chink", { from: s * CHINK_SLOT_S + CHINK_LEAD_S - 0.01, dur: CHINK_SLOT_S - CHINK_LEAD_S });
+}
+function playLidNote(k) {
+  const s = Math.max(0, Math.min(MARIMBA_SLOTS - 1, Math.round(k || 0)));
+  play("crate-marimba", { from: s * MARIMBA_SLOT_S + MARIMBA_LEAD_S - 0.01, dur: MARIMBA_SLOT_S - MARIMBA_LEAD_S });
+}
+function playCrateVerdict(right) { play(right ? "crate-chime" : "crate-squawk"); }
+function playAwardWhoosh() { play("award-whoosh"); }
+
+/* Is this sound ready to play the instant it is asked for? True when it is decoded — and ALSO when sound cannot play here at
+   all (no audio context yet, or muted), so nothing ever waits on a sound that will not be heard. The pop-in's show asks
+   (stage.js): on a slow crew guest the sea trial's probe heard only 10 of 21 cork pops, because the file was still loading. */
+function soundReady(name) {
+  return !ctx || isMuted() || !!buffers[name];
+}
+
+// The single exported flip sound. A flip is heard ONCE per screen (architecture item 6, 2026-09-17): the screen that tapped starts it
+// with the spin its tap paints (src/ui/board.js setFlipCoin "spin", reached only from armFlipTap), and every other screen starts it
+// with the small coin over the flipping boat (src/ui/dockcoin.js flipDockCoin) — never both on one screen (D-02/D-07).
 function playFlip() {
   play("coin-flip");
 }
@@ -927,7 +1050,12 @@ let stormScatterTimer = null;
 let stormGen = 0;                    // bumped on every stop, so a timer from a past storm is dead
 let stormLive = [];                  // the claps still ringing, for fadeStorm to retire
 
+/* EACH CLAP IS ALSO A MOMENT THE BOARD CAN SEE — his game feel audit's lightning (board.js stormFlash). Told BEFORE the
+   sound checks, so a muted screen, or one whose sound never started, still sees the lightning the clap would have brought. */
+const thunderListeners = [];
+function onThunder(fn) { if (typeof fn === "function") thunderListeners.push(fn); }
 function stormFireOne(name) {
+  for (const fn of thunderListeners) { try { fn(); } catch (e) {} }
   if (!ctx || !buffers[name] || isMuted()) return;
   const src = ctx.createBufferSource();
   src.buffer = buffers[name];
@@ -1350,7 +1478,7 @@ function playForEvent(e, isLocalSeat) {
   if (s.localOnly && isLocalSeat !== true) return;
   /* The storm is not a one-shot and not a loop — it is a scatter that runs for the round. */
   if (s.scatter) { stormScatterStart(s.name); return; }
-  play(s.name, { bus: masterGain });
+  play(s.name, { bus: masterGain, from: s.from, dur: s.dur });
 }
 
 // D-05's placeholder cue, tied to the win screen APPEARING, not to the `end`/`finish` events —
@@ -1360,13 +1488,8 @@ function playWinScreen() {
   play(WIN_SOUND, { bus: masterGain });
 }
 
-// 260801-7f4 — the moment a fight is JOINED, not the `battle` event (which only exists once the
-// fight is already over, spoils moved and all — see the `battle: null` comment above). Called
-// directly from the orchestrator's own battle-opening seams: once on the host tier (asyncBattle,
-// after the powder guard, before the opening announcement) and once on the guest tier (watchBattle,
-// on the false->true edge of appState.spectatingBattle). A named moment cue, built the same way as
-// playWinScreen() — calls the private play() primitive with a fixed stem and the master bus, and
-// nothing else.
+/* (playBattleEngage stood here — the clash as a named call the orchestrator made from two seams, the host's fight and a guest's
+   battle snapshot. Architecture item 4 made it EVENT_SOUND.engage; scripts/qa/fight_on_screen_one_door_check.mjs holds it.) */
 /* HOW LONG IS A STEM, IN MILLISECONDS — read off the decoded buffer, never typed.
  *
  * RULE 9, and this is the case the rule was written for: the drumroll's narration box has to be
@@ -1390,10 +1513,6 @@ function playCannon() {
   play(CANNON_SOUND, { bus: masterGain });
 }
 
-function playBattleEngage() {
-  play(BATTLE_ENGAGE_SOUND, { bus: masterGain });
-}
-
 export {
   SFX_DIR, SFX_FILES, SFX_VOLUME, MUTE_KEY, initAudio, playFlip, startFlipSpinSound, stopFlipSpinSound, isMuted, setMuted, audioRunning, audioDiagnosis,
   kickAudioSession,
@@ -1403,10 +1522,14 @@ export {
      it returns immediately once `ctx` exists, so every gesture after the first reached no wake at
      all. That is precisely how a page could end up permanently silent. */
   wakeCtx,
+  soundReady,
+  onThunder,
+  playPop,
+  playCardSwish, playCoinTick, playCoinChink, playLidNote, playCrateVerdict, playAwardWhoosh,
   EVENT_SOUND, soundForEvent, playForEvent, playWinScreen, fadeStorm,
   STORM_VOLUME, STORM_FADE_SEC, WIN_SOUND, DRUMROLL_SOUND, CANNON_SOUND,
   soundDurationMs, playDrumroll, playCannon,
-  BATTLE_ENGAGE_SOUND, playBattleEngage,
+  BATTLE_ENGAGE_SOUND,
   /* The bed. startAmbience/stopAmbience have exactly three call sites between them, all in
      src/ui/lobby.js's three screen functions — see the runtime block's header, and the gate that
      holds it to that. The constants are exported so a headless harness can assert his tuned values

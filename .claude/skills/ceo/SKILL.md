@@ -90,7 +90,7 @@ account, separately, clearly marked as yours.
 
 ## Step 5 — record it, or the next review is weaker
 
-Append the verdict to the `verdicts` file named in the adapter (default `.claude/CEO-REVIEWS.md`),
+Append the verdict to the `verdicts` file named in the adapter (default `.planning/CEO-REVIEWS.md` — the one file every verdict lives in, and the file `scripts/qa/ceo_brief.mjs` reads for the previous verdict),
 **newest at the top, append-only, never edit an old verdict** — a review that turned out wrong is
 evidence about the reviewer and belongs on the record exactly as written.
 

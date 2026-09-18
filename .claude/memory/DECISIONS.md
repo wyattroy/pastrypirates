@@ -2963,3 +2963,593 @@ died on the Blade. Rooted off `fileURLToPath(import.meta.url)`.
 - **MERGE DEV INTO MAIN — THE CRATES, HIS SUGAR AND MILK, HIS CRATE DIALS, THE PICKER FIX.** Asked after Wy-Blade's dials trial
   (10 of 10 sailed, 0 structural, 0 dead taps, npm test green; FAILED only on untested actions, the empty-hold judge wording — fixed —
   and one unconfirmed missing battle word, on the backlog): *"Merge now (Recommended)"*.
+
+**2026-09-13, late — HIS POP-IN SETTINGS, and a new pop sound:**
+
+    INGREDIENT POP-IN TUNER
+    order: Island by island, clockwise round the board
+    board alone 300ms, gap between islands 130ms, gap between crates 75ms, pop length 770ms, cards after last pop 300ms,
+    start size 17%, overshoot 160%, bounces 3, squash 34%, wobble 8°, drop 4%, sparkles 6
+    sparkle burst on, rising pitch on
+    cards arrive at 3.20s (today 2.00s)
+
+- **THESE ARE THE POP-IN'S SETTINGS** — *"I'm liking these"*. The recipe cards arrive at 3.20s instead of today's 2.00s.
+- **A NEW POP SOUND: HIGHER, CUTER, JUICIER.** *"we need a new sound -- it sounded cuter when it was higher pitch, more like juicy
+  popping in -- can you do that?"* The tuner gets a choice of pop sounds and pitch dials; his pick is rendered to a file for the game.
+- **THEN THE GAME FEEL AUDIT.** *"then do the game feel audit"* — after the pop sound; the BACKLOG GAME FEEL item's deliverable
+  (every moment, what it does today, the juice it could have, Passed/Problem per suggestion).
+
+**2026-09-13, night — HIS NARRATION PASS (the page was built on dev @ a450a323), and ONE PLACE FOR THE WORDS:**
+
+- **EVERY WORD THE GAME SAYS LIVES IN ONE PLACE, AND NARRATION HAS ONE DOOR — NO SEPARATE LINES FOR BOTS AND HUMANS.** His notes
+  across the pass: *"the narration system should be overhauled to use the same engine logic as we have created for everything else
+  -- every action has a location (this browser/remote) and a player type (bot/human) -- we need to clean this up."* · *"All the
+  narration should be re-architected to live in one place -- fix this."* · *"there should be no separate track of dialogy for
+  botTurn() -- re-architect this away. we use one engine, that accepts as arguments the action taken, the player type (human/bot),
+  the location of the player (this browser/remote), and serves an event."* So: a player's type decides HOW a move is chosen and
+  never which words describe it; the location decides "ye" or the captain's name. The "ye" form is derived, never hand-written
+  twice — his standing ask: *"i don't want to actually write out every single for of "ye" vs "Player""*.
+- **THE TURN-START LINE IS ONE LINE FOR EVERY CAPTAIN, AND IT IS SILENT FOR NOW.** On the bots' "takes the wheel…": *"I don't think
+  we need this, it always makes the game feel laggy. can we cut it and see how it feels?"* Asked whether the humans' "Ahoy, yer
+  turn!" goes too: *"make sure your change is architectural -- not changing the bot line AND the human line.."* One entry for
+  the start of any captain's turn, used on every screen; empty, so he can feel the game without it.
+- **SAIL ORDER, AS HE WROTE IT:** *"{Crustbeard} goes first! The rest o' ye get {coin}."* — no per-captain amounts (picked
+  "As I wrote it").
+- **THE DAY LINE KEEPS "Tomorrow: …"** (picked "Keep"; the pass page had left that ending off — a fault in the page).
+- **THE WEATHER WORDS:** "Day 3: Wind still NORTH." for ANY repeated direction (*"Make this appear for 2+ (any repeated wind
+  directions."*); "Day 3: Storm's blowin' NORTH." (a new storm), "Day 3: Storm's now blowin' NORTH." (the storm goes on, the
+  direction changed), "Day 3: Storm's still blowin' NORTH." (the storm goes on, same direction). The "won't quit" forms are cut.
+  **This drops "It'll blow every ship 3 squares NORTH." and SUPERSEDES A-9 (2026-08-28)** — the storm summary after the push still
+  names the squares.
+- **THE COIN-FLIP ANNOUNCEMENT ("Crustbeard flips HEADS!") IS CUT** — *"We can all now see what the coin flips to -- i think we can
+  cut this; but check my thinking"*.
+- **THE STATS SAY "HEADS ⚪", NOT "heads-luck"** — *"Change the term "heads-luck" to "HEADS {heads-coin}""*.
+- **HIS REWRITES, VERBATIM** (placeholders are his): "Crustbeard fired up the bakery!" · "{Crustbeard} goes first! The rest o' ye get
+  {coin}." · "Yer mateys will appear when they join. Wait for them before ye hit start." · "Docking at {wheat} the Flour Patch" ·
+  "Crustbeard's downwind shot hits!" · "No hit -- cannonballs collide in the crosswind." · "Both miss." · "{Player} called it
+  wrong." · "Crustbeard wins and takes Cacao Pods." · "Davy Scones slips away!" · "Crustbeard attacks Davy Scones!" · "Dough Hook
+  +5 · Flaky Jack −2" (the settle line, no "The Lookout settles") · "A battle's brewing! Guess the winner and win 1"
+  battle's brewing!") · the trade button "Coins" · "Crustbeard finds treasure (+N) at the Flour Patch!" · "Crustbeard earns
+  1{coin} scrubbin' the docks and buys a crate of Wheat Sheaves (−N)." · "Flip the doubloon!" · "Pass to {Name}" (on a card he
+  had never seen).
+- **CLEAN UP WHAT OLD RULES LEFT BEHIND** — *"This isn't in the game any more -- remove it."* / *"I think this from an old version
+  of the game.. clean it up?"*: storm dodge and anchor-or-flip, fishing, the backed call and the raise, bribes, the trade bonus,
+  the bot's hail, leeward, too-broke-to-sail, the dock's tails choice, and *"Final round — set sail!"* — *"players keep playing
+  until someone wins the bakeoff. clean this up from the game."* And the drumroll line is cut.
+- **BACKLOG: ORIGINAL ART FOR EVERY END-OF-VOYAGE TROPHY.** *"we need original art as trophies for each of the endgame trophies"*.
+
+**2026-09-13, night — HIS POP-IN SETTINGS, SECOND ROUND (supersede the first round above):**
+
+    INGREDIENT POP-IN TUNER
+    order: Island by island, clockwise round the board
+    board alone 300ms, gap between islands 0ms, gap between crates 105ms, pop length 550ms, cards after last pop 300ms,
+    start size 17%, overshoot 160%, bounces 3, squash 34%, wobble 8°, drop 4%, sparkles 6
+    sparkle burst on, rising pitch on
+    sound: Cork pop, starting pitch 1 st, climb 1 st per pop, stops after 18 pops, volume 55%
+    cards arrive at 2.62s (today 2.00s)
+
+- **EVERY INGREDIENT POPS IN ON ITS OWN, ONE AFTER ANOTHER, EACH WITH ITS OWN SOUND.** *"it looks like some of these ingredients
+  come in concurrently with each other; and that i don't hear one sound for each ingredient. can you verify that each ingredient
+  appears sequentially?"* Measured in the tuner's own schedule: they did NOT — at every island change the next island's first crate
+  started on the same millisecond as the last island's last crate. Fixed in the tuner (the next island now waits one crate gap plus
+  the island gap), which moves the cards' arrival later than the 2.62s his readout showed; the game must build the fixed timeline.
+- **THE POP SOUND PLAYS WHEN THE INGREDIENT APPEARS, NOT WHEN THE SPARKLE DOES.** *"Also make the sound play when the ingredient
+  appears -- not when the sparkle appears"*.
+
+**2026-09-13, late night — after the narration work: one place for every word, pictures, solo "ye", and his game feel marks:**
+
+- **WHY ONE PLACE MATTERS: PASTA PIRATES.** *"at some point, I'm going to make a version of pastry pirates that is called pasta
+  pirates where we have totally different ingredients and a totally different theme and it's set in the Mediterranean in Italy
+  instead of in the Caribbean, and we need to very easily be able to change every single line of narration and dialogue for that new
+  theme... the game is going to expand massively over the next year."* Emojify stays: *"it's totally fine to have that emojify...
+  function"*. On organizing the rest of the theme text (names, recipes, sea creatures, pages): *"don't do anything yet -- this is just
+  context for you to help design scalable architecture"*.
+- **THE PICTURES STAY IN THE LINES.** *"I simply was not able to write emojis in the comment boxes of the page artifact... I want all of
+  those images that were in the lines still there, I think the images are a really important element of the game deal."* The five lines
+  whose coin went with a cut HEADS/TAILS word get it back (he picked all four): the dock's treasure lines ⚪, the dock's scrubbin' lines ⚫,
+  the battle card's two both-heads lines ⚪, and "Both miss." ⚫. A rewrite typed on the pass page never removes a picture by itself.
+- **SOLO SAYS "YE" TOO — ONE RULE IN EVERY MODE.** Picked "Yes, "ye" everywhere": *"Wyatt — ye call Dough Hook from the crow's nest."*
+- **THE HANDSHAKE STAMP OVER A TRADE IS REMOVED.** Game feel audit: *"A handshake stamp: This already happens, and it seems weird."*;
+  then picked "Remove it". The 🤝 at the start of the trade LINE is a picture in a line and stays.
+- **THE END CARD'S HEADS ROW IS POSSESSIVE:** *"instead of Wyatt HEADS i want it to use apostrophes, like "Wyatt's HEADS ⚪️""*.
+- **A CEO AUDIT OF THE ONE-PLACE WORK**, *"to audit and and verify that you've done this work one hundred percent correctly"*.
+- **SEA TRIAL ON WY-BLADE, APPROVED:** *"can you also get the Wy blade to run a Sea trial of your changes? to make sure that it works
+  before I do my QA pass."*
+- **HIS GAME FEEL AUDIT MARKS** (verbatim, from the page's Copy my notes) — PASSED = build it, PROBLEM = not this way:
+  - First screen: PASSED the board settles in (*"The board currently jitters when it comes in, and seems to choose a few differnt sizes
+    before settling. It may be caused by the navbar row/other elements fighting/jostling -- you'll have to fix this simultaneously."*),
+    buttons squish when pressed, the parrot bobs when it speaks.
+  - Choosing a recipe: PASSED whoosh + thump as the cards fly in, the chosen card flies into the captain's box, the dotted route draws itself.
+  - Your turn: PROBLEM the camera settle (*"This could be nauseating."*); PASSED your row lifts, your boat bobs once.
+  - Picking where to sail — NOTE: *"I think all squares that are tapped should take two taps -- and on the second tap, the board should zoom
+    in to let you accurately confirm it. Also, the trade winds squares should also appear yellowgold, not blue -- but they should clearly
+    be seen as "special" -- the line projecting where the trade winds take you should be yellow/gold too, this way all
+    wind-sailing-related movement cues are yellow-gold."* PASSED squares pop in from the boat outward, the tapped square squishes and flashes.
+  - The boat sails: PASSED anticipation lean, a wake, arrival bob + splash ring.
+  - The coin flip: PASSED sinks before it flips, lands with weight, HEADS/TAILS stamps in, a tiny screen nudge on tails.
+  - Docking: PASSED treasure bursts out on heads. Buying: PASSED crate flies island → hold, coins count down, a juicier store sound.
+  - Trading: PASSED the two crates swap in arcs; PROBLEM the handshake stamp (see above).
+  - Battles — NOTE: *"Currently, the battle screen pops up; I don't like any part of the battle screen, to be honest -- after you do these
+    changes, we can get rid of the battle screen entirely so that the whole battle happens over the gameboard. when you're the one engaging
+    in the battle, the coin flipper stage should still appear; but the moment it's finished flipping, the board should reveal itself again
+    with the two ships battling."* PASSED the cannon kicks, a hit lands with flash + shake, the loser gets knocked about.
+  - Storms: PASSED lightning with the thunder (*"make this subtle -- too much could be annoying."*), boats rock, the sea darkens.
+  - Trade winds: PASSED speed lines on the ride.
+  - Fishing: PROBLEM *"There is no fishing in the game.... what rules are you looking at?"* — the audit page's error (see the reply).
+  - Coming home: PASSED a short fanfare and confetti for the first home.
+  - The bake-off: PASSED lids slam down with a puff, a right answer bursts green; PROBLEM the shuffle speeds up (*"We need them to be
+    trackable."*).
+  - The end of the voyage — NOTE: *"Somehow bring this end of voyage card to life -- I'm not sure how, but it should feel more exciting.
+    I'm giving you blue-sky redesign here -- research other game victory cards and make 5-10 more proposals. Intention: someone feels SO
+    excited to win that they HAVE to play again immediately"*. PASSED awards deal in like cards, stats count up, a confetti burst for the winner.
+
+**2026-09-14 — after the review fixes and the pop-in reached staging (2026.09.14.2-staging@32c03061):**
+
+- **SAIL THE TRIAL ON 2026.09.14.2 TOO — WY-BLADE.** *"yes, have Wy-Blade sail 2026.09.14.2 too"* — asked because the trial he
+  approved earlier sails fb1da47f, and staging moved on before his QA pass. Sent to the running "Wy-Blade" session: its own branch,
+  no merging or deploying, verdict back to this session. The earlier request had gone to "Wy: Blade", which now shows offline, so
+  it was asked whether that one ever ran.
+- **HAVE THE CEO AUDIT HOW PLAYER-FACING WORDS ARE SERVED, AND HOW AAA ARCHITECTS WOULD FUTURE-PROOF IT.** *"with a separate side agent,
+  have the ceo audit our current setup for serving player-facing words, and suggest ways to make it more robust according to my design
+  values: eg. one game engine (that is passed actionTaken + playerType (human/both) + playerLocation (here/remote) + gameMode
+  (solo/pass-and-play/crew) and one display engine (that is passed the same variables). in the future, these engines could also be passed
+  gameBoard and recipeList; we want the ceo to suggest all the ways AAA software architects would future-proof our architecture"*
+  ("human/both" read as human/bot). The audit is at the top of `.planning/CEO-REVIEWS.md` and on the page "One Engine, One Display"
+  (CURRENT-SHEET); nothing from it is built until he marks it.
+- **GAME FEEL BUILDS GO ON THEIR OWN BRANCH.** *"does it make sense to build the game feel ideas on a new branch?"* — yes: `sep14-game-feel`
+  off dev, so dev and staging stay the build Wy-Blade sails and he QAs; merged back in pieces after the trial and his QA.
+- **WY-BLADE'S TRIAL OF 2026.09.14.2 — FAILED, 10 of 10 sailed.** Acted on: both crew guests played the pop-in before their board art
+  loaded → the picker's show now waits for the board's pictures and the pop sound (capped 5s), measured on a throttled guest; staging
+  2026.09.14.3-staging@15a0f25b. Taken to him, not acted on: two dead taps (a card tapped while the stack flew in; a first Bake this! tap
+  after the pop-in on WebKit tablet) and one covered sail square under the day bubble, each seen once; the End of Voyage sheet is
+  see-through below the stats on tablet (both engines) — needs his ruling; not yet known whether it is new.
+
+**2026-09-14 — his notes on Sounds of the Voyage, and three rulings that came with them:**
+
+- **THE END OF VOYAGE CARD IS SET ASIDE.** *"Don't worry about the end of voyage card, it's going ot be changed soon."* — the see-through
+  tablet question is dropped; nothing more is built on today's card.
+- **THE VICTORY CARD IDEAS REPLACE THE END OF VOYAGE CARD — NOT A TOGGLE PAGE.** *"the victory card ideas will replace the end of voyage
+  card -- not a toggle page."* His marks (`victory/wyatt`): passed 1 crown, 2 podium (rank by how close each captain came), 3 the
+  winning bake, 4 Polly's awards, 5 replay (only if it focuses on the active player), 6 tally (score audit FIRST, for his feedback),
+  7 so close, 8 set sail again; 9 the ship on the slipway → backlog until there are user accounts.
+- **SOUND PICKS.** Recipe cards arrive: Paper swish, *"remove the "boop boop" at the end -- just use the swish at the beginning."* Coins
+  tick: Abacus click. Lids: Marimba, *"make them lower pitched so they sound more like big crates."* Right/wrong crate: Chime & thud.
+  Award deals in: Soft whoosh. Stats roll up: the coin tick. HEADS/TAILS sting: PROBLEM, *"No need - the coin already has a landing sound
+  baked in."* First captain home fanfare: PROBLEM, *"Get Luis to come up with this"* → added to the brief for Luis.
+- **THE CANNON PLAYS ON EVERY SCREEN.** *"Fix this too"* (a crew guest probably heard no cannon): the sound moves to the landed-shot event
+  in the one consumer — it still fires only on a hit.
+- **THE SEA TRIAL STOPS TAPPING THE RECIPE CARDS SO QUICKLY.** *"i don't care about these taps."*
+- **FIX THE SAIL SQUARE HIDDEN UNDER THE DAY BUBBLE** *"-- and show me that screenshot so I can evaluate whether it's a problem."*
+- **THE NEW END OF VOYAGE — HIS FOUR ANSWERS (question UI, 2026-09-14).** Where it plays: **board first, then the card** (the crown on the
+  winner's boat and the podium at Tortuga, then the card rises). Podium for the captains who didn't win: **closeness order** — baked first,
+  then most bake-off crates right, then most recipe ingredients held, then nearest to Tortuga, then most coins. The voyage replay: **left
+  out** (backlog). Crew rematch: **sails up, then a 5-second countdown**, the host may go early — with *"but hang on -- I wrote a bunch of
+  notes to the Victory Card Proposal artifact and session -- did you read those?"*: the page's notes, yes; the session ("Victory Card
+  proposals", branch `sep14-victory-card`) had already built the toggle-and-dials page and is waiting on his score question and dial
+  settings. His rulings were relayed to it; he has not said which session builds the in-game card.
+- **A NARRATION BUBBLE OVER A SAIL SQUARE IS NOT A PROBLEM — AND THE SEA TRIAL MUST STOP FLAGGING IT.** *"this is NOT a problem: [the day
+  bubble over a sail square] That message disappears after a few seconds and can be tapped to dismiss. I need you to write a durable record
+  of that so the sea trial stops flagging it."* — overruling my report that a replay had caught the day bubble over a lit square for a
+  tenth of a second "so it was a real problem". Recorded in docs/INTENDED-BEHAVIOUR.md (section 2 table AND the vision judge's accepted
+  list), and scripts/lib/checks.mjs rules 2 and 6 exempt a sail square whose cover is a narration bubble; a real cover still fails.
+  → and the placement change is UNDONE, his pick in the question UI: *"Undo the move"*. A table-wide bubble (the day's wind line) sits
+  top-centre again whatever is under it, and a fading bubble no longer lets a tap through — exactly as before commit 971e4995.
+- **THE SEE-THROUGH END OF VOYAGE CARD ON TABLET IS FINE.** His checklist answer to "should it be solid?": *"This looks fine as is."* (and
+  the card is being replaced by the victory card work anyway). On the same sheet, on "build the seven victory ideas as a toggle page?":
+  *"I wrote comments elsewhere -- read those first."*
+
+**2026-09-14 (late) — his verdicts on the checklist for 2026.09.14.4-staging@b083f577, and what he asked for with them:**
+
+- LOOKS RIGHT: the board settles in, buttons squish, cards swish · the route draws itself, the card flies into the box · storms · the
+  confetti for the first home (*"Make the confetti linger 50% longer"*) · the lids' marimba and the chime · the end card arriving · a bubble
+  over a sail square is fine.
+- **THE BOAT BOBS FOR THE WHOLE TURN.** *"I don't see the boat bobbing -- i'd love for it to keep bobbing for your whole turn."* Built as an
+  HTML copy while the boat sits still — bobbing the SVG boat measured 60 layouts/s at phone size (BOARD-RENDERING §5).
+- **SAIL SQUARES POP IN 50% SLOWER.** *"The sail squares should pop up 50% slower so it's more noticeable."*
+- **THE COIN FLIP — his screen recording, frame by frame.** *"When the coin in the flip stage lands, it makes the coin disappear before the
+  stage itself disappears, leaving an empty flippenator again. Also, the coin's motion out towards the viewer should be more accentuated,
+  as if it's flipping up out of the screen towards them."* Then: *"here's the coin flip bug -- watch it frame by frame and fix all the
+  problems"*.
+- **COINS.** *"if you earn 3 coins, only 3 coins should fly to the hold ... every coin you earn should fly over -- including from working the
+  docks ... the coins should enter your hold the moment you earn them -- not at the end of your turn AFTER you've bought the ingredient ...
+  they happen sequentially and both require player decisions, so they should be displayed that way. the treasure should always fly from the
+  island into your hold -- i think it does this, but a little fast."* And the click was not heard.
+- **CRATES FLY AS CRATES.** *"the crates themselves should ALSO swap between players, not just the ingredient icons ... Please also do the same
+  thing when a crate is purchased off an island".*
+- **SPEED LINES LINGER 50% LONGER.** *"I want the speed lines to linger 50% longer"*
+- **THE BATTLE BOX IS REMOVED ENTIRELY.** *"THe battle box covered this up. I want the battle box removed entirely."* — with his earlier note
+  on how: the flip stage for the captain flipping, and the board showing the two ships battling.
+- **THE BAKE-OFF'S WRONG CRATE SQUAWKS, AND EVERY GUESS TICKS.** *"I want the "wrong" sound to be a squawk during the bakeoff"* · *"I want a
+  "tick" sound (same as the coin tick up/down sound?) when a player makes their guesses for the bakeoff"*. Question UI: the squawk is
+  *"the page's squawk"* — NOT a re-download of the macaw recording he picked on 2026-08-19.
+- **THE SEQUENCE.** *"make these changes, get CEO's approval, then run a sea trial and merge it to main if it's good"* — the sea trial on
+  **Wy-Blade** (question UI). "Good" read as: the CEO approves AND the trial finds no real game fault.
+- **THEN THE CLOUDFLARE CUTOVER.** *"after all this work, we need to cutover to cloudflare. we're ready. can you create (or update) an
+  artifact to walk me through all the steps?"* — docs/CLOUDFLARE-CUTOVER.md and docs/PRD-CLOUDFLARE-CUTOVER.md already exist.
+
+## 2026-09-15 — FUTURE PLANS: 13 AND UP, CLOUT IS EARNED, NO PAID MYSTERY BOXES, PITCH PUBLISHERS FIRST
+
+**Source:** his "Copy my notes" from the Voyage Ahead sheet
+(https://claude.ai/artifact/CffS7stsSzUvzkfR7TrokN), pasted into chat 2026-09-15. The interview's
+full answers: `.planning/his-words/FUTURE-PLANS-INTERVIEW-2026-09-14.md`. None of this is built. His
+instruction: *"don't do it 'today' — I want you to fold all of this into a PRD today, not execute
+the work."*
+
+**His five answers (recommendation accepted on all five):**
+
+- **Who we design for: 13 and up.** Kids may play, but nothing is built for them.
+- **Money never buys dubloons.** Dubloons are only ever earned. Money buys named items at a clear
+  price.
+- **Earned dubloons buy looks only.** Expansion seas cost money, and crews share them.
+- **The board game: pitch publishers first.** Crowdfund only if nobody bites.
+- **The bought/earned line: yes, with his amendment, which overrides my list:**
+  > *"The only thing I don't like about your plan is the number of things that can be bought — we
+  > need some of them to be earned. Like the flippenator coin that you use, perhaps. That may have to
+  > be earned. We want social capital/klout to have a clear marker in the game."*
+
+  So more of what other players can SEE moves into the earned column, and the Flippinator coin is
+  the first candidate.
+
+**His rulings on the economy, verbatim:**
+
+- *"No paid mystery boxes."*
+- *"I'm okay with people playing all day to earn doubloons."* **This withdraws my daily-cap
+  suggestion.**
+- *"They should be able to give their doubloons to each other."*
+- *"I like the idea of every voyage you win earning you a mystery box to upgrade your bakery!"*
+- He asked, and a verified answer is owed: *"What is the legal grey zone if you earn mystery boxes by
+  playing but you can also trade away the goods from your mystery boxes to other players for
+  doubloons? I guess if the doubloons cannot be bought then that's still OK."*
+
+**Tension to design around, not re-ask:** all-day earning, giftable dubloons and tradable box goods
+together can create a market for dubloons in real money outside the game, even though the game never
+sells them. The PRD takes this on.
+
+**Scope:** the architecture proposal (a folder per world, one ledger of what each captain owns,
+native wrappers) and ALL the streaming and screenshot leads go into a PRD. Nothing is executed.
+
+## 2026-09-15 — THE BOX AND THE DUBLOON: GIFTS GO TO FRIENDS, PRIZES STAY PUT, THE BOX SHOWS ITS ODDS
+
+**Source:** his "Copy my notes" from the After Launch PRD
+(https://claude.ai/artifact/6DGyHdVj4SShy3tZumPNQn), pasted into chat 2026-09-15. Three of its four
+questions are answered; all three took the recommendation.
+
+- **Dubloons may be given to friends ye have sailed with, with a daily limit.** Not to anyone, not
+  only to the crew in the voyage ye are in.
+- **A win box's prizes stay with the captain who won them. Only dubloons change hands.** This is the
+  choice that removes the legal grey edge: the Dutch test treats an item as having a money value the
+  moment it can be transferred, and prizes that cannot move can never form a market outside the game.
+- **A win box shows what it can hold, and how rare each prize is** — even though the box is free and
+  no rule requires it.
+
+**Still open, and he asked for evidence first:** which things other captains can SEE must be
+earned-only (the Flippinator coin is his candidate). He asked what other games do about the line
+between bought and earned. Research 2026-09-15; the answer goes on the PRD and here.
+
+## 2026-09-15 — ⛵ THE LAUNCH DATE IS 1 OCTOBER 2026, AND FOUR RULINGS ON THE ECONOMY
+
+**Source:** his notes on the After Launch PRD (https://claude.ai/artifact/6DGyHdVj4SShy3tZumPNQn),
+pasted into chat 2026-09-15.
+
+### THE DATE
+
+> *"phase 1 I want to set a date for: October 1."*
+
+**Phase 1 is launch.** Every other plan is sequenced against that date. He also ruled: **work on a
+second expansion sea begins immediately after launch**, not after the audience rungs — *"We should
+immediately begin work on phase 4 then, creating a second expansion sea."* And **cookies should be
+bought in the "loved" rung**, i.e. donations are live and watched from launch day.
+
+### THE ECONOMY
+
+- **NO TRADING AND NO GIFTING. This withdraws this morning's gifting ruling, on his own second
+  thought:** *"the easiest thing is just to remove gifting doubloons between players — that way,
+  everything in your world is stuff you either earned, or bought. it's your world. clean, simple,
+  no trading."* Nothing transferable also ends the loot-box grey edge outright.
+- **A coin with every sea, and its tiers earned inside that sea:** *"each new set you have comes with
+  its own flippenator coin; and there are different tiers of flippenator coin depending on how well
+  you've accomplished that set. so the coin itself is earned WITHIN a bought pack."* **The guard I
+  added, and it needs his eye:** the plain coin that comes with a bought sea must LOOK plain — no
+  gold edge, no movement — or an expensive sea starts to read as a skill.
+- **The pet trails your boat** as you sail, and can be dressed in pirate clothes.
+- **Every voyage must offer a recipe the captain does not own yet, and say so on the card.** Cheap,
+  because the engine already deals each captain TWO recipes to choose between (`recipeChoices:[a,b]`
+  in `src/engine/index.js:272`), built from a seeded handful of ingredients and matched to the
+  21-recipe book. Only WHICH two changes. Remembering the cookbook needs accounts.
+
+### THE DAILY
+
+He rejected "the same sea for everyone" as the hook, and rejected hand-designing a puzzle a day:
+*"designing a new game every day is easy for wordle, but not for this game… Unless.... everyone is
+given ONE recipe that they must bake, and ranked on a leaderboard for their skill at it. THAT could
+work."* **So the daily is THE DAILY RECIPE:** one recipe handed to everyone, no choosing, ranked by
+the victory card score. **Nobody designs it:** the date makes the seed, and the sea trial's bots play
+tomorrow's sea overnight, rejecting a seed that cannot be baked or that one seat runs away with.
+**The puzzle ideas (all bots against you, an archipelago maze, a needle to thread) MOVE TO CAMPAIGN.**
+
+### THE REST
+
+- **Back burner:** viewers vote, the voyage recap, and playing inside Discord. Every other growth
+  idea is in.
+- **The board game:** the end-card sign-up is a **waitlist** (his word). He makes the sell sheet and
+  video himself — *"I can make this easily."* The publisher shortlist and how to reach them: mine.
+- **Food:** the bake-every-recipe channel is a yes. The contest needs scoping before he commits. The
+  official cookbook is **next year**.
+- **The build order: approved as written.**
+**2026-09-15 — his verdicts on staging 2026.09.15.2-staging@607e4fe9 (the build the sea trial sailed; NOT merged to main because of these):**
+
+- **THE COINS FLY AT THE RIGHT MOMENT, AND STILL FEEL WRONG.** *"The coin does fly in the moment you earn it, but it still feels wrong.
+  It needs to have more bounce to it; also there are still too many coins visible when you earn 3 coins. there should only be 3. I think
+  the coin you get from musing should only fly into your purse AFTER the narration line has finished writing -- because it's explaining
+  where the coin comes from. I also think the "tick" sound of the coin is the wrong sound -- we want a coin "chink" sound whenever a coin
+  goes into the purse. And for 3 or more coins, which should be spaced somewhat apart temporally, we need those clink sounds not to
+  overlap. The coin and crates both should fly more elastically and pleasingly into your part of the captain's box -- add them to my game
+  feel tuner."*
+- **CRATES FLY, TOO FAST.** *"slow them to 50% of their current speed (and add them to the game feel tuner artifact I want you to build)"*
+- **SAIL SQUARES STILL TOO FAST.** *"add them to the game feel tuner"*
+- **SPEED LINES AND CONFETTI LOOK RIGHT** — *"add to the game feel tuner though so i can modify them."*
+- **THE BAKE-OFF SQUAWK AND TICK LOOK RIGHT.**
+- **THE BATTLE, ALMOST RIGHT.** *"the first narration box is showed in white, not dark blue -- so it covers up the attacker's coin flip!
+  1. the battle narrations should be in dark blue. 2. the coin should flip in front of them. 3. I didn't see any smoke, or the ship recoil
+  away from the other ship -- these should all be accentuated 2x. Create an artifact where I can dial in all of these new game feel
+  mechanics as I see fit. 2. There is still a narration box that appears for a moment before the flippenator appears. we can get rid of
+  that. 3. Battle mechanic -- in crosswinds, there should be no reflip option; it's too weird and complicated. if both get heads, there's
+  simply no winner."*
+- **A GAME FEEL TUNER, HIS DELIVERABLE, ASKED FOR FOUR TIMES.** Dials for: the coin flight (bounce, spacing, speed), the crate flights,
+  the sail squares, the speed lines, the confetti, the battle's smoke and recoil.
+
+  His general playtest notes from the same message, not about those items:
+- **A TAP THAT DRAGS THE BOARD MUST NOT SAIL.** *"When the player clicks /taps a sailable yellow square and drags the board, that should
+  not count as them choosing that square to sail to; it should require a second tap to confirm. Many times I've tried to move the board and
+  ended up accidentally moving to the square I tapped purely to move the board."*
+- **STORMS MUST DARKEN THE ACTIVE PLAYER TOO.** *"it seems like the active player may sometimes be drawn OVER the storm. THis should not
+  happen."*
+- **AUDIT THE BOT'S BUYING.** *"dough hook docked at full cream folly, found treasure, had sufficient money to buy a crate, yet didn't.
+  can you audit the bot strategy algorithm again and discern why? and suggest improvements?"*
+- **BOTS NEED A BEAT BETWEEN ACTIONS.** *"Bots need to have a small about (eg 200ms) of "thinking" time between their actions -- it's too
+  fast when they dock and flip and crate all back to back."*
+- **THE BOARD SQUARE GLITCHES ON THE INGREDIENT POP-IN.** *"it starts a lilttle smaller, and then settles to its right side... i noticed
+  it in tablet size."*
+- **BIGGER PICTURES ON THE DOCKING BUTTONS.** *"they can and should take more space, as much as there's room for."*
+- **THE GREYED-OUT STAGE MUST COVER THE WHOLE WINDOW ON TABLET.** *"currently, i see a border along the left and right sides of the screen
+  that are not darkened."*
+- **A SWISH AS THE CRATES ARE SHUFFLED.**
+
+- **BOTS PLAY AS INTELLIGENTLY AS POSSIBLE — AND A CHEAP CRATE BEATS A COIN. HIS CORRECTION OF ME, 2026-09-15:** *"it is NOT the design
+  -- the design is that the bots play AS INTELLIGENTLY AS POSSIBLE -- as intellignetly as a skilled human. a bot would know that holding
+  a resource, especially a cheap resource is always better than holding the coin -- it can be insurange, trade bait, it is even half of a
+  black market crate they may need later. I want the CEO to audit the bot's strategy and algorithm and suggest ways to make them
+  measurably smarter. If you need, build in a watcher that records solo games too so you can learn how actual humans (who win games)
+  play."* — overruling my report that a bot declining a crate it can afford is the design working. It is not: `needs()` (recipe minus
+  hold) is too narrow a test for a buy. A spare crate is insurance, trade bait, and half a black-market payment.
+  WHAT THIS CHANGES: the audit's finding stands as a MEASUREMENT (13% of docks are a captain who could pay and didn't, all of them
+  because the crate is not on the recipe or they hold one already) but its verdict — "design, not a bug" — is overruled. The narration
+  line that says a captain left a crate is still worth having for the times a bot genuinely should decline; it is not the fix.
+
+- **TWO CAPTAINS' COINS CAN NEVER BE IN THE AIR AT ONCE — AND I GUESSED INSTEAD OF READING. HIS CORRECTION, 2026-09-15:** *"this is never
+  possible in the game, whcih you would know if you read the rules before guessing: 'so the extras are almost certainly other captains'
+  coins flying into their own purses at the same time as yours.' my guess: the coins are moving so fast that they jump discernably
+  between frames, becasue they have no motion blur; solution may be to move them slower, or one at a time for multiple coin hauls"*
+  Turns are sequential, so the overlap my probe saw was an artifact of POSING a dock out of turn — never real play. His hypothesis is
+  what to measure: the coins step too far between frames. Three coins are staggered 90ms inside a 1170ms flight, so all three ARE
+  airborne together by design; the dials for the spacing and the speed are on his Game Feel Tuner.
+
+- **COINS MUST BE SEEN LEAVING THE PURSE, TOO. 2026-09-15:** *"also we need a "coins taken away" animation from the purse -- sugest 3,
+  and add them to the game feel tuner"* — today spending only ticks the count down with a click. Three candidates built into the tuner
+  for him to choose: SPILL (coins fly out toward what is being paid for, the mirror of the arrival), DROP (coins fall out of the count
+  and tumble off the row), SCATTER (the count knocks back and coins puff outward and shrink away).
+
+- **WHAT I BUILT FROM HIS COIN VERDICTS, 2026-09-15 (build 2026.09.15.5).** Acting on the two corrections above, all of it dialable on
+  the Game Feel Tuner so the numbers stay his:
+  - **The flight is slower and one coin at a time.** 1170 → 1400ms, and the gap between coins 90 → 260ms. Three coins no longer share
+    the sky: the next leaves as the one ahead lands, which is his own "one at a time for multiple coin hauls".
+  - **The purse count keeps pace with the coins.** The number used to roll at its own 40ms clip once the first coin landed; it now steps
+    once per ARRIVING coin (`holdCoinRoll`'s new `paceMs`), so a three-coin haul reads as three coins.
+  - **A coin going in CHINKS; a coin going out ticks.** `sfx/coin-chink.mp3` holds his three tuner candidates as three slots; A is what
+    the game opens on and a change of pick is one digit (`CHINK_PICK`). The chink is fired at the ONE place the purse number changes,
+    never beside each thing that pays, and has its own 120ms floor so two can never overlap.
+  - **Coins and crates land elastically** — both carry a little past the purse/chip and spring back, squashing as they go in.
+  - **Coins leaving the purse are built, all three, and SPILL is what it opens on** (`SPEND_STYLE`, one word to change). Fired from the
+    one consumer for a crate bought at a dock, a re-watched bake-off, and a fight's powder and refires — never a trade, whose coins
+    already cross the table to the other captain.
+  - **The sail squares are another 50% slower** — the pop .33 → .5s, the cascade 375 → 560ms — his "still come in too fast".
+
+- **HIS CHEAP-CRATE RULE WAS BUILT, MEASURED AND TAKEN OUT — 2026-09-16, and he is owed the numbers.** His instruction
+  stands (bots play as intelligently as a skilled human), and the CEO's audit agreed with him on a 300-voyage ladder
+  (+0.8 dev seeds, +3.2 held out, buying a spare at a full shelf's floor price). **It does not replicate at 1000 voyages
+  an arm** (+1.0 / −0.7 — noise both sides of zero, red-proofed at +0.0 for an identical brain and −33.8 for a
+  lobotomised one), and the mechanism he named never appears: spares bought 0.03 → 0.50 a voyage, barters struck
+  0.14 → 0.15. Docks where a bot stands at a crate it needs and cannot pay: 2.07 → 2.41 (2.20 with a guard that keeps
+  the next island's money back). **THE FINDING UNDER IT IS THE REAL ONE AND IS NOT YET BUILT:** `tour3`, the bots' whole
+  objective, is a function of `needs()` — recipe minus hold — so an off-recipe crate cannot change it BY CONSTRUCTION
+  and is scored as pure loss however cheap. A buy gate on top cannot fix that; pricing tour3's bare-shelf leg in crates
+  (two spares buy a crate off a dry shelf) would, and then the buy falls out of the valuation rather than a gate, which
+  is what BOT-DESIGN-PRINCIPLES principle 2 asks for. **Asked on the sheet, 2026-09-16: does he want that built?**
+- **SHIPPED FROM THE SAME AUDIT (build 2026.09.16.1):** the bots' buy decision is now written once (`wantsCrate`, held by
+  `scripts/qa/one_buy_decider_check.mjs`), and `coinTurns` prices a dubloon at what the dock actually pays. Measured over
+  1000 voyages: offers put to the table 11.38 → 9.06 a voyage, deals struck 0.93 → 1.06, win share flat.
+
+- **VOYAGES GO TO FIREBASE, AND A BOT IS ASKED ABOUT EVERY HUMAN TURN — HIS RULING, 2026-09-16:** *"this is silly -- we tell
+  people we record games in the privacy policy. send them to firebase."* — overruling the CEO audit's advice not to send solo
+  logs anywhere. The policy says: *"Anonymised move data — what happened on the board — so I can see where the game is confusing
+  or unfair and fix it."* And of the audit's proposal: *"i like this idea though: 'ask the bot's planner what it would have done
+  on each of your turns — a list of the exact moments the bots disagree with a winning human, in the game's own words.'"*
+  FOUND, NOT BUILT: every finished voyage (solo and crew) had already been going to `gamelogs/<ts>` for weeks — 588 logs — the
+  audit missed it. None held a seed, so none can be asked about: the map is drawn from the seed.
+  BUILT (build 2026.09.16.2): the log now carries `seed`, `cfg` and `host`; `scripts/voyage_disagreements.mjs` rebuilds each
+  voyage's board and asks the bot brain at every human turn and every human dock. Proven at 100% against real bot plans, now a gate.
+  TEST VOYAGES STILL WRITE, per his 2026-08-21 ruling; `host` makes them certainly separable (a sea trial plays on localhost).
+  REAL PLAYERS' DATA arrives only once this build reaches production, which is his call.
+
+- **VOYAGE LOGS RECORD NO NAMES — HIS PICK, 2026-09-16:** asked *"What should the voyage logs do with names from now on?"*, he chose
+  **"Stop recording names (Recommended)"**. Nothing read them (events name captains by seat; `bots` says which seats were people),
+  reading logs to learn how winners play meant handling names children typed, and the privacy page promises *"Anonymised move
+  data"*. The 588 older logs keep theirs; the analyzer only fetches logs written after a date it is given. Known consequence, told
+  to him: stats.html's "Captains seen" list stops growing and fades out as older logs leave its 14-day window.
+
+- **WHAT "ARCHITECTURAL" MEANS — HIS RULING, 2026-09-16.** After the muse-coin sound arrived when the coin was earned, not when it landed,
+  and I had patched that one source instead of the cause: *"i am sick and tired of typing the word 'architectural' to you -- it's clearly
+  not working."* His instruction, verbatim:
+  > Whenever I say "architectural" (or "fix it at the root", or "not a patch"), do all of this:
+  > a. Name the fact being changed, in the game's words (e.g. "when a coin's number goes up").
+  > b. Count every place in the code that decides that fact. List them with file:line.
+  > c. Make that count ONE: send every existing path through it and delete the copies. Never add a special case beside them.
+  > d. Add a gate that fails if a second copy ever appears, red-proofed.
+  > e. Report back: the fact, the count before and after, and the gate's name.
+  NOT to be added to CLAUDE.md (his words: "Don't add it to CLAUDE.md"). Also recorded as a feedback memory.
+  FIRST APPLICATION, same day — "when a purse's number goes up": 3 places on dev (orchestrator.js:1976 dock/won call, :1981 muse — held
+  nothing, :1982 trade; each with its own holds at board.js:2083-2118 and :2242-2243) -> 1 (board.js coinArrived, reached only through
+  payInto). Gate: scripts/qa/coin_arrival_one_event_check.mjs (7 rules, each red-proofed against the break it guards).
+- **THE TOP BAR DURING A BATTLE GUESS — HIS ANSWER, 2026-09-16:** *"The top bar shows whose turn it is -- which is the active player who
+  decided to attack. this does not need to change during a battle; it should not."* Settled: it stays on the attacker.
+- **THREE COINS READ AS A CROWD — closed, 2026-09-16:** *"The tuner sheet already solves this."* (His numbers: 1200ms flights, 325ms apart.)
+- **THE 404 PAGE'S WORDS — AGREED, 2026-09-16:** keep "That page be lost at sea." and "Sail back to port" (built on the Cloudflare
+  pre-flight branch; they reach players with that merge).
+- **THE VOYAGE ANALYZER LEARNS FROM HIS STAGING PLAYTESTS, AND ONLY FROM WINNERS — 2026-09-16:** *"is it watching my playtests on staging to?
+  it should be! i'm very good at this game, and it should learn from me. Also, it should only try to learn from humans who win."*
+  scripts/voyage_disagreements.mjs now counts live and staging voyages by default (never localhost probes or the gate's pid) and asks only
+  voyages a human won. NOTE for him: it does not change the bots by itself — it lists where a winning human and the bot brain disagree;
+  turning that list into a smarter bot is the next piece of work (and his "easy to diabolical" skill setting after it).
+- **HIS GAME FEEL TUNER, ROUND 2 — 2026-09-16, on build .4.** All his numbers are in build .5: coins 630 ms flight, 470 ms apart, arc 280%,
+  bounce 32%, squash 24%; coins leaving 800 ms, 155 ms apart, at most 5; crates 1330 ms, bow 160%, bounce 32%; sail wave 180 ms a ring;
+  cannon recoil 30% of a square over 1290 ms, fling 25%, smoke 150% for 1200 ms, shake 8 px; speed lines 1080 ms; confetti 2000 ms, 32
+  pieces. Verdicts: the cannon *"Looks great now!"*; speed lines and confetti *"Looks great!"*.
+  **The crate:** *"the crate disappears completely instead of bouncing or squashing"* — the flying crate now takes its own squash and hop
+  (board.js landInHold, for a crate off an island and both crates of a trade), then becomes the chip in the hold.
+  **The sails:** *"I want it to look flowier ... juicy, wavy, reflective, as if shimmering fish scales are being rolled out from the boat.
+  this looks horribly jagged, with no bounce or momentum -- but i want it."* Build .5 overlaps each ring's pop with the next two, springs
+  it, grows each square out of its edge nearest the boat with a glint, and breathes in rings from the boat instead of diagonal stripes.
+  Three pop styles are on the tuner for him to pick (A Scales = the game's, B Jelly, C Shimmer) — his pick is still open.
+  **Carried-over notes:** his coin and sound notes on this round were last round's, kept by the tuner; the tuner now starts each build
+  with no notes, so a note always means "still true on this build".
+- **HIS PLAYTEST OF BUILD .5 — 2026-09-16.** *"Wow i LOVE this claude the game feel is incredible.... well done my friend."* Then, each
+  handled in build .6 (fact · count before → after · gate):
+  - **The crate's arc leaves a desktop screen:** *"calculate the crates max height based on the screen height ... with the constraint of
+    keeping it onscreen? ... i basically want the parabola, and also want the crate to remain visible, if possible."* Every flight's height
+    and bow are cut to the window (board.js onGlass inside arcFrames) · 1 private clamp (trade swap) + 0 for the rest → 1 for all ·
+    flights_stay_on_glass_check. (Read as: keep his launch point, the island's crate; the window caps the height.)
+  - **The coin chink:** *"I also don't love the coin chink sound"* — three new coin sounds on the tuner (Silver, Into the purse, On the
+    pile); HIS PICK IS OPEN.
+  - **The bob before sailing jitters:** *"it needs to more intelligently lerp between whatever state the boat is in, and whatever state it
+    should be in to sail."* The bobbing copy and the SVG picture now hand over in one place (board.js handOver) carrying the lift ·
+    measured: a 5.05px one-frame drop → at most 0.88px a frame · boat_pose_one_door_check.
+  - **Battle coins off to the side:** regression from aa08a1ad (the fight coin's own board-to-page copy left out fixedOrigin) · posed at
+    1440x900: (458,545) on a boat at (443,500) → (443,501) · converters 2 → 1 (board.js fixedPointOfBoard) · board_point_one_converter_check.
+  - **The tiny bot coin is pixellated:** a 16px coin inside the camera layer, stretched by the zoom · every small coin drawn on the page at
+    the camera's size ("sized, not scaled", W5-1's rule) · same gate. Not re-measured at a real zoom yet.
+  - **The flip sound twice** and **no line when a bot refused his counter-offer** — architecture items 6 and 15 (Wy-Blade), moved up.
+  - **Fleeing cuts across islands — REGRESSION:** 106d164f (2026-08-31) put `event.t!=="sail"` back into storyboard.js present() eight
+    hours after d62da9f5 took it out of the walker, so a flee's route was never walked · "does this event walk" 2 disagreeing tests → the
+    route alone · storyboard_sail_equivalence_check now walks a flee (red-proofed).
+  - **The sail squares:** *"look great as is."* Settled: style A (Scales) stays; B and C are gone from the tuner.
+  - **The clicking when buying:** *"is it the sound of money leaving? if so ... the sound and coins both leave more spaced apart."* It was
+    the number rolling down on its own 40ms clock. Now each coin seen leaving is one event (board.js coinLeft: one off the number, one
+    click), every spending through one door (payOut) · clocks 2 → 1 · coin_arrival_one_event_check (now both directions). Spacing 155 →
+    220ms (his "more spaced apart"; a tuner dial).
+  - **Plunder:** *"those crates should change holds according to the same exact animation as trades."* REPLACES his 2026-09-13 audit pick
+    (a crate tumbling into the sea). board.js holdMovesFrom reads a trade's crates and a fight's plunder · crate_changes_holds_one_animation_check.
+  - **The bakery:** *"use the cannon sound when someone fires up the bakery"* — the `ovens` event plays the cannon, on every screen.
+  - **Bake-off crates static, lids dropping again and again — REGRESSION:** 5e2654de (my 09-15 swish) declared the swish's clock below the
+    `await runSwaps()` that called it; the shuffle threw before its first crate moved and each watcher rebuilt and re-dropped · sound
+    spacing clocks 2 → 1 (audio.js playSpaced) · sound_spacing_one_place_check.
+  - **THE COIN CHINK — HIS PICK, 2026-09-16:** *"the chink I pick: A"* — Silver, one bright coin ringing. sfx/coin-chink.mp3 re-rendered
+    with the three round-2 coins (slots now 0.5s); audio.js CHINK_PICK 0. Layering re-measured: one 0.38, any haul 0.38, two at once 0.75.
+- **THE BAKE-OFF HINT DURING THE SHUFFLE — HIS ANSWER, 2026-09-17:** asked about the line under the bench still reading "Study the order.
+  Start the shuffle when yer ready." while the crates crossed: *"yes, change the hint during the shuffle"*. The first shuffle now says
+  "Watch closely — keep yer eyes on the crates!" (bake.shuffling, my draft — his to reword); a paid re-watch keeps "Watch closely — the
+  crates move again."
+- **OVERNIGHT SHIPPING — HIS ANSWERS, 2026-09-17 (going to bed):** the bake-hint build: *"push it to staging when it passes"*. Victory Card,
+  if finished and passing the full test overnight: **"Yes, push it (Recommended)"** to staging. The architecture cleanup: **"Ship the first
+  13 (Recommended)"** — Tier 1 goes to dev and staging once Mac: Dev has checked it and a sea trial on Wy-Blade passes (his approval of
+  that sea trial), without waiting for all 45. Production untouched; main still merges only on his word.
+
+**2026-09-14 — HIS VICTORY CARD PROPOSALS MARKS** (verbatim, from the sheet's Copy my notes):
+
+    PASSED — The crown comes down
+    PASSED — The podium at Tortuga: You could calculate place ranking based on how close the player was to winning -- how many of their bakeoff they had guessed right; how many ingredients from their recipe they had; how much money they had; how close they were to tortuga. this podium could appear below the idea 1, with the winning boat moved up the screen?
+    PASSED — The winning bake
+    PASSED — Polly's awards show
+    PASSED — The voyage replay: This could read as hectic -- unless you focus in just on the active player during the recap.
+    PASSED — The treasure tally: I like this... we don't currently create a "score" for best voyage. before building this, i'd want you to audit the current gameplay and rules and come up with a compelling way to judge the strategy of the player with their score, and i'll give feedback on it.
+    PASSED — So close: I like this
+    PASSED — Set sail again: Love this
+    PROBLEM — A new ship on the slipway: This is an awesome idea -- put it in the backlog for when we have user accounts -- otherwise the player will lose their "viking longship" after they leave the game
+    NOTE — A suggested bundle: I want 1,2,3,4,6,7,8  -- i want all these ideas! can you build and sequence all of them in a new version of this artifact, in such a way that i can check a box to turn on/off each idea, and tweak its details with 5-10 turners?
+
+- **THE BUNDLE IS 1,2,3,4,6,7,8** — crown, podium, winning bake, Polly's awards, treasure tally, so close, set sail again. The
+  voyage replay (5) passed but is not in his bundle; if it is ever built, it follows only the active player.
+- **THE PODIUM RANKS BY HOW CLOSE EACH CAPTAIN CAME** — bake-off guesses right, recipe ingredients held, coin, distance to
+  Tortuga — and sits below the crown, with the winning boat moved up the screen.
+- **THE VOYAGE SCORE NEEDS HIS FEEDBACK BEFORE IT IS BUILT** into the game: audit the rules, propose a score that judges strategy.
+- **THE SLIPWAY WAITS FOR USER ACCOUNTS** — backlogged 2026-09-14.
+- Next step, same day: a new version of the same sheet (same URL) where each of the seven is a tick box with 5–10 dials.
+
+**2026-09-14, later — HIS VICTORY CARD TUNER MARKS, ROUND 2** (verbatim, from the sheet's Copy my notes):
+
+    ANSWER — Does this voyage score judge a captain's strategy?: Close — my dials in idea 6 and my note say what to change — This is close! I want you to also give higher scoring (a huge bonus) for people who get a PERFECT bakeoff -- guess it in 1 -- and half that bonus for getting it in 2 tries. Doubloons should also count for something -- 10 points per extra doubloon. and the number of recipe ideas you had should, too (from musing). You should also get rewarded a bonus for trading, labeled as "Traded like a Good Friendly Pirate" with 20 points per successful trade.
+    PASSED — 1. The crown comes down — board dims to 35%, camera leans in on the winner 185%, crown falls for 750ms, crown size 140%, screen shake on the thud 9px, gap between letters 60ms, letter overshoot 155%, confetti pieces 70, hold before the next idea 500ms
+    PASSED — 2. The podium at Tortuga — weights: bake-off crates named right 5, recipe crates held 8, coin 2, nearness to tortuga 4; winning boat moves up by 50px, podium rises over 600ms, top tier height 65px, boats sail on 520ms apart, show how close on
+    PASSED — 3. The winning bake: The fonts should be consistent -- these sometimes use a serif, which I don't like. — steam on, rise 600ms, size 100%, ingredient gap 140ms, seal 100%, "3 of 21 recipes baked" on, hold 1400ms
+    PROBLEM — 4. Polly's awards show: These awards cards shouldn't disappear -- they should nest; they should start big, then become small and move to the left; the next one appears on top of it, then gets smaller and moves next to that one, and so on. After they've all appeared, they should stay onscreen for 1500ms. Then the Yer Voyage Score should stack on top of it, with just a little bit poking out the top, so that you can always tap to see your awards again. Actually, different idea -- this card swipes away off to the left; the player can swipe it back later by swiping the Yer Voyage Score card off to the right. — 4 awards, drumroll 650ms, flip 440ms, hold on each 1400ms, climb 2 st, winner's 115%, Polly bobs
+    PROBLEM — 6. The treasure tally: This may need to be a larger card to accommodate all the stats I suggested; but i'm in favor of simplifying if need be. show me how you would incorporate all my above ideas though -- maybe with scrolling the different line items. — row gap 560ms, roll 550ms, shake 6px, New best on, hold 1200ms
+    PROBLEM — 7. So close: The red missing ingredients are a bit ghastly. can you do a different color treatment to them? — plays before the bake, exact headline, pulse 900ms, how close on, what ye needed next on, hold 1800ms
+    NOTE — 8. Set sail again: Anchors Aweigh! Is a bit hard to understand -- what about Anchors up, play again! — dock with the card, sail 450ms, bots at once, countdown 5s, host early on
+
+- **NO SERIF ON THE VICTORY CARD** — one family for every heading and line.
+- **AWARDS NEST, THEN SWIPE** — read as: the nesting stays; the poke-out idea is replaced by the swipe (awards swipe off left; swipe the score card right to see them again).
+- **THE SCORE GAINS FOUR ROWS** — a perfect bake-off (solved first try) earns a huge bonus, two tries half of it; 10 points per doubloon; points per recipe idea from musing; "Traded like a Good Friendly Pirate", 20 per trade.
+- **RELAYED FROM HIS MAC SESSION, same day** (asked there with the question UI): the victory card ideas REPLACE the end of voyage card — "not a toggle page"; the sequence is board first (crown, podium), then the card (bake, awards, so close, set sail again); the podium ranks non-winners in CLOSENESS ORDER — baked first, then most bake-off crates right, then most recipe ingredients held, then nearest Tortuga, then most coins; the voyage replay stays out (backlog); crew rematch is sails up + 5s countdown, host can go early. This supersedes the weighted podium dials above where they disagree — flagged to him.
+
+**2026-09-16 — HIS VICTORY CARD TUNER MARKS, ROUND 3** (verbatim, from the sheet's Copy my notes). *"this looks awesome. one more round, then you can write the prd."*
+
+    ANSWER — The voyage score, with yer four additions — does it judge strategy now?: Close — my dials and note say what to change — Hmm -- I actually don't trust my numbers -- can you rebalance them? Players who WIN should get at least double the points as players who don't win -- winning is really hard. remove the musing points entirely.
+        points: per recipe crate held 40, for lighting yer ovens 100, per bake-off crate named right 40, perfect bake-off 400, for winning 500, per day ahead of the navigator 30, per doubloon 10, per recipe idea from musing 0, per trade 20
+    PROBLEM — 1. The crown comes down: Fix the confetti so it actually falls parabollically with gravity, not this jerky horrible thing. — dims 45%, lean-in 205%, crown falls 750ms, crown 140%, shake 9px, letter gap 60ms, overshoot 165%, confetti 55, hold 900ms
+    PASSED — 2. The podium at Tortuga — closeness order; weights 5/8/2/5; moves up 50px, rises 600ms, top tier 65px, boats 520ms apart, how close on
+    NOTE — 3. The winning bake: can't see the oven steam puff because white on white. Make it grey or blue? — steam on, rise 600ms, size 100%, ingredient gap 140ms, seal 100%, "3 of 21" on, hold 1400ms
+    PROBLEM — 4. Polly's awards show: When the awards get small, make them fill the vertical room, like tall columns, so that the text can still be read. — 4 awards, drum 650ms, flip 440ms, hold big 1400ms, shrink 500ms, climb 2 st, winner's 115%, all stay 1500ms, swipe 380ms, Polly bobs
+    PROBLEM — 6. The treasure tally: When the lines move up to make space for new ones,, animate them up -- don't just appear them up. — row gap 740ms, roll 550ms, grows taller 0px, rows in view 4, shake 9px, New best on, hold 1200ms
+    PASSED — 7. So close — dashed gold ring, before the bake, exact headline, pulse 900ms, how close on, what ye needed next on, hold 1800ms
+    PASSED — 8. Set sail again — "Anchors up, play again!" then "Setting sail…", dock with the card, sail 450ms, bots at once, countdown 5s, host early on
+
+- **A WINNER ALWAYS SCORES AT LEAST DOUBLE A NON-WINNER** — "winning is really hard". He does not trust his own point numbers and asked for a rebalance.
+- **NO POINTS FOR MUSING.**
+- **CONFETTI FALLS WITH GRAVITY** — a real arc, not keyframed jerks.
+- **THE STEAM PUFF IS GREY/BLUE**, visible on the white card.
+- **SMALL AWARDS ARE TALL COLUMNS** filling the card's height so their words stay readable.
+- **SCORE LINES SLIDE UP** to make room for the next one.
+- **NEXT: THE PRD** after this round.
+- **A SHORT COVER-UP PASSES — HIS GENERAL RULE, 2026-09-17.** Answering the fight coin over "HEADS" (he marked it NO, don't move
+  the line): *"It's fine -- the coin is there for a short time, it actually is a GOOD thing that adds to the depth of the game. Look,
+  here's a general rule: if important game elements like words or sail squares are blocked for a finite, short amount of time, or can be
+  interacted with to stop them from covering each other, that's fine. that passes."* Recorded in docs/INTENDED-BEHAVIOUR.md §0. Mac: Dev's stricter reading of the
+  failing edge was put to him and CORRECTED, same day, in his words: *"the failing rule is 'unless it hides a button that the player
+  cannot access by either waiting for 0.5 seconds or shifting the screen themselves (eg. dragging the board)'"*. So a cover-up fails only
+  when it hides a BUTTON the player can neither wait out (~0.5 s) nor reach by moving the screen. This also settles the sea trial's "gold sail square over the tap-to-sail words".
+- **HIS OTHER SIX ANSWERS, 2026-09-17** (all AGREED, off the playtest sheet): one tap presses "Get bakin'!" even while the card is still
+  writing · when a host's voyage breaks, every screen is told · "Ready to bake!" is hidden while the crates shuffle · a failed trade of
+  his own stays a bubble over his boat · the fight's two "waiting for…" lines are dropped everywhere so a watching phone keeps the
+  fight's own words (architecture item 8) · a watching screen frames the waters a PERSON can reach, as it already does for a bot.
+- **A WATCHER'S CAMERA STAYS ON THE BOAT — HIS RULING, 2026-09-17, against our recommendation.** Asked whether a watching screen should
+  frame the waters a PERSON can reach, as it already does for a bot, he said: *"we cannot see other players sail squares (bots or humans)
+  so ALL other players turns should be zoomed in on their boat for maximum immersion."* So the watcher path is re-pointed at the boat for
+  every captain, and architecture item 18's watcher half is re-aimed; the CHOOSER's own screen keeps framing its own squares (that half of
+  item 18 stands). Recorded in docs/INTENDED-BEHAVIOUR.md §0. Mac: Dev and Wy-Blade both recommended the opposite; he was asked and he
+  ruled.
+- **"CRUSTBEARD+12" IS CONFUSING — FIX IT, 2026-09-17:** *"Fix this so it is intuitive -- i've also noticed the confusion when i play."*
+  The circle on a bot's coin counter reads "+12" while 12 is the whole price, not twelve more. Wy-Blade's item, three shapes offered on
+  its page ("Crustbeard 12🌕" · "Crustbeard wants 12🌕" · "Crustbeard 12🌕 in all"); absent his pick it builds "Crustbeard wants 12🌕",
+  matching the answer line beside it, and shows before/after.
+- **WINNING PAYS A FLAT 500 — HIS CALL, 2026-09-17:** *"I think winning should just give you +500, make it a clean number."* It was a
+  derived 445 (twice the best possible non-winner, less what a winner banks on the way). He was told the trade-off in the same breath;
+  the round number is his. IT TURNS OUT TO COST NOTHING: a winner has by definition reached the ovens and finished, so the worst winner
+  scores 100+50+75+500 = 725 against a non-winner's ceiling of 335, and voyage_score_check still proves "any winner doubles any
+  non-winner" over 2000 random voyages, now with a 4th mutant (the win cut to 350) to keep that honest.
+- **HIS BUILD .17.5 PLAYTEST, 2026-09-17.** All 18 Tier-1 cleanup items LOOKS RIGHT, plus the halted voyage, the bake-off buttons, the
+  tap-the-coin fix, "so close", one ending in a crew, the shuffle hint and the rest. Five problems, each taken at its root:
+  · coins leaving a purse when he PASSED at a dock (the dock event carried the crate's price whether or not anybody bought; the engine
+    now records `paid` beside it — 539 of 1,878 docks in 80 voyages were passes) · the victory card's swipe under a MOUSE (release
+    outside the card never ended the drag: measured, the pages still followed the cursor 104px afterwards) · the ceremony off-centre and
+    not re-placed on resize (it was measured in window coordinates while drawn in a layer the page's own transform offsets — the same
+    trap as the flip coin; now 2px off the board's centre at 820, 1280 and 1440 wide) · the win paying a round 500 · the pre-game
+    narration's dark edges (his third ask on that screen — it must use the stage's own darkening, not its own).

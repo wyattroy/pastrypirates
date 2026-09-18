@@ -204,6 +204,18 @@ better by making **more** of them has failed, however good the offers are.
 
 Current, after 2026-08-14: **0.75 hails a game, 23.0% of them struck** (was 3.25 at 5.7%).
 
+**MEASURED AGAIN 2026-09-15/16, and the anti-spam invariant had drifted.** The CEO's bot audit found the cause:
+`coinTurns` priced a dubloon at a dock paying 4 a turn when this game has paid 2 since 2026-08-21, so a bot short
+of coins reached for a deal instead of a dock. With the rate derived from cfg, measured over 1000 voyages on my
+own count (offers actually PUT TO THE TABLE, not evaluations):
+
+    offers put to the table   11.38  ->  9.06 a voyage        deals struck   0.93  ->  1.06 a voyage
+
+Twenty percent fewer interruptions and MORE trading — which is this principle's whole claim, stated again in
+numbers. (The audit's own figures were 2.33 -> 1.68 hails on a different counting basis; same direction, same
+size.) Win share over the same 1000 voyages: flat, inside the noise. Whoever moves this number again re-measures
+both columns in the same commit — that is what this line is for.
+
 ---
 
 ## What was tried and failed, with numbers
@@ -265,6 +277,32 @@ arrive (price is `6 - stock`, so a crate taken before you get there costs a coin
 costs the island). That part is sound and worth rebuilding on top of a rescaled horizon; it is not
 what the ladder was punishing. Saved as a patch rather than kept, because a change that is 60% right
 and untested at the seams is not a starting point, it is a trap.
+
+### Judging a planned trade from the square the ship will finish on (2026-09-16, flat, not shipped)
+
+**The fault is real and still here.** Principle 3's first costume — *a trade committed to and never spoken* — was
+found alive by `scripts/voyage_disagreements.mjs --selftest`: over 200 voyages, **371 of 12,874 bot turns (2.9%)**
+planned a trade, sailed for it, and never made the offer — **52% of all planned trades**. By personality: balanced
+4.7% of its turns, rusher 4.1%, pirate 2.3%, trader 0.5%. The cause was the same in all 371: the bot still needed the
+crate, but from the square it sailed to, `botOpenOffer` found no offer worth hailing. The planner had priced the hail
+from the square it started on.
+
+**The fix tried:** judge the trade from `plan.cell`; if no offer is worth hailing from there, ask the brain again with
+trading off the table for that turn. Ladder, 1000 voyages an arm, red-proofed at +0.0 (identical) and −42.1 (lobotomy):
+
+| seeds | 1 fixed (seat 0) | 1 fixed (seat 1) | 2 fixed | 3 fixed | mean |
+|---|---|---|---|---|---|
+| dev ×7919 (Mac, reproduced exactly on Wy-Blade) | +0.3 | +0.2 | −0.4 | +0.4 | **+0.1** |
+| held out ×104729 (Wy-Blade) | −0.4 | +0.2 | −0.5 | −2.9 | **−0.9** |
+
+Days and trades barely moved (16.57 → 16.56–16.62 days, 1.06 → 1.06–1.09 trades), and **the arm where the fix fires
+most — 3 fixed, 1.18 re-plans a voyage — loses the most.** Not shipped.
+
+**Why it does not pay, as far as the numbers say:** the "dead" turn is not empty. The bot still sails to the square
+it chose and muses a coin, so replacing it with the next-best plan buys nothing the scoreboard can see. The planner's
+error is genuine; vetoing it after the fact is the wrong place to correct it. If this is revisited, price the hail
+inside the whole-turn evaluation from the finishing square, and put that on the ladder — not a veto bolted after it.
+The experiment's ladder script lives only on branch `sep16-dead-trade-ladder` (commit 99c0dd50), never on dev.
 
 ### An urgency-scaled hunt leash (inert, deleted)
 

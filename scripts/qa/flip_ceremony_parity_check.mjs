@@ -17,7 +17,8 @@
  *      it, so a guest still sees the fault the host had fixed: a blank coin, then a spin a beat
  *      later when the host's broadcast lands.
  *
- * AND THE GUARD IS THE POINT, NOT AN AFTERTHOUGHT. `src/ui/stage.js` has a `!fm && btl` fallback
+ * AND THE GUARD IS THE POINT, NOT AN AFTERTHOUGHT. `src/ui/stage.js` has a `!fm && S.battle` fallback
+ * (it was `!fm && btl` while a battle box existed; the box was removed at Wyatt's ask, 2026-09-14)
  * that writes "⚔️ Broadside!" for a BATTLE flip, which borrows no words. Stamping flipMsg
  * unconditionally would silently destroy the battle ceremony's title. So this check asserts BOTH
  * directions: the ordinary flip stamps, and the battle path must not.
@@ -60,8 +61,23 @@ if (!renderer) bad("renderAskPrompt not found in flow.js — check pointed at no
 else {
   /flipMsg/.test(renderer)       ? ok("the ONE renderer stamps window.__pp4.flipMsg, so the ceremony has a title and stakes on every tier")
                                  : bad("no flipMsg in renderAskPrompt — the ceremony draws an EMPTY title and EMPTY stakes (stage.js writes `fm ? … : \"\"`)");
-  /setFlipCoin\("spin"\)/.test(renderer) ? ok('the ONE renderer paints setFlipCoin("spin") in the tap\'s own frame')
-                                 : bad('no setFlipCoin("spin") in renderAskPrompt — the blank-coin-then-spin fault playtest 22 fixed');
+  /* RE-ANCHORED BY ARCHITECTURE ITEM 6 (2026-09-17). The tap's spin used to be painted inline here, in the renderer's two flip
+     shapes — and ONLY here: both FIGHT taps (battleAsk's on the host, watchPrompt's battle branch on a guest) armed the coin without it,
+     so a crew guest's own fight coin sat still until the host's answer came back over the wire (measured ~118ms). The paint now lives
+     in ONE place, board.js armFlipTap, and every arming goes through it; this gate asserts the renderer's two shapes, and both fight
+     taps, reach it — a STRONGER form of the assertion it replaces, which could not see the fight taps at all. */
+  const board = rd("src/ui/board.js");
+  const armTap = fnBody(board, "armFlipTap");
+  (armTap && /setFlipActive\(\s*\(\s*\)\s*=>\s*\{[^}]*setFlipCoin\("spin"\)/.test(armTap))
+    ? ok('the ONE tap (board.js armFlipTap) paints setFlipCoin("spin") in the tap\'s own handler')
+    : bad('armFlipTap does not paint setFlipCoin("spin") inside the tap handler — the blank-coin-then-spin fault playtest 22 fixed');
+  ((renderer.match(/armFlipTap\(/g) || []).length >= 2)
+    ? ok("both of the renderer's flip shapes (the pure flip and the flip-with-options) arm the coin through armFlipTap")
+    : bad("one of renderAskPrompt's two flip shapes arms the coin without armFlipTap — its tap would not start the spin");
+  const battleAskBody = fnBody(orch, "battleAsk");
+  (/armFlipTap\(/.test(battleAskBody) && /armFlipTap\(/.test(watchP))
+    ? ok("both FIGHT taps — the host's own (battleAsk) and a guest's (watchPrompt's battle branch) — arm through armFlipTap, so the tap starts the spin there too")
+    : bad("a fight's flip tap arms the coin without armFlipTap — that screen's coin waits for the host before it spins");
   /battle/.test(renderer)        ? ok("the stamp is guarded so a BATTLE flip is excluded")
                                  : bad("nothing excludes a battle flip — stamping unconditionally kills stage.js's `!fm && btl` \"⚔️ Broadside!\" title");
 }
@@ -70,28 +86,26 @@ else /renderAskPrompt\(/.test(watchP) ? ok("watchPrompt reaches the renderer —
                                        : bad("watchPrompt does not call renderAskPrompt — the guest's flip has no renderer at all");
 
 console.log("\nThe battle ceremony still borrows no words");
-/if\s*\(\s*!fm\s*&&\s*btl\s*\)/.test(stage) ? ok("stage.js still has the `!fm && btl` fallback the battle title depends on")
-                                            : bad("the `!fm && btl` fallback is gone — the battle ceremony title will be blank");
+/if\s*\(\s*!fm\s*&&\s*S\.battle/.test(stage) ? ok("stage.js still titles a battle flip from the fight itself (`!fm && S.battle`)")
+                                             : bad("the `!fm && S.battle` fallback is gone — the battle ceremony title will be blank");
 
-/* …AND IT MUST NAME THE RIGHT WIND. Added 2026-09-03, in THIS gate rather than a new one, because
-   this gate was already reading these exact lines and stayed green for the whole life of the bug:
-   it asserted the `!fm && btl` fallback EXISTS and never that the branch inside it can be reached.
-   The ceremony looked the captain up in `dwTag.parentElement` — `.btl-wind`, which holds the badge
-   and nothing else — so the lookup returned null on EVERY downwind battle and fell through to the
-   crosswind sentence. A player was told "Crosswind — two heads and the cannonballs collide" over
-   the coin and shown "⬇ DAVY SCONES FIRES DOWNWIND — WINS TIES" on the card seconds later. Both
-   halves are photographed: judge-1914Z-shots/solo-tablet-wk-018.png and -018-settled.png.
-   ⚠ THESE TWO ARE A REVERT ALARM, NOT THE PROOF. They are string tests, so a rewrite that broke
-   the behaviour differently would slip past them. The behavioural proof is a browser probe that
-   poses a downwind card, raises the real ceremony and reads the line —
-   `node scripts/qa/flip_ceremony_names_the_wind_check.mjs` (and `--before`, which strips the
-   marker and must go RED). It is deliberately NOT in `npm test`: it launches Chrome for ~40s. */
+/* …AND IT MUST NAME THE RIGHT WIND. Added 2026-09-03 after the ceremony called every downwind battle a crosswind (a DOM lookup
+   one hop short — judge-1914Z-shots/solo-tablet-wk-018.png against -018-settled.png). RE-ANCHORED 2026-09-14: Wyatt had the
+   battle box removed entirely ("THe battle box covered this up. I want the battle box removed entirely."), so there is no card
+   left to read a badge off. The ceremony and the fight's opening bubble now ask THE SAME engine function, downwindSide, for the
+   same two captains — one source, so they cannot disagree.
+   ⚠ THESE ARE A REVERT ALARM, NOT THE PROOF. The behavioural proof poses a battle, raises the real ceremony and reads the line:
+   `node scripts/qa/flip_ceremony_names_the_wind_check.mjs` (and `--before`, which makes the engine answer "crosswind" and must
+   go RED). Deliberately NOT in `npm test`: it launches Chrome for ~40s. */
 console.log("\nThe battle ceremony names the DOWNWIND captain, not a crosswind");
-/\.btl-col\.dw\s+\.who/.test(stage) ? ok("stage.js reads the marked column (.btl-col.dw .who) for the downwind captain")
-                                    : bad("stage.js no longer reads .btl-col.dw .who — the ceremony will call every downwind battle a crosswind");
-/dw===\s*"a"\s*\?\s*" dw"/.test(orch) && /dw===\s*"d"\s*\?\s*" dw"/.test(orch)
-  ? ok("renderBattle marks the downwind column, from the same `dw` that writes the badge")
-  : bad("renderBattle no longer marks the downwind column — the ceremony has nothing to read");
+const cerWind = (stage.match(/if\s*\(\s*!fm\s*&&\s*S\.battle[\s\S]{0,900}/) || [""])[0];
+/downwindSide\(\s*A\s*,\s*D\s*\)/.test(cerWind)
+  ? ok("the ceremony asks the engine's downwindSide for the two captains it frames")
+  : bad("the ceremony no longer asks the engine's downwindSide — it can call a downwind battle a crosswind");
+const rb = (orch.match(/export function renderBattle\(o\)\{[\s\S]*?\n\}/) || [""])[0];
+/downwindSide\(\s*o\.att\s*,\s*o\.def\s*\)/.test(rb) && /battle\.downwindTag/.test(rb)
+  ? ok("the fight's opening bubble asks the same downwindSide, so the bubble and the ceremony cannot name different winds")
+  : bad("renderBattle no longer asks downwindSide for its wind line — the bubble and the ceremony can disagree");
 
 console.log("\nThe renderer stamps both flip shapes");
 ((fnBody(flow, "renderAskPrompt").match(/flipMsg/g) || []).length >= 2) ? ok("flipMsg is stamped on both the pure-flip and flip-with-options paths")

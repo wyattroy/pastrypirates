@@ -38,7 +38,7 @@ import {
   HEXCOL, DEVICE_IMG, ANCHOR_IMG, CLOCK_IMG, FLIP_SOCKET_IMG, HOURGLASS_IMG,
   CLOSE_X_IMG, iconImg, emojify, unusedDefaultName,
 } from "../shared/index.js";
-import { pname, pn, getLastName, saveLastName, MAX_NAME_LEN, decisionIsLocal } from "./util.js";
+import { pname, pn, getLastName, saveLastName, MAX_NAME_LEN, decisionIsLocal, say, sayText, raiseLocalPrompt } from "./util.js";
 // F2/UI-06 (2026-07-29): escHtml's only use here was the duplicate seat-name rendering that this
 // task removed. The remaining name rendering escapes through pn() -> pname() -> escHtml, so the
 // escaping is preserved and this import is now dead — dropped rather than left (D-33/D-34/D-40).
@@ -169,7 +169,7 @@ export function wireNameWarnings(){
 // About page are the only places that are not). It names the name back so there is no doubt WHICH
 // one is spoken for, and it promises nothing the 18-character cap would then refuse — it asks for
 // another name rather than suggesting a way to decorate this one.
-export const nameTakenMsg=(nm)=>`Arrgh — a captain aboard already sails as ${nm}. Pick another name, matey.`;
+export const nameTakenMsg=(nm)=>sayText("lobby.nameTaken",{name:nm});
 
 /* ================= name modal (FIX-01) ================= */
 // D-03: the same modal appears before all four mode cards. Each caller in wireWelcome() opens it
@@ -283,7 +283,7 @@ export function wireNameModal(){
   if(card&&!card.querySelector(".modalX")){
     card.style.position="relative";
     const x=document.createElement("button");
-    x.className="modalX";x.type="button";x.innerHTML=iconImg(CLOSE_X_IMG);x.setAttribute("aria-label","Close");
+    x.className="modalX";x.type="button";x.innerHTML=iconImg(CLOSE_X_IMG);x.setAttribute("aria-label",sayText("button.close",{}));
     x.onclick=()=>{cancelName();};
     card.insertBefore(x,card.firstChild);
   }
@@ -371,13 +371,19 @@ export function passGate(seatIdx){
      table to hand the phone to Flaky Jack. The fact lives HERE, in the gate, so all three callers
      (and the next one) are right without each remembering it. A bot's seat also never becomes
      mySeat, which is what the replay branch below used to do to it. */
-  if(!appState.passAndPlay||seatIdx===appState.mySeat||!decisionIsLocal(seatIdx))return Promise.resolve();
+  const holder=appState.mySeat;if(!appState.passAndPlay||seatIdx===holder||!decisionIsLocal(seatIdx))return Promise.resolve();
   if(appState.replaying){appState.mySeat=seatIdx;return Promise.resolve();} // silently keep mySeat in sync so it's
   // already correct the moment replay catches up to the live edge — no UI shown mid-replay
   // The outgoing captain's turn is over, so their checked recipe locks the moment the wheel
   // changes hands — playtest 18's "reveal lasts the turn" rule, and the reason nothing private
   // can be on screen while the ceremony (or the old blur) holds the board.
   appState.recipeRevealed=false;
+  /* ⭐ AND FOR THE LENGTH OF THE CARD THE DEVICE BELONGS TO NO CAPTAIN (architecture item 3, 2026-09-16). "Check my recipe"
+     is offered to the captain whose turn it is, read from the event stream — which still names the OUTGOING captain here,
+     because the incoming captain's turn is recorded only after the tap (the device changes hands before the screen
+     changes captain). render() reads this so the outgoing captain's button is not offered on the hand-over card.
+     Local by construction: a flag on this screen, no event (decider_table_check). */
+  appState.handOver=seatIdx;
   /* ⚠ AND THE BOX IS REDRAWN NOW, or the lock is only on paper. Measured 2026-09-10 by
      scripts/qa/_pnp_band_handover.mjs: 3 of 8 "Pass the wheel to …" cards shared the screen with
      the OUTGOING captain's recipe in the band. Clearing the flag changes what MAY be drawn; nothing
@@ -390,8 +396,14 @@ export function passGate(seatIdx){
   // dim sea, minimal white card (name + button, no briefing), the button in the incoming
   // captain's own boat color. The v2 blur overlay below survives only as the non-stage fallback,
   // so a missing stage still fails safe to something that hands the device over.
+  /* ⭐ THE CARD IS A PROMPT ON THIS DEVICE, AND IT ASKS THE CAPTAIN HOLDING IT TO PASS IT ON — so it comes through the one door a
+     local prompt comes through, naming that captain (architecture item 3, 2026-09-16). During the recipe draft — walked seat by
+     seat behind this card — "who is being asked" is what the top bar shows (util.js whoseTurn), and this keeps the outgoing
+     drafter lit on the card exactly as it was (his settled call: the draft's top bar keeps what it showed). Once the recipes
+     are set the event stream answers and this changes nothing. AFTER renderBoard() above, deliberately: the board
+     was drawn with nobody being asked, so the ring does not appear mid-draft. */
   if(document.body.classList.contains("pp4Stage")){
-    return new Promise(res=>{
+    return raiseLocalPrompt(holder,()=>new Promise(res=>{
       const ap=$("actionPanel");
       ap.dataset.pp4Stage="1";
       /* THE HAND-OFF CARD IS SIZED BY ITS OWN WORDS. Wyatt, 2026-08-20: the "Pass the wheel to /
@@ -405,33 +417,21 @@ export function passGate(seatIdx){
       ap.dataset.pp4Hand="1";
       if(window.__pp4&&window.__pp4.stageCenterNow)window.__pp4.stageCenterNow();
       // @copy misc.lobby.passmessage4 — APPROVED as written, Wyatt 2026-08-14
-      panel(`<div class="apMsg">${iconImg(DEVICE_IMG)} Pass the wheel to
+      panel(`<div class="apMsg">${say("pass.to",{icon:iconImg(DEVICE_IMG)})}
         <b style="color:${HEXCOL[seatIdx]}">${pname(seatIdx)}</b></div>
         <div class="apBtns"><button class="apBtn" id="passHelmGo" type="button"
-          style="border-color:${HEXCOL[seatIdx]};color:${HEXCOL[seatIdx]}">At the helm!</button></div>`,true);
+          style="border-color:${HEXCOL[seatIdx]};color:${HEXCOL[seatIdx]}">${say("pass.go",{})}</button></div>`,true);
       const go=$("passHelmGo");
-      const took=()=>{delete ap.dataset.pp4Stage;delete ap.dataset.pp4Hand;panel("");appState.mySeat=seatIdx;res();};
+      const took=()=>{delete ap.dataset.pp4Stage;delete ap.dataset.pp4Hand;panel("");appState.mySeat=seatIdx;appState.handOver=null;res();};
       if(!go){took();return;}
       go.onclick=()=>{go.onclick=null;took();};
-    });
+    }));
   }
-  return new Promise(res=>{
-    $("game").classList.add("bg-blurred");
-    // NARR-01/D-25 (Wyatt-approved 2026-07-29).
-    // @copy misc.lobby.passmessage
-    $("passOverlayMsg").innerHTML=`${iconImg(DEVICE_IMG)} Pass the board to<br><span style="color:${HEXCOL[seatIdx]}">${pname(seatIdx)}</span>`;
-    const btn=$("passHelmBtn");
-    // @copy misc.lobby.passbutton
-    btn.innerHTML=`${iconImg(ANCHOR_IMG)} ${pname(seatIdx)} at the helm!`;
-    btn.style.background=HEXCOL[seatIdx];btn.style.borderColor=HEXCOL[seatIdx];
-    $("passOverlay").style.display="flex";
-    btn.onclick=()=>{
-      $("passOverlay").style.display="none";
-      $("game").classList.remove("bg-blurred");
-      appState.mySeat=seatIdx;
-      res();
-    };
-  });
+  /* THE OLD "Pass the board to…" OVERLAY STOOD HERE — the fallback for a game with no stage. Every voyage builds the stage
+     (stage.js buildStage), so no player could reach it. His pass, 2026-09-13: "I've never seen this in pass-and-play --
+     are you sure it's in the game? cut it if not." With no stage there is no card to show; the device changes hands. */
+  appState.mySeat=seatIdx;appState.handOver=null;
+  return Promise.resolve();
 }
 
 export function renderSeatList(seats){
@@ -478,7 +478,7 @@ export function renderSeatList(seats){
     // It is rebuilt on every seats update, so its click cannot be bound once at wire time. The
     // handler is DELEGATED from #seatList in src/orchestrator.js; nothing here binds it, which also
     // keeps this file free of the net-calling code its purity bar (D-07) forbids.
-    const rename=me?`<button class="seatRename" type="button" id="btnChangeName">Change yer name</button>`:"";
+    const rename=me?`<button class="seatRename" type="button" id="btnChangeName">${say("lobby.rename",{})}</button>`:"";
     html+=`<div class="seat ${me?"me":""}">
       <span class="nm">${pn(i)}${label?` — ${label}`:""}</span>${rename}</div>`;
   }
@@ -488,10 +488,10 @@ export function renderSeatList(seats){
     // NARR-01/D-25/D-50 (Wyatt-approved 2026-07-29): applied verbatim; {clock/stopwatch} resolves
     // to the hourglass (D-50 RESOLVED — this is a "waiting for players" moment, not a control).
     // @copy misc.lobby.waitcaption
-    $("waitMsg").innerHTML=`${iconImg(HOURGLASS_IMG)} Yer mateys will appear above as they join. Wait for them before clicking start. Empty seats are played by botpirates — and they're feisty.`;
+    $("waitMsg").innerHTML=say("lobby.waitCaption",{icon:iconImg(HOURGLASS_IMG)});
   }else{
     $("btnStart").style.display="none";
-    $("waitMsg").textContent="Waiting for the host to start the voyage…";
+    $("waitMsg").textContent=sayText("lobby.waitHost",{});
   }
 }
 

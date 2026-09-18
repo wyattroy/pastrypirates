@@ -496,6 +496,16 @@ const BAKE_ATTENTION=0.24;
 // gives coins a use at the very end of a voyage, where they had none — every other way to spend
 // them is out at sea.
 const BAKE_REWATCH_COST=1;
+/* ⭐ A CAPTAIN'S STARTING PURSE — THE ONE RULE (architecture item 2, 2026-09-16).
+   The captain who sails first gets cfg.startCoins, and each captain after them one more (3/4/5/6 at a
+   four-captain table). The played rule since 06005ae8 (2026-07-18: "starting coins staggered (3/4/5/6)
+   to level the resulting first-mover advantage"); kept by Mac: Dev relaying Wyatt, 2026-09-16.
+   It used to be written twice: the live voyage staggered the purses (orchestrator.js runLiveNet) and the
+   headless engine gave every captain cfg.startCoins, so every bot ladder measured a game nobody plays.
+   HERE, in the engine's pure leaf tier, because TWO readers need the same rule and one of them cannot
+   import the engine: Game.beginVoyage deals the purses with it, and rulesFacts (below) prints what the
+   first two captains start with on the rules page. `place` is a captain's place in the sailing order. */
+function startingPurse(cfg,place){ return cfg.startCoins+place; }
 /* rulesFacts(cfg) — EVERY NUMBER THE HOW-TO-PLAY PAGE TEACHES, computed from the same cfg the
    engine plays by (A-7 — Wyatt, 2026-08-28: the rules page must update "according to the latest
    rules" automatically). The page holds no copy of any amount: each one is an empty
@@ -505,7 +515,8 @@ const BAKE_REWATCH_COST=1;
    filler drifting apart. Takes cfg as an argument because shared/ sits below engine/ in the
    module graph — the caller passes the live game's cfg, or roundCfg's default. */
 function rulesFacts(cfg){
-  return {recipeSize:cfg.recipeSize,startCoins:cfg.startCoins,
+  // the starting purses: the first captain to sail, and the next (startingPurse is the one rule)
+  return {recipeSize:cfg.recipeSize,startCoins:startingPurse(cfg,0),startCoinsNext:startingPurse(cfg,1),
     sailRange:SAIL_RANGE,sailUpwind:SAIL_RANGE_UPWIND,stormPush:STORM_PUSH,
     dockHeads:cfg.dockHeads,dockTails:cfg.dockTails,
     /* ⚠ `crateBase` IS NOT HERE ANY MORE — Wyatt's playtest item 23, 2026-09-07. The rules used to
@@ -525,16 +536,10 @@ function rulesFacts(cfg){
 // `?bakeoff=0` / `?bakeoff=1` overrides the constant for one session so both rulesets can be
 // A/B'd on a phone without a redeploy. Guarded so a file:// page or a storage-blocked context
 // falls back to the constant instead of throwing.
-let bakeoffOn=null;
 function bakeoffEnabled(){
-  if(bakeoffOn!==null)return bakeoffOn;
-  let on=BAKEOFF_ENABLED;
-  try{
-    if(location.search.indexOf("bakeoff=1")!==-1)on=true;
-    else if(location.search.indexOf("bakeoff=0")!==-1)on=false;
-  }catch(err){}
-  bakeoffOn=on;
-  return bakeoffOn;
+  /* ALWAYS ON. The ?bakeoff=0 switch back to the classic ruleset went with the classic day, by his word (2026-09-13):
+     "players keep playing until someone wins the bakeoff. clean this up from the game." */
+  return BAKEOFF_ENABLED;
 }
 /* ================= ?ovens=1 — the bake-off playtest shortcut =================
 
@@ -776,4 +781,49 @@ const COLORS=["var(--p0)","var(--p1)","var(--p2)","var(--p3)"];
 const HEXCOL=["#f2679e","#1d96a6","#27c78d","#f5a623"];
 const man=(a,b)=>Math.abs(a[0]-b[0])+Math.abs(a[1]-b[1]);
 
-export { mulberry32, ING_ALL, ING_EMOJI, ASSET_BASE, ALARM_IMG, ANCHOR_IMG, BATTLE_IMG, BLOCKED_SLASH_IMG, BOARD_IMG, BOAT_IMG, CAKE_SLICE_IMG, CANCEL_X_IMG, CANDY_CRAB_IMG, CHECKMARK_IMG, CLOCK_IMG, CLOSE_X_IMG, COINS_FLYING_IMG, COIN_IMG, COIN_SPIN_IMG, COMPASS_DIAL_IMG, COMPASS_NEEDLE_IMG, CRATE_OVERBOARD_IMG, CROISSANT_IMG, CROWN_IMG, CUPCAKE_IMG, CURRENT_SWIRL_ICON_IMG, DAGGER_IMG, DEVICE_IMG, DICE_IMG, DOCK_IMG, DODGE_SWOOSH_IMG, DONUT_IMG, DOOR_IMG, EMOJI_IMG, ENVELOPE_IMG, EYES_IMG, FINISH_FLAG_IMG, FISHING_ROD_IMG, FISH_IMG, FLAME_IMG, FLEE_BOOT_IMG, FLIP_HEADS_IMG, FLIP_SOCKET_IMG, FLIP_TAILS_IMG, GEAR_IMG, GLOBE_IMG, HANDSHAKE_IMG, HORN_IMG, HOURGLASS_IMG, IMPACT_BURST_IMG, ING_HOLE_IMG, ING_IMG, ISLAND_SHAPE_IMG, ISLAND_SILHOUETTE_IMG, KEY_IMG, MAGNIFYING_GLASS_IMG, MAP_IMG, PARROT_IMG, PAUSE_IMG, PAUSE_SYMBOL_IMG, PIRATE_CHEF_IMG, PIRATE_FLAG_IMG, PLAY_ARROW_IMG, PLAY_IMG, POCKET_COMPASS_IMG, PRINTER_IMG, REFUSED_IMG, REPAIR_TOOLS_IMG, REPLAY_IMG, RIBBON_IMG, ROBOT_IMG, SAILBOAT_IMG, SALUTE_CAPTAIN_IMG, SCROLL_IMG, SHIELD_IMG, SKULL_IMG, SNAIL_IMG, SPARKLES_IMG, SPEECH_BUBBLE_IMG, SPOILS_POUCH_IMG, SPYGLASS_IMG, STOOL_IMG, SOUND_OFF_IMG, SOUND_ON_IMG, STOPWATCH_IMG, STORM_CLOUD_IMG, STORYBOOK_IMG, SUGARFISH_IMG, TARGET_IMG, TRADE_SWIRL_IMG, WARNING_IMG, WAVE_IMG, WIND_ARROW_IMG, WIND_GUST_IMG, EMOJIFY_RE, emojify, TET, ING_NAME, ING_PLAIN, DOCK_PLACE, DOCK_FLAVOR, dockPlace, dockFlavor, dockFlavorIcon, iname, ilabel, ingImg, ilabelImg, iconImg, DIRS, DIRNAME, PERP, STORM_DIAG, OPPOSITE, SAIL_RANGE, SAIL_RANGE_UPWIND, STORM_PUSH, devHost, BAKEOFF_ENABLED, BAKE_SWAPS, BAKE_ATTENTION, BAKE_REWATCH_COST, rulesFacts, bakeoffEnabled, OVENS_NOW, ovensNowEnabled, BAKE2_NOW, bake2Enabled, ENDCARD_NOW, endCardEnabled, SEA_CREATURES, NAMES, DEFAULT_NAMES, unusedDefaultName, seatHeldName, withoutSeat, applyNameClaim, buildRoster, COLORS, HEXCOL, man, subjectOf };
+/* ⭐ THE VOYAGE SCORE — the treasure tally on the victory card (docs/VICTORY-CARD-PRD.md §3).
+   A score for ONE captain on ONE voyage that pays for choices, never for luck (dock flips, battle flips and
+   storms pay nothing; musing pays nothing — Wyatt, 2026-09-16). The points are HIS, tuned on the Victory Card
+   sheet (round 4); change them there first.
+   WINNING HAS NO NUMBER OF ITS OWN (his ruling: "Players who WIN should get at least double the points as
+   players who don't win -- winning is really hard"). The win pays whatever it takes for the slowest possible
+   winner to score double the most any non-winner can ever reach — worked out from the other points here, so
+   it stays true when they change. That is why coins, trades and days ahead count only up to a cap, and why
+   the perfect bake-off is a WINNER's prize: a captain who also named every crate at a shared bakery but was
+   not crowned may score every named crate, never the perfect bonus.
+   This is a leaf: the engine sums it into the `end` event, and the card only draws the rows it is sent. */
+const VOYAGE_POINTS={crate:20,ovens:50,named:15,perfect:300,day:10,dayCap:5,coin:3,coinCap:10,trade:10,tradeCap:3};
+function voyageLoserCeiling(P,size){ return size*P.crate+P.ovens+size*P.named+P.dayCap*P.day+P.coinCap*P.coin+P.tradeCap*P.trade; }
+/* ⭐ WINNING PAYS A ROUND 500. Wyatt, 2026-09-17: "I think winning should just give you +500, make it a clean number."
+   IT WAS 445, AND THAT NUMBER WAS DOING A JOB: it was derived so that the slowest possible winner still scored DOUBLE the best
+   possible non-winner (a captain who reaches the ovens, names all five and fills their hold can reach 335). A flat 500 keeps a
+   winner ahead of every loser — the worst winner scores 500 + their own rows against a ceiling of 335 — but no longer double.
+   He was told that in the same breath as the change, and chose the round number; it is his call and it is written down here so
+   nobody "fixes" it back. voyage_score_check still proves a winner always outscores a non-winner. */
+const VOYAGE_WIN=500;
+function voyageWinBonus(P,size){ return VOYAGE_WIN; }   // eslint-disable-line no-unused-vars — P and size stay for the callers' shape
+/* c: {won, crates (recipe crates held), ovensDay, named (bake-off crates named right), tries (attempts, 0 unless
+   solved), ahead (days ahead of the navigator), coins, trades}. Returns the rows in the order the card pays them. */
+function voyageScoreRows(c,P,size){
+  const ahead=Math.min(P.dayCap,Math.max(0,c.ahead||0)), coins=Math.min(P.coinCap,c.coins||0), trades=Math.min(P.tradeCap,c.trades||0);
+  const lit=c.ovensDay!=null;
+  const perfect=!c.won?0:c.tries===1?P.perfect:c.tries===2?Math.round(P.perfect/2):0;
+  return [
+    {key:"crates", count:c.crates||0, each:P.crate, pts:(c.crates||0)*P.crate},
+    {key:"ovens",  day:lit?c.ovensDay:null, pts:lit?P.ovens:0},
+    {key:"named",  count:c.named||0, each:P.named, pts:(c.named||0)*P.named},
+    {key:"perfect",tries:c.won?(c.tries||0):0, pts:perfect},
+    {key:"won",    pts:c.won?voyageWinBonus(P,size):0},
+    {key:"ahead",  count:ahead, each:P.day, pts:ahead*P.day},
+    {key:"coins",  count:coins, held:c.coins||0, each:P.coin, pts:coins*P.coin},
+    {key:"trades", count:trades, each:P.trade, pts:trades*P.trade},
+  ];
+}
+/* CLOSENESS ORDER — who came closest to winning (Wyatt, 2026-09-14): the winner; then baked first; then most
+   bake-off crates named right; then most recipe crates held; then nearest to Tortuga; then most doubloons.
+   Seat breaks a dead heat so every screen agrees. With nobody crowned, everyone is ranked by the same order. */
+function voyageCloseness(a,b){
+  return (b.won-a.won)||(b.baked-a.baked)||(b.named-a.named)||(b.crates-a.crates)||(a.squares-b.squares)||(b.coins-a.coins)||(a.seat-b.seat);
+}
+
+export { mulberry32, ING_ALL, ING_EMOJI, ASSET_BASE, ALARM_IMG, ANCHOR_IMG, BATTLE_IMG, BLOCKED_SLASH_IMG, BOARD_IMG, BOAT_IMG, CAKE_SLICE_IMG, CANCEL_X_IMG, CANDY_CRAB_IMG, CHECKMARK_IMG, CLOCK_IMG, CLOSE_X_IMG, COINS_FLYING_IMG, COIN_IMG, COIN_SPIN_IMG, COMPASS_DIAL_IMG, COMPASS_NEEDLE_IMG, CRATE_OVERBOARD_IMG, CROISSANT_IMG, CROWN_IMG, CUPCAKE_IMG, CURRENT_SWIRL_ICON_IMG, DAGGER_IMG, DEVICE_IMG, DICE_IMG, DOCK_IMG, DODGE_SWOOSH_IMG, DONUT_IMG, DOOR_IMG, EMOJI_IMG, ENVELOPE_IMG, EYES_IMG, FINISH_FLAG_IMG, FISHING_ROD_IMG, FISH_IMG, FLAME_IMG, FLEE_BOOT_IMG, FLIP_HEADS_IMG, FLIP_SOCKET_IMG, FLIP_TAILS_IMG, GEAR_IMG, GLOBE_IMG, HANDSHAKE_IMG, HORN_IMG, HOURGLASS_IMG, IMPACT_BURST_IMG, ING_HOLE_IMG, ING_IMG, ISLAND_SHAPE_IMG, ISLAND_SILHOUETTE_IMG, KEY_IMG, MAGNIFYING_GLASS_IMG, MAP_IMG, PARROT_IMG, PAUSE_IMG, PAUSE_SYMBOL_IMG, PIRATE_CHEF_IMG, PIRATE_FLAG_IMG, PLAY_ARROW_IMG, PLAY_IMG, POCKET_COMPASS_IMG, PRINTER_IMG, REFUSED_IMG, REPAIR_TOOLS_IMG, REPLAY_IMG, RIBBON_IMG, ROBOT_IMG, SAILBOAT_IMG, SALUTE_CAPTAIN_IMG, SCROLL_IMG, SHIELD_IMG, SKULL_IMG, SNAIL_IMG, SPARKLES_IMG, SPEECH_BUBBLE_IMG, SPOILS_POUCH_IMG, SPYGLASS_IMG, STOOL_IMG, SOUND_OFF_IMG, SOUND_ON_IMG, STOPWATCH_IMG, STORM_CLOUD_IMG, STORYBOOK_IMG, SUGARFISH_IMG, TARGET_IMG, TRADE_SWIRL_IMG, WARNING_IMG, WAVE_IMG, WIND_ARROW_IMG, WIND_GUST_IMG, EMOJIFY_RE, emojify, TET, ING_NAME, ING_PLAIN, DOCK_PLACE, DOCK_FLAVOR, dockPlace, dockFlavor, dockFlavorIcon, iname, ilabel, ingImg, ilabelImg, iconImg, DIRS, DIRNAME, PERP, STORM_DIAG, OPPOSITE, SAIL_RANGE, SAIL_RANGE_UPWIND, STORM_PUSH, devHost, BAKEOFF_ENABLED, BAKE_SWAPS, BAKE_ATTENTION, BAKE_REWATCH_COST, rulesFacts, bakeoffEnabled, OVENS_NOW, ovensNowEnabled, BAKE2_NOW, bake2Enabled, ENDCARD_NOW, endCardEnabled, SEA_CREATURES, NAMES, DEFAULT_NAMES, unusedDefaultName, seatHeldName, withoutSeat, applyNameClaim, buildRoster, COLORS, HEXCOL, man, subjectOf, VOYAGE_POINTS, voyageLoserCeiling, voyageWinBonus, voyageScoreRows, voyageCloseness, startingPurse };

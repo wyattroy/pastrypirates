@@ -6,6 +6,786 @@ say whether a fault is *recurring* — which is the check this file exists to ma
 
 ---
 
+## 2026-09-16 · the architecture audit list · `sep16-architecture-cleanup` @ `1ea8705a` · A REAL LIST: ALL 13 TOP ITEMS ARE REAL. SEVEN CORRECTIONS BEFORE IT COUNTS AS CEO-VERIFIED; ITEM 1 CAN START NOW
+
+**His ask, verbatim:** *"get the Wy:Blade to run a full audit of all architectural inconsistencies to create an itemized, CEO-verified list of how to clean them up. then verify it, and have it do this work in a separate branch off yours. end with a sea trial to make sure it did not break anything, and report to me your findings."* — and his clarification: *"By architectural inconsistencies, I mean exactly the work that we just did in this session about where functions are used only once, but in multiple different places."*
+
+**What I did.** I read the brief and all 455 lines of the list. Then I opened the cited lines myself for every Tier 1 item and for 12 items from Tiers 2–4. I opened one of the author's sea-trial screenshots (`sea-trial-shots/solo-desktop-013-settled.png`). I used only git, grep and file reads, and changed nothing. I did not fetch, run node, open a browser, start a server or run `npm test`. Git facts below come from this machine's last fetch, at 20:51 today.
+
+**Items I opened myself:** Tier 1: **1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13** (all 13). Tiers 2–4: **14, 15, 16, 17, 18, 19, 20, 22, 29, 31, 38, 40** (12). For item 21 I read only the redraw line.
+
+### One sentence for Wyatt
+**The list is honest and its biggest finding is real: in every real game, a human who fires two heads in a crosswind is still offered "Fire again", against your ruling. But seven things in the list need fixing first, including one item (the "recipe stowed" card) whose fix as written would leave a double card in pass-and-play.**
+
+---
+
+### 1. Each thing he asked for
+
+| His ask | Verdict | Evidence |
+|---|---|---|
+| A full audit of every fact decided in more than one place ("functions used only once, but in several places") | **DONE** | Every item I opened is one game fact decided in two or more places. Item 16 is the exception: a typed number, not a copy. I found one small copy the auditors missed (question E). |
+| Itemized | **DONE** | 42 items. Each names the fact, the places, the one place, a check (a gate) and before/after counts. |
+| CEO-verified | **PARTIAL** | This review. The copies are real; the seven corrections are below. |
+| "Then verify it" | **PARTIAL** | The session re-ran four numbers. It says itself that it did not re-read most cited lines. I did, for 25 items, and the line numbers are accurate. So the gap cost nothing this time. |
+| Do the work in a branch off yours | **Branch made; no work done** | `origin/sep16-architecture-cleanup` = `1ea8705a`, one commit on top of `c7833097` = `origin/dev`. No cleanup commits yet, by design: Mac: Dev picks the items. |
+| End with a sea trial | **NOT DONE** | The newest sea-trial report (a test voyage run to catch breakage) is still build 2026.09.13.5, and it FAILED. There is nothing new to sail yet. |
+| Report findings to him | **NOT DONE** | |
+
+### 2. Delivered but not asked for
+- **Gates whose names promise more than they check** (list lines 50–55). This is useful, and every item it touches needs it.
+- **A dead-code list, marked out of scope.** Harmless, but it contradicts two items (question D).
+- **The two CEO verdict files** (`.planning/CEO-REVIEWS.md` and `.claude/CEO-REVIEWS.md`). A real process fault, rightly raised.
+
+None of this pushed out the cleanup. The cleanup is simply waiting on Mac: Dev's choice.
+
+---
+
+### A. Real second copies? (every Tier 1 item)
+
+| # | Verdict | What I saw |
+|---|---|---|
+| **1** The fight | **REAL** | **The re-fire:** the real fight's loop has no crosswind test (`orchestrator.js:783-799`); the engine's has one (`engine/index.js:1975-1976`). **The flee:** the engine's squares exclude the current (`engine:1956`, which uses `:1777`); the real fight's include it (`orchestrator.js:734`, using `flow.js:361`). **The plunder:** the real fight has no "wanted by another captain" step (`orchestrator.js:847`); the engine does (`engine:1858-1861`). **The bookkeeping** lines match the list exactly. **The rules page** still sells the re-fire: "If the shot doesn't tell, the attacker may pay 2🌕 to load another broadside" (`rules.html:122`). |
+| **2** Voyage start | **REAL** | **Purses:** the game staggers them (`orchestrator.js:1395`); the engine gives everyone 3 (`engine:271`). **Day start:** the engine's record has no `streak` (`engine:3237`); the game's does (`orchestrator.js:1442`). **Day cap and crowning:** written three times (`engine:3234, 3263`, `orchestrator.js:1437`) and twice (`engine:3316-3326`, `orchestrator.js:1473-1490`); both copies agree today. |
+| **3** Whose turn | **REAL, and seen** | The top bar reads the prompt slot (`stage.js:1571`). The ring reads the event history (`board.js:2558`). I counted the callers of the one writer: exactly 19, as claimed. **In the screenshot:** the top bar lights the pink boat, Davy Scones, who is guessing the winner. The captains box and the board ring mark Flaky Jack, the orange attacker. |
+| **4** Fight camera | **REAL, and stronger than "inferred"** | The camera hold is released only by `battleEnd` (`stage.js:5955`), and its only caller is `orchestrator.js:603`, on the screen that runs the fight. A guest turns the hold on (`flow.js:3588`) and nothing ever turns it off. So on a guest, `stage.js:1841` holds the camera for the rest of the voyage. That is certain from the code; only the look on screen is unwatched. |
+| **5** End of voyage | **REAL** | The host does it one way (`orchestrator.js:1518-1586`), the guest another (`:948-971`). Confetti is called only at `:1585`, on the host. The guest marks the end as handled before it reads the numbers, then gives up if they are missing (`:949-952`). |
+| **6** Flip spin sound | **REAL in code; nobody has heard it** | On a solo host, a bot's fight flip starts the spin sound twice. First route: `orchestrator.js:670` → `board.js:3227`. Second: the one event door's flip check at `orchestrator.js:1917` passes, because a bot's flip never counts as "decided on this screen" (`storyboard.js:213-214`), so `dockcoin.js:129` starts it again. Starting the sound again cancels only the repeat timer, not a sample already playing (`audio.js:999-1000`). I counted the call sites: 11, as claimed. |
+| **7** Sail route | **REAL** | A bot may move into the current (`engine:876`), but its drawn route is asked for without the current (`engine:3005`, `flow.js:3207`). The route finder returns nothing when it cannot reach the square (`engine:762-763`), so nothing is drawn (`storyboard.js:162-163`). |
+| **8** Guest fight lines | **REAL (read)** | A guest drops every line during a fight (`orchestrator.js:2250`, `:474`). The host sends the "…is waiting to defend" line (`:549`) but never draws it on its own screen (`:243-250`). |
+| **9** Fight's ending line | **REAL (read)** | **With no crow's-nest callers** (a 2-captain game), the win line is said at `orchestrator.js:866`. The bets step returns at once (`flow.js:3635`), and `flow.js:2891` says the same line again. **With any caller**, the flee exit says nothing (`orchestrator.js:827`). The last event is then a bet, which the narrator skips (`util.js:1929`), so "Davy Scones slips away!" is never said. |
+| **10** Recipe via two pipes | **REAL pipes; the doubled card is unproven** | Written twice: `orchestrator.js:1055-1056`. Watched on every screen: `:2796`, `:2841-2853`. But its claim that every device "may raise [the card] twice" (list line 213) contradicts item 11's "A guest gets one" (line 223). |
+| **11** Recipe-stowed card | **REAL** | The event door shows the card, and the card spends its lesson straight away (`flow.js:1367`). Then the host loop checks the lesson again, finds rung 1 still has words (`orchestrator.js:1077`), and shows a second card (`:1079`). |
+| **12** Dotted course | **REAL, but narrow** | Cleared for everyone only on the computing screen (`flow.js:2944`) and on moves (`orchestrator.js:1897-1898`). The other clears run only with the parrot off (`flow.js:703, 796`). Only a crew guest with the parrot on who stays put would ever see it. |
+| **13** Attack/trade reasons | **REAL** | Attack targets are not filtered for captains at the ovens (`flow.js:2574`), and the reason is picked by elimination (`:2650-2651`). Beside a baker (`engine:1903`), a captain with a full hold is told "holds are empty". **Trade** counts a baker's crates (`flow.js:2600`), but the hail itself excludes them (`engine:1211`, `:3060`). |
+
+**Spot checks, Tiers 2–4:**
+- **Real:**
+  - 14: bots and humans end the turn differently after a refused hail (`engine:1691`, `:1735`, `:3015`; `flow.js:3117` vs `:3171`).
+  - 15: the live bot asks every holder (`flow.js:3067`) while the engine asks only its audience (`engine:1688-1690`); a typed `1.1` sits at `flow.js:3159`.
+  - 17: the re-watch price is decided three times (`engine:3144`, `flow.js:1014`, `orchestrator.js:2163-2171`).
+  - 18: the watcher's camera frame leaves out the current (`stage.js:283-285`), while the comment above it says the two "agree by construction".
+  - 19: the "head of the current" line is said only at `flow.js:3036`.
+  - 20: a coins-only counter is added to the coins already offered (`engine:1346`), so the full-purse slider (`flow.js:2166`) can ask for more than the asker has. The proposed rule fits his playtest-21 ruling (`flow.js:2185-2199`).
+  - 22: resuming a voyage drops `bake2`/`endcard` from the save (`util.js:2321-2327` vs `flow.js:3743`, `:3755`).
+  - 29: `engine:986-987` itself says "change the two together".
+  - 31: the dock record is written twice (`engine:1109-1112` vs `flow.js:2050-2053`); the human copy never sets `justDocked` (`flow.js:2072`).
+  - 38: a doubled guard, trivial (`panel.js:240` vs `orchestrator.js:1638`).
+  - 40: captain colours in three places (`shared/index.js:770`, `index.html:48`, `index.html:4069-4072`).
+- **PARTLY: item 16.** One of its three "places" is `strikeFrom` (`engine:1806-1818`), which is dead. It is reached only through `chooseTarget`/`chooseAction` (`engine:2295`, `:2910`), and only `scripts/bot_ladder.js:56, 65` call those. The list's own dead-code line (445) says the same. Another "place" is "the real rules", which is not a place. What is left is one typed number (`engine:2822`): a *"nothing is a constant"* fault, not a copy.
+
+### B. Is each "one place" really one?
+- **Item 1: PARTLY.** Every rule becomes one engine step, which is right. But *when* a defender may flee (both tails: `orchestrator.js:733`, `engine:1948`) and the re-fire loop (`:783`, `:1979`) stay in both fight runners. The list admits this only in its summary (line 41). His crosswind ruling was exactly this kind of rule, so item 1 should name a "may the defender flee" step, or say plainly in its own text that the order stays copied.
+- **Item 2: nearly.** It routes `play()` and `runLiveNet` through the new steps but never names `playClassic` (`engine:3260-3263`). That loop holds one of the three day caps the item counts.
+- **Item 11: NOT as written.** The host loop carries a "one card per device" rule (`break`, `orchestrator.js:1080`); the event door's copy (`:1849`) has none. Delete the loop without moving that rule and a pass-and-play table with several humans still spends one lesson rung per human, showing a card each time.
+- **Item 9: nearly.** "A no-narrate form" of the bot's pause adds a second version beside `botBeat` (`util.js:1821-1825`). A small special case.
+- **Items 3–8, 10, 12–15, 17–20, 22, 29, 31, 38, 40: genuinely one.** In each, the copies are deleted and every path goes through the new place. Item 3 correctly splits "whose turn" from "who is being asked".
+
+### C. Is the ranking honest?
+- **Visible today, by the code (only item 3 has actually been seen, in the one screenshot):**
+  - item 1 (the "Fire again" offer)
+  - item 3 (whose turn: seen in the screenshot)
+  - item 4 (a guest's camera frozen after its first fight)
+  - item 5 (a guest gets no confetti)
+  - item 9 (his flee line never said at a 4-captain table)
+  - item 11 (every first-time player gets two cards)
+- **Weaker than Tier 1:**
+  - item 2 (only the rules page is wrong on screen)
+  - item 6 (nobody has heard it)
+  - item 10 (it contradicts item 11)
+  - item 13 (rare)
+  - **item 12 belongs in Tier 3** (crew guest + parrot on + stays put)
+- **Items 1 and 2 first:** item 1 is defensible on both grounds. Item 2 is defensible only as the request it was, and the list says so plainly (line 34).
+- **Nothing in Tiers 3–4 is clearly more visible than its rank.** Items 20 and 21 are the closest.
+
+### D. The claims
+- **Backed:**
+  - the four re-runs
+  - item 3's sea-trial screens: the pictures exist, dated 15 Sept 02:37–02:48, and the one I opened shows the split
+  - the counts of 19 callers (item 3) and 11 call sites (item 6), both exact
+- **Labelled "measured" but done only by an auditor, and the item doesn't say so:** item 1 ("61… 49… 33"), 7, 14 and 15. Items 16 and 18 do say "(auditor)"; these four should too.
+- **Readings labelled "measured":**
+  - item 19's "measured by grep"; by the list's own definition (line 17) that is a reading
+  - item 16's "priced fleeing at 0 in all 316", which is what `engine:2822` says, not a run
+- **Counts padded with dead code:** item 13's "range 6" and "affordability 5" each include `strikeFrom` (`engine:1808`, `:1812-1815`).
+- **Contradiction:** item 10 (line 213) and item 11 (line 223) disagree about what a guest sees.
+
+### E. Missing
+- **"The tap starts the spin" is written once and missing twice.** The ordinary flip starts the spin the instant it is tapped (`flow.js:221`, `:231`, "THE TAP IS THE FLIP"). Both fight-flip taps skip it: the host's own screen (`orchestrator.js:547-549`) and a guest's (`:2070-2071`). On the host the spin follows at once (`:651`). A guest's own fight flip waits for the host's round trip over the network (`:169-171`). Read, not run; the flip stage may hide it.
+- **Nothing large.** In the fight and the host/guest paths, everything else written twice that I came across is already in the list.
+
+---
+
+### 3. Claims the repo does not support
+All of these are in D and B: the four auditor-only "measured" labels, item 19's grep, item 16's reading, the dead code in items 13 and 16, the item 10/11 contradiction, `playClassic` missing from item 2, and item 11's one place losing "once per device".
+
+### 4. The last verdict's fault
+**Not fixed, and correctly inventoried.** The fight written twice is item 1, and the dock record written twice is item 31. No code has changed yet. The top-bar mismatch the last CEO saw in the host/guest pictures is item 3, and the screenshot I opened confirms it.
+
+### 5. Bulk reading in the main thread
+**None I can name.** The reading was handed to six auditor agents, and the session kept four re-runs and two short reads (`DECISIONS.md:3009-3011`, `PROJECT.md:267`). The opposite risk, vouching for citations it had not read, cost nothing this time: the ones I checked are accurate.
+
+### The seven corrections, before this counts as CEO-verified
+1. **Item 11:** move the "one card per device" rule into the one event door, not just delete the loop.
+2. **Item 12:** move it to Tier 3.
+3. **Items 13 and 16:** take out the dead `strikeFrom` copies. Re-describe item 16 as a typed number (PARTLY).
+4. **Items 10 and 11:** state the contradiction about guests. Take the two-tab look before starting item 10.
+5. **Items 1, 7, 14 and 15:** mark their numbers "auditor, not re-run". Relabel item 19 and item 16's "0 in 316" as readings.
+6. **Item 2:** name `playClassic` in its one-place plan.
+7. **Item 1:** name the defender's flee condition and the loop as copies that stay, in the item's own text. Add the spin-at-tap copy from E as a candidate.
+
+**Item 1 may start now**, opening with Mac: Dev's crosswind "Fire again" picture taken before the fix.
+
+---
+
+## 2026-09-15 · the bots' strategy · `sep15-dock-line` @ `a6eb873d` (build 2026.09.15.3)
+
+**His ask, verbatim:** *"the design is that the bots play AS INTELLIGENTLY AS POSSIBLE -- as intellignetly as a skilled human. a
+bot would know that holding a resource, especially a cheap resource is always better than holding the coin -- it can be insurange,
+trade bait, it is even half of a black market crate they may need later. I want the CEO to audit the bot's strategy and algorithm
+and suggest ways to make them measurably smarter. If you need, build in a watcher that records solo games too so you can learn how
+actual humans (who win games) play."*
+
+**ITS ONE SENTENCE:** *"Your instinct is right and now has a number behind it — a bot should take the cheap crate over the coin,
+but only at an island's floor price, because at any higher price it spends the money it needs at the next island and the voyage
+gets slower; and while proving that I found that the bots' brain is planning against a dock that pays 4 dubloons a turn when yours
+has paid 2 since August, which is why they keep turning up somewhere they cannot afford."*
+
+**The ladder** (300 seeded voyages an arm, red-proofed both ways: an identical brain gave +0.0 on all four rows, a brain that only
+passes gave −54.2):
+
+| the change | dev seeds ×7919 | held out ×104729 | verdict |
+|---|---|---|---|
+| his rule, at the FLOOR price only | +0.8 | +3.2 | DO IT |
+| the dock rate derived from cfg (`coinTurns`) | +0.8 | +2.8 | DO IT |
+| his rule, at ANY price | −2.3 | +0.8 | NO — the spare eats the next island's money, voyages got LONGER |
+| his rule guarded by "keep enough for my next island" | +0.2 | — | inert |
+
+**It overruled my report to Wyatt.** I had told him *"it's the design, and the bug is that nobody says so."* Its finding: *"The repo
+does not support calling it the design"* — `BOT-DESIGN-PRINCIPLES.md` principle 2 forbids priority gates, and the buy gate at
+`doDock` plus the merchant clause beside it are exactly that. **The measurement was sound; the conclusion drawn from it was not.**
+
+**The fault it found recurring:** the previous verdict's *"the dock is written in two places"*. The payment was fixed; **the buy
+decision was not** — `doDock` played one copy and `planTurnV3`'s berth branch evaluated another, kept in step by hand.
+
+**His three reasons for the cheap crate, measured:** insurance — **no** (141 of 141 crates taken in battle were ones the loser's
+recipe wanted; a spare never absorbs a hit, and an empty hold cannot be attacked at all). Trade bait — **thin** (0.91 trades a
+voyage). Half a black-market crate — **right, and the whole case**: two spares buy a crate off a bare shelf, every voyage ends with
+at least one bare shelf, and a spare bought at a full shelf on a dock turn already being spent costs 3 dubloons and no turns.
+
+**On his watcher:** the recorder already ships (`pp4_solo` holds seed + `dlog`, enough to replay a voyage move for move) and is
+wiped when a voyage ENDS — exactly the finished games he wants. It advised against sending any of it anywhere: this game is
+cookieless with no banner *because children play it* (his 2026-09-03 ruling). Its alternative: keep his own finished logs on his own
+machine, replay them headless, and ask the planner what it would have done on each of his turns — a list of the exact moments the
+bot and the winning human disagree, in the game's own nouns.
+
+**WHAT I BUILT FROM IT, the same night (build 2026.09.15.6):** both proved changes, and the convergence — `wantsCrate` is now the
+ONE answer to "does this captain take this crate?", called by `doDock` (what a bot plays) and by the planner's berth branch (what a
+bot evaluates). Verified stacked on the ladder run backwards (the reverted brain against the shipped one), which the audit itself
+had not tested.
+
+### Replication, 2026-09-16 — the CTO's re-run of the same ladder, at 1000 voyages an arm
+
+**The audit's two "DO IT" rows do not replicate, and I did not ship them as given.** Same ladder, run backwards
+(the OLD brain in the flagged seats, the shipped one elsewhere), red-proofed at +0.0 for an identical brain and
+−33.8 for a lobotomised one:
+
+| | 200 an arm | **1000 an arm** |
+|---|---|---|
+| both changes, dev seeds ×7919 | old brain +2.6 | **old brain +1.0** |
+| both changes, held out ×104729 | old brain +1.8 | **new brain +0.7** |
+
+The effect shrinks toward zero as the sample grows, both directions — which is what noise does. The audit's +3.2
+was the same size on a smaller sample.
+
+**What the audit promised a player would see, measured (1000 voyages, whole table):**
+
+| | today | + cheap crate | + cheap crate, guarded | + both changes |
+|---|---|---|---|---|
+| bot stands at an island it needs and cannot pay | **2.07 a voyage** | 2.41 | 2.20 | 2.51 |
+| spare crates bought | 0.03 | 0.50 | 0.24 | 0.50 |
+| barters struck | 0.14 | 0.15 | 0.15 | 0.12 |
+
+So the spares are bought and never become the black-market payment they were bought for, and the symptom the audit
+opened with — arriving unable to pay — gets *worse*, not better. **SHIPPED: the dock-rate fix** (win share flat,
+but offers put to the table fall 11.38 → 9.06 a voyage while deals struck rise 0.93 → 1.06 — measured on my own
+count) **and the convergence** (`wantsCrate`, one decider, now held by `scripts/qa/one_buy_decider_check.mjs`).
+**NOT SHIPPED: his cheap-crate rule**, with the numbers above written into the engine beside where it would go.
+**The audit's real finding stands and is the next piece of work:** the objective (`tour3`) is a function of
+`needs()`, so an off-recipe crate is worth structurally zero — a spare can never pay until the objective can see it.
+
+---
+
+## 2026-09-15 · `sep14-game-feel` `f04d106d` (base `a6ca7eed`) · second review, answering the NOT YET of `f77dbe1b` · **APPROVED FOR THE WY-BLADE SEA TRIAL. Before main, watch two docks nobody has watched yet: a heads dock after the count fix, and a guest's own dock on a phone.**
+
+I read the diff from `f77dbe1b` to HEAD and looked at the author's screenshots myself. I cut the top bar and one corner out of two of them to look closer. I ran the new coin check (a script that reads the code and reports pass or fail) and it passed. I searched the game code myself for every place a captain gets coins. I edited nothing and started no browser or server. I did not re-run the other 114 checks, and I cannot see his screen recording.
+
+### 1. Each thing he asked for
+
+| His ask | Verdict | Evidence I checked |
+|---|---|---|
+| Squawk for a wrong bake-off crate | **DONE** | Checked last review; nothing changed since. |
+| A tick for each bake-off guess | **DONE in code** | Checked last review. Nobody has listened for it on a second player's screen. The author says so too. |
+| The boat bobs all turn | **DONE, his eyes needed** | `board.js:620-647` keeps the bob going. The bob's height did **not** change: still a tenth of a square (`board.js:609`, same before and after). It is now slower (1.4s per bob, was 0.56s) and never stops during the turn. He said "I don't see the boat bobbing". Whether a tenth of a square is enough on his phone is for him to judge. A still screenshot (`pairs/guest_bob.jpg`) cannot show a bob, so the author's "the bob shows" comes from their measuring script, not the pictures. |
+| Sail squares pop 50% slower | **DONE** | Checked last review. |
+| Flip stage: the coin vanishes early | **DONE for what he wrote, unconfirmable for the recording** | The author's log: 46 frames with the stage up, 0 empty, 1 landing, 1 stamp. He said the recording shows "a few bugs". The only list I found (the `f77dbe1b` commit message, `DECISIONS.md`) names three: the coin vanishing, the stamp covering the rules line, and the weak lift. If he saw more in the recording, nothing written down says so. |
+| Flip: the coin comes out toward the viewer more | **DONE, taste** | The 1.7x lift is the author's number. He hasn't seen it. |
+| Coins click audibly | **DONE, his ears** | Volume x3 (last review). One oddity in the author's own log (`count_phone_after.log`): **"coin clicks heard: 8"** on a dock where his count moved 5 steps (6→7, then 7→3). The account doesn't say where the other 3 came from. It may be other captains' counts. Not measured. |
+| Only the coins earned fly | **DONE** | `board.js:2052` flies exactly the number earned, capped at 20. |
+| **Every** coin earned flies | **DONE, now truly** | I found exactly four places in the code that add coins, and all four now fly: dock (`engine/index.js:1081`), pass (`:1147`), trade sale (`:1291`), correct crow's-nest call (`flow.js:3615`). Every other coin change is a setup or reload (`orchestrator.js:1374`, `:1780`) or a bot's practice run (`engine/index.js:2597-2599`). Trade coins fly from payer to seller (`orchestrator.js:1948` → `board.js coinsAcross`), in the right direction (`engine/index.js:1291`: p pays q, the event is a=p, b=q). Crow's-nest coins fly from the caller's boat (`orchestrator.js:1946-1947`). |
+| Coins land in the hold **before** the buy | **DONE on a laptop or solo screen; NOT WATCHED on a guest's own phone** | `flow.js:1931` makes "Buy a crate?" wait until the coins have been drawn, capped at 9 seconds (`util.js:1867-1871`). Measured on one posed dock: the count read 7 (was 6, earned 1) when the question appeared, 1ms after the last coin landed. Two gaps: (a) that was a **tails** dock (1 coin), and the failure the author found happened on heads (3 coins), so heads after the fix is unwatched (the author admits this); (b) **for a guest's own dock, the question is sent from the host** (`util.js:1641`, `onRemotePrompt`), so it waits for the *host's* coins, not the phone's. On the phone, the question could arrive before its own coins land. The auto-driver never docks a guest, so this has never been seen. That is his phone. |
+| Treasure flies a little slower | **DONE, taste** | 1170ms (`board.js:2035`). |
+| Crates swap as crates; an island buy flies as a crate | **DONE** | The phone edge fault was measured before and after (`arc_before.log`: 14px off the right edge; `arc_after.log`: 0px, both screens, 2 trades each). |
+| Speed lines and confetti 50% longer | **DONE** | Checked last review. |
+| Battle box removed entirely | **DONE, on screen and in code** | I looked at `pairs/host_battle.jpg` and `pairs/guest_battle.jpg`: no box on either. The diff removes `battleFooter`/`coinHTML`/`pipsHTML`, every `.btl` selector, and the box's style rules. The coin check confirms none are left. The laptop's flip stage (`pairs/host_flip.jpg`) says "Broadside!" with "Crosswind — two heads and the cannonballs collide.". The phone's bubble names the same wind. |
+| CEO approval, sea trial, merge | **This review approves the sea trial** | The last trial is still build 2026.09.13.5 and FAILED. It says nothing about this build. |
+
+**Last review's three conditions:** (1) host and phone-guest pictures: taken, and I read them. The one fault they found (the crate going off the phone's edge) is fixed and measured. The guest's own flip and dock were never seen, and the author says so. (2) The frozen count is released (`board.js:2057`). (3) Trade and crow's-nest coins fly.
+
+### 2. Delivered but not asked for
+
+- **The count fix** (`board.js holdCoinRoll`): the author found this one by looking at the phone pictures. It serves his 2026-08-05 complaint and his "coins enter the hold the moment you earn them".
+- **The new coin check**, `scripts/qa/every_coin_flies_check.mjs`: a small guard against the fixes being undone. The last review asked for one.
+- **Bot practice battles now record their flips** (`engine/index.js:1908`, `:1948`). Harmless if, as the author says, that code only runs in bot practice games.
+- **A pace measurement**: about 13% slower per day (35.2s against dev's 31.1s), in a voyage with 14 docks against dev's 10. He should hear that number.
+
+None of these pushed out anything he asked for.
+
+### 3. Claims the repo does not support
+
+- **"Docking written twice" is fixed only for the coins.** The payment is now in one place: `Game.payDock`, `engine/index.js:1079-1084`, called from both `:1089` and `flow.js:1914`. The check confirms only one place in the code records it. But the dock itself is still two functions. The bot's dock sets three pieces of bookkeeping (`engine/index.js:1088`: firstFlip, dockedNow, justDocked). The human's dock sets two (`flow.js:2042`: no justDocked). I did not establish whether that difference shows in play, because arriving at a berth also sets justDocked (`engine/index.js:659`). It predates this work.
+- **"All 115 green."** I ran only the coin check (11 of 11 pass). I can't confirm the rest.
+- **"The bob shows" on the guest.** A still picture cannot show a bob (see section 1).
+- **Two things in the author's own battle pictures, each seen once and not measured, possibly older than this work:**
+  - In `pairs/host_battle.jpg` the glowing boat in the top bar is **GUESTPAIR's**. In `pairs/guest_battle.jpg` it is **HOSTPAIR's**, while both screens ring HOSTPAIR's row. The two pictures may be moments apart. The same fault was found and fixed once before (`util.js:1972-1976`).
+  - In `pairs/host_battle.jpg`, a fading crow's-nest line sits in the laptop board's bottom-left corner, cut off by the board edge.
+
+  Worth a look in the sea trial or on staging. Neither blocks the trial.
+
+### 4. The last verdict's fault: fixed, or back in new clothing?
+
+**Fixed for what this change touched.** A dock's coins are paid and recorded in exactly one place, and the check fails if a second copy appears. The wider pattern is still there, and none of it is new:
+- battles are written twice: powder at `orchestrator.js:618` and `engine/index.js:1902`, re-fire at `orchestrator.js:795` and `engine/index.js:1946`
+- the dock's bookkeeping is written twice (section 3)
+
+Tagging battle flips in the bot practice copy is one more small edit made to both copies instead of merging them. It is harmless if that copy really only runs in bot practice games, which I did not verify.
+
+### 5. Bulk reading in the main thread
+
+**I found none I can name.** The screenshots and the frame-by-frame reading are the rendered game, which belongs in the main thread. The one thing I can't judge: the account says all 115 checks were run one by one, three times, and doesn't say whether that output was filtered before it was read.
+
+### 6. One sentence for Wyatt
+
+**Everything you asked for is now built, and every way to earn a coin makes coins fly. Before this goes to main, someone should watch a heads dock and a dock on your phone as a guest, and you should know the voyage now runs about 13% slower per day.**
+
+**APPROVED for the Wy-Blade sea trial.** It is not approved for main until a heads dock has been watched once (a quick posed test), and until he is told plainly that nobody has watched the buy question arrive on a guest phone's own dock.
+
+---
+
+
+## 2026-09-15 · `sep14-game-feel` `f77dbe1b` (base `a6ca7eed`) · his checklist verdicts on 2026.09.14.4 · **NOT YET APPROVED. MOST OF IT IS BUILT, BUT NOBODY HAS LOOKED AT IT ON A HOST AND A GUEST SCREEN, AND "EVERY COIN FLIES" STILL MISSES TWO KINDS OF COIN.**
+
+I read the code diff myself and checked each claim against the code. I edited nothing, and I did not start a browser or a server. I cannot see his screen recording, so on the coin flip I checked the logic, not the picture.
+
+### 1. Each thing he asked for
+
+| His ask | Verdict | What I checked |
+|---|---|---|
+| A squawk for a wrong bake-off crate | **DONE** | `src/ui/audio.js:942` plays `crate-squawk`. It is the same byte size as the old thud, so I compared the two files: they are different recordings (6,021 of 6,669 bytes differ). The render script now takes the page's squawk (candidate "b") instead of the thud (candidate "a"). |
+| A tick for each bake-off guess | **DONE** | `src/ui/bakeoff.js:217-222`. The row of crates is built once per bench (`bakeoff.js:520`, `:914`), so it can tell when the pick count changes by one. Watchers' screens go through the same code (`:746`). I did not re-run the tap test. |
+| The boat bobs for the whole turn | **DONE in code, never looked at** | `board.js` `bobShip` starts on each `turn` event and stops when the next captain's turn starts. The bob is an HTML copy of the boat. The boat picture has no mirroring, so the copy matches it. |
+| Sail squares pop in 50% slower | **DONE** | `index.html:1201` goes from .22s to .33s, and `flow.js:668` goes from 250 to 375ms, which sets each square's delay at `flow.js:712`. There is no other copy of the pop animation. |
+| The coin flip: coin vanishes early, and a stronger "out of the screen" motion | **PARTIAL** | The logic is sound. `setFlipActive` calls the stage's hook (`board.js:3044`) before it clears the coin (`:3060`), so the new "only if the coin was armed" guards work as described. But the 1.7x lift is an amount the author picked, and Wyatt has not seen it. Nobody has watched the fixed flip land. |
+| Coins: the click is louder | **DONE** | The sound goes through a volume control that accepts 3x (`audio.js:891`, `:1018`). Whether he can hear it now is for his ears. |
+| Coins: only the coins earned fly | **DONE for docks and passing** | `treasureBurst` flies exactly the number earned. |
+| Coins: **every** coin you earn flies | **PARTIAL** | Treasure, dock work and the pass coin fly. Coins from **selling a crate in a trade** (`src/engine/index.js:1286`) and from a **correct crow's-nest call** (`src/ui/flow.js:3641`) do not. |
+| Coins enter the hold when earned, before the buy | **DONE in order, not measured on his own dock** | The coins are recorded at payment (`engine/index.js:1085`, `flow.js:1925`). The game waits for them to fly before the crate flies. But the "Buy a crate?" question is not held back for the coins (`flow.js:1926`), so on his own dock he may be asked to buy while his coins are still in the air. Nobody has checked. |
+| Treasure flies a little slower | **DONE** | 780ms is now 1170ms. Whether that is slow enough is his call. |
+| Crates swap as crates, and an island buy flies as a crate | **DONE** | `flyingCrate` is used for the trade swap and for the island buy. |
+| Speed lines and confetti linger 50% longer | **DONE** | Both timings really do set how long the animations last (`board.js:731`, `:764`). |
+| The battle box removed entirely | **DONE on screen, not in code, and never looked at** | The box is never drawn. Code that still looks for it is left behind: `orchestrator.js:466`, `stage.js:1824`, `:3639`, `:5649`, `flow.js:3576-3585`, and its styles at `index.html:707-718`. Nobody has looked at what now fills that space during a fight, or at the cannon hit it used to cover. One guest screenshot was taken and not reviewed. |
+| CEO approval, a sea trial on Wy-Blade, then merge to main | **NOT DONE** | The last sea trial is on build 2026.09.13.5, two builds ago, and it FAILED. It says nothing about this build. |
+
+**Why not approved yet.** The project's own rule says a visual change is not done until a host window and a guest window at his iPhone 13 mini size have been compared. That did not happen for any of these eight visual changes. The next step is main, which real players see, and he has not seen any of it on staging.
+
+**To approve, three things:**
+1. Take and look at host and guest (375x812) screenshots of:
+   - a battle, from a fighter's screen and a spectator's
+   - a dock that lands heads, from the flip through the coins to the crate
+   - a trade swap
+   - the flip stage landing
+   - the bobbing boat
+2. Fix the frozen coin count described in section 3.
+3. Either make trade coins and crow's-nest coins fly, or tell him plainly that they don't.
+
+Then run the sea trial, and watch its pace. On every screen, each pass and each dock now waits at least 1.2 seconds for its coins to fly (`orchestrator.js` `consumeEvent`, `await earnedFlight`). If the flip stage is still up, the wait can reach about 8 seconds. None of that has been measured.
+
+### 2. Delivered but not asked for
+
+- The wind's rule for a tie is now spoken with a fight's first line, instead of sitting in the box.
+- A battle flip is now recorded, so other screens show the small coin turning.
+- The squawk plays at twice the volume.
+
+All three follow from removing the box, and none of them pushed out anything he asked for.
+
+### 3. Claims the repo does not support
+
+- **"Same event, same place, for both"** (the comment at `engine/index.js:1080-1084`). The coins-earned record is written in **two** places: `engine/index.js:1085` for bots and `flow.js:1925` for humans.
+- **"Stops at the turn's `end` event."** The code stops the bob when the *voyage* ends (`if(e.t==="end")stopTurnBob()`). Between turns, the next turn stops it. The behaviour still matches his ask; the report's description is wrong.
+- **A new bug: the purse count can freeze for up to 60 seconds.** `treasureBurst` (`board.js` around 2040-2047) sets a 60,000ms hold on the count, then returns early if it can't measure where the boat is (`if(!from)return`). The hold is never released. It's rare, because it needs the board to be unmeasurable, but it is new.
+- **"Battle box removed entirely."** True for what players see, not for the code (the list in section 1).
+- **No new check guards any of the eight changes.** Only three old checks were updated. Nothing would catch it if "coins flown equals coins earned" breaks later.
+
+### 4. The last verdict's fault: it has come back in new clothing
+
+The last audit found that **docking and battles are each written twice**. This change added a new rule to both copies of docking instead of merging them, under a comment that says they are one place.
+
+It also recorded battle flips only in the live battle code (`orchestrator.js`). The engine's own battle code still flips without recording anything (`engine/index.js:1903`, `:1943`, called from `:2920`). I did not establish whether that engine copy runs in live play.
+
+### 5. Bulk reading in the main thread
+
+I found none I can name. Going through his recording frame by frame is his own evidence and belongs in the main thread. From the account alone I can't tell whether the output of the 114 checks was filtered before it was read.
+
+### 6. One sentence for Wyatt
+
+**Most of what you asked for is in the code, but nobody has looked at it on a host screen and a phone-sized guest screen yet, and "every coin flies" still misses coins from trades and correct crow's-nest calls. So it is not ready for the sea trial and main.**
+
+---
+
+
+## 2026-09-14 · `sep14-game-feel` (word serving = dev `e4e0df64`) · ARCHITECTURE AUDIT: how player-facing words are served, and how to future-proof it · **NOT A PASS/FAIL REVIEW. WORDS NEARLY ALL IN ONE FILE; RULES ARE NOT — BATTLES AND DOCKING WRITTEN TWICE, AND MOST SCREENS ARE SENT FINISHED SENTENCES.**
+
+**Asked for by Wyatt, 2026-09-14** ("have the ceo audit our current setup for serving player-facing words, and suggest ways to make it more robust according to my design values"). Verbatim below.
+
+Paths are relative to the repo root, `/Users/wyattroy/Documents/Projects/pastrypirates/.claude/worktrees/google-search-console-020493`. I read the code on `sep14-game-feel`. Against `origin/dev`, only `course.js`, `press.js` and `stage.js` differ, so line numbers in `stage.js` are this branch's. I ran the words check, the display-door check and the mode-fork check myself, and all three pass. I started no browser or server and edited nothing.
+
+## 1. Read this first
+
+**Your words are nearly all in one file, but your rules are not: battles and docking are each written twice, and most screens are still sent finished sentences instead of "which line, about whom". Fix those two things and Pasta Pirates gets close to swapping one folder.**
+
+("human/both" in your message reads as "human/bot".)
+
+---
+
+## 2. The map, as it really is
+
+### How each kind of word reaches a screen
+
+**An event line (dock, trade, battle result, storm, muse)**
+- **Path:**
+  - The event is recorded: 33 `this.ev` calls in `src/engine/index.js`, plus 5 recorded outside the engine (`src/orchestrator.js:790,823,854,885`, `src/ui/flow.js:3613`).
+  - It goes through the one consumer, `consumeEvent` (`orchestrator.js:1791`), then the one narrator, `narrateEvent` (`src/ui/util.js:1881`). The narrator waits for the board to finish (`:1883`).
+  - `EVENT_NARRATION` picks a line id (`util.js:510-747`), then `say()` and `fill()` build it (`src/shared/words.js:62`).
+  - `flash()` picks this screen's version (`src/ui/panel.js:1270`).
+- **Who writes the sentence:** the host, for every screen. It builds one "everyone else" line plus a "ye" version for each captain named (`util.js:794-805`).
+- **On the wire:** finished HTML plus the versions (`src/net/writers.js:79-81`). A guest only picks one (`orchestrator.js:2256`).
+
+**The captain's log**
+- Each screen words it itself, from the event, inside the consumer (`orchestrator.js:1865`, third person per `util.js:863-869`). Nothing crosses the wire.
+
+**A question (Accept / Deny, "what'll ye do")**
+- **Path:** built inside the turn code, where it is asked. Examples: the trade offer (`flow.js:3026`), the crow's-nest call (`:3581`), the dock flip (`:1881`), fire and defend (`orchestrator.js:712,718`). Then `ask(msg, opts)` (`util.js:1597`) draws it locally or sends it with `remotePrompt` (`orchestrator.js:1661`).
+- **Who writes it:** the host, from one viewpoint that each caller picks (for example `say("trade.offered",…,q.idx)` at `flow.js:3026`).
+- **On the wire:** finished `msg`, `labels`, `why`, `sub` and slider texts (`util.js:1641-1675`, `1565-1579`).
+
+**A button label**
+- `say()` runs when the options are built (`flow.js:3027-3035`), and `optionButtonsHTML` draws them (`util.js:1485`). Labels cross the wire as finished strings.
+
+**A wait line ("…is deciding…")**
+- `ask()` sends one before every question (`util.js:1636`). There are also `flow.js:802` (sailing), `:915` (ovens), `:3362` (mateys), `orchestrator.js:564-576` (battle) and `:1044` (recipe draft).
+- The host words them with `sayAll`, and they go as HTML plus versions.
+
+**The battle card**
+- **Path:** the host runs the fight (`orchestrator.js:635-890`). `battlePublish` (`:281`) draws it locally and sends a snapshot. The guest's `watchBattle` (`:507`) draws it through `battleFooter` (`flow.js:3544`).
+- **The lines are mixed:**
+  - Some go as `{id, facts}` and each screen words them (`orchestrator.js:710,716,726,830` → `flow.js:3555`).
+  - Four go as finished HTML (`orchestrator.js:728,734,737,833`).
+  - "Waiting for…" goes as a seat number (`:593` → `flow.js:3551`).
+
+**A guest's screen**
+- Events, narration and questions come through the same consumer (`:1971`), `watchNarr` (`:2202`) and the same prompt renderer (`:2062`).
+- **The guest words only a few things itself:** the captain's log, some battle lines, the bake-off watcher line (`orchestrator.js:409`), the skip recap (`flow.js:119`) and the lobby. The host worded everything else.
+
+**Pass-and-play**
+- Handing over the device changes `mySeat` (`src/ui/lobby.js:413,421`), and "ye" follows `mySeat` (`util.js:2009-2010`).
+- Every human seat answers on this device (`src/shared/storyboard.js:213-214`).
+- A line that opens with its captain reads "Crustbeard — ye", so a shared screen still says who "ye" is (`words.js:77`).
+
+**Theme names (islands, ingredients, captains, directions)**
+- These are code tables in `src/shared/index.js`: `ING_NAME` :225, `DOCK_PLACE` :232, `DOCK_FLAVOR` :260, `DIRNAME` :304, `NAMES` :616. They are passed into lines as finished text (`util.js:576`).
+
+**Sea-creature sightings**
+- 50 sightings, each typed twice (`src/shared/index.js:~346-447`).
+- The sentence text is stored on the event and read back (`util.js:498-507`). So it is saved in Firebase and in solo saves.
+
+**The recipe book**
+- `RECIPE_BOOK` (`src/ui/recipe.js:44`, 21 real recipes), `RECIPE_STEPS` (`src/shared/recipe-steps.js:33`) and the art list (`recipe.js:318-335`).
+
+**The parrot's tutorial ladder**
+- It lives in `words.js:522`, but `{name}` is filled by a plain text replace that bypasses `fill()` (`orchestrator.js:1084,1863`).
+
+**Static page text**
+- `index.html` holds 185 text nodes and 11 labels by my count, including "Sail the Caribbean" in its page description (`:15`). The about, credits, rules, privacy and stats pages add more.
+
+### Where your four variables are actually decided
+
+| Variable | One place? | Evidence |
+|---|---|---|
+| **actionTaken** | **No.** There is no action object. | A human's choice comes back from `ask()` as a value (`util.js:1694`), and separate code applies each action in `flow.js` (dock `:1869`, trade `:2237`, menu `:2503`). A bot's choice is made in `flow.js` `botTurn` (`:3119`) or in the engine's `takeTurn` (`engine/index.js:2887`). Only the event list is uniform. |
+| **playerType** | **Mostly.** | At the turn door, `flow.js:2892` picks `humanTurn` or `botTurn`. It is also checked ad hoc at `flow.js:2337, 3004, 3357, 3574`. The intent is right: type decides how a move is chosen. |
+| **playerLocation** | **Yes**, as two pure answers. | "Who answers" is `decisionIsLocal` (`util.js:2023` → `storyboard.js:213`). "Who reads ye" is `isLocalTo` (`util.js:2009`). But each caller picks the viewpoint (`flow.js:3026`, `orchestrator.js:718`), and `mySeat ?? 0` is read directly in `stage.js:266,1179,1190,3074,4560,4674,5541` and `flow.js:113,122,716`. |
+| **gameMode** | **No.** There is no mode value. | It is three flags: `passAndPlay` (`flow.js:3718`), `room`/`db`, and `isHost` (`flow.js:3702`). They are read at `flow.js:2982,3299`, `util.js:129`, `lobby.js:374,474`, `board.js:1760` and `stage.js:1585`. The right pattern already exists: `src/shared/visibility.js` asks "do the captains share a device?" instead of naming a mode. |
+
+### Where the CTO's map is wrong or incomplete
+
+- **"The battle card is the only place words cross the wire as data."** Wrong both ways.
+  - The captain's log, the battle "waiting" line and the bake-off watcher line also travel as data.
+  - The battle card still sends 4 lines as finished HTML.
+- **HOLE 1 counts 2 question doors; there are 5.** Each sends finished text: `ask`, `battleAsk`, the sail pick (`flow.js:840`), the recipe/intro channel (`orchestrator.js:1692-1700`), and the bake-off prompt. The bake-off prompt sends the baker's ready-made name (`flow.js:940`).
+- **"The words all come from one file."** Not yet:
+  - The "ye / yer / Crustbeard — ye" grammar is typed into `fill()` (`words.js:75-77`), even though the file has a `list.ye` entry (`:153`).
+  - The engine writes English into events: "nothing" and "N coins" (`engine/index.js:1320,1703,1953`), plus the sea sentences.
+  - One line is glued together in code from a name and a fragment (`stage.js:4406`).
+  - The bake-off title is written twice by hand ("{who}'s Bake-Off" / "{who}, Yer Bake-Off"), picked in code (`bakeoff.js:188`). That is exactly the "write both forms" you said you don't want.
+- **A line about a captain still gets a ready-made name, and the check misses it.** "battle.hit" gets `nm()` through a variable (`orchestrator.js:732-734`), so the captain who lands the hit never reads "ye". The name check only spots `pn(`/`nm(` written inside the call.
+- **The biggest "one engine" gap is not on the map.**
+  - **Battles are written twice:** once live in `orchestrator.js:635-890`, which moves coins and crates itself at `:651,822,873`, and once as the engine's `battle()` (`engine/index.js:1888`), which the engine's own bot turns use (`:2914`).
+  - **Docking is written twice:** a human's dock pays in `flow.js:1884`, under a comment that says *"Keep this in step with Game.doDock or bots and humans diverge on the rule"* (`:1875`). A bot's dock pays in the engine (`engine/index.js:1079`).
+  - **The crow's-nest bounty** is paid in display code (`flow.js:3612`).
+  - I did not measure whether these copies disagree today. They are kept in step by hand.
+- **Words are used as switches.**
+  - The bake-off bench's title text is what silences the battle clash sound (`orchestrator.js:380,400,502`).
+  - Which captain a narration bubble points at is sometimes guessed from a name's colour in the HTML (`stage.js:1786`).
+- **The fork counter can't see a display fork the code calls a "declared gap".** It is `if(appState.isHost)return;` in `watchBattle` (`orchestrator.js:522`). The counter skips `orchestrator.js` on purpose, and never counts `strategy` or `room` checks.
+- **Where the map is right (measured):** 343 entries and 11 ladders; `say`/`sayAll`/`sayText`; `flash()` picks per screen in every mode; one consumer, `eventDrawn` and `decisionIsLocal`.
+
+---
+
+## 3. Against your values
+
+| Value | Verdict | Evidence |
+|---|---|---|
+| One engine: every screen reacts to one list of events | **HOLDS** | Host (`panel.js:230`) and guest (`orchestrator.js:1997`) both reach `consumeEvent`. |
+| One engine: one set of rules | **DOES NOT HOLD** | Battles twice (`orchestrator.js:635-890` vs `engine/index.js:1888`); dock pay twice (`flow.js:1884` vs `engine/index.js:1079`); bounty in display code (`flow.js:3612`). |
+| One display engine | **PARTIAL** | Right: one consumer, one narrator (`util.js:1881`), one prompt renderer for host and guest (`orchestrator.js:2062,1745`). Not yet: the host words nearly everything and ships HTML, and the battle card is host-drawn and guest-watched (`orchestrator.js:515-522`). |
+| Words in one place for a reskin | **PARTIAL** | 343 lines and 21 parrot lines are in `words.js`. Still outside: 100 sea sentences, names, islands, directions, 21 recipes, `index.html` plus 5 pages, the "ye" grammar inside `fill()`, and English inside engine events. |
+| Bots = humans | **PARTIAL** | Right: `say()` cannot see bot or human (`util.js:405-408`), and there is one narrator for both. Not yet: human and bot docks run different code. Bots never get the question a human gets, so "a bot may only do what the human menu offers" rests on care, not structure. That last point is my reading, not measured. |
+| No mode forks in what a player sees | **PARTIAL** | 42 fork lines, held by a ratchet (measured). Some are your rulings, e.g. no skip button in crew or pass-and-play (`stage.js:1571-1577`). The counter can't see `orchestrator.js:522`, the online-only chat button (`stage.js:1598`), or `strategy` checks. |
+| Nothing is a constant | **PARTIAL** | Right for amounts in lines, which come from the game's settings (`util.js:562,745`, `panel.js:1158`). Theme facts are typed into code: 4 captain names (`shared/index.js:616`) and 7 islands (`:232`). The order of ingredients and directions feeds the random board setup ("ORDER IS LOAD-BEARING", `shared/index.js:213, ~301`). |
+
+---
+
+## 4. Recommendations
+
+**The known problem, numbered, so each recommendation can say how much it covers ("~N of 12"):**
+1. Theme text outside the words file.
+2. The pirate grammar typed into `fill()`.
+3. Questions built where they're asked, sent as finished text through 5 doors.
+4. Finished words stored inside events.
+5. Battle rules written twice.
+6. Dock and bounty payouts in display code.
+7. No single answer to "who is looking, and in what setup".
+8. Words used as switches.
+9. Side doors around the grammar (text replace, name plus fragment, two bake-off titles, battle.hit).
+10. Blind spots in the checks.
+11. No test that real events give the right line on each screen. The existing golden test covers the sail animation only.
+12. Sentences glued from fragments and plurals chosen in code. This blocks a second language and is mostly harmless for an English reskin.
+
+**Sizes:** S = a few files · M = one subsystem · L = touches every turn. Ranked by value to you: Pasta Pirates within a year, a much bigger game, and crew play online.
+
+### R1. A theme pack: all theme content as data, one folder per game
+- **What you get:** Pasta Pirates starts as "copy the pastry folder, rewrite it, play it on staging". Pastry players see no change.
+- **What goes in it:**
+  - the words file;
+  - captain, island, ingredient and direction names;
+  - sea creatures rewritten once as `{p}` lines, deleting the 50 duplicate typings;
+  - recipes;
+  - the art and sound list (R10);
+  - the page shell (R11).
+- **Size:** M. **Covers:** 1 and most of 2 (~2 of 12), but that is the whole of the reskin's content problem.
+- **Risk:**
+  - Ingredient and direction order feeds the random board setup, so a pack must swap names and art into fixed slots and never reorder them.
+  - A different *number* of ingredients is a rules change, not a skin. That is your call when you get there.
+  - Old solo saves keep their old sea sentences (`util.js:498-507`) until R4.
+- **Leaves undone:** questions, words inside events, the doubled rules.
+- **Fits:** yes. It is one plain module per theme, with no build step.
+
+### R2. One rulebook, with questions as engine events
+*"Command pattern": the engine says, as data, "captain 2 must choose: buy or leave". A person answers on a screen, a bot answers in code, and only the engine applies the answer.*
+- **What a player gets:** bots and people get the same menu, and a guest's question can never differ from the host's.
+- **What you get:** each new action is written once, not two or three times, and the "keep this in step" comment (`flow.js:1875`) goes away.
+- **Size:** L. **Covers:** 3, 5, 6 and most of 7 (~4 of 12).
+- **Risk:**
+  - Highest of all. It touches every turn: `flow.js` `:1869`, `:2237`, `:2503`, `:3119` and `orchestrator.js:635-890`.
+  - The answer log stores which button was pressed (`util.js:1600`), so older solo saves would be refused. The game already refuses those safely (`util.js:2183`).
+  - Convert one question at a time, the way `storyboard.js` converted one event kind.
+- **Leaves undone:** the theme.
+- **Fits:** yes. The remote answer path already exists (`orchestrator.js:1661-1688`).
+- **If the battle card is going away** (your 2026-09-13 note), rebuild the battle this way rather than polishing the card.
+
+### R3. Finish the "presenter" layer
+*A presenter is one pure function: event + game snapshot + who is looking → what to draw and which lines to say.*
+- **It already has a plan:** `.planning/architecture-one-director.html`, section "Four layers". Its first piece is `present()` in `storyboard.js`, which handles the sail animation only.
+- **Next step:** move `EVENT_NARRATION` (`util.js:510-747`) in. Today it reads live game state (`:562,745`) and the host's names (`:377-401`); it would be handed them instead.
+- **What a player gets:** nothing at first. Then every screen words each event itself, so "the guest read the host's version" bugs can't happen.
+- **Size:** M. **Covers:** half of 7 directly, and makes 4 and 11 cheap.
+- **Risk:** low, done one event kind at a time.
+- **Leaves undone:** questions.
+- **Fits:** exactly. `src/shared/` is already checked to stay pure.
+
+### R4. Words cross the wire, and live in events, as "line id + facts"
+- **Where:** narration, question text, labels, reasons, slider texts, the baker's name, and the engine's "nothing", "N coins" and sea sentences.
+- **What a player gets:** a guest reads "ye" in every question and battle line, exactly like the host.
+- **What you get:** old voyages replay in a new theme's words.
+- **Size:** M. **Covers:** 4, the wire half of 3, and part of 9 (~2 of 12).
+- **Risk:** a room with a new host and an old guest. Send the finished text beside the id for one release; the code already adds fields this way (`util.js:1561-1576`).
+- **Leaves undone:** who builds the question (R2).
+- **Fits:** well. `words.js` imports nothing (`words.js:39-43`), so every device already has the whole table.
+
+### R5. One "view context": your four variables, made real
+- **The shape:**
+  - `view = {viewerSeat, sharedDevice, online, computesGame}`, built in one function.
+  - `actor = {seat, isPerson, answersHere}` for each event.
+  - Later, `setup = {board, recipes, theme}`.
+  - There is no mode name; capabilities stand in for it, as `visibility.js` already does.
+- **Pushback:** give the display everything *except* player type. `say()` is deliberately blind to bot or human (`util.js:405-408`), and that blindness is what guarantees bots and humans get the same words. Only the bot badge needs to know.
+- **Size:** S. **Covers:** 7 (1 of 12), and it makes R2 and R3 cheaper. **Risk:** low.
+
+### R6. The grammar moves into the words file
+*"ICU-style": the industry's standard notation for plurals and "you vs a name" choices inside one sentence.*
+- **What moves:**
+  - "ye / yer / Crustbeard — ye" and possessives (`words.js:75-82`);
+  - one-or-many choices (`util.js:732-733`, `storm.holds.one/many`);
+  - list joining (`util.js:711-716`, `bakeoff.js:168`).
+- **How:** extend `fill()` rather than add a library.
+- **What you get:** Pasta's voice ("you", or Italian-flavoured) needs no code.
+- **Size:** S. **Covers:** 2 and 12 (2 of 12).
+- **Risk:** every line re-renders. The words check already renders all 343 for every viewer; add a before/after diff.
+
+### R7. A "golden" test of real lines, plus a pseudo-theme
+*Golden test: a committed file of what every line said in recorded voyages, per screen. It fails when a line changes without anyone meaning it to. Pseudo-theme: every word replaced by its id, so any readable English left on screen is a leak.*
+- **What you get:** a readable diff whenever lines change, and a staging link (`?theme=ids`) where a leak is obvious on your phone.
+- **Size:** S, after R3. I did not check whether the narrator can run without a browser today.
+- **Covers:** 11 and part of 10 (~2 of 12).
+- **Fits:** yes. Recorded voyages already exist (`scripts/fixtures/storyboard/events.jsonl`).
+
+### Smaller ones
+
+| # | What | What you get | Size | Covers | Risk | Fits? |
+|---|---|---|---|---|---|---|
+| R8 | Widen the checks: scan engine, shared, net and all HTML; catch names passed through variables; forbid `.replace("{`; count `strategy`/`room` forks and `orchestrator.js` display forks, with an allowed list. | Leaks caught before you see them | S | 10 | Red on day one; use the existing ratchet | Yes |
+| R9 | Stop using words as switches: mark the bench `kind:"bake"` (`orchestrator.js:380,400,502`); take the bubble's captain from the event only (`stage.js:1786`). | A Pasta title can't turn the battle clash on during a bake-off | S | 8 | Low | Yes |
+| R10 | One art and sound list per theme. Today it is spread across `EMOJI_IMG` (`shared/index.js:139`), island art (`:209`), pastry art (`recipe.js:318-335`), `EVENT_SOUND` (`audio.js:275`) and the preload list (`util.js:2105-2160`). | Pasta art drops in by filename; a missing file fails a test, not your phone | S–M | part of 1 | Low | Yes |
+| R11 | Theme switch on staging only (`?theme=pasta`, like `?ovens=1`), plus a second page shell per theme | Play Pasta on staging while players keep Pastry; no words blinking in | S | delivery | Low | Yes |
+| R12 | Theme completeness check: every line, every ingredient's name, art and island, enough sea creatures, valid recipe orders | A half-finished pack can't reach staging | S | 10 | Low | Yes |
+| R13 | Version each event and upgrade old shapes when read ("upcasting"; `fixEv` already exists, `util.js:2326`) | Old voyages still replay after R4 | S | part of 4 | Low | Yes |
+| R14 | Seeded simulation on the *one* rulebook, after R2. Today the engine's own bot turns use `engine.battle` (`:2914`), while players get `orchestrator.js`'s battle. So headless bot tuning measures a fight nobody plays; that is inference, not measured. | Bot tuning tests the real game | M | checks 5 | Binding a test corpus is your ruling (CLAUDE.md) | Yes |
+| R15 | A second language | Nearly free after R1, R4 and R6. Each screen words its own lines, so two crewmates could even read two languages | the translation | 12 | Phone text limits, e.g. 34-character recipe steps | Yes |
+
+---
+
+## 5. What NOT to do
+
+- **No framework, build step or TypeScript.** React or Redux would fight "vanilla modules in Safari and Chrome" for no gain to players.
+- **No translation library.** `fill()` is about 30 lines and already does the hard part ("ye" on the reader's own screen). A library adds a download and would still need that logic. This is my opinion.
+- **Don't pass player type to the display.** It reopens "bots and humans read different words".
+- **No server-run game** (Cloud Functions, cheat-proof servers). One host sending events works; server authority is anti-cheat you don't need.
+- **No full event-store machinery** (read models, projections). The event list and answer log already cover it.
+- **Don't design for many themes or mods.** Design for two. A third will show what to generalise.
+- **No content pipeline** (spreadsheet, export, import) and no in-game theme switcher. One file per theme that your review page reads directly is what already worked, and CLAUDE.md says not to build tooling when the ask is the game.
+- **No rollback or lockstep networking.** Those are for fast action games; this is turn-based with one host.
+- **No big-bang rewrite.** Convert one kind at a time.
+- **Don't translate before the reskin** has proved the seams.
+
+---
+
+## 6. A phased path
+
+**Phase 1: the narrator goes pure and gets a golden test.** (S–M; players see nothing)
+- **What:**
+  - Move `EVENT_NARRATION`, `narrationSubjects`/`narrationVariants` and `seaLine` into `src/shared/`, handed the snapshot, settings, names and viewpoint.
+  - Record golden lines per screen.
+  - Fix the two words-as-switches.
+- **Why first:** every later step moves words or rules, and this is the net that catches mistakes. It moves no theme text, so it respects your "don't do anything yet".
+- **Files:** `src/ui/util.js`, new `src/shared/narrate.js`, `src/shared/storyboard.js`, `src/orchestrator.js` (380, 400, 502), `src/ui/stage.js` (1786), new `scripts/qa/narration_golden_check.mjs`, `package.json`.
+
+**Phase 2: one view context and wider checks.** (S)
+- **Files:** `src/ui/util.js` (1999–2023), `src/shared/visibility.js`, `src/shared/storyboard.js` (213), the `mySeat`/`passAndPlay` readers in `flow.js`, `stage.js`, `lobby.js` and `board.js`, `scripts/qa/words_one_place_check.mjs`, `scripts/mode_fork_check.js`.
+
+**Phase 3: line ids on the wire and in events.** (M)
+- **Files:** `src/net/writers.js` (56, 79, 127, 141), `src/orchestrator.js` (205, 243, 552–600, 710–833, 1661, 1692, 2001, 2202), `src/ui/util.js` (1565, 1597), `src/ui/flow.js` (840, 928–940, 3544), `src/ui/panel.js` (1220), `src/engine/index.js` (1320, 1703, 1953, sea creature storage), `src/ui/bakeoff.js` (188), `src/ui/stage.js` (4406).
+
+**Phase 4: the theme pack, when you say go.** (M)
+- **What:** grammar into the words file; sea creatures as single lines; names, islands, recipes, the art and sound list and the page shell; `?theme=` on staging; the completeness check.
+- **Files:** `src/shared/words.js` moves into a theme folder; `src/shared/index.js` (225–304, ~346–447, 616), `src/ui/recipe.js`, `src/shared/recipe-steps.js`, `src/ui/audio.js` (275), `src/ui/util.js` (2105–2160), `index.html` and the about, credits, rules, privacy and stats pages, `scripts/module_graph_check.js`.
+
+**Phase 5: one rulebook, questions as events, one kind at a time.** (L)
+- **Order:**
+  1. Dock (deletes the copy at `flow.js:1884`).
+  2. Crow's-nest call (moves the payout at `flow.js:3603-3620` into the engine).
+  3. Battle (deletes the rules copy at `orchestrator.js:635-890`, and replaces the battle card if you retire it).
+  4. Trade.
+  5. Action menu.
+  6. Recipe draft and intro.
+  7. Bake-off.
+- **Files:** `src/engine/index.js`, `src/ui/flow.js`, `src/orchestrator.js`, `src/ui/util.js` (`ask`, save version at 2183), `src/net/writers.js`, `scripts/dlog_replay_test.js`.
+
+**Phase 6, only if wanted:** a seeded test corpus bound to the one rulebook (your ruling), then a second language.
+
+---
+
+## Files read
+- `/Users/wyattroy/Documents/Projects/pastrypirates/.claude/worktrees/google-search-console-020493/.claude/CLAUDE.md`
+- `…/.planning/CEO-REVIEWS.md` (top entry)
+- `…/.claude/memory/DECISIONS.md` (searched; lines 2895–2912, 2980–3091)
+- `…/src/shared/words.js` (whole)
+- `…/src/ui/util.js` (370–869, 1455–1764, 1795–2054, function index)
+- `…/src/orchestrator.js` (195–634, 700–760, 1655–2294, function index)
+- `…/src/ui/panel.js` (236–246, 1130–1303)
+- `…/src/ui/flow.js` (100–160, 836–870, 925–945, 1872–1892, 2880–2895, 3290–3348, 3510–3634, searches)
+- `…/src/shared/storyboard.js` (1–216), `…/src/shared/visibility.js`, `…/src/shared/host.js` (head)
+- `…/src/shared/index.js` (215–308, 330–460, searches)
+- `…/src/engine/index.js` (1074–1100, 2905–2916, searches)
+- `…/src/ui/recipe.js` (44–56, searches), `…/src/shared/recipe-steps.js` (1–40)
+- `…/src/net/writers.js` (79–91, function index)
+- `…/src/ui/lobby.js` (468–480), `…/src/ui/board.js` (1750–1765), `…/src/ui/audio.js` (275–300), `…/src/ui/stage.js` (1570–1600, searches), `…/src/ui/bakeoff.js` (searches)
+- `…/index.html` (text scan)
+- `…/scripts/qa/words_one_place_check.mjs` (whole, run), `…/scripts/qa/one_display_door_check.mjs` (whole, run), `…/scripts/mode_fork_check.js` (whole, run), `…/scripts/ui_contract_check.js` (header), `…/scripts/qa/storyboard_golden_check.mjs` (header), `…/package.json` (test script)
+- `…/.planning/architecture-one-director.html` (section titles)
+
+(`…` = `/Users/wyattroy/Documents/Projects/pastrypirates/.claude/worktrees/google-search-console-020493`)
+
+---
+
+## 2026-09-14 · `fb1da47f` · AUDIT: does every line of narration come from one place, and are the pictures still in the lines? · **PARTIAL. THE PICTURES ARE ALL THERE AND ONE NARRATOR SERVES BOTS AND HUMANS — BUT "EVERY LINE IN ONE PLACE" IS NOT TRUE YET, AND THE WORDS CHECK CLAIMS MORE THAN IT CAN SEE.**
+
+**Reviewed:** dev `fb1da47f`, staging `2026.09.14.1-staging@fb1da47f`. Verbatim below, including its closing note that it was read-only and did not write this entry.
+
+## THE ONE SENTENCE FOR WYATT (read this first)
+
+> **Your two worries are answered well: every picture that was in a line is still in it (I recounted them all myself; the only pictures that went left with lines you cut, and you were told which), and bot and human moves now go through one narrator. But "every single line in one place" is not true yet. The 100 sea-creature sentences, the recipe book, the welcome screen and a few buttons like "Change yer name" and "FLIP" still live outside the words file. And the automatic check that announces "everything a player reads comes out of words.js" cannot see them.**
+
+**How I checked:** I read the code at `fb1da47f` and ran the words check myself (it passes). I pulled every line with a picture from before the work (`95e1bcd7`) and matched each one against today's words file. I searched all of `src/` with my own scan instead of trusting the CTO's, and fetched staging. No browser or server was started and nothing in the repo was edited. My probe scripts are in `/private/tmp/claude-501/ceo-probe-narration/`.
+
+---
+
+## 1. Each thing he asked for
+
+### (a) "All narration now comes from one consistent narration engine instead of being passed as variables through different weird places": **PARTIAL**
+
+**Done, and checked:**
+- **The words really are in one file.** `src/shared/words.js` holds 331 entries and the parrot's 11 tutorial scripts. Every entry renders cleanly.
+- **Staging runs exactly this.** It serves `2026.09.14.1-staging@fb1da47f`, and its `words.js` is byte-for-byte identical to the repo's.
+- **One narrator for things that happen in the game.**
+  - A human's move reaches it through `src/ui/panel.js:1135-1137`, a bot's through `src/ui/util.js:1986`. Both call the same `narrateEvent` at `util.js:1903`.
+  - The start of a turn is narrated once, at `src/ui/flow.js:2891`, before the code splits into a human turn and a bot turn (`flow.js:2892`).
+  - A battle opens with one line for both kinds of captain (`src/orchestrator.js:648`).
+- **Bots and humans get the same words.** I searched for any line picked by bot-versus-human. The only hit is `orchestrator.js:870`, and that is a question only a person gets asked, not a different description.
+
+**Not done:**
+- **The words are in one place; the moments that say them are not.** About 340 spots in 8 files each build their own sentence and hand it on: flow.js 119, util.js 82, orchestrator.js 61, stage.js 25, bakeoff.js 22, board.js 17, panel.js 7, lobby.js 6. There are also 64 direct calls that show a line on screen. Questions, cards, the battle play-by-play and wait lines still go "through different weird places". The CTO admits this (gap b).
+  - For Pasta Pirates this does not stop you changing words. It does mean "one engine" describes the words, not the delivery.
+- **There are two kinds of captain placeholder, not one grammar.**
+  - Only 9 calls hand the words file a *captain*, which becomes "ye" on that captain's own screen.
+  - 44 calls hand it a *ready-made coloured name*, which can never become "ye": flow.js 26, orchestrator.js 14, board.js 3, util.js 1. Examples are `flow.js:2146` (a counter-offer) and `orchestrator.js:870` (the plunder choice).
+  - At those 44 spots, the code picks name-or-"ye", not the words file. I did not see one wrong on screen; these lines are probably only shown to someone else. But a Pasta Pirates writer will meet `{p}`, which turns into "ye", and `{name}`, which never does.
+- **One deliberate change from his wording.** He asked for an engine that takes "the player type (human/bot)". The CTO left that input out on purpose (`util.js:401-408`), so a bot and a human *cannot* be described differently. That fits the project rule. He should be told in one plain line that this was a choice, not an oversight.
+
+### (b) "Very easily change every single line of narration and dialogue" for Pasta Pirates: **PARTIAL** (partly by his own "don't do anything yet")
+
+Still outside `words.js`:
+
+| What | Where | Admitted? |
+|---|---|---|
+| **50 sea-creature sightings = 100 sentences**, each written twice by hand ("ye peep into…" / "{} peeps into…"). Spoken in every Muse line. | `src/shared/index.js:347-448`; "ye" chosen in code at `util.js:514` | Yes (gap a) |
+| Island names, dock flavours, default captain names | `src/shared/index.js:232-233, 616` | Yes |
+| Recipe book (~235 wordy strings) and bake-off step names (~105) | `src/ui/recipe.js`, `src/shared/recipe-steps.js` | Yes |
+| Welcome screen, menus, rules (~160 runs of text) | `index.html` | Yes |
+| **"Change yer name"** button, in pirate voice | `src/ui/lobby.js:469` | **No** |
+| **"FLIP"** on the coin | `src/ui/board.js:2526` | **No** |
+| Tooltips "— that's you!" and "🤖 bot (strategy)" | `src/ui/util.js:163` | **No** |
+| Screen-reader label "Back" | `util.js:1513` | Partly (gap d names aria labels) |
+| "📜 recipe name" inside the victory line | `recipe.js:356`, used at `board.js:2180` | **No** |
+
+Dead words also remain in code. No player sees them, but a reskinner searching for "bakery" will trip on them:
+- The captions table, with "⚔️ wins!", "🏃 flees!", "🧁 fired up the bakery" and "🌊 looks into the ocean" (`util.js:587-763`). Nothing calls `captions()` (`util.js:906`), and the code itself says "Nothing renders caps" (`util.js:762`).
+- `windHoldPhrase`, "this northerly won't quit" (`util.js:453-457`), which has no caller.
+
+### (c) "Make sure images were not taken out of the lines; if they were, tell me which": **DONE, independently confirmed**
+
+**Method:** I took every piece of text with a picture in the 9 game code files before the work, and matched each one by shared words to its entry today. I read by hand all 21 lines where the match seemed to lack a picture, plus every picture type whose count fell.
+
+**Result:** 174 picture uses before, 162 after. Every drop is explained:
+- **The "ye" and third-person copies of one line became a single entry:** ⚔️ 24→17, 🔭 9→5, 🤝 8→4, 🏃 6→4.
+- **Lines he cut entirely.** The CTO told him about these by name: turn banners ⛵🧭, final-round card 🏁⛵🦜, the old "returns with a full recipe" line 🏁, the old bakery line 🧁, flip announcements ⚪⚫.
+- **The 🤝 stamps over the boats**, which he chose to remove.
+
+**All five restores are present:**
+- Dock lines ⚪ ×4 and ⚫ ×4 (`words.js:105-112`).
+- Downwind hit ⚪ and crosswind miss ⚪ (`words.js:307-308`; before the work these were `orchestrator.js:724/726`).
+- "⚫ Both miss." (`words.js:310`).
+
+**The lines I suspected all still have their picture:** 🪨 `words.js:287`, 🏴 `:369`, 🔭 `:270`, ⚔️…🌕 `:265`, 🌊 `:144`, 🏃 `:126`.
+
+**I found no picture lost that he wasn't told about.**
+- **Limit:** the matching is approximate. A coin lost on one line and gained on another could hide (🌕 went 38→46).
+
+### (d) His ruling "ye everywhere" (solo too): **DONE in code, not yet seen on screen**
+
+- **Solo and crew now use the same rule.** Both places that pick a line now pick this screen's version in every mode: `panel.js:1270` and `orchestrator.js:210`.
+- **Pass-and-play follows the phone.** "Ye" goes to whoever has the phone, because the hand-over sets it (`lobby.js:413, 421`).
+- **No choice of words depends on the game mode any more.**
+- **Only labels still differ by bot or human:** `lobby.js:459-460` and `util.js:163`. They say what a seat *is*; they don't describe a move.
+
+---
+
+## 2. Delivered but not asked for
+
+- **The deletions came from his own narration pass**, so they were asked for. That covers the old day loop, the "Pass the board" overlay, "Drumroll…", the banners and the handshake stamps (`lobby.js:417-419` quotes his "cut it if not").
+- **The words check** (`scripts/qa/words_one_place_check.mjs`, 191 lines) is tooling. It is defensible as the guard for his architecture ask and displaced nothing. It is also the thing that overclaims (§3).
+- **Not displaced, but not addressed:** the only finished sea trial containing this work failed 10 of 10.
+  - It ran on build `2026.09.13.5`, which includes `1b9e3698` (checked in git). See `.planning/SEA-TRIAL.md:3`.
+  - Its failures are features offered but never tried, plus **12 screens the picture-judging check flagged, across 5 voyages** (`SEA-TRIAL.md:47,54,59,70,76`). The report says "OPEN THESE".
+  - The account says nothing about anyone opening them. The trial on `fb1da47f` is still not back.
+
+## 3. Claims the repo does not support
+
+1. **"No sentence typed into the game code near a display call" and "everything a player reads comes out of words.js"** (`words_one_place_check.mjs:145`). This is only true of what the check looks at: text sitting next to a fixed list of display calls (`:100`).
+   - It skips any all-capitals word of four letters or fewer (`:120`), which is how "FLIP" gets through.
+   - It exempts **all of `recipe.js`** with an empty-text rule that matches everything (`:89`). The rule that spots out-of-date exemptions skips empty ones (`:146`), so this one is never flagged.
+   - It misses `lobby.js:469`, `board.js:2526`, `util.js:163` and `util.js:1513`.
+2. **"No picture typed into a line in that code (2 listed exceptions)"** (`:176`). This is contradicted by four spots. All four pictures are game art, so they are still on screen and nothing is lost; the claim is just untrue.
+   - `flow.js:2143` and `flow.js:2413`: a 🌕 typed inside the counter-offer lines.
+   - `stage.js:1407`: ⛈ in the forecast pill.
+   - `recipe.js:356`: 📜 in the victory line.
+3. **"The counter-offer circle's 🌕 moved into words.js."** It moved for one spot (`flow.js:2435`). The same coin is still typed 22 lines above in the same function (`flow.js:2413`) and again at `flow.js:2143`.
+4. **The file header says "The 'ye' forms are derived by fill(), never typed"** (`words.js:21`). The sightings have "ye" typed by hand 50 times (`src/shared/index.js:347-448`). The account admits the sightings are outside; the header states the opposite.
+5. **"The ye/name choice depends only on which screen is reading."** True for event lines. Not true at the 44 calls that pass a ready-made name (§1a).
+6. **Two code comments now say the opposite of the code they describe.** `panel.js:1244-1247` explains why it picks "only when `appState.room` is set", and `orchestrator.js:2193-2195` repeats it. Since `fb1da47f`, `panel.js:1270` picks in every mode.
+
+**Checked and true:** 331 entries, 11 parrot scripts, gates total 114 (`package.json:6`), staging serving `fb1da47f`.
+
+## 4. Is the last verdict's fault fixed, or back in new clothes?
+
+**Back, in new clothes.** Last time a check passed where it looked (the corners of the picture, one direction) and was read as a pass everywhere. This time the words check looks only at text beside certain display calls, in 17 files. It waves through short capital words and all of `recipe.js`. Then it prints "everything a player reads comes out of words.js". The picture check looks in the same limited places and makes the same universal claim.
+
+In fairness, the CTO's own account says "the guard is a heuristic" (gap d), which is better disclosure than last time. But the check's output and account item 7 still say the general thing.
+
+"No one looked" also recurs. Nothing was seen on screen after `fb1da47f` (gap e), although the solo "ye" change rewords every solo line.
+
+## 5. Did the CTO spend its own head on bulk reading?
+
+**None I can prove.** I cannot see the session transcript. The scratchpad suggests the right habit: results were written to files rather than dumped into the conversation (`text_sites.txt` 207 lines, `npm_test.log` 105 KB, patch scripts up to 42 KB). I cannot tell whether the 105 KB test log was then read whole.
+
+The one read the account describes, checking about 174 picture lines by hand, caught dock lines its script missed. That is judgment, not a fault.
+
+The reading that belongs in the main thread, looking at the running game after `fb1da47f`, did not happen.
+
+---
+
+**Not done by me:** the brief asks for this verdict to be added to `.planning/CEO-REVIEWS.md`. Your rules for me said read-only, so I did not write it. Whoever launched me should record it.
+
+---
+
 ## 2026-09-12 · `d227e12d` · AUDIT: is the plaque keyed out, and is the X fixed? · **TWO OF THE THREE PICTURES ARE PROPERLY CUT OUT. THE LAPTOP ONE IS NOT — IT IS STILL A RECTANGLE OF WOOD.**
 
 **Its one sentence for Wyatt, verbatim:**

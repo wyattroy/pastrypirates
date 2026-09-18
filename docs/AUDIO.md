@@ -260,9 +260,15 @@ The battles are written entirely as gunpowder. Counted across `4/src` and `index
 
 **Every one of those battles currently plays a sword clash.** Wyatt asked for a cannon on
 2026-08-01; this is not a preference, the audio is contradicting the game's own writing. The
-resolution he settled on: **cannon when the fight is joined** (`playBattleEngage()`, already wired
-and firing at the right moment since `260801-7f4`), **and a second sound when it resolves** — which
+resolution he settled on: **cannon when the fight is joined** (then `playBattleEngage()`, firing at
+the right moment since `260801-7f4`), **and a second sound when it resolves** — which
 is the `clash` slot still open in §4.
+
+> **Where the "fight joined" sound lives now (architecture item 4, 2026-09-17):** `EVENT_SOUND.engage`
+> — the engine records `engage` when a fight is called (`Game.beginBattle`) and the one event consumer
+> sounds it on every screen. `playBattleEngage()` is deleted; it played on the host before the opening
+> line and on a crew guest only at the first battle snapshot (measured 4.4–13.8 s late).
+> `scripts/qa/fight_on_screen_one_door_check.mjs` holds it.
 
 ---
 
@@ -339,6 +345,48 @@ list, with libraries and licences, is [`PICKS.json`](../.planning/research/audio
 The two for ElevenLabs, after two rounds of searching each: **a ship's bell** (free libraries have
 cowbells, bell trees and waiters' bells — none is a bell hung in a rolling sea) and **your turn**
 (wants a bosun's pipe; nothing free has one).
+
+### The cork pop — his pop-in's sound (2026-09-13)
+
+He picked it on the pop-in tuner: *"sound: Cork pop, starting pitch 1 st, climb 1 st per pop, stops after 18 pops,
+volume 55%"*, and *"make the sound play when the ingredient appears -- not when the sparkle appears"*.
+
+- **`sfx/cork-pop.mp3` is one file of 19 slots**, 300ms each: slot *s* is the pop *s* semitones above his starting
+  pitch. Each is rendered from the tuner's own recipe by
+  [`render_cork_run.mjs`](../.planning/research/audio-sourcing/render_cork_run.mjs), so a high pop lasts as long as a
+  low one — pitching one sample up with `playbackRate` would have shortened it by up to 2.8×.
+- **Its level is his 55%, baked into the file** — `SFX_VOLUME["cork-pop"]` is 1, so it plays as loud as the tuner did.
+  Measured with `volumedetect` (trap 4: EBU R128 cannot read a 160ms clip): one pop −27.9 dB mean / −8.1 dB peak,
+  against `store-ingredient` at its game gain, −21.9 / −3.5. Part of the one levelling pass (q7) like every other stem.
+- **Timed off the crate's animation, not beside it** (`src/ui/popin.js`): an animation starts on the next frame, and
+  timers set beside it ran ~30ms ahead of the eye. Measured at 375×812: every sound starts within 15ms of its crate
+  appearing.
+
+### The sounds of the voyage — his picks (2026-09-14)
+
+His game feel audit proposed a sound beside several of the moments it animated. The candidates were built in a page, three per
+moment, each heard in a replay of the moment and **levelled to one loudness** (every candidate rendered offline and its sounding
+frames measured; median −24.3 dB) so none could win by being louder. He picked on the page ("Sounds of the Voyage",
+CURRENT-SHEET), and **the page is the recipe**: [`sounds-of-the-voyage.html`](../.planning/research/audio-sourcing/sounds-of-the-voyage.html)
+renders each pick through [`render_voyage_sounds.mjs`](../.planning/research/audio-sourcing/render_voyage_sounds.mjs) at the level he
+heard it, so every one plays at `SFX_VOLUME` 1.
+
+| Stem | Moment | His pick, and his note |
+|---|---|---|
+| `card-swish` | the recipe cards fly in (stage.js, off the entrance's `ready`) | Paper swish — *"remove the "boop boop" at the end -- just use the swish at the beginning."* |
+| `abacus-click` | each coin seen leaving a purse (board.js coinLeft, one click per coin, SPEND_GAP_MS apart), the End of Voyage stats roll up, and each bake-off guess | Abacus click; the stats take *"The coin tick"*; the guesses too (2026-09-14). `SFX_VOLUME` 3: at 1 it was the quietest stem and he could not hear it |
+| `crate-marimba` | each bake-off lid lands (bakeoff.js dropLid) — 8 slots of 600ms, like the cork pop | Marimba — *"make them lower pitched so they sound more like big crates"* (two octaves down, C3 to A3) |
+| `crate-chime` / `crate-squawk` | a right / wrong crate on the reveal | Chime & thud, then (2026-09-14) *"I want the "wrong" sound to be a squawk during the bakeoff"* — the page's own squawk, his pick over re-fetching the macaw he chose on 2026-08-19 |
+| `award-whoosh` | each award card deals in | Soft whoosh |
+
+**Refused:** a sting under HEADS/TAILS (*"No need - the coin already has a landing sound baked in."*). **Sent to Luis:** the
+first-home fanfare (*"Get Luis to come up with this"*) — a row in SOUND-BRIEF.csv. Measured mean/peak (volumedetect): card-swish
+−33.6/−10.0, abacus-click −38.1/−12.6, crate-marimba −33.8/−14.9, crate-chime −35.9/−19.0, crate-thud −30.6/−12.3,
+award-whoosh −34.3/−12.9 — against store-ingredient's file −30.9/−12.4 and the cork pop's −31.5/−7.6. **Heard by him on the page,
+never by the session that built them** (§6).
+
+**The cannon moved the same day:** it plays from the `shotLands` event (`EVENT_SOUND.shotLands`), on every screen, instead of from
+the fight on the device that owned it — a crew guest used to watch a hit in silence.
 
 ### Open questions — genuinely his, do not decide these
 

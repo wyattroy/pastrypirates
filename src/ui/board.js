@@ -28,7 +28,14 @@
 // all read it. Nothing else in either body moved.
 // (This paragraph said "nothing else in either body moved" while render()'s body had moved a second
 // time — caught by CEO review 40. The header is what the unruled-exception gate blesses, so a
-// header that is behind its own region is the one comment in this file that must never be stale.) The same fact was being derived FIVE times in three files; it is now
+// header that is behind its own region is the one comment in this file that must never be stale.)
+// AND ARCHITECTURE ITEM 3 (2026-09-16), under his ruling on what "architectural" means (DECISIONS.md, 2026-09-16:
+// "Make that count ONE: send every existing path through it and delete the copies"): render()'s and
+// renderLiveShips()'s whose-turn read is now whoseTurn() (src/ui/util.js) — the same deriveActiveSeat walk, with the
+// `done` filter both bodies applied moved INTO the helper — so the top bar, the bob and Check my recipe read the one
+// answer the ring and the box read. render() also reads it BEFORE its rows loop now, because Check my recipe needs it
+// there. Same kind of edit as the paragraph above: a function call returning the same value, no layer, no animation.
+// The same fact was being derived FIVE times in three files; it is now
 // derived once, and the shared module is a leaf tier that scripts/module_graph_check.js forbids
 // from importing src/ui/ or src/state/ at all.
 // WHY THAT IS SAFE, in BUG-01's own terms — the same test the two exceptions below apply. BUG-01
@@ -142,7 +149,7 @@ import {
   STORM_CLOUD_IMG,
   HOURGLASS_IMG, CROISSANT_IMG, CAKE_SLICE_IMG, DONUT_IMG, CUPCAKE_IMG,
   FLIP_HEADS_IMG, FLIP_TAILS_IMG, COIN_SPIN_IMG,
-  iconImg, iname, ingImg,
+  iconImg, iname, ingImg, emojify,
   devHost,
 } from "../shared/index.js";
 import {
@@ -151,14 +158,16 @@ import {
   // the decorative board's demo log line, and that board no longer renders. Dead imports are
   // forbidden in this codebase (D-33/D-34/D-40) and no gate catches them, so they go with the code
   // that used them rather than being left behind as plausible-looking dependencies.
-  assignBadges, pname, pn, buildPlayerRows, applyCaptainOrder, SHIP_GLIDE_MS, vwPx, vhPx,
+  assignBadges, pname, pn, buildPlayerRows, applyCaptainOrder, SHIP_GLIDE_MS, vwPx, vhPx, say, seat, fixedOrigin,
   fitHold,   // 2026-09-11: every hold on one line (his check-9 note)
   fitRecipeName,   // 2026-09-12: the recipe's name at the largest size that fits its card
+  whoseTurn,       // architecture item 3: the ONE answer to whose turn the screen shows
 } from "./util.js";
-import { deriveActiveSeat } from "../shared/storyboard.js";
 import { mayRevealRecipe, offersRecipeCheck } from "../shared/visibility.js";
 import { recipeTitle, recipeInfo, winRecipeSpan, recipeArticle } from "./recipe.js";
-import { playFlip, startFlipSpinSound, stopFlipSpinSound } from "./audio.js";
+import { playFlip, startFlipSpinSound, stopFlipSpinSound, onThunder, playCoinTick, playCoinChink, playAwardWhoosh } from "./audio.js";
+import { victoryCard } from "./victory.js";
+import { popInHolds } from "./popin.js";
 
 // `$` is a classic-script-local `const $=id=>document.getElementById(id)` (index.html:863) —
 // see the file header's deviation note.
@@ -257,8 +266,25 @@ function buildRimFlow(cellPx){
     host.appendChild(d);
   });
 }
+/* ⭐ HAS THE BOARD'S ART ARRIVED? — Wy-Blade's sea trial of 2026.09.14.2: both crew GUESTS played the pop-in over a board
+   whose pictures had not loaded ("sparkles over a bare grid with no sea, islands or ingredients"; "21 ingredients on open
+   water, no island land"). The host, whose pictures were already cached, looked right. So drawBoard counts the pictures it
+   starts — the sea, the islands, the crates — and boardArtReady() says when every one has loaded or failed. The recipe
+   picker's show waits on it (stage.js rcFlightRun), capped, so a slow connection delays the draft but can never hold it. */
+let artPending=0,artDrawnAt=0;
+function trackArt(im){
+  if(!im)return;
+  artPending++;
+  let settled=false;
+  const done=()=>{if(settled)return;settled=true;artPending=Math.max(0,artPending-1);};
+  im.addEventListener("load",done);im.addEventListener("error",done);
+}
+export function boardArtReady(maxWaitMs){
+  return artPending===0||(artDrawnAt>0&&performance.now()-artDrawnAt>maxWaitMs);
+}
 export function drawBoard(){
   const svg=$("board");svg.innerHTML="";
+  artPending=0;artDrawnAt=performance.now();
   // PERF-01 (2026-08-02): the boats live in their own SVG overlaying #board so they paint ABOVE the
   // ripple rings, which are HTML now and would otherwise cover them. Cleared in lockstep with
   // #board — emptying one and not the other would strand ghost boats from the previous board.
@@ -271,6 +297,7 @@ export function drawBoard(){
   // squares still read as distinct from open water. `home` (the plain Tortuga tile + anchor +
   // berths) fully hides once art loads, since that's baked into the art itself.
   const boardImg=el("image",{x:0,y:0,width:W,height:W,href:BOARD_IMG},svg);
+  trackArt(boardImg);
   boardImg.addEventListener("error",()=>boardImg.remove());
   const grid=el("g",{},svg);
   const home=el("g",{},svg);
@@ -332,7 +359,7 @@ export function drawBoard(){
     if(placement){
       const clipG=el("g",{"clip-path":`url(#${clipId})`},svg);
       const artG=el("g",{transform:placement.transform},clipG);
-      el("image",{x:0,y:0,width:placement.w,height:placement.h,"preserveAspectRatio":"none",href:placement.href},artG);
+      trackArt(el("image",{x:0,y:0,width:placement.w,height:placement.h,"preserveAspectRatio":"none",href:placement.href},artG));
     }
     // dock is drawn before the crate icons below so it always sits underneath them — it
     // stretches to the shared edge with the island and would otherwise occlude a crate there
@@ -362,6 +389,14 @@ export function drawBoard(){
         const scx=(c[0]+.5)*cell,scy=(c[1]+.5)*cell;
         const g=iconAt(svg,scx,scy,cell*.8,ING_IMG[ing]);
         g.id=`crate_${ing}_${idx}`;
+        trackArt(g.querySelector("image"));
+        /* THE POP-IN READS ITS CRATES OFF WHAT WAS DRAWN — the square, the centre, the size, the picture — so there is no
+           second copy of where a crate sits (BOARD-RENDERING §2). Until this voyage's pop-in lands, a crate is drawn but
+           not shown: his "pop in the ingredients ... until the recipe picker cards appear" (src/ui/popin.js).
+           ⚠ VISIBILITY, NOT OPACITY: render() below writes every crate's opacity on every render (a taken crate greys to
+           .45), and measured, that un-hid all 21 crates within 700ms of the show starting. */
+        Object.assign(g.dataset,{gx:c[0],gy:c[1],cx:scx,cy:scy,size:cell*.8,ing,idx});
+        if(popInHolds())g.style.visibility="hidden";
       });
       // 🏴 THE BLACK MARKET FLAG (draft art — emoji until Wyatt commissions a proper flag): flies
       // over the dock when the shelf is empty — the same promise the ceremony card makes, that a
@@ -467,7 +502,7 @@ export function drawBoard(){
     fill:"#fffdf0",stroke:"#29a3b2","stroke-width":2},forecastPulse);
   forecastLabel=el("text",{x:-FC_W/2+FC_PAD,y:FC_H*0.70,"text-anchor":"start","font-size":15,
     "font-weight":"bold",fill:"#1f4249"},forecastPulse);
-  forecastLabel.textContent="FORECAST:";
+  forecastLabel.textContent=say("pill.forecast",{});
   // the game's own storm art, not a Unicode glyph — the same icon the narration uses, so the chip
   // looks like the rest of the game rather than like whatever emoji font the phone happens to have
   // sits immediately left of the direction with a real gap — measured at 170 units wide the
@@ -564,6 +599,346 @@ export function drawBoard(){
     shipEls[i].style.transform=`translate(${x}px,${y}px)`;
   });
 }
+/* ⭐ THE ACTIVE BOAT BOBS ONCE WHEN ITS TURN BEGINS — PASSED on his game feel audit (2026-09-13), as proposed: "One gentle
+   bob of the active boat when the turn begins — the eye goes straight to it."
+   Called from the ONE event consumer on the `turn` event (orchestrator.js consumeEvent), so every screen bobs the same
+   boat at the same moment. The boat's PICTURE bobs (CSS `translate` on its <image>), never its group: the group's
+   transform is where the boat sits on the board and carries the sailing glide. A one-shot, so its SVG cost is a moment,
+   not the continuous cost BOARD-RENDERING §5 forbids. */
+/* ⭐⭐ AND IT KEEPS BOBBING FOR THE WHOLE TURN — Wyatt, 2026-09-14: "I don't see the boat bobbing -- i'd love for it to keep bobbing
+   for your whole turn." A one-shot bob at the turn's first frame was lost under the camera's own move to the boat. It is now a slow
+   swell from the captain's turn event to the next captain's (or the voyage's end), on every screen, one boat at a time.
+   ⚠ IT BOBS IN HTML, NOT IN THE SVG, AND THAT WAS MEASURED. Bobbing the boat's own SVG picture for a whole turn cost 60 LAYOUTS A
+   SECOND at his phone size with a phone-class CPU (10/s without it) — the continuous SVG cost BOARD-RENDERING §5 exists to forbid.
+   So while the boat sits still, a copy of its picture bobs in #dockCoinHost (a camera layer just over the boats, composited: no
+   layout) and the SVG picture hides; the instant the boat's drawn position changes, or anything animates its SVG picture (the sail's
+   lean, the arrival's dip, the storm's rock, a cannon's kick, a loser's wobble), the SVG picture is the one shown and those play
+   exactly as they always did. The copy follows the boat's drawn place, so a camera move carries both together. */
+export const SHIP_BOB = 0.1;        // of a square, up
+export const SHIP_BOB_MS = 1400;    // one swell, down and back
+/* ⭐ THE HAND-OVER CARRIES THE POSE — ONE PLACE. Wyatt, 2026-09-16, on build .5: "the bobbing before sailing is not quite right -- it
+   sometimes jitters, so it needs to more intelligently lerp between whatever state the boat is in, and whatever state it should be in
+   to sail." The boat is two pictures taking turns (above): the copy bobs while it sits, the SVG picture does everything else. Every
+   swap between them was a cut — the SVG picture always started its wind-up, dip, kick or rock from flat rest, while the copy could be
+   anywhere up to SHIP_BOB of a square high, so the boat dropped by however high it happened to be: "sometimes", because it depended on
+   the swell. Now the swap happens only in handOver:
+     copy -> picture: the picture takes the copy's lift and eases it away over BOB_SETTLE_MS, ADDED on top of whatever motion just
+                      started (composite "add"), so the wind-up plays whole and starts from where the boat was;
+     picture -> copy: the copy's swell restarts from rest, which is where the picture has just come to.
+   The swell itself eases per half (down and up), so it turns smoothly at the top as well as the bottom — an ease across the whole
+   cycle put its fastest moment exactly at the peak. scripts/qa/boat_pose_one_door_check.mjs. */
+const BOB_SETTLE_MS=Math.round(SHIP_BOB_MS*.15);
+let turnBob=null;
+function liftOf(pic){          // the copy's lift right now, in board units (the SVG picture's own translate units)
+  const t=getComputedStyle(pic).translate,W=($("boardwrap")||{}).clientWidth||0;
+  if(!t||t==="none"||!(W>0))return 0;
+  return (parseFloat(t.split(" ")[1])||0)*640/W;
+}
+function handOver(me,toCopy){
+  if(toCopy===me.showing)return;
+  if(toCopy){ try{ me.anim.currentTime=0; }catch(e){} }
+  else if(me.showing){
+    const lift=liftOf(me.pic);
+    if(Math.abs(lift)>0.05&&typeof me.im.animate==="function")
+      me.im.animate([{translate:`0px ${lift.toFixed(2)}px`},{translate:"0px 0px"}],{duration:BOB_SETTLE_MS,easing:"ease-out",composite:"add",id:"bob-settle"});
+  }
+  me.showing=toCopy;
+  me.pic.style.visibility=toCopy?"visible":"hidden";
+  me.im.style.visibility=toCopy?"hidden":"";
+}
+export function stopTurnBob(){
+  if(!turnBob)return;
+  cancelAnimationFrame(turnBob.raf);
+  handOver(turnBob,false);
+  try{ turnBob.anim.cancel(); }catch(e){}
+  turnBob.pic.remove();
+  turnBob=null;
+}
+/* THE BOAT WHOSE TURN IT IS — read from the one helper (architecture item 3, 2026-09-16). It used to start only on a `turn`
+   event (orchestrator.js consumeEvent, `bobShip(e.p)`), a fourth answer to whose turn it is: it kept bobbing the PREVIOUS
+   captain through every bake while the ring and the box had moved to the baker. Called by the one event consumer after
+   every event; it changes nothing while the answer has not changed, and stops when nobody holds a turn (a new day before
+   its first captain, the voyage over). */
+export function bobTheTurn(){
+  const seat=whoseTurn();
+  if(seat===(turnBob?turnBob.seat:null))return;
+  if(seat==null){stopTurnBob();return;}
+  bobShip(seat);
+}
+function bobShip(seat){
+  stopTurnBob();
+  const g=shipEls[seat], im=g&&g.querySelector("image"), host=$("bobHost");   // NOT dockCoinHost: that layer is above the weather, and a boat must not be (index.html #bobHost)
+  if(!im||!host||!cell||typeof im.animate!=="function")return;
+  if(typeof matchMedia==="function"&&matchMedia("(prefers-reduced-motion: reduce)").matches)return;
+  const pic=document.createElement("img");
+  pic.className="ppBobBoat";pic.alt="";pic.src=im.getAttribute("href")||"";
+  pic.style.width=pic.style.height=CQfx(cell);pic.style.visibility="hidden";
+  host.appendChild(pic);
+  const anim=pic.animate([{translate:"0 0",easing:"ease-in-out"},{translate:`0 ${CQfx(-cell*SHIP_BOB)}`,offset:.5,easing:"ease-in-out"},{translate:"0 0"}],
+    {duration:SHIP_BOB_MS,iterations:Infinity,easing:"linear",id:"turn-bob"});
+  const me={seat,g,im,pic,anim,raf:0,showing:false};
+  turnBob=me;
+  let last=null;
+  const step=()=>{
+    if(turnBob!==me)return;
+    if(shipEls[seat]!==g||!g.isConnected){ bobShip(seat); return; }      // the board was redrawn: bob the new boat
+    const p=drawnShipPoint(seat);
+    const moved=!p||!last||Math.abs(p[0]-last[0])>0.01||Math.abs(p[1]-last[1])>0.01;
+    if(p&&moved){ pic.style.left=CQfx(p[0]-cell/2); pic.style.top=CQfx(p[1]-cell/2); }
+    const show=!!p&&!moved&&g.style.visibility!=="hidden"&&im.getAnimations().length===0;
+    handOver(me,show);
+    if(show)pic.style.opacity=g.style.opacity||"";
+    last=p;
+    me.raf=requestAnimationFrame(step);
+  };
+  me.raf=requestAnimationFrame(step);
+}
+/* ⭐ THE BOAT SAILS: A WIND-UP, A WAKE, AND A SPLASH WHEN IT ARRIVES — all three PASSED on his game feel audit (2026-09-13),
+   as proposed: "A short rock backward, then it surges forward — the classic wind-up that makes movement feel powered." ·
+   "A few foam dots that trail and fade, so speed and direction are visible." · "When it stops, it dips and rises once with
+   a small ring on the water."
+   Called from THE ONE event consumer on a `sail` event (sailSetsOff as the boat moves, sailArrives once the stage has
+   settled), so every screen shows the same boat doing the same thing. The boat's PICTURE leans and dips (translate and
+   scale on its <image>); its group, which carries its place and its glide, is never touched. The foam and the ring are
+   HTML in #popHost, a camera layer under the boats, placed from where the boat is DRAWN at that moment (its computed
+   transform), so they sit where the eye sees the hull whatever route or glide is moving it. */
+export const SAIL_LEAN=0.09, SAIL_LEAN_MS=320;          // how far back the wind-up rocks, in squares; how long it takes
+export const WAKE_EVERY=0.28, WAKE_MS=650;              // a foam dot every this many squares travelled; how long each lasts
+export const ARRIVE_DIP=0.07, ARRIVE_MS=520, SPLASH_MS=700;
+const fxReduced=()=>typeof matchMedia==="function"&&matchMedia("(prefers-reduced-motion: reduce)").matches;
+const CQfx=v=>(v/640*100)+"cqw";
+function drawnShipPoint(seat){
+  const g=shipEls[seat]; if(!g)return null;
+  const m=/matrix\([^,]+,[^,]+,[^,]+,[^,]+,\s*([-\d.]+),\s*([-\d.]+)\)/.exec(getComputedStyle(g).transform);
+  return m?[parseFloat(m[1]),parseFloat(m[2])]:null;
+}
+function fxDot(host,cls,p,size,keyframes,ms){
+  const d=document.createElement("div");
+  d.className=cls;
+  d.style.left=CQfx(p[0]-size/2);d.style.top=CQfx(p[1]-size/2);d.style.width=d.style.height=CQfx(size);
+  host.appendChild(d);
+  const a=d.animate(keyframes,{duration:ms,easing:"ease-out",fill:"both"});
+  a.onfinish=a.oncancel=()=>d.remove();
+  return d;
+}
+export function sailSetsOff(seat,route){
+  if(fxReduced()||!shipEls[seat]||!cell)return;
+  const im=shipEls[seat].querySelector("image");
+  let dx=0,dy=0;
+  if(Array.isArray(route)&&route.length>=2){dx=route[1][0]-route[0][0];dy=route[1][1]-route[0][1];}
+  const len=Math.hypot(dx,dy)||1;dx/=len;dy/=len;
+  const back=cell*SAIL_LEAN,fwd=back*.55;
+  if(im&&typeof im.animate==="function")
+    im.animate([{translate:"0px 0px",scale:"1"},
+      {translate:`${(-dx*back).toFixed(2)}px ${(-dy*back).toFixed(2)}px`,scale:"0.94",offset:.35},
+      {translate:`${(dx*fwd).toFixed(2)}px ${(dy*fwd).toFixed(2)}px`,scale:"1.03",offset:.7},
+      {translate:"0px 0px",scale:"1"}],{duration:SAIL_LEAN_MS,easing:"ease-in-out",id:"sail-lean"});
+  followHull(seat,WAKE_EVERY,(host,at)=>fxDot(host,"ppWake",at,cell*0.16,[{opacity:.8,scale:"1"},{opacity:0,scale:"0.3"}],WAKE_MS));
+}
+/* FOLLOW THE DRAWN HULL until it has stopped, and leave something where the boat WAS each time it moves on by `every` of a
+   square — so a trail falls behind the boat rather than under it. drop(host, point, angle) makes the mark. */
+const SNAP_SQUARES=1.2;
+function followHull(seat,every,drop){
+  const host=document.getElementById("popHost");
+  if(!host)return;
+  let last=drawnShipPoint(seat),prev=last,moved=false,stillMs=0,prevT=performance.now();
+  const t0=prevT;
+  const step=now=>{
+    const p=drawnShipPoint(seat);
+    if(!p||!host.isConnected)return;
+    const dt=now-prevT;prevT=now;
+    /* A SNAP IS NOT TRAVEL. A boat sailing or riding the wind moves a fraction of a square a frame; one that jumps more than a
+       square in a frame was put back on its true square by a paint (MEASURED on the trade wind: two rides each left a pair of
+       streaks pointing straight back along the jump). Nothing trails a jump — the trail picks up again from where it landed. */
+    if(prev&&Math.hypot(p[0]-prev[0],p[1]-prev[1])>cell*SNAP_SQUARES){last=p;prev=p;stillMs=0;requestAnimationFrame(step);return;}
+    if(prev&&Math.hypot(p[0]-prev[0],p[1]-prev[1])<0.25)stillMs+=dt;else{stillMs=0;moved=true;}
+    if(last&&Math.hypot(p[0]-last[0],p[1]-last[1])>=cell*every){
+      drop(host,last,Math.atan2(p[1]-last[1],p[0]-last[0]),p);
+      last=p;
+    }
+    prev=p;
+    if((moved&&stillMs>250)||(!moved&&now-t0>1200)||now-t0>8000)return;
+    requestAnimationFrame(step);
+  };
+  requestAnimationFrame(step);
+}
+/* ⭐ SPEED LINES ON THE TRADE WIND — PASSED on his game feel audit (2026-09-13), as proposed: "Short streaks trail the boat
+   while the current carries it, so the ride reads as fast." Called from THE ONE event consumer on a `tradewind` event, so
+   every screen sees every ride. Each streak lies along the direction the hull is travelling (a static `rotate`), and fades
+   and shortens behind it. His separate note, that every wind-sailing cue should be yellow-gold, belongs to the sailing
+   project on the backlog; these stay white like the rest of the water until that is built. */
+/* EMITTED FROM THE BOAT, BRIGHTEST AT THE BOAT. Wyatt, 2026-09-16: "The speed lines seem like they're aiming the wrong direction ...
+   they are not being emitted from the boat, but they should be. the gradient should be most opaque nearest to the boat." Both true:
+   each line was CENTRED on the square the boat had just left, so half of it reached forward, and it was one flat white. Now a line's
+   head sits on the hull where it is emitted and its body trails straight back along the way the boat came, fading from the head
+   (index.html .ppStreak) — and it shrinks back toward that head as it goes, so the water closes up behind the boat. */
+export const STREAK_EVERY=0.22, STREAK_MS=1080;   // was 780 · 1220 — his tuner, 2026-09-16 (twice)
+export function rideStreaks(seat){
+  if(fxReduced()||!shipEls[seat]||!cell)return;
+  followHull(seat,STREAK_EVERY,(host,last,angle,at)=>{
+    const len=cell*0.55,thick=cell*0.07,d=document.createElement("div");
+    d.className="ppStreak";d.dataset.seat=seat;
+    d.style.left=CQfx(at[0]-len);d.style.top=CQfx(at[1]-thick/2);d.style.width=CQfx(len);d.style.height=CQfx(thick);
+    d.style.rotate=`${(angle*180/Math.PI).toFixed(1)}deg`;   // turns about its head (transform-origin: right), so the body lies behind the hull
+    host.appendChild(d);
+    const a=d.animate([{opacity:.9,scale:"1 1"},{opacity:0,scale:"0.4 0.6"}],{duration:STREAK_MS,easing:"ease-out",fill:"both",id:"ride-streak"});
+    a.onfinish=a.oncancel=()=>d.remove();
+  });
+}
+/* ⭐ CONFETTI FOR THE FIRST CAPTAIN HOME — PASSED on his game feel audit (2026-09-13), as proposed: "The first captain home
+   gets a two-second burst — it is the moment the race turns." (The fanfare is a sound and comes with the sound page.)
+   Called from THE ONE event consumer on the voyage's FIRST `ovens` event — a captain home with a full hold, lighting the
+   ovens — read off the event list, so a reload or a guest joining late never throws it twice. Paper in that captain's
+   colour, gold and cream, from their boat. */
+/* A BURST THAT SLOWS AND FALLS, NOT ONE THAT TURNS A CORNER. Wyatt, 2026-09-16: "The confetti has an abrupt fall to it, instead of a
+   gradual parabolic fall -- each piece moves away at a certain speed then abruptly turns to fall, this is bad." It did exactly that: a
+   burst keyframe at 35% and a fall keyframe after it. Now each piece's path is sampled from how paper actually moves — thrown out fast,
+   air drag bleeding the throw away (e^-t/τ), gravity taking over smoothly until it drifts down, with a slow flutter side to side. */
+export const CONFETTI_PIECES=32, CONFETTI_MS=2000;   // was 36 · 3000, then 24 · 3700 — his tuner, 2026-09-16 (twice)
+const CONFETTI_DRAG=0.16, CONFETTI_STEPS=20;          // τ as a share of a piece's life: the throw is mostly spent by a third of the way
+export function firstHomeConfetti(e){
+  if(fxReduced()||!e||e.t!=="ovens"||!appState.game||!shipEls[e.p])return;
+  const evs=appState.game.events;
+  if(evs.find(x=>x&&x.t==="ovens")!==e)return;              // only the first captain home
+  /* ON TOP OF EVERYTHING, IN SCREEN PIXELS, like the treasure coins. Drawn first in the board's own camera layer, the
+     pieces MEASURED 3-4px on his phone and rose straight under the narration bubble that announces the ovens: 36 pieces
+     nobody could see. A burst for the moment the race turns has to be the top thing on the screen. */
+  const ships=$("boardShips")||$("board");
+  const m=/translate\(([-\d.]+)px,\s*([-\d.]+)px\)/.exec(shipEls[e.p].style.transform||"");
+  const from=m&&fixedPointOfBoard(ships,parseFloat(m[1]),parseFloat(m[2]));if(!from)return;
+  const ctm=ships.getScreenCTM(),sq=cell*(ctm?ctm.a:1);     // one square of the board, in screen pixels
+  const colours=[HEXCOL[e.p]||"#f5a623","#ffd76b","#fff3d6"];
+  const rnd=k=>{const x=Math.sin((k+1)*127.1+e.p*31.7)*43758.5453;return x-Math.floor(x);};
+  for(let k=0;k<CONFETTI_PIECES;k++){
+    const w=Math.max(6,sq*(0.26+rnd(k)*0.1)),h=w*0.5,d=document.createElement("div");
+    d.className="ppConfetti";d.style.background=colours[k%colours.length];
+    Object.assign(d.style,{left:(from[0]-w/2)+"px",top:(from[1]-h/2)+"px",width:w+"px",height:h+"px"});
+    document.body.appendChild(d);
+    const ang=-Math.PI/2+(rnd(k+50)-0.5)*Math.PI*1.1,pow=Math.max(45,sq*(2+rnd(k+90)*2));
+    const ux=Math.cos(ang)*pow,uy=Math.sin(ang)*pow,spin=(rnd(k+7)-0.5)*900,fall=Math.max(90,sq*4),phase=rnd(k+11)*6.28;
+    const E=t=>(1-Math.exp(-t/CONFETTI_DRAG))/(1-Math.exp(-1/CONFETTI_DRAG));                 // how much of the throw is spent by t
+    const G0=1-CONFETTI_DRAG*(1-Math.exp(-1/CONFETTI_DRAG)),G=t=>(t-CONFETTI_DRAG*(1-Math.exp(-t/CONFETTI_DRAG)))/G0;   // how far gravity has pulled it by t
+    const frames=[];
+    for(let i=0;i<=CONFETTI_STEPS;i++){const t=i/CONFETTI_STEPS;
+      const x=ux*E(t)+Math.sin(phase+t*9)*sq*0.18*t, y=uy*E(t)+fall*G(t);
+      frames.push({offset:t,translate:`${x.toFixed(1)}px ${y.toFixed(1)}px`,rotate:`${(spin*t).toFixed(0)}deg`,opacity:(t<.72?1:Math.max(0,1-(t-.72)/.28)).toFixed(3)});}
+    const a=d.animate(frames,{duration:CONFETTI_MS*(0.8+rnd(k+3)*0.4),easing:"linear",fill:"both",id:"first-home-confetti"});
+    a.onfinish=a.oncancel=()=>d.remove();
+  }
+}
+/* ⭐ A SHOT LANDS: THE CANNON KICKS, THE HIT FLASHES, THE BOARD SHAKES — PASSED on his game feel audit (2026-09-13), as proposed:
+   "The firing side's art recoils backward and springs back, with a smoke puff" and "The struck ship flashes white for one frame
+   and the board shakes 3px — a hit you can feel." ON THE BOARD, NOT THE BATTLE CARD: he means to retire the battle screen and
+   fight over the board, so the reaction belongs to the boats. Called from THE ONE event consumer on a `shotLands` event, which
+   the fight records the moment a shot gets through, so every screen feels the same hit. Smoke and flash sit OVER the boats
+   (#dockCoinHost); the shake moves the whole board window by its individual `translate`, which composes with the camera. */
+/* THE SHOT IS TWICE THE SHOT IT WAS. Wyatt, 2026-09-15: "I didn't see any smoke, or the ship recoil away from the other ship --
+   these should all be accentuated 2x." The recoil (KICK_CELL), the puff (SMOKE_CELL) and the board's shake all doubled; the timings
+   are unchanged, so the same moment simply reads. All four are dials on his Game Feel Tuner. */
+/* HIS NUMBERS, 2026-09-16, and his note: "There needs to be more weight to the recoil -- ... the boat should be flung forcefully away
+   from the smoke but draw back to its original position gradually. Also, the boat should tilt away from the smoke, perhaps by 10 or
+   20 degrees -- add these dials". So the kick is two motions, not one: FLUNG out over the first KICK_FLING of it, then drawn back over
+   the rest, leaning KICK_TILT_DEG away from the smoke at the far end. The tilt and the fling are both his dials on the tuner now. */
+export const KICK_MS=1290, SMOKE_MS=1200, HIT_AT_MS=110, HIT_FLASH_MS=110, SHAKE_PX=8, SHAKE_MS=300;   // was 320 · 520 · — · — · 6 · —, then 880 · 1060 · 11
+export const KICK_CELL=0.30, SMOKE_CELL=1.50, KICK_TILT_DEG=15, KICK_FLING=0.25;   // was 0.28 · 1.7 · (new) · (new), then 0.26 · 1.05 · 15 · 0.14
+/* SMOKE, NOT A BALL. Wyatt, 2026-09-16: "The smoke looks more like a sphere than smoke. Fix this visual effect, but do it efficiently."
+   It was one circle. Now a shot throws SMOKE_PUFFS soft puffs of different sizes from the muzzle: each drifts out along the line of fire,
+   spreads across it and rises, swelling as it thins, and they fade at different moments — so the cloud tears apart the way smoke does.
+   Cheap by construction: a handful of divs, a soft radial gradient drawn once each (no blur filter), and only translate/scale/opacity
+   animated, all of which the compositor does without a layout. Seeded off the shot, so every screen draws the same cloud. */
+const SMOKE_PUFFS=6;
+function smokePuffs(host,at,ux,uy,size,ms,seed){
+  const rnd=k=>{const x=Math.sin((k+1)*91.7+seed*13.37)*43758.5453;return x-Math.floor(x);};
+  for(let k=0;k<SMOKE_PUFFS;k++){
+    const r=size*(0.34+rnd(k)*0.24),d=document.createElement("div");
+    d.className="ppSmokePuff";
+    const jx=(rnd(k+10)-.5)*size*.22,jy=(rnd(k+20)-.5)*size*.22;
+    d.style.left=CQfx(at[0]+jx-r/2);d.style.top=CQfx(at[1]+jy-r/2);d.style.width=d.style.height=CQfx(r);
+    host.appendChild(d);
+    /* IT BILLOWS WHERE THE GUN IS, AND HOLDS ITS BODY. Measured 2026-09-16 at his window with a forced hit: the first cut drifted each puff up
+       to two-thirds of the cloud's size along the line of fire and faded it from its first moment, so what a player saw was a wisp past the
+       TARGET that was mostly gone a quarter-second in — his "there was no smoke during battles". So a puff now swells in place, moves at most
+       a third of the cloud along the line of fire, keeps nine-tenths of its opacity for half its life, and only then thins away. */
+    const drift=size*(0.08+rnd(k+30)*0.25),across=(rnd(k+40)-.5)*size*.4,rise=size*(0.06+rnd(k+50)*0.16);
+    const tx=ux*drift-uy*across,ty=uy*drift+ux*across-rise;
+    const life=ms*(0.75+rnd(k+60)*0.25),delay=ms*rnd(k+70)*0.08,peak=0.85+rnd(k+90)*0.12;
+    const m=d.animate([{translate:"0px 0px",scale:"0.35"},{translate:`${CQfx(tx)} ${CQfx(ty)}`,scale:(1.15+rnd(k+80)*0.35).toFixed(2)}],
+      {duration:life,delay,easing:"cubic-bezier(.12,.75,.3,1)",fill:"both",id:"cannon-smoke"});
+    d.animate([{opacity:0},{opacity:peak.toFixed(2),offset:.1},{opacity:(peak*.9).toFixed(2),offset:.5},{opacity:0}],{duration:life,delay,easing:"linear",fill:"both"});
+    m.onfinish=m.oncancel=()=>d.remove();
+  }
+}
+export function shotLands(e){
+  if(fxReduced()||!e||e.by==null||!cell)return;
+  const shooter=e.by,target=e.by===e.a?e.d:e.a;
+  const from=drawnShipPoint(shooter),to=drawnShipPoint(target),host=$("dockCoinHost");
+  if(!from||!to||!host)return;
+  const len=Math.hypot(to[0]-from[0],to[1]-from[1])||1,ux=(to[0]-from[0])/len,uy=(to[1]-from[1])/len;
+  const im=shipEls[shooter]&&shipEls[shooter].querySelector("image");
+  const tilt=-Math.sign(ux||1)*KICK_TILT_DEG;   // lean away from the smoke: a shot to the right tips the mast left
+  if(im&&typeof im.animate==="function")
+    im.animate([{translate:"0px 0px",rotate:"0deg",easing:"cubic-bezier(.05,.85,.25,1)"},
+      {translate:`${(-ux*cell*KICK_CELL).toFixed(2)}px ${(-uy*cell*KICK_CELL).toFixed(2)}px`,rotate:`${tilt}deg`,offset:KICK_FLING,easing:"cubic-bezier(.45,0,.4,1)"},
+      {translate:"0px 0px",rotate:"0deg"}],{duration:KICK_MS,id:"cannon-kick"});
+  smokePuffs(host,[from[0]+ux*cell*.45,from[1]+uy*cell*.45],ux,uy,cell*SMOKE_CELL,SMOKE_MS,(e.round||0)*7+shooter);
+  setTimeout(()=>{
+    if(!host.isConnected)return;
+    fxDot(host,"ppHitFlash",drawnShipPoint(target)||to,cell*1.1,[{opacity:1,scale:".75"},{opacity:0,scale:"1.1"}],HIT_FLASH_MS);
+    const wrap=$("boardwrap");
+    if(wrap&&typeof wrap.animate==="function")
+      wrap.animate([{translate:"0px 0px"},{translate:`${SHAKE_PX}px ${-SHAKE_PX/2}px`,offset:.2},{translate:`${-SHAKE_PX}px ${SHAKE_PX/2}px`,offset:.45},
+        {translate:`${SHAKE_PX/2}px 0px`,offset:.7},{translate:"0px 0px"}],{duration:SHAKE_MS,easing:"linear",id:"hit-shake"});
+  },HIT_AT_MS);
+}
+/* ⭐ THE LOSER IS KNOCKED ABOUT — PASSED on his game feel audit (2026-09-13), as proposed: "The losing boat wobbles and a crate
+   splashes into the sea when spoils are taken." On the `battle` event, which the engine records only for a fight somebody WON (a
+   flee and a null battle are other events); the crate goes only when one actually changed hands. It tumbles off the far side of
+   the loser, away from the winner, and lands in a splash ring on the water. */
+export const KNOCK_MS=900;
+export function loserKnocked(e){
+  if(fxReduced()||!e||e.winner==null||!cell)return;
+  const loser=e.winner===e.a?e.d:e.a;
+  const im=shipEls[loser]&&shipEls[loser].querySelector("image");
+  if(im&&typeof im.animate==="function")
+    im.animate([{rotate:"0deg"},{rotate:"-12deg",offset:.15},{rotate:"9deg",offset:.38},{rotate:"-5deg",offset:.6},{rotate:"2deg",offset:.8},{rotate:"0deg"}],
+      {duration:KNOCK_MS,easing:"ease-out",id:"loser-knock"});
+  // the crate a winner takes flies from the loser's hold to the winner's, exactly as a traded crate does (holdMovesFrom, his 2026-09-16 ruling)
+}
+export function sailArrives(seat){
+  if(fxReduced()||!shipEls[seat]||!cell)return;
+  const im=shipEls[seat].querySelector("image");
+  if(im&&typeof im.animate==="function")
+    im.animate([{translate:"0px 0px"},{translate:`0px ${(cell*ARRIVE_DIP).toFixed(2)}px`,offset:.4},
+      {translate:`0px ${(-cell*ARRIVE_DIP*.4).toFixed(2)}px`,offset:.75},{translate:"0px 0px"}],
+      {duration:ARRIVE_MS,easing:"ease-in-out",id:"sail-arrive"});
+  const host=document.getElementById("popHost"),p=drawnShipPoint(seat);
+  if(host&&p)fxDot(host,"ppSplash",p,cell*0.95,[{opacity:.85,scale:"0.35"},{opacity:0,scale:"1.35"}],SPLASH_MS);
+}
+/* ⭐ STORMS: LIGHTNING WITH THE THUNDER, AND THE BOATS ROCK — PASSED on his game feel audit (2026-09-13), as proposed: "A white
+   flash across the board timed to each thunder clap" — with his note, "make this subtle -- too much could be annoying." —
+   and "Every boat tilts gently back and forth while the storm lasts." The third storm idea, the sea darkening as a storm
+   rolls in, was already there (#stormOverlay's navy tint); it now eases in over a full second.
+   ⚠ THE ROCKING RIDES THE THUNDER, NOT A LOOP. The boats are SVG, and Chrome cannot composite a transform animation on SVG
+   (BOARD-RENDERING §5: ~62 layouts a second), so a rock running the whole round would spend the board's idle budget for the
+   whole storm. Each clap — the first the instant the storm arrives, then about every 20 seconds — rocks every boat for two
+   seconds. A clap is per screen (the thunder is scattered on each device), so each screen's lightning matches its own sound. */
+export const LIGHTNING_PEAK=0.2, LIGHTNING_MS=420, ROCK_DEG=4, ROCK_MS=2000;
+export function stormFlash(){
+  const wrap=$("boardwrap"),ov=$("stormOverlay");
+  if(!wrap||!ov||!wrap.classList.contains("storming")||fxReduced())return;
+  let f=ov.querySelector(".ppLightning");
+  if(!f){f=document.createElement("div");f.className="ppLightning";ov.appendChild(f);}
+  f.animate([{opacity:0},{opacity:LIGHTNING_PEAK,offset:.1},{opacity:.03,offset:.3},{opacity:LIGHTNING_PEAK*.55,offset:.45},{opacity:0}],
+    {duration:LIGHTNING_MS,easing:"ease-out",id:"lightning"});
+  shipEls.forEach((g,i)=>{
+    const im=g&&g.querySelector("image");
+    if(!im||typeof im.animate!=="function"||g.style.visibility==="hidden")return;
+    im.animate([{rotate:"0deg"},{rotate:`${ROCK_DEG}deg`,offset:.2},{rotate:`${-ROCK_DEG}deg`,offset:.45},
+      {rotate:`${(ROCK_DEG*.6).toFixed(1)}deg`,offset:.7},{rotate:`${(-ROCK_DEG*.3).toFixed(1)}deg`,offset:.88},{rotate:"0deg"}],
+      {duration:ROCK_MS,delay:i*60,easing:"ease-in-out",id:"storm-rock"});
+  });
+}
+onThunder(stormFlash);
 /* ---------- playback ---------- */
 // notes/edits BUG-01: build the storm's rain layers once, on the first storm. The rain is now a
 // pre-rendered tiling PNG (see #stormOverlay .rlayer CSS), so each layer only varies things that
@@ -1502,7 +1877,7 @@ export function renderLiveShips(){
     if(chatBubbles[i])positionChatBubble(i,x,y); // keep an active chat bubble riding along with its boat
   });
   // the active-turn ripple has to travel with the ship it's ringing, or it's left behind mid-push.
-  // G14: the whose-turn-is-it scan now lives in activeTurnSeat() below, shared with paintShipAt().
+  // G14: the whose-turn-is-it scan lives in whoseTurn() (util.js, architecture item 3), shared with paintShipAt().
   // CORRECTED 2026-08-31: the two copies are NOT identical and have not been since ovens/bake was
   // added to render()'s alone. Both now call one walk (shared/storyboard.js); they differ only in
   // the event list each passes, which is stated at each call site instead of hidden in a loop body.
@@ -1511,8 +1886,8 @@ export function renderLiveShips(){
   // Safari storm-crash fix). render() KEEPS its own copy and is still NOT touched; extracting the
   // duplicate out of THIS function removes the second copy rather than adding a third.
   if(activeRing){
-    const a=activeTurnSeat();
-    if(a!=null&&live[a]&&!live[a].done){
+    const a=whoseTurn();   // the one answer — its `done` filter included (util.js, architecture item 3)
+    if(a!=null&&live[a]){
       const [ax,ay]=shipXY(live[a].pos,a,live,cell);
       ringTo(a,ax,ay);
     }
@@ -1556,19 +1931,8 @@ function ringTo(seat,x,y){
   if(activeRing.style.transition!==want)activeRing.style.transition=want;
   activeRing.style.transform=xf;
 }
-// G14: which seat currently owns the turn, by walking back from the current event to the nearest
-// `turn` (stopping at a round boundary). Extracted from renderLiveShips so paintShipAt can ring the
-// right ship too. render() has an identical inline copy which is deliberately LEFT ALONE — see the
-// file header's BYTE-IDENTICAL rule.
-/* ONE WALK (2026-08-31). This was the FOURTH private copy of the backward scan, found by the
-   sweep. It now shares the walk in src/shared/storyboard.js, which has one rule and no options
-   what it was — this scan has never known about ovens/bake, unlike render()'s — and the split is
-   now VISIBLE at this one line instead of being a silent difference between two lookalike loops. */
-function activeTurnSeat(){
-  // TURN_ESTABLISHING, moved here with render()'s copy on 2026-08-31 — "rings follow active player
-  // the whole game with no exception including during bakeoff". The gate keeps these two in step.
-  return deriveActiveSeat(appState.game.events,appState.evIdx);
-}
+/* (activeTurnSeat() stood here — a private wrapper around the shared walk, "G14: which seat currently owns the turn".
+   Architecture item 3 (2026-09-16) replaced every call with whoseTurn() in util.js: one helper, read by every surface.) */
 // G14 (Wyatt-approved 2026-07-30): move ONE ship element to an arbitrary cell, without touching game
 // state or the event stream. The per-square painter behind the trade-wind rim sweep.
 //
@@ -1635,7 +1999,7 @@ function shipGlideCss(ms,ease){ return `${ms}ms ${ease||SHIP_GLIDE_EASE}`; }
    Restores whatever transitions were in force, so a caller can arm its own glide afterwards. */
 export function snapShipTo(seat,c){
   if(!shipEls.length||!shipEls[seat])return;
-  const ringing=activeRing&&activeTurnSeat()===seat;
+  const ringing=activeRing&&whoseTurn()===seat;
   const prevShip=shipEls[seat].style.transition;
   const prevRing=ringing?activeRing.style.transition:null;
   shipEls[seat].style.transition="none";
@@ -1650,7 +2014,7 @@ export function setShipGlideMs(seat,ms,ease){
   if(!shipEls.length||!shipEls[seat])return;
   const css=`transform ${shipGlideCss(ms==null?SHIP_GLIDE_MS:ms,ms==null?null:ease)}`;
   shipEls[seat].style.transition=css;
-  if(activeRing&&activeTurnSeat()===seat)activeRing.style.transition=ms==null?"":css;
+  if(activeRing&&whoseTurn()===seat)activeRing.style.transition=ms==null?"":css;
 }
 // Move one ship to an arbitrary FRACTIONAL cell position — the sub-square painter behind the smooth
 // trade-wind arc. paintShipAt() below can only address whole cells, which is precisely the
@@ -1666,7 +2030,7 @@ export function paintShipAtPoint(seat,fx,fy){
   const x=(fx+.5)*cell, y=(fy+.5)*cell;
   shipEls[seat].style.transform=`translate(${x}px,${y}px)`;
   if(chatBubbles[seat])positionChatBubble(seat,x,y);
-  if(activeRing&&activeTurnSeat()===seat)ringTo(seat,x,y);
+  if(activeRing&&whoseTurn()===seat)ringTo(seat,x,y);
 }
 export function paintShipAt(seat,c){
   if(appState.replaying)return;
@@ -1678,7 +2042,7 @@ export function paintShipAt(seat,c){
   const [x,y]=shipXY(c,seat,st,cell);
   shipEls[seat].style.transform=`translate(${x}px,${y}px)`;
   if(chatBubbles[seat])positionChatBubble(seat,x,y); // the bubble rides along, as renderLiveShips does
-  if(activeRing&&activeTurnSeat()===seat)ringTo(seat,x,y);
+  if(activeRing&&whoseTurn()===seat)ringTo(seat,x,y);
 }
 /* ONE PLACE DRAWS A PURSE (rule 23 / DISPLAY-RULES §1).
    These four lines lived inline in render(), which was fine while render() was the only thing that
@@ -1688,12 +2052,397 @@ export function paintShipAt(seat,c){
    is CONVERGE, not add a path: so render() goes through this too, and the pulse, the dataset stamp
    and the markup are one statement rather than two copies drifting.
    `coins` is a NUMBER, and 0 is a real purse — every test in here is explicit, never truthiness. */
+/* ⭐ THE COUNT ROLLS, IT DOES NOT JUMP — PASSED on his game feel audit (2026-09-13), for coins LEAVING a purse: "The price leaves your
+   coin count as a quick tick-down ... instead of the number just changing." A number going down ticks one at a time toward the new
+   purse (never longer than COIN_ROLL_MAX_MS). Coins COMING IN never roll — each one arrives (coinArrived, below). A replay and reduced
+   motion just set it. The coin picture is written once and only the number changes, so the roll re-fetches nothing. */
+/* ⭐⭐ A PURSE SHOWS WHAT IS IN IT, NOT WHAT IS STILL FLYING TO IT — AND A COIN ARRIVING IS ONE EVENT, WHOEVER SENT IT.
+   Wyatt, 2026-09-16: "THe coin sound earned from Muse should happen when the coin LANDS in the hold, not when it is earned ... This
+   should be done architecutrally with an event fired by the coin arriving in the hold, regardless of where the coin came from -- i
+   noticed that the sound enters at the correct time when docking; this suggests that once again you've made a stupid patchy fix
+   instead of fixing it at the root."
+   He was right, and the patch he meant was mine from the same afternoon. The number on a purse was drawn from the game's total the
+   moment a coin was EARNED, and each way of earning then tried to HOLD that number back until its own coins landed: a dock's treasure
+   held it one way, a trade's coins another, and a muse coin — whose flight waits for its line — not at all, until a third special
+   case was bolted on for it. Three copies of one rule, and the next way of earning would have needed a fourth.
+   Now nothing is held. ON_THE_WAY counts, per captain, the coins announced but not yet landed; a purse SHOWS its true total less that
+   (purseShows); every earning in the game passes through ONE door (payInto), which puts its coins on the way BEFORE the board is drawn
+   and flies them when they may fly; and every coin that lands — from a boat, from another captain's purse, from anywhere added later —
+   calls ONE event (coinArrived), which takes it off the way, puts it on the number and chinks. A coin that cannot fly (reduced motion,
+   no purse on screen) arrives at once through the same event, and whatever a flight does, its batch is arrived in full when the flight
+   is over (payInto's `finally`), so a purse can never be left short. scripts/qa/every_coin_flies_check.mjs holds all of it. */
+/* ⭐⭐ …AND A COIN LEAVING IS ONE EVENT TOO, THE MIRROR OF THE ARRIVAL. Wyatt, 2026-09-16, on build .5: "there's a strange clicking sound
+   that happens far to quickly -- i it's when someone buys something. is it the sound of money leaving? if so, we need to tune this so the
+   sound and coins both leave more spaced apart." It was: a price rolled the number down on its own clock, a click every 40ms (12ms on a big
+   one), while the coins drawn leaving went SPEND_GAP_MS apart — two clocks for one fact. Now a purse's number goes DOWN the way it goes up:
+   LEAVING counts, per captain, the coins announced spent but not yet seen leaving; every spending passes through ONE door (payOut — or
+   payInto from another captain's purse, for a trade's payer), which announces them BEFORE the board is drawn; and each coin that visibly
+   leaves calls ONE event (coinLeft), which takes it off the number and clicks. A departure only ever lowers the number, so a screen that
+   already dropped it ahead of time (a remote captain's re-watch) is never pushed back up. scripts/qa/coin_departure_one_event_check.mjs. */
+const ON_THE_WAY={},LEAVING={};
+const purseShows=(seat,coins)=>coins-(ON_THE_WAY[seat]||0)+(LEAVING[seat]||0);
+export function coinArrived(seat,count=1){
+  if(!(count>0))return;
+  ON_THE_WAY[seat]=Math.max(0,(ON_THE_WAY[seat]||0)-count);
+  const el=$("coins"+seat),n=el&&el.querySelector(".coinN");
+  if(n&&el.dataset.coins!==undefined){
+    n.textContent=purseShows(seat,+el.dataset.coins);
+    pulseEl(el);
+  }
+  playCoinChink();          // the ONE place a coin going into a purse makes its sound
+}
+export function coinLeft(seat,count=1){
+  if(!(count>0))return;
+  LEAVING[seat]=Math.max(0,(LEAVING[seat]||0)-count);
+  const el=$("coins"+seat),n=el&&el.querySelector(".coinN");
+  if(n&&el.dataset.coins!==undefined){
+    const cur=parseInt(n.textContent,10),show=purseShows(seat,+el.dataset.coins);
+    n.textContent=Number.isFinite(cur)?Math.min(cur,show):show;
+    pulseEl(el);
+  }
+  playCoinTick();           // the ONE place a coin going out of a purse makes its sound
+}
 export function showSeatCoins(seat,coins){
   const el=$("coins"+seat);
   if(!el)return;
-  if(el.dataset.coins!==undefined&&+el.dataset.coins!==coins)pulseEl(el);
   el.dataset.coins=coins;
-  el.innerHTML=`${iconImg(COIN_IMG)} ${coins}`;
+  const show=purseShows(seat,coins);
+  const n=el.querySelector(".coinN");
+  if(!n){el.innerHTML=`${iconImg(COIN_IMG)} <span class="coinN">${show}</span>`;return;}
+  const from=parseInt(n.textContent,10);
+  if(from===show)return;
+  /* WHO MAY MOVE THIS NUMBER — Wyatt's rule, 2026-09-16: "Nothing else raises the number or plays the chink ... a replay or a freshly
+     drawn purse may set it". So: a replay, or a number not drawn yet, is SET; it never goes UP here (only coinArrived raises it) and it
+     never ticks DOWN here either (only coinLeft does, one coin at a time, with its click). What is left is a drop nobody announced —
+     a remote captain's re-watch price, shown before the host settles it — and that is simply set, silently. */
+  if(!Number.isFinite(from)||appState.replaying){n.textContent=show;return;}
+  if(show>from)return;
+  n.textContent=show;
+  pulseEl(el);
+}
+/* ⭐ THE ONE DOOR EVERY EARNING PASSES THROUGH. `from` is "boat" (the coins fly up off that captain's boat — a dock's treasure, a muse
+   coin, a won call's bounty) or another captain's seat (they cross from that purse — a trade's sale). `after` is a promise the flight
+   waits for (a muse coin waits for the line that explains it). Called by the one event consumer BEFORE render(), so the purse is drawn
+   without these coins; returns once every one of them is in. */
+export function payInto(seat,coins,{from="boat",after=null}={}){
+  coins=Math.round(coins||0);
+  if(!(coins>0)||appState.replaying)return Promise.resolve();     // a replay draws the true total: nothing is in flight
+  ON_THE_WAY[seat]=(ON_THE_WAY[seat]||0)+coins;
+  let left=coins;
+  const land=k=>{const c=Math.min(k,left);if(c>0){left-=c;coinArrived(seat,c);}};
+  // coins that cross from another captain LEAVE that captain's purse as they launch — the payer's half of the same door
+  const payer=from==="boat"?null:departures(from,coins);
+  const fly=()=>(from==="boat"?flyFromBoat(seat,coins,land):flyAcross(from,seat,coins,land,payer.leave));
+  const flight=after?Promise.resolve(after).then(fly,fly):fly();
+  return flight.catch(()=>{}).finally(()=>{land(left);if(payer)payer.done();});
+}
+/* ⭐ THE ONE DOOR EVERY SPENDING PASSES THROUGH — a crate's price, a fight's powder, a re-fire, a re-watched bake-off. The coins are
+   announced leaving BEFORE render() draws the lower total, so the number stays put until each coin is seen going (coinLeft). Returns
+   once they are all gone. */
+export function payOut(seat,coins){
+  coins=Math.round(coins||0);
+  if(!(coins>0)||appState.replaying)return Promise.resolve();
+  const d=departures(seat,coins);
+  return coinsLeave(seat,coins,d.leave).catch(()=>{}).finally(d.done);
+}
+function departures(seat,coins){
+  LEAVING[seat]=(LEAVING[seat]||0)+coins;
+  let left=coins;
+  const leave=k=>{const c=Math.min(k,left);if(c>0){left-=c;coinLeft(seat,c);}};
+  return {leave,done:()=>leave(left)};                 // whatever a flight could not show leaving, leaves when it is over
+}
+/* ⭐ TREASURE BURSTS OUT, AND A BOUGHT CRATE FLIES HOME — PASSED on his game feel audit (2026-09-13), as proposed: "Coins spray
+   up from the dock and arc into your coin count" · "It lifts off the island, arcs to your captain's box, and lands on its
+   crate with a squash — the island's copy greys with a little poof as it leaves."
+   Called from THE ONE event consumer on a `dock` event, so every screen shows every captain's dock. They fly in FIXED
+   position between two things drawn in different places — the board and the captains box — so both ends are measured as
+   drawn and brought into the one fixed space (fixedOrigin, util.js) before a single number is taken between them. */
+/* ⭐ HIS NUMBERS, 2026-09-16, off the Game Feel Tuner. Each carries the value it replaced. */
+const TREASURE_MS=630, TREASURE_GAP_MS=470, TREASURE_MAX=20, CRATE_FLY_MS=1330;   // was 1400 · 700 · 20 · 1240, then 1200 · 325 · 20 · 1360
+/* THE STAGGER IS CAPPED, SO THE GAP IS NOT A PRICE LIST: a haul too big to space at the full gap within TREASURE_STAGGER_MS tightens
+   up on its own, so eight coins never make the game wait six seconds for its own purse. */
+const TREASURE_STAGGER_MS=1600;
+const coinGap=n=>n>1?Math.min(TREASURE_GAP_MS,TREASURE_STAGGER_MS/(n-1)):0;
+/* A coin: how high its arc climbs above the higher end (a share of the coin's size), how high it hops back up off the purse, how flat
+   it squashes as it hits. A crate: how far its path bulges from a straight line (a share of the larger of 1.4 crates and a third of
+   the distance down — the measure the swap has always bowed by), its hop off the chip, its squash. */
+const COIN_ARC=2.8, COIN_BOUNCE=0.32, COIN_SQUASH=0.24;       // was 2.2 · 0.09 · 0.18, then 2.1 · 0.30 · 0.20
+const CRATE_BOW=1.60, CRATE_BOUNCE=0.32, CRATE_SQUASH=0.54;   // was 1.4 · 0.07 · 0.22, then 0.70 · 0.16 · 0.54
+/* ⭐ ONE SMOOTH ARC FOR EVERYTHING THAT FLIES. Wyatt, 2026-09-16, on the tuner. The coins: "The coin's arc is too sharp -- it should
+   be a smooth, pleasing curve, a parabola between the boat and the coin purse." The crates: "it should be a smooth clean parabola to
+   look like the crate is being launched off the island and landing in your hold. this has jitter during the journey (about a 1/3 of
+   the way through?), is a straight line instead of a parabola". The confetti: "each piece moves away at a certain speed then
+   abruptly turns to fall, this is bad."
+   Every one was three or four keyframes joined by per-segment easings, and where two easings meet the path bends and the speed dips.
+   The crate's stall a third of the way along was exactly that — two of my own easings meeting at its apex. So a flight is SAMPLED
+   from a real curve and the samples are joined in straight, even steps: a quadratic Bézier, which at even time steps IS a parabola
+   (even speed across, a rise and a fall). No corners, no stall, and still only translate/scale/opacity, which the compositor animates
+   without asking for a layout. `side` bows the path sideways on the screen, the way the trade's crates pass each other. */
+const ARC_STEPS=24;
+/* The control height that puts the top of the arc `lift` above the HIGHER of the two ends — so a coin leaving a boat that sits above
+   its purse still climbs before it falls, rather than its peak sinking under its own start. */
+function arcControlY(dy,lift){
+  if(!(lift>0))return dy/2;
+  const v=Math.min(0,dy)-lift;
+  return v-Math.sqrt(v*v-v*dy);
+}
+/* ⭐ A FLIGHT STAYS ON THE GLASS. Wyatt, 2026-09-16, on build .5: "when the crate is parabollically lobbed into the hold in desktop
+   mode, it goes off the screen for its whole journey. Can you calculate the crates max height based on the screen height ... with the
+   constraint of keeping it onscreen? ... i basically want the parabola, and also want the crate to remain visible, if possible."
+   A flight's height was a share of its own length, and a desktop board is tall: a crate lifted off an island near the top of the window
+   climbed a few hundred pixels above it, out of the window, and fell back in at the hold. So every flight that knows where it starts
+   (`from`, its centre in fixed space, and `half`, the most it ever reaches out from that centre, its largest scale included) gets its
+   height and its sideways bow cut to what the window has room for, EDGE_PAD from the edge: the full parabola when there is room, the
+   highest one that fits when there is not. The peak of this curve is exactly `lift` above the higher end (arcControlY), so the cut is
+   exact, not a guess. One rule for everything that flies — coins, crates, a trade's crossing — here, never beside a caller. */
+const EDGE_PAD=8;
+export function onGlass(from,dx,dy,lift,side,half){
+  const o=fixedOrigin(),top=-o.y+EDGE_PAD+half,left=-o.x+EDGE_PAD+half,right=window.innerWidth-o.x-EDGE_PAD-half;
+  const room=from[1]+Math.min(0,dy)-top;                 // how far above the higher end the window still has
+  const mid=from[0]+dx/2;                                // a bow's widest moment is half-way along
+  return {lift:Math.max(0,Math.min(lift,room)),side:side?Math.max(left-mid,Math.min(right-mid,side)):0};
+}
+export function arcFrames(dx,dy,{lift=0,side=0,steps=ARC_STEPS,at=null,from=null,half=0}={}){
+  if(from)({lift,side}=onGlass(from,dx,dy,lift,side,half));
+  const cx=dx/2+side*2,cy=arcControlY(dy,lift);   // a Bézier bulges half-way to its control point, hence ×2 on the bow
+  const out=[];
+  for(let i=0;i<=steps;i++){
+    const t=i/steps,u=1-t,f={offset:t,translate:`${(2*u*t*cx+t*t*dx).toFixed(1)}px ${(2*u*t*cy+t*t*dy).toFixed(1)}px`};
+    if(at)Object.assign(f,at(t,u));
+    out.push(f);
+  }
+  return out;
+}
+/* THE LANDING: flattened on contact, then a hop back up by `bounce` of its own height that is itself a little parabola, then still. */
+export function hopFrames(x,y,h,bounce,squash,{base=1,fade=false}={}){
+  const hop=h*bounce,f=[{offset:0,translate:`${x}px ${y}px`,scale:`${(base*(1+squash)).toFixed(3)} ${(base*(1-squash)).toFixed(3)}`,opacity:1},
+    {offset:.16,translate:`${x}px ${y}px`,scale:String(base),opacity:1}];
+  for(let i=1;i<=8;i++){const t=i/8;f.push({offset:.16+.84*t,translate:`${x}px ${(y-4*hop*t*(1-t)).toFixed(1)}px`,scale:String(base),opacity:fade?1-t*t:1});}
+  return f;
+}
+const bez=(t,u,a,b,c)=>u*u*a+2*u*t*b+t*t*c;   // a quantity eased smoothly from a, past b, to c
+/* THE COUNT TICKS THE INSTANT A COIN LANDS — Wyatt, 2026-09-16: "The number should tick up, with the sound, IMMEDIATELY as each coin
+   lands". Each coin's flight ends exactly where it meets the purse, and that moment is coinArrived (above). */
+const COIN_SETTLE_MS=Math.round(TREASURE_MS*0.25);
+/* THE FLIP STAGE COMES DOWN FIRST. A captain's own dock earns its coins while the stage still stands over the board; coins flying
+   under it would land in a purse nobody can see. Waits at most the stage's own longest stand (stage.js CER_VEIL_WAIT_CAP_MS). */
+function whenFlipStageGone(capMs=7100){
+  return new Promise(res=>{ const t0=performance.now();
+    const look=()=>{ if(!document.body.classList.contains("pp4Cer")||performance.now()-t0>capMs)res(); else setTimeout(look,50); };
+    look(); });
+}
+/* ⭐ WHERE A BOARD POINT SITS ON THE PAGE — THE ONE CONVERTER. The board's matrix turns a board coordinate into a screen one, and
+   fixedOrigin() takes off whatever the page's fixed layer is offset by (a desktop's centred column). Everything drawn in fixed position
+   over the board asks this: the treasure coins, the flip coins (dockcoin.js). The flip coin once wrote its own copy without the second
+   half and sat off to the side of its boat on a desktop — Wyatt, 2026-09-16: "during battles, the coins are off to the side, misaligned
+   with the boats". scripts/qa/board_point_one_converter_check.mjs. */
+export function fixedPointOfBoard(svg,x,y){
+  const ctm=svg&&svg.getScreenCTM();if(!ctm)return null;
+  const pt=svg.createSVGPoint();pt.x=x;pt.y=y;
+  const p=pt.matrixTransform(ctm),o=fixedOrigin();
+  return [p.x-o.x,p.y-o.y];
+}
+function capShowing(){const cap=$("pp4Cap");return !(cap&&cap.style.visibility==="hidden");}
+/* The flight up off a boat, for payInto. Each coin that reaches the purse calls `land` with how many coins it carries (a haul bigger
+   than TREASURE_MAX shares its coins across the ones that fly). Returns when they are down; anything it could not land, payInto lands. */
+async function flyFromBoat(seat,coins,land){
+  if(fxReduced()||!shipEls[seat])return;
+  const n=Math.max(1,Math.min(TREASURE_MAX,coins));
+  await whenFlipStageGone();
+  const ships=$("boardShips")||$("board");
+  const m=/translate\(([-\d.]+)px,\s*([-\d.]+)px\)/.exec(shipEls[seat].style.transform||"");
+  const from=m&&fixedPointOfBoard(ships,parseFloat(m[1]),parseFloat(m[2]));if(!from)return;
+  const icon=($("coins"+seat)||{querySelector:()=>null}).querySelector("img");
+  let to=null;
+  if(icon&&capShowing()){const r=icon.getBoundingClientRect(),o=fixedOrigin();if(r.width>1)to=[r.left+r.width/2-o.x,r.top+r.height/2-o.y];}
+  if(!to)return;                                    // no purse on screen to land in: payInto lands them at once
+  const ctm=ships.getScreenCTM(),size=Math.max(12,cell*(ctm?ctm.a:1)*0.42),gap=coinGap(n);
+  const share=Math.floor(coins/n),extra=coins-share*n,end=[to[0]-from[0],to[1]-from[1]];
+  const anims=[];
+  for(let k=0;k<n;k++){
+    const im=document.createElement("img");
+    im.src=COIN_IMG;im.alt="";im.className="ppTreasure";im.dataset.seat=String(seat);   // whose purse this one is heading for — read by the probes, invisible to a player
+    Object.assign(im.style,{left:(from[0]-size/2)+"px",top:(from[1]-size/2)+"px",width:size+"px",height:size+"px"});
+    document.body.appendChild(im);
+    const side=(k-(n-1)/2)*size*0.55,lift=size*COIN_ARC*(1+((k*37)%5)*0.06);   // a little spread and variety, so a haul is not one line
+    const a=im.animate(arcFrames(end[0],end[1],{lift,side:side*.5,from,half:size*.85,at:(t,u)=>({scale:bez(t,u,.4,1.7,.55).toFixed(3),opacity:Math.min(1,t/.08).toFixed(3)})}),
+      {duration:TREASURE_MS,delay:k*gap,easing:"linear",fill:"both",id:"treasure"});
+    a.oncancel=()=>im.remove();
+    a.onfinish=()=>{
+      land(k===n-1?share+extra:share);              // THE coin is in: the one arrival event, the number and the chink
+      const st=im.animate(hopFrames(end[0].toFixed(1),end[1].toFixed(1),size*.55,COIN_BOUNCE,COIN_SQUASH,{base:.55,fade:true}),
+        {duration:COIN_SETTLE_MS,easing:"linear",fill:"both",id:"treasure-settle"});
+      st.onfinish=st.oncancel=()=>im.remove();
+    };
+    anims.push(a);
+  }
+  const flight=TREASURE_MS+(n-1)*gap;
+  // the wait is the flights themselves, capped so a stalled page never holds the game (payInto lands whatever did not)
+  await Promise.race([Promise.all(anims.map(a=>a.finished.catch(()=>{}))),new Promise(r=>setTimeout(r,flight+1500))]);
+}
+/* ⭐ COINS LEAVING THE PURSE — Wyatt, 2026-09-15: "we need a 'coins taken away' animation from the purse -- suggest 3, and add them to
+   the game feel tuner". 2026-09-16 he picked from the three on the tuner: "the leaving I pick: B, Drop". So it is the one way now, and
+   drawn as the tuner drew it — each coin lifts a little to its own side of the purse, tumbles, and falls away out of sight — only on the
+   smooth arc every other flight uses, so it falls rather than turning a corner. A price bigger than SPEND_MAX shows SPEND_MAX coins. */
+export const SPEND_MS=800, SPEND_GAP_MS=220, SPEND_MAX=5, SPEND_SPREAD=0.5;   // was 620 · 70 · 5 · 0.6, then 690 · 140 · 10 · 0.5, then his 155 — "more spaced apart", 2026-09-16
+async function coinsLeave(seat,coins,leave){
+  if(fxReduced())return;
+  const box=$("coins"+seat),icon=box&&box.querySelector("img");
+  if(!icon||!capShowing())return;
+  const r=icon.getBoundingClientRect();if(r.width<1)return;
+  const o=fixedOrigin(),size=Math.max(12,r.width*1.05);
+  const x=r.left+r.width/2-o.x,y=r.top+r.height/2-o.y;
+  const n=Math.max(1,Math.min(SPEND_MAX,Math.round(coins||1)));
+  const share=Math.floor(coins/n),extra=coins-share*n;
+  for(let k=0;k<n;k++){
+    setTimeout(()=>leave(k===0?share+extra:share),k*SPEND_GAP_MS);   // THE coin goes: off the number, one click
+    const im=document.createElement("img");
+    im.src=COIN_IMG;im.alt="";im.className="ppTreasure";im.dataset.seat=String(seat);im.dataset.leaving="1";
+    Object.assign(im.style,{left:(x-size/2)+"px",top:(y-size/2)+"px",width:size+"px",height:size+"px"});
+    document.body.appendChild(im);
+    const lane=(k-(n-1)/2)*size*1.7*SPEND_SPREAD;
+    const a=im.animate(arcFrames(lane*1.6,size*4.5,{lift:size*.5,from:[x,y],half:size*.6,at:t=>({rotate:`${(220*t).toFixed(0)}deg`,opacity:(t<.55?1:Math.max(0,1-(t-.55)/.45)).toFixed(3)})}),
+      {duration:SPEND_MS,delay:k*SPEND_GAP_MS,easing:"linear",fill:"both",id:"coins-leave"});
+    a.onfinish=a.oncancel=()=>im.remove();
+  }
+  await new Promise(res=>setTimeout(res,(n-1)*SPEND_GAP_MS+20));   // over when the last coin has gone, not when it has finished falling
+}
+/* ⭐ THE TWO CRATES SWAP IN ARCS — PASSED on his game feel audit (2026-09-13), as proposed: "Your crate and theirs cross over
+   each other between the two rows, and both land with a squash." Same shape as the crate flight home: each side's crate is
+   read out of its row BEFORE render() moves it, and flies to the new chip in the other row AFTER render() draws it. The two
+   bow opposite ways, so they visibly pass each other rather than overlap in a straight line. A counter paid in coin has no
+   crate on that side — only the ingredient flies, and the coin counts roll. */
+const SWAP_MS=730;   // was 1360 — his tuner, 2026-09-16
+function chipIn(seat,src){
+  const el=$("chips"+seat);if(!el||!src)return null;
+  return [...el.querySelectorAll(".chip")].filter(c=>{const i=c.querySelector("img");return i&&i.getAttribute("src")===src;}).pop()||null;
+}
+/* THE CRATE FLIES, NOT JUST WHAT IS ON IT — Wyatt, 2026-09-14: "the crates themselves should ALSO swap between players, not just the
+   ingredient icons; use the crate icons too. Please also do the same thing when a crate is purchased off an island -- the ingredient
+   ON the crate should move into the hold, not just the ingredient on its own." The flying copy is the approved crate with the
+   ingredient sitting on it, the way every hold draws them. */
+/* ⭐ THE CRATE THAT FLEW IS THE CRATE THAT LANDS. Wyatt, 2026-09-16, on his tuner: "the crate disappears completely instead of bouncing
+   or squashing". It did: the flying crate was removed the instant it arrived and the squash and hop were handed to the hold's own
+   chip — a different picture, and on the tuner an empty slot, so the eye saw a crate vanish and nothing land. Now the crate itself
+   flattens on contact and hops where it came down, and only when it is still does the chip it became show in the hold. One landing
+   for both flights that end in a hold, the crate bought off an island and the two crates of a trade. `flight` is the flight's own
+   animation; `h` the chip's height, `base` the crate's scale on arrival (it has shrunk to the chip's size on the way). */
+function landInHold(flight,im,chip,dx,dy,h,base){
+  const ms=Math.round(CRATE_FLY_MS*.3);
+  let shown=false;
+  const show=()=>{if(shown)return;shown=true;im.remove();chip.style.visibility="";};
+  const land=()=>{
+    if(!im.isConnected||typeof im.animate!=="function"){show();return;}
+    const hop=im.animate(hopFrames(dx.toFixed(1),dy.toFixed(1),h,CRATE_BOUNCE,CRATE_SQUASH,{base}),{duration:ms,easing:"linear",fill:"both",id:"crate-land"});
+    hop.onfinish=hop.oncancel=show;
+  };
+  flight.onfinish=land;flight.oncancel=show;
+  setTimeout(show,flight.effect.getComputedTiming().endTime+ms+400);   // a dropped animation never leaves a crate invisible in the hold
+}
+function flyingCrate(src){
+  const d=document.createElement("div");d.className="ppCrateFly ppCrateBox";
+  const im=document.createElement("img");im.src=src;im.alt="";d.appendChild(im);
+  return d;
+}
+function fixedBox(el){const r=el.getBoundingClientRect();if(r.width<1)return null;const o=fixedOrigin();return {x:r.left-o.x,y:r.top-o.y,w:r.width,h:r.height};}
+/* ⭐ A CRATE CHANGING HOLDS IS ONE ANIMATION, WHATEVER MOVED IT. Wyatt, 2026-09-16: "when you steal an ingredient from another player
+   through battle, those crates should change holds according to the same exact animation as trades." A plundered crate used to tumble
+   off the loser into the sea (his 2026-09-13 audit pick, now replaced by this ruling) while a traded crate flew hold to hold. Both are
+   one fact, a crate going from one captain's hold into another's, so both are read here: which crates move, from whom, to whom. */
+export function holdMovesFrom(e){
+  if(fxReduced()||!e)return null;
+  const legs=[];
+  const leg=(src,from,to,bow)=>{const c=chipIn(from,src),box=c&&fixedBox(c);if(box)legs.push({src,from:box,to,bow});};
+  if(e.t==="trade"){
+    leg((/src="([^"]+)"/.exec(String(e.gave||""))||[])[1]||null,e.a,e.b,-1);
+    leg(ING_IMG[e.got]||null,e.b,e.a,1);
+  }else if(e.t==="battle"&&e.spoilIng&&e.winner!=null){
+    leg(ING_IMG[e.spoilIng]||null,e.winner===e.a?e.d:e.a,e.winner,1);
+  }
+  return legs.length?legs:null;
+}
+export function holdMovesTo(legs){
+  if(!legs||!capShowing())return;
+  for(const leg of legs){
+    const chip=chipIn(leg.to,leg.src),to=chip&&fixedBox(chip);
+    if(!to)continue;
+    chip.style.visibility="hidden";
+    const im=flyingCrate(leg.src);
+    Object.assign(im.style,{left:leg.from.x+"px",top:leg.from.y+"px",width:leg.from.w+"px",height:leg.from.h+"px"});
+    document.body.appendChild(im);
+    const dx=(to.x+to.w/2)-(leg.from.x+leg.from.w/2),dy=(to.y+to.h/2)-(leg.from.y+leg.from.h/2);
+    /* THE ARC STAYS ON THE GLASS. On a phone the hold slots sit at the right edge of the captains box, so a crate bowing outward
+       flew half off the screen (a phone guest at 375 wide, 2026-09-15). This leg's own clamp was the first copy of that rule; it is
+       now arcFrames' `from`/`half` (onGlass), which every flight shares, up as well as sideways. */
+    const side=leg.bow*CRATE_BOW*Math.max(leg.from.w*1.4,Math.abs(dy)*0.35),s=Math.max(.3,Math.min(2,to.w/leg.from.w));
+    const a=im.animate(arcFrames(dx,dy,{side,from:[leg.from.x+leg.from.w/2,leg.from.y+leg.from.h/2],half:leg.from.w*.7,at:(t,u)=>({scale:bez(t,u,1,1.4,s).toFixed(3)})}),{duration:SWAP_MS,easing:"linear",fill:"both",id:"trade-swap"});
+    landInHold(a,im,chip,dx,dy,to.h,s);
+  }
+}
+/* A TRADE'S COINS CROSS FROM ONE PURSE TO THE OTHER. Wyatt, 2026-09-14: "every coin you earn should fly over". The CEO found a trade's
+   coins never flew (2026-09-15). They come from the other captain, not from an island, so they fly row to row the way the crates
+   do: out of the payer's coin count and into the seller's, one coin per coin. The seller's count waits for them; the payer's drops
+   at once, because the coins have already left. Called BEFORE render(), so the hold is in place before the new count is drawn. */
+const ACROSS_MS=900;
+async function flyAcross(fromSeat,toSeat,coins,land,leave){
+  if(fxReduced()||!capShowing())return;
+  const at=s=>{const icon=($("coins"+s)||{querySelector:()=>null}).querySelector("img");if(!icon)return null;
+    const r=icon.getBoundingClientRect(),o=fixedOrigin();return r.width>1?{x:r.left+r.width/2-o.x,y:r.top+r.height/2-o.y,w:r.width}:null;};
+  const from=at(fromSeat),to=at(toSeat);if(!from||!to)return;
+  const n=Math.max(1,Math.min(TREASURE_MAX,coins)),size=Math.max(12,from.w*1.15),gap=coinGap(n);
+  const share=Math.floor(coins/n),extra=coins-share*n;
+  const anims=[];
+  const dx=to.x-from.x,dy=to.y-from.y,bow=Math.max(size*2,Math.abs(dy)*0.3);
+  for(let k=0;k<n;k++){
+    const im=document.createElement("img");
+    im.src=COIN_IMG;im.alt="";im.className="ppTreasure";im.dataset.seat=String(toSeat);   // the seller's purse
+    Object.assign(im.style,{left:(from.x-size/2)+"px",top:(from.y-size/2)+"px",width:size+"px",height:size+"px"});
+    document.body.appendChild(im);
+    const a=im.animate(arcFrames(dx,dy,{side:bow,from:[from.x,from.y],half:size*.75,at:(t,u)=>({scale:bez(t,u,.6,1.5,.7).toFixed(3),opacity:Math.min(1,t/.08).toFixed(3)})}),
+      {duration:ACROSS_MS,delay:k*gap,easing:"linear",fill:"both",id:"coins-across"});
+    a.oncancel=()=>im.remove();
+    a.onfinish=()=>{
+      land(k===n-1?share+extra:share);              // the same one arrival event a dock's coins use
+      const st=im.animate(hopFrames(dx.toFixed(1),dy.toFixed(1),size*.7,COIN_BOUNCE,COIN_SQUASH,{base:.7,fade:true}),{duration:COIN_SETTLE_MS,easing:"linear",fill:"both",id:"treasure-settle"});
+      st.onfinish=st.oncancel=()=>im.remove();
+    };
+    anims.push(a);
+  }
+  const flight=ACROSS_MS+(n-1)*gap;
+  await Promise.race([Promise.all(anims.map(a=>a.finished.catch(()=>{}))),new Promise(r=>setTimeout(r,flight+1500))]);
+}
+/* Measured BEFORE render() greys the crate (its island rect), handed to crateFlightTo AFTER render() has drawn the new chip. */
+export function crateFlightFrom(e){
+  if(fxReduced()||!e||!e.tokens||e.tokens[e.ing]==null)return null;
+  const crate=$(`crate_${e.ing}_${e.tokens[e.ing]}`);if(!crate)return null;
+  const r=crate.getBoundingClientRect();if(r.width<1)return null;
+  const o=fixedOrigin();
+  return {ing:e.ing,rect:{x:r.left-o.x,y:r.top-o.y,w:r.width,h:r.height}};
+}
+export function crateFlightTo(f,seat){
+  if(!f)return;
+  const cx=f.rect.x+f.rect.w/2,cy=f.rect.y+f.rect.h/2;
+  const poof=document.createElement("div");poof.className="ppPoof";
+  Object.assign(poof.style,{left:(cx-f.rect.w*.6)+"px",top:(cy-f.rect.h*.6)+"px",width:(f.rect.w*1.2)+"px",height:(f.rect.h*1.2)+"px"});
+  document.body.appendChild(poof);
+  const pa=poof.animate([{opacity:.8,scale:"0.5"},{opacity:0,scale:"1.5"}],{duration:480,easing:"ease-out",fill:"both",id:"crate-poof"});
+  pa.onfinish=pa.oncancel=()=>poof.remove();
+  const chipsEl=$("chips"+seat),src=ING_IMG[f.ing];
+  if(!chipsEl||!capShowing()||!src)return;
+  const chip=[...chipsEl.querySelectorAll(".chip")].filter(c=>{const i=c.querySelector("img");return i&&i.getAttribute("src")===src;}).pop();
+  if(!chip)return;
+  const cr=chip.getBoundingClientRect();if(cr.width<1)return;
+  const o=fixedOrigin(),tx=cr.left-o.x+cr.width/2,ty=cr.top-o.y+cr.height/2;
+  chip.style.visibility="hidden";
+  const im=flyingCrate(src);
+  Object.assign(im.style,{left:f.rect.x+"px",top:f.rect.y+"px",width:f.rect.w+"px",height:f.rect.h+"px"});
+  document.body.appendChild(im);
+  const dx=tx-cx,dy=ty-cy,s=Math.max(.3,Math.min(2,cr.width/f.rect.w));
+  /* LAUNCHED OFF THE ISLAND, LANDING IN THE HOLD — his 2026-09-16 note (see arcFrames). It climbs CRATE_BOW of the larger of 1.4 crates
+     and a third of the way down above the higher end, falls into its chip, and the chip takes the squash and the hop. */
+  const lift=CRATE_BOW*Math.max(f.rect.h*1.4,Math.abs(dy)*0.35);
+  const a=im.animate(arcFrames(dx,dy,{lift,from:[cx,cy],half:f.rect.h*.62,at:(t,u)=>({scale:bez(t,u,1,1.35,s).toFixed(3)})}),{duration:CRATE_FLY_MS,easing:"linear",fill:"both",id:"crate-fly"});
+  landInHold(a,im,chip,dx,dy,cr.height,s);
 }
 export function render(){
   if(idlePlaceholder()){if(shipEls.length)hideShipsWhileIdle();return;}
@@ -1705,7 +2454,10 @@ export function render(){
   const humanIdxs=appState.game.players.map((player,i)=>player.strategy==="human"?i:-1).filter(i=>i>=0);
   const youIdx=humanIdxs.length===1?humanIdxs[0]:-1;
   const spectator=humanIdxs.length===0;
-  let bandHtml="", hasYou=false;   // the viewer's recipe, for #capRecipeBand — filled by the loop, written once after it
+  /* WHOSE TURN IT IS, READ ONCE, BEFORE THE ROWS — the ring, the captains-box highlight, the pass-and-play row order and
+     "Check my recipe" all take it from this one name (architecture item 3; the long notes on why are at the ring below). */
+  const active=whoseTurn();
+  let bandHtml="";   // the viewer's recipe, for #capRecipeBand — filled by the loop, written once after it
   appState.game.players.forEach((player,i)=>{
     const [x,y]=shipXY(st[i].pos,i,st,cell);
     shipEls[i].style.transform=`translate(${x}px,${y}px)`;
@@ -1749,9 +2501,14 @@ export function render(){
     /* WHO IS LOOKING is read ONCE, here, and every secrecy decision below takes it from these two
        names — the two rules, and the band. It used to be read inline in each rule's call, so adding
        the band would have been a third read of the same fact in a file that draws (mode_fork_check). */
-    const mine=i===appState.mySeat, sharedDevice=appState.passAndPlay;
+    /* WHILE A SHARED DEVICE IS CHANGING HANDS IT BELONGS TO NO CAPTAIN (appState.handOver, set by passGate for the length of its
+       card). Nothing else said so: "Check my recipe" used to be kept off the hand-over by humanTurn clearing a flag of its own
+       (appState.activeTurnSeat) when its turn ended. It reads whose turn it is now (architecture item 3), and the event stream
+       still names the OUTGOING captain until the incoming one's turn is recorded — which must wait for the tap. So the
+       hand-over itself says the device is between captains, and the band stays the blank strip it always was there. */
+    const mine=i===appState.mySeat&&appState.handOver==null, sharedDevice=appState.passAndPlay;
     const canReveal=mayRevealRecipe({isMySeat:mine,spectator,sharedDevice,askedThisTurn:appState.recipeRevealed});
-    const offerCheckBtn=offersRecipeCheck({isMySeat:mine,isActiveSeat:i===appState.activeTurnSeat,sharedDevice,askedThisTurn:appState.recipeRevealed});
+    const offerCheckBtn=offersRecipeCheck({isMySeat:mine,isActiveSeat:i===active,sharedDevice,askedThisTurn:appState.recipeRevealed});
     /* ⭐ YOUR RECIPE LIVES IN THE BAND, NOT IN YOUR ROW — Wyatt's Q4 ruling, 2026-09-10: "A header
        band across the top of the plaque — above all the captain rows. Coins and crates are facts
        about the table; a recipe is a fact about you." So every row, yours included, shows the same
@@ -1763,19 +2520,18 @@ export function render(){
        A SPECTATOR HAS NO "YOU", so a spectator keeps every recipe in its own row, as before. */
     const bandSeat=mine&&!spectator;
     if(bandSeat){
-      hasYou=true;
       const rec=appState.game.players[i].recipe;
       if(canReveal&&rec&&rec.length){
         const bh=[...st[i].ing];
         const want=appState.game.players[i].recipe.map(ing=>{
           const k=bh.indexOf(ing); const have=k>=0; if(have)bh.splice(k,1);
-          return `<span class="chip ${have?"have":""}" title="${iname(ing)}${have?" — aboard":""}">${ingImg(ing)}</span>`;
+          return `<span class="chip ${have?"have":""}" title="${iname(ing)}${have?say("hold.aboard",{}):""}">${ingImg(ing)}</span>`;
         }).join("");
         bandHtml=`<span class="narrRecipeLink capRecipeName" data-idx="${i}">${recipeTitle(appState.game.players[i].recipe)}</span>`+
           `<span class="capRecipeIng">${want}</span>`;
       }else if(offerCheckBtn){
         // @copy misc.board.checkrecipebtn
-        bandHtml=`<button type="button" class="checkRecipeBtn" onclick="revealMyRecipe()" style="background:${HEXCOL[i]};color:#fff;border-color:${HEXCOL[i]}">🔍 Check my recipe</button>`;
+        bandHtml=`<button type="button" class="checkRecipeBtn" onclick="revealMyRecipe()" style="background:${HEXCOL[i]};color:#fff;border-color:${HEXCOL[i]}">${say("recipe.check",{})}</button>`;
       }
     }
     if(canReveal&&!bandSeat){
@@ -1789,7 +2545,7 @@ export function render(){
         return `<span class="chip ${have?"have":""}" title="${iname(ing)}">${ingImg(ing)}</span>`;
       });
       // @copy misc.board.surplustooltip
-      const extras=hold.map(x2=>`<span class="chip extra" title="surplus cargo: ${iname(x2)}">${ingImg(x2)}</span>`);
+      const extras=hold.map(x2=>`<span class="chip extra" title="${say("hold.surplus",{ing:iname(x2)})}">${ingImg(x2)}</span>`);
       // @copy misc.board.prowcargorow
       newChipsHtml=chips.join("")+(extras.length?`<span style="opacity:.4">·</span>`:"")+extras.join("");
     }else{
@@ -1800,7 +2556,7 @@ export function render(){
       // @copy misc.board.emptyhold
       /* an empty hold is an empty crate — his Q6 ruling, 2026-09-10 ("An empty crate silhouette"). The
          words stay as its name, for a tooltip and a screen reader. */
-      newChipsHtml=held.join("")||`<span class="chip holdEmpty" title="empty hold" aria-label="empty hold" role="img"></span>`;
+      newChipsHtml=held.join("")||`<span class="chip holdEmpty" title="${say("hold.empty",{})}" aria-label="${say("hold.empty",{})}" role="img"></span>`;
     }
     /* T-33 — the guard decided whether to PULSE, not whether to WRITE, so all four captains' hold
        chips were destroyed and rebuilt on every render: 600 fresh <img> elements in 210 seconds,
@@ -1831,7 +2587,7 @@ export function render(){
      band that came and went at every pass-and-play reveal and hand-over would breathe the board up
      and down by its own height each time. Blank is visibility:hidden — nothing drawn, which is the
      secrecy duty — not display:none. Only a table with no "you" (spectating bots) has no band. */
-  if(band){ band.hidden=!hasYou; band.classList.toggle("bandEmpty",!bandHtml); }
+  if(band)band.classList.toggle("bandEmpty",!bandHtml);   // whether the band is there at all is buildPlayerRows' call (util.js); render only fills it in
   // active-player ring + captain's-box highlight: whose turn is it as of this event?
   /* T-09 (Wyatt, 2026-08-26, with a host/guest screenshot pair): "the bakeoff SHOULD be happening
      for guest because it's their turn -- but Dough hook (who just played) is still displayed as the
@@ -1873,7 +2629,7 @@ export function render(){
      So the ring, the captains-box highlight and the pass-and-play row order all read THIS value,
      derived once from TURN_ESTABLISHING — the list that counts `ovens` and `bake`, because during
      a bake the captain at the ovens IS the active player. renderLiveShips()'s ring reads the same
-     list through activeTurnSeat().
+     list through activeTurnSeat() — whoseTurn() since architecture item 3.
 
      THE HISTORY, because two reversals in one day is exactly what a later reader will mistake for
      drift. Earlier today he ruled "no ripple ring in the ovens", which was applied to the ring and
@@ -1891,8 +2647,12 @@ export function render(){
      scripts/qa/ripple_one_answer_check.mjs fails the build if any surface comes apart from the
      others — it asserts AGREEMENT first and the current ruling second, which is what let this
      reversal be a one-line change instead of an argument. */
-  let active=deriveActiveSeat(appState.game.events,appState.evIdx);
-  if(active!=null&&st[active].done)active=null;
+  /* ⭐ AND THE TOP BAR, THE BOB AND CHECK MY RECIPE READ IT TOO — architecture item 3, 2026-09-16. `active` is whoseTurn(),
+     read once above the rows: the same walk, with the `done` filter that stood on the next line moved INTO the helper, so no
+     surface can apply it and another forget it. The top bar used to draw a slot every prompt wrote (the "TWO independent
+     answers" the T-09 note above names), and it moved to the defender's coin mid-fight. His ruling, 2026-09-16: "The top
+     bar shows whose turn it is -- which is the active player who decided to attack. this does not need to change during a
+     battle; it should not." scripts/qa/whose_turn_shown_once_check.mjs holds all six surfaces to this one read. */
   if(activeRing){
     if(active!=null){
       const [ax,ay]=shipXY(st[active].pos,active,st,cell);
@@ -2147,81 +2907,14 @@ export function showStats(){
   const ap=$("actionPanel");
   if(ap){$("apGridInner").innerHTML="";ap.style.display="none";ap.classList.remove("needsAction");}
   celebrateHomeDocks();
-  const w=appState.game.winner;
-  // WYATT, 2026-07-31 — THIS REVERSES EOV-02 ON HIS INSTRUCTION. Read this before "restoring"
-  // anything: EOV-02 moved the winner's recipe OUT of the End of Voyage summary and into a separate
-  // one-off victory box rendered through flash(), specifically so the summary would not double it
-  // up. He has now asked for the opposite, and for a reason that did not exist then — the blue box
-  // is hidden at the end of the voyage (UI-07), so the victory box was the one thing keeping it on
-  // screen. His words: "i want the golden victory box to say: 👑 {name} wins! {the recipe image} +
-  // {name} baked a {recipe} and won Best Baker in the Caribbean!"
-  //
-  // So all three pieces live here now, in the gold banner, and endLive no longer flashes a victory
-  // box at all — it plays "Drumroll..." in the blue box, fades it, and hides it. Nothing is
-  // duplicated: this is the ONLY place the win is announced.
-  //
-  // The two sentences are his existing approved copy, moved rather than rewritten — the banner line
-  // (@copy misc.board.eovbanner) and the victory line (formerly @copy adhoc.voyageend.victory in
-  // src/orchestrator.js, which is why that id now lives on this file's site).
-  // Two separate `const`s, each with its own @copy marker, because they are two separate approved
-  // strings with two separate ids — the extractor binds one marker per assignment site, and folding
-  // them into one template would make both ids point at the same site.
-  // @copy misc.board.eovbanner
-  const banner=w===null?`${iconImg(HOURGLASS_IMG)} Nobody finished!`:`${iconImg(CROWN_IMG)} ${pn(w)} wins!`;
-  // The winner's recipe is read defensively, and that is NOT belt-and-braces — it is a guest-path
-  // requirement. This code used to live in endLive() (src/orchestrator.js), which only ever runs on
-  // the HOST after a real finished game, so a recipe was guaranteed. showStats() is different: the
-  // guest reaches it through applyEndMeta(), which sets game.winner straight from Firebase meta and
-  // renders. A guest whose local game has not drafted recipes — joined late, or an incomplete replay
-  // — would hit `undefined.slice()` inside recipeInfo() and throw, taking the ENTIRE End of Voyage
-  // screen down with it: no banner, no awards, no stats. Caught exactly that way in a browser.
-  const winRecipe=w===null?null:(appState.game.players[w]||{}).recipe;
-  // @copy adhoc.voyageend.victory
-  const victoryLine=!winRecipe?"":`<div class="victoryText">${pn(w)} baked ${(a=>a?a+" ":"")(recipeArticle(winRecipe))}${winRecipeSpan(w)} and won <b>Best Baker in the Caribbean!</b></div>`;
-  const wi=winRecipe?recipeInfo(winRecipe):null;
-  const victoryPic=wi&&wi.img?`<img class="victoryRecipe" src="${wi.img}" alt="">`:""; // art, not copy
-  const luck=appState.game.players.map(player=>player.flips?(player.heads/player.flips):0);
-  // notes/edits EOV-04: one keepsake per captain (see assignBadges) — emblem, pirate name + byline,
-  // the captain (big, colored, no seat dot) filling the card above a rule, and the stat beneath it.
-  const badges=assignBadges();
-  const awards=badges.map(b=>`<div class="awardCard" style="border-color:${HEXCOL[b.seat]}">
-      <img class="awardEmblem" src="${ASSET_BASE}badges/${b.def.img}.png" alt="">
-      <div class="awardName">${b.def.name}</div>
-      <div class="awardByline">${b.def.byline}</div>
-      <div class="awardCaptain" style="color:${HEXCOL[b.seat]}">${pname(b.seat)}</div>
-      <hr class="awardRule">
-      <div class="awardStat">${b.def.stat}${b.value!=null?` — <b>${b.value}${b.def.unit||""}</b>`:""}</div>
-    </div>`).join("");
-  // NARR-01: the stats table is hoisted into its own local purely so the wording audit can review it
-  // as one unit of copy (art-review/narration-audit.html, `// @copy` below). Pure string hoist — the
-  // rendered HTML is byte-identical to the inline version it replaced.
-  /* ITEM 7 (Wyatt, 2026-08-20 playtest): this row said "Bakery" and read `finishOrder.length`, which
-     counts captains who FINISHED a bake (engine/index.js:2859 pushes only the `won` list). It was not
-     miscounting — it was measuring something other than what the word promised. He watched three
-     captains reach Tortuga and start their bakeries and read "one baker home" as simply wrong, which
-     from where he sat it was.
-
-     His ruling: count the captains who GOT HOME. A captain is home once they have reached Tortuga and
-     fired the ovens — `baking` (engine/index.js:2774), which stays true for anyone still baking when
-     the voyage ends — or `done`, set when their bake completed. `done` is not implied by `baking`:
-     :2859 clears `baking` as it sets `done`, so BOTH terms are needed and neither is redundant.
-
-     This is a NEW quantity. `finishOrder` is untouched and still means what it always meant — it
-     orders the finishers and other code depends on that. Do not repoint it at this. */
-  const bakersHome = appState.game.players.filter(player => player.baking || player.done).length;
-  // @copy misc.board.statsheadings
-  const statsTable=`<table>
-    <tr><td>Days</td><td>${appState.game.round}</td></tr>
-    <tr><td>Battles</td><td>${appState.game.battles} (attacker won ${appState.game.battles?Math.round(100*appState.game.attWins/appState.game.battles):0}%)</td></tr>
-    <tr><td>Trades</td><td>${appState.game.trades}</td></tr>
-    <tr><td>Bakeries</td><td>${bakersHome===0?"no bakers home":bakersHome===1?"1 baker home":bakersHome+" bakers home"}</td></tr>
-    ${appState.game.players.map((player,i)=>`<tr><td style="color:${HEXCOL[i]}">${pname(i)} heads-luck</td><td>${player.flips?Math.round(100*luck[i]):0}% of ${player.flips} flips</td></tr>`).join("")}
-    </table>`;
-  $("statsPanel").innerHTML=`<div class="winner-banner">${banner}${victoryPic}${victoryLine}</div>
-    <div class="awardsRow">${awards}</div>
-    ${statsTable}`;
+  /* THE VICTORY CARD REPLACES WHAT STOOD HERE (his ruling, 2026-09-14: "the victory card ideas will replace the end of
+     voyage card -- not a toggle page"). The gold banner, the award grid and the stats table were drawn here; the
+     banner and awards are now the crown and Polly's awards, and the stats table is dropped (the PRD's recommendation;
+     the voyage score says the same things). victoryCard() builds the card once a voyage, so every repaint is cheap. */
   renderWindSummary();
+  victoryCard();
 }
+/* (endCardArrives — the old card's deal-in, count-up and burst — stood here; the victory card plays its own. 2026-09-16) */
 
 // LOAD-03 final (2026-08-02). This used to be renderDecorativeBoard(): it built a bot-vs-bot game
 // AND drew it behind the welcome modal, so new players glimpsed a board before choosing.
@@ -2400,9 +3093,10 @@ export function syncBoardSizing(){
       that latency. No two flips were alike because no two resumptions were.
 
    THE CLOCK IS STAMPED WHERE THE SPIN IS PAINTED, which is here — `setFlipCoin("spin")` is the one
-   spelling of a spinning coin in the whole game, reached by the dock tap, by broadcastFlip, and by
-   a guest's Firebase listener alike. Every caller then waits the REMAINDER of FLIP_SPIN_MS, so the
-   length on screen is the same however slow the chain that got there was.
+   spelling of a spinning coin in the whole game, and since architecture item 6 (2026-09-17) it is
+   reached from exactly one place: the tap (armFlipTap, below), for every flip kind on every tier.
+   The landing (landFlipCoin) waits the REMAINDER of FLIP_SPIN_MS, so the length on screen is the
+   same however slow the chain that got there was.
 
    ONE CLOCK, THREE WAITS, and the split is deliberate: this module owns WHEN the spin began and
    HOW LONG a flip lasts; each call site owns HOW it waits, through its own `sleep`, which is what
@@ -2478,9 +3172,9 @@ export function setFlipCoin(state){
   const el=$("flipCoinWrap");if(!el)return;
   // see ceremonyHoldsTheCoin() below — only a BLANKING is deferred, never a face and never a spin
   if(state==="wait"&&ceremonyHoldsTheCoin())return;
-  // IDEMPOTENT for "spin", because the tap now paints it and broadcastFlip repaints it a beat
-  // later (setFlipActive below) — re-entering the state ye are already in must not re-play the
-  // sound, or every flip is heard twice.
+  // IDEMPOTENT for "spin": re-entering the state ye are already in must not re-play the sound, or a flip
+  // is heard twice. (The repaint this guarded against — broadcastFlip's, a beat after the tap — is gone
+  // with architecture item 6; the guard stays because it costs nothing and a second paint must never ring.)
   const wasSpin=el.classList.contains("spin");
   /* THE SPIN SOUND STOPS HERE, ON THE ONE LINE THAT ENDS EVERY SPIN. Every state change clears the
      classes through this line — a landed face, a re-arm, a disarm, a cancelled prompt — so stopping
@@ -2493,8 +3187,8 @@ export function setFlipCoin(state){
   if(state==="H"){el.classList.add("heads");el.style.backgroundImage=`url(${FLIP_HEADS_IMG})`;el.textContent="";}
   else if(state==="T"){el.classList.add("tails");el.style.backgroundImage=`url(${FLIP_TAILS_IMG})`;el.textContent="";}
   // D-49: the flip's clock starts on the frame the spin is PAINTED, and only on the frame it
-  // actually starts — the `wasSpin` guard that already stops the sound doubling is the same
-  // guard that stops broadcastFlip's repaint a beat later restarting the timer under the tap.
+  // actually starts — the `wasSpin` guard that stops the sound doubling also stops a repaint
+  // restarting the timer under the tap.
   else if(state==="spin"){el.classList.add("spin");el.style.backgroundImage=`url(${COIN_SPIN_IMG})`;el.textContent="";if(!wasSpin){flipSpinAt=performance.now();startFlipSpinSound();}}
   else{el.classList.add("wait");el.textContent="";}
 }
@@ -2504,15 +3198,15 @@ export function setFlipCoin(state){
    veil coming down clear it."
 
    IT WAS TWO CLOCKS DISAGREEING, and the arithmetic is the whole bug:
-     the battle flow holds the landed face  FLIP_LAND_HOLD_MS = 800ms, then calls broadcastFlip("wait")
+     the flip holds the landed face         FLIP_LAND_HOLD_MS = 800ms, then clears it (landFlipCoin, since item 6)
      the ceremony holds the veil up         CER_REVEAL_MS    = 1100ms, then tears down
    So for 300ms the stage stood there with a blank coin on it. Shortening the veil would have fixed
    the symptom and left two clocks to drift; his answer removes one of them instead.
 
    SO WHILE A CEREMONY IS STANDING, A CLEAR IS THE CEREMONY'S TO MAKE. cerTeardown() does it as the
    veil leaves, so the face is on screen for every frame the stage is. A landed face is NOT
-   suppressed here — only the blanking — so nothing can hide a result. And the wire write in
-   broadcastFlip() is untouched: a guest with no veil of its own still resets normally. */
+   suppressed here — only the blanking — so nothing can hide a result. (A screen with no veil of its
+   own still resets normally: landFlipCoin's "wait" goes straight through.) */
 function ceremonyHoldsTheCoin(){
   return typeof document !== "undefined" && document.body && document.body.classList.contains("pp4Cer");
 }
@@ -2523,10 +3217,48 @@ export function setFlipActive(onClick){
   // tint layer on top keeps the text legible over the image.
   // notes/edits UI-09: drop the heavy orange tint over the whole coin — show the clean heads face
   // and make just the word "FLIP" orange instead (see #flipCoinWrap.active CSS).
-  if(onClick){el.classList.add("active");el.style.backgroundImage=`url(${FLIP_HEADS_IMG})`;el.textContent="FLIP";el.onclick=onClick;}
+  if(onClick){el.classList.add("active");el.style.backgroundImage=`url(${FLIP_HEADS_IMG})`;el.textContent=say("flip.word",{});el.onclick=onClick;}
   // A PLAIN DISARM CLEARS THE WORD TOO. Every other coin state sets textContent; this one did not,
   // so a disarmed coin kept the caption "FLIP" over a blank chip (playtest 22). The coin that has
   // just been TAPPED goes straight to the spin instead — see localAsk, which owns that distinction:
   // this function is called to disarm on every ordinary prompt as well, where a spin would be a lie.
-  else{el.classList.remove("active");el.style.backgroundImage="";el.textContent="";el.onclick=null;}
+  /* …BUT NEVER A FACE THE FLIP STAGE IS STILL SHOWING — Wyatt's screen recording, 2026-09-14: "When the coin in the flip stage
+     lands, it makes the coin disappear before the stage itself disappears, leaving an empty flippenator again." Frame by frame:
+     TAILS landed at 2.2s, and at 3.07s the NEXT question ("Buy a crate?") disarmed the coin through this line, blanking it 330ms
+     before the stage came down — the one route ceremonyHoldsTheCoin() never covered. A coin that was not armed has nothing to
+     disarm, and while the stage stands its face is the stage's to clear (cerTeardown). A real tap disarms an ARMED coin, and
+     that still clears it for the spin. */
+  else{const wasArmed=el.classList.contains("active");el.classList.remove("active");el.onclick=null;
+    if(!(ceremonyHoldsTheCoin()&&!wasArmed)){el.style.backgroundImage="";el.textContent="";}}
+}
+
+/* ⭐ ONE COIN FLIP, ONE PIPE — architecture item 6, 2026-09-17. Wyatt, playing build .5: "it seems like the coin flip sound is being
+   played twice." MEASURED before this change (headless, the sample's starts counted): a bot's fight flip on a solo phone started the
+   spin sound TWICE in the same millisecond, and a crew guest watching the host's fight flip heard it twice, 696ms apart. A flip reached
+   another screen by two routes — the `flip` node (broadcastFlip -> watchFlip -> setFlipCoin("spin"), whose big coin is hidden on the
+   stage, so its only effect there was the sound) and the `coinflip` event (-> the small coin, which plays the sound too) — and it was
+   tossed by three routines (humanFlip, hFlip, bFlip) that each slept, broadcast and held on their own.
+   NOW: a flip is decided and recorded by flow.js flipFor (the one toss), the one event consumer draws it on every screen, and these
+   two are the only halves a screen can play:
+     · armFlipTap  — THE TAP STARTS THE SPIN, for every flip kind (a dock, a fight's attacker or defender, the host's screen or a
+                     guest's). It used to be written for the ordinary flip only (renderAskPrompt, "THE TAP IS THE FLIP"); both fight taps
+                     skipped it and waited for the host — a crew guest's own fight coin sat still ~118ms (measured) until the wire
+                     brought the spin back. The sound starts with the picture, here, on the screen that tapped.
+     · landFlipCoin — the screen that tapped lands its big coin on the face the engine recorded, when the consumer reaches that
+                     coinflip: the rest of the spin, the face, the hold, the clear. Every other screen draws the small coin over the
+                     boat instead (dockcoin.js flipDockCoin), which starts its own spin sound — the ONE starter for a flip this screen
+                     did not make. scripts/qa/coin_flip_one_pipe_check.mjs holds all of it.
+   The ORDER inside the tap is today's ordinary-flip order and it matters: disarm first (the flip stage launches only off an ARMED
+   coin — stage.js flipArmed), then the answer, then the spin (a later disarm inside the answer must not blank a spinning coin). */
+export function armFlipTap(onTap){
+  setFlipActive(()=>{setFlipActive(null);onTap();setFlipCoin("spin");});
+}
+/* `sleep` is the caller's (the consumer's replay- and fast-forward-aware one) — the same split D-49 describes above: this module owns
+   how long a flip lasts, the caller owns how it waits. */
+export async function landFlipCoin(heads,sleep){
+  await sleep(flipSpinLeftMs());
+  setFlipCoin(heads?"H":"T");
+  // playtest 13 / T-34: the landed face holds FLIP_LAND_HOLD_MS, the one hold the small coin waits out too
+  await sleep(FLIP_LAND_HOLD_MS);
+  setFlipCoin("wait");
 }

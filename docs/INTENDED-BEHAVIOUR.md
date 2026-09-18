@@ -99,6 +99,37 @@ something is deliberate but cannot cite it, it goes in §7 as an open question, 
 
 ## 0. THE RECURRING ONES — got wrong more than once, so they lead
 
+### On someone else's turn, your camera is on THEIR BOAT — not on the waters they can reach (2026-09-17)
+
+**Wyatt, overruling the recommendation Mac: Dev and Wy-Blade both made:** *"we cannot see other players sail squares (bots or
+humans) so ALL other players turns should be zoomed in on their boat for maximum immersion."*
+
+So a watching screen frames the captain whose turn it is, whether a person or a bot is choosing. It does NOT frame the sail
+squares: those are drawn only on the chooser's own screen, so a watcher would be framing empty water.
+
+**The chooser's own screen is the opposite case and is not affected:** it frames every square it is offering, trade-wind
+squares included (architecture item 18). Two different screens, one rule each, and neither depends on whether a person or a
+bot is choosing.
+
+### One thing drawn over another is NOT a fault when it passes his rule (2026-09-17)
+
+**Wyatt's words, ruling on a fight's flip coin covering the word "HEADS", and on a gold sail square drawn over "…: tap to
+sail":** *"It's fine -- the coin is there for a short time, it actually is a GOOD thing that adds to the depth of the game.
+Look, here's a general rule: if important game elements like words or sail squares are blocked for a finite, short amount of
+time, or can be interacted with to stop them from covering each other, that's fine. that passes."*
+
+So a cover-up PASSES when either holds:
+- it clears ON ITS OWN within a few seconds (a coin that lands, a bubble that fades); or
+- the player can clear it themselves (drag the board off the overlap, close the card).
+
+**And the failing edge is HIS, given the same day** when Mac: Dev's stricter reading was put to him: *"the failing rule is
+'unless it hides a button that the player cannot access by either waiting for 0.5 seconds or shifting the screen themselves
+(eg. dragging the board)'"*. So: a cover-up FAILS only when it hides a BUTTON and the player can neither wait about half a
+second for it nor move the screen to reach it. Words covered for a moment, or a button reachable by waiting or dragging, pass.
+
+**For a sea trial's vision judge:** a screenshot showing two things overlapping is not by itself a finding. The finding must
+say how long it lasts, or that the player cannot clear it.
+
 ### The greyed, red-backed ingredient chips are what a captain STILL NEEDS. They are not the hold.
 
 **What it looks like:** the two human captains' ingredients disagree between screens — the host sees
@@ -280,8 +311,11 @@ session neither re-reports it as a bug nor assumes it is proven fine.
 
 | Looks like | Actually | Citation |
 |---|---|---|
-| A ship with cargo cannot be attacked but an empty one can | The reverse: **an empty hold cannot be attacked at all** — there is nothing to take | `src/engine/index.js:1750` (v2 rule 13e), `src/ui/flow.js:2094` |
-| A captain with no coins and no cargo is offered a trade | They are correctly blocked — *"Ye've nothin' to trade — an empty hold and an empty purse."* | `src/ui/flow.js:2172`, `:1839` |
+| A ship with cargo cannot be attacked but an empty one can | The reverse: **an empty hold cannot be attacked at all** — there is nothing to take | `Game.whyNoAttack` in `src/engine/index.js` (v2 rule 13e) |
+| Attack is greyed beside a captain whose hold is FULL | **Sanctuary.** That captain is baking at Tortuga (their ship is drawn faded), and once the ovens are lit nobody can touch them — Wyatt, 2026-08-06; the rules page: *"once a captain's ovens are lit they're beyond yer reach"*. The greyed button says so. Their crates are not for trading either, so a table whose only cargo is a baker's greys Trade | `Game.whyNoAttack` / `Game.whyNoTrade` in `src/engine/index.js`; `scripts/qa/action_reasons_from_engine_check.mjs` (architecture item 13, 2026-09-17) |
+| A captain with no coins and no cargo is offered a trade | They are correctly blocked — *"Ye've nothin' to trade — an empty hold and an empty purse."* | `Game.whyNoTrade` in `src/engine/index.js`, worded by `humanAct` in `src/ui/flow.js` |
+| Countering a captain who has coin, "Coin instead" is greyed | **Every coin aboard is already in their offer.** The counter slider's number is coin IN ALL (Wyatt, 2e9e06b1: *"i should be able to slide the slider up to 8, no?"*), so there is no total above it — the offer screen already said *"no coin left to sweeten the deal"*, and the greyed button agrees. Ask for one of their crates instead | `Game.counterRoom` in `src/engine/index.js`; `scripts/qa/counter_ceiling_one_place_check.mjs` (architecture item 20, 2026-09-17) |
+| A counter slider starts above 1 | A coins-only counter starts at **one coin more than the offer** — the number is the whole price, and asking the offer back is just accepting it | `Game.counterRoom` |
 
 ## 2. The board and what is drawn on it
 
@@ -289,6 +323,7 @@ session neither re-reports it as a bug nor assumes it is proven fine.
 |---|---|---|
 | A short move does not animate its route | **Deliberate.** A two-square straight hop has no corner to draw and the plain render says it better | `src/ui/flow.js` (the route walker's `route.length<3` cull) |
 | A ship sails diagonally across an island | **This one IS a bug** and is the reason the sailed route is drawn at all. Do not dismiss it | `src/engine/index.js:630-634` quotes the original playtest wording |
+| A narration bubble (the day's wind line, or any other) sits over a gold sail square | **Deliberate — NOT a problem.** Wyatt, 2026-09-14, on Wy-Blade's trial photo of "Day 1: Wind NORTH. Tomorrow: WEST." over two squares: *"this is NOT a problem ... That message disappears after a few seconds and can be tapped to dismiss."* The sea trial's `sail-clickable` / `not-occluded` checks exempt a sail square whose cover is a narration bubble | `scripts/lib/checks.mjs` (rules 2 and 6); `scripts/qa/checks_pointer_events_redproof.mjs` proves a real cover still fails |
 
 ## 3. Host vs guest, and the other play modes
 
@@ -310,6 +345,8 @@ event cannot make two screens disagree.
 |---|---|---|
 | The guest is behind the host | **Expected, and perfect simultaneity is explicitly NOT the goal.** The network guarantees a lag; chasing literal sameness leads to lockstep and stalls. The invariant is **same sequence, never a different script — possibly a moment apart** | his ARCH ruling, 2026-08-30, `.planning/CTO-LEDGER.md` |
 | Solo runs faster than a crew game | Fast-forward is a **playback rate**, a property of the performer, not a solo feature. Every measured site is a hold or a tick — a duration, never content | ledger, 2026-08-30; `src/ui/flow.js:80`, `:1184`, `src/ui/util.js:1049`, `:1117`, `src/ui/stage.js:1388` |
+| On a shared pass-and-play screen, the victory card's "so close" page shows a LOSING captain's full recipe | **Deliberate.** The voyage is over, so the recipe is no longer a secret. Wyatt, 2026-09-16: *"it is fine to show a losing captain's recipe on the shared screen because the gaem is already over, silly!"* The rule "your recipe is yours" governs a voyage in progress. On separate devices "so close" still appears only on that captain's own screen. | `.claude/memory/DECISIONS.md` 2026-09-16; `src/ui/victory.js` pageClose |
+| "New best voyage!" appears on one screen and not another at the same end | **Deliberate.** Each player's own best, on their own device, until there are accounts. Wyatt, 2026-09-16: *"show each player's own best, on their own device."* | `.claude/memory/DECISIONS.md` 2026-09-16; `src/ui/victory.js` pageTally |
 
 ## 4. Bots and humans
 
@@ -384,10 +421,13 @@ drift rule 23 exists to prevent, and it had already started.
 - a ship drawn at reduced opacity is BAKING and deliberately off the board, not disabled or broken;
 - a coin slider drawn greyed and undraggable is a captain with an empty purse — the disabled control IS the answer;
 - a narration bubble sits off-centre because it is anchored to a captain's ship with a tail; only a battle result is deliberately centred;
+- a narration bubble — the day's wind line ("Day 1: Wind NORTH. Tomorrow: WEST.") or any other line — sitting over a gold sail square is NOT a fault (Wyatt, 2026-09-14: "this is NOT a problem ... That message disappears after a few seconds and can be tapped to dismiss."). It is never a FAIL and never an issue;
 - a wavy line of cream dashes across the water, ending in a white X on a dock, is the onward guide teaching a first-time captain where to sail — it is drawn under the gold squares on purpose and retires by itself;
 - a dock marked with a pulsing white X rather than a thin orange ring is the current design for every captain, not a tutorial-only marker.
 - the fixed "Play again!" button at the End of Voyage floats OVER the award cards behind it, and those cards scroll underneath it — so the captain-name line under an award is routinely sliced horizontally in half by it, showing only the top halves of the letters. That is the designed stacking, never a clipping fault (Wyatt, 2026-09-11: "I HAVE ALREADY RULED THAT THIS IS EXPECTED BEHAVIOR DOZENS OF TIMES").
 - on a phone, the opening screens — the Ahoy line and the recipe picker — have NO captain's box: the band under the board is empty until a recipe is picked, and only then does the rope plaque with all four captains appear. That empty band is the designed opening, never a missing panel (Wyatt, 2026-09-13: "Right by design").
+- A captain's turn begins with NO narration line, for bots and humans alike — there is no "takes the wheel…" and no "Ahoy, yer turn!"; the camera moving to the boat and the sail squares say whose turn it is (Wyatt, 2026-09-13: one line for every captain, silent for now).
+- After a coin lands there is no "Crustbeard flips HEADS!" line — the coin's own face (the big coin, or the small coin over the boat) is the answer (Wyatt, 2026-09-13). The dock's result line that follows names the treasure or the dock work, not HEADS or TAILS.
 ```
 
 ---

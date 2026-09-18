@@ -102,7 +102,43 @@ export function makePlayer(c, { log = () => {}, isGuest = false } = {}) {
   // pick from the current prompt's buttons by COVERAGE (least-clicked kind first). Never "Back"
   // unless it is the only choice; never the stepper's −1 (the +1/confirm path covers it, and a
   // naive driver oscillates ± forever — mp_rig lesson); records every label it SAW.
+  /* THE RECIPE CARDS ARE TAPPED ONLY ONCE THEY HAVE LANDED — Wyatt, 2026-09-14: "stop the sea trial from tapping the recipe cards
+     so quickly; i don't care about these taps." Wy-Blade's trial of 2026.09.14.2 reported two dead taps, both on the picker: a card
+     tapped while the stack was still flying in, and a first "Bake this!" tapped straight after the pop-in. A player waits for the
+     cards to arrive before reaching for one, so the driver does too: while anything in the picker is still moving it waits, and
+     once it has stopped it gives the cards CARD_BEAT_MS of stillness — about the time a person takes to read two titles. */
+  /* ⚠ IT STOPPED A WHOLE SEA TRIAL, AND IT WAS MINE (971e4995). Wy-Blade's trial of 2026.09.15.2, 2026-09-15: all 10 voyages stood at the
+     first recipe picker until the gate's time limit, 0 finished, because "anything in the picker is still moving" counted an animation
+     that never ends, and the wait had no cap. A glow or pulse that loops forever is decoration, not cards arriving. So: an animation
+     that never ends is not movement, and no picker is waited on for more than CARD_WAIT_CAP_MS whatever it is doing (15s, past the 7.5s fly-in measured) — a wait that
+     cannot end is a stuck voyage wearing a polite face. */
+  /* AND "STILL" MUST MEAN SHOWN. Measured on the same build at 375x812: the cards exist from about 1s, but the whole prompt stays at
+     opacity 0 until 3.5s and the cards fly in from 3.0s to 7.5s. Skipping only the endless glow read "still" at 1s, which would tap a
+     card nobody can see — the dead tap Wyatt's ruling was about. So a prompt still fading in counts as arriving, and the cap is sized
+     past the real fly-in (7.5s measured), not under it. */
+  const CARD_BEAT_MS = 900, CARD_WAIT_CAP_MS = 15000;
+  async function recipeCardsSettling() {
+    const s = await ev(`(() => { const box = document.getElementById('pp4Prompt');
+      if (!box || !box.querySelector('.recipeList')) return 'none';
+      if (+getComputedStyle(box).opacity < 0.99) return 'moving';   // the prompt is still fading in: nothing on it can be seen yet
+      const moving = document.getAnimations().some(a => { const t = a.effect && a.effect.target;
+        if (a.playState !== 'running' || !t || t.nodeType !== 1 || !(t === box || box.contains(t))) return false;
+        const tm = a.effect.getComputedTiming();
+        return tm.iterations !== Infinity && tm.endTime !== Infinity; });
+      return moving ? 'moving' : 'still'; })()`);
+    if (s === "none") { P._cardsStillAt = 0; P._cardsSeenAt = 0; P._cardsCapNoted = false; return false; }
+    if (!P._cardsSeenAt) P._cardsSeenAt = Date.now();
+    if (Date.now() - P._cardsSeenAt > CARD_WAIT_CAP_MS) {
+      if (!P._cardsCapNoted) { P._cardsCapNoted = true; P._cardsWaitCapped = (P._cardsWaitCapped || 0) + 1; }
+      return false;
+    }
+    if (s === "moving") { P._cardsStillAt = 0; return true; }
+    if (!P._cardsStillAt) P._cardsStillAt = Date.now();
+    return Date.now() - P._cardsStillAt < CARD_BEAT_MS;
+  }
+
   async function answerButtons() {
+    if (await recipeCardsSettling()) return true;   // the cards are still arriving: this tick is spent waiting, not tapping
     const btns = await ev(`(() => {
       const list = ${BTN_Q};
       return list.map((b, i) => ({ i, label: (b.textContent||'').trim().slice(0, 30),
