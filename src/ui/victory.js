@@ -111,8 +111,8 @@ async function boardBeats(g, v, shipEls, leanCam, sweepCam) {
   const replace = () => { if (!stageEl || !stageEl.isConnected) return; box = boardBox(); k = box.k; placers.forEach(f => f()); };
   const ro = typeof ResizeObserver === "function" ? new ResizeObserver(() => replace()) : null;
   const bw0 = $("boardwrap"); if (ro && bw0) ro.observe(bw0);
-  addEventListener("resize", replace);
-  stageEl.__vcStop = () => { try { ro && ro.disconnect(); } catch (e) {} removeEventListener("resize", replace); };
+  window.addEventListener("resize", replace);
+  stageEl.__vcStop = () => { try { ro && ro.disconnect(); } catch (e) {} window.removeEventListener("resize", replace); };
   const dim = mk(stageEl, "vcDim");
   const skip = reduced();
   const cx = box.x + box.w / 2, heroY = box.y + 171 * k, heroSize = 64 * k;
@@ -254,7 +254,7 @@ export function victoryCard() {
   wrap.classList.add("vcOn");
   placeCard(wrap);
   /* …and the card is placed again whenever the window changes, for the same reason the podium is (his 2026-09-17 note). */
-  if (!wrap.__vcPlacing) { wrap.__vcPlacing = () => { if (wrap.classList.contains("vcOn")) placeCard(wrap); }; addEventListener("resize", wrap.__vcPlacing); }
+  if (!wrap.__vcPlacing) { wrap.__vcPlacing = () => { if (wrap.classList.contains("vcOn")) placeCard(wrap); }; window.addEventListener("resize", wrap.__vcPlacing); }
   if (g.__victoryCardBuilt) return;                       // render() calls this on every repaint; the card is built once a voyage
   const v = voyageOf(g);
   if (!v) return;
