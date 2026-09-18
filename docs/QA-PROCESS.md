@@ -293,6 +293,35 @@ net, it is an unreviewed accusation. Either wire it in (after checking its evide
 `gate_archive/` with the diagnosis in its header. Leaving it red and uncalled is the state that
 produced all three of these.
 
+### 2d. ⛔ WORSE THAN A STALE GATE: ONE IN THE CHAIN, GREEN, WHOSE **REASONING** IS WRONG
+
+**2026-09-18, item 25 — and this one held a real bug in place, in writing, for three weeks.**
+
+The engine decides a fight's wind once, in `beginBattle`, and records it on `engage`. Three other
+places re-derived it. The worst, `renderBattle`, preferred a field `o.dw` — **and nothing in `src/`
+has ever set `o.dw`**, so its fallback fired on every screen, every fight, always. *A renderer
+preferring a field nobody writes: the fallback looked like a safety net and was the whole bug.*
+
+**`flip_ceremony_parity_check` did not miss it. It REQUIRED it** — it asserted both recomputations,
+on the reasoning *"one source, so they cannot disagree"*. That sentence is **true of a pure function
+and false of two screens reading two different boards.** Measured: on a healthy connection they
+agree and the margin is ~4.0–4.3 s, bounded by nothing in the code; drop the guest's signal for
+3.9 s and 4 of 8 fights disagreed — host *"⬇ FIRES DOWNWIND — WINS TIES"* against guest
+*"CROSSWIND · ties collide"*, with the flip stage saying a third thing. Three readings on one table.
+
+**§2c above is about gates citing evidence that does not exist. This is the mirror image: the
+evidence was fine and the REASONING was wrong.** Both are green, and green is all anyone looks at.
+
+**So the check on a gate is two questions, not one:**
+1. **Does its evidence exist?** (§2c — a `find`, a `grep` of the cited doc, a read of its staging.)
+2. **Is its premise true of THIS system?** A rule that holds for one pure function does not hold for
+   two screens, two processes or two clocks. **Anywhere the answer is "they read the same source",
+   ask *at the same instant?* — if not, the gate is enforcing an assumption the game does not make.**
+
+A gate that asserts a bug is the most expensive kind, because it converts "nobody noticed" into
+"somebody checked". Four gates were rewritten in this sweep and none was weakened; this was the only
+one whose premise, rather than its anchor, was wrong.
+
 ## 3. THE FOUR STEPS (unchanged — see the top of this file)
 
 Show it broken → change it → show that SAME check passes → sweep.
