@@ -1153,7 +1153,7 @@ class Game{
     const price=this.cratePrice(ing);
     // a bot buys when it needs the crate and can afford today's price — or, if it trades for a
     // living, when the crate is leverage somebody else at the table plainly needs (rule 4 fodder)
-    let got=h?"treasure":"dockhand",buy=null;
+    let buy=null;
     if(this.cfg.dockBuy&&price!==null){
       const why=this.wantsCrate(p,ing,price),needsIt=why==="needs";
       if(why){
@@ -1165,19 +1165,37 @@ class Game{
         const bm=needsIt?this.blackMarketPick(p,ing):null;
         if(bm&&(bm.worthIt||p.coins<price))buy=this.barterCrate(p,ing,bm.give);
         if(!buy&&p.coins>=price)buy=this.buyCrate(p,ing);
-        if(buy)got="bought";
       }
     }
-    /* `price` IS THE CRATE'S PRICE AND `paid` IS WHAT LEFT THE PURSE, and they are not the same number — a dock records a price
-       whether or not anybody bought. Wyatt, 2026-09-17: "when i passed on buying a crate at a dock, 3 coins dropped out of my purse;
-       even though i didn't buy anything". The screen was reading `price` because nothing else said what was paid; now the event says
-       it. A barter pays in crates, so its `paid` is 0. */
-    this.ev({t:"dock",p:p.idx,ing,heads:h?1:0,got,price:buy&&buy.paidIng?0:price,
+    this.dockDone(p,ing,h,price,buy);
+    return true;
+  }
+  /* WHAT A DOCK TURN DID, SAID ONCE — THE ONE PLACE A DOCK EVENT IS WRITTEN (architecture item 49, 2026-09-18).
+     Every berth ends here: a bot's doDock above, and a person's humanDock (src/ui/flow.js), which hands over what the
+     captain DECIDED — the flip, the price the crate was offered at, and the purchase, the barter or the refusal — and
+     lets this line say it.
+
+     IT USED TO BE WRITTEN TWICE, kept in step by hand, and on 2026-09-17 the two fell out of step for real: this one
+     gained `paid` and the human berth's copy did not, so a PERSON's purchase emitted `paid=undefined`, the spending
+     door never fired, and his coins stopped being drawn leaving his purse. It reached staging. Measured on a phone,
+     his own seat, same gesture: purse 5→6→7→8→5, one silent step of 3, with ZERO coins seen leaving; after the field
+     reached both, 3→4→5→6→5→4→3, a coin at a time, 13 samples in flight. There is nothing left to keep in step —
+     scripts/qa/dock_event_one_producer_check.mjs fails if a second producer ever appears.
+
+     `price` IS THE CRATE'S PRICE AND `paid` IS WHAT LEFT THE PURSE, and they are not the same number — a dock records
+     a price whether or not anybody bought. Wyatt, 2026-09-17: "when i passed on buying a crate at a dock, 3 coins
+     dropped out of my purse; even though i didn't buy anything". A barter pays in crates, so its `paid` is 0.
+
+     THE PRICE IS THE CALLER'S TO CAPTURE, and it must be read BEFORE the purchase. Buying takes the crate off the
+     shelf and the price climbs as the island empties (v2 rule 11), so a price re-read in here would be the price of
+     the NEXT crate, not the one just bought. Both berths read it before they buy, and the gate holds them to it. */
+  dockDone(p,ing,heads,price,buy){
+    this.ev({t:"dock",p:p.idx,ing,heads:heads?1:0,got:buy?"bought":(heads?"treasure":"dockhand"),
+      price:buy&&buy.paidIng?0:price,
       paid:buy&&!buy.paidIng?price:0,
       paidIng:buy&&buy.paidIng?buy.paidIng:undefined,
       left:buy?undefined:this.dockLeft(p,ing),
       black:buy?buy.black:0,wentDry:buy?buy.wentDry:0,firstDry:buy?buy.firstDry:0});
-    return true;
   }
   /* WHY NO CRATE CAME ABOARD — the ONE place both berths answer it, so a bot's dock and a human's can never
      tell two stories about the same shelf (engine doDock above, and the human's flow.js humanDock).

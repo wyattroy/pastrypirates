@@ -1931,7 +1931,8 @@ export async function humanDock(player,port){
     say("dock.flipHelp",{heads:g.cfg.dockHeads,tails:g.cfg.dockTails}),"dock");
   if(h==="back")return "back";
   g.payDock(player,h);   // credited AND recorded in one place, shared with a bot's dock (engine Game.payDock)
-  let got=h?"treasure":"dockhand";
+  // READ BEFORE THE BUY, and handed to the engine untouched: buying takes the crate off the shelf and the
+  // price climbs as the island empties (v2 rule 11), so this is the price the captain was actually offered.
   const price=g.cratePrice(ing);
   /* THE CAPTAINS PANEL IS DRAWN FROM THE LAST EVENT'S SNAPSHOT, not from live player state — so
      coins earned here stayed invisible until the `dock` event was finally emitted, which is AFTER
@@ -2027,27 +2028,23 @@ export async function humanDock(player,port){
       // D-40 safety net: buyCrate re-reads the purse itself — `canBuy` was computed BEFORE the
       // await, and the shot clock's penalty can take a coin while this prompt sits open. One
       // purchase path with the bots (Game.buyCrate), so the two can never diverge on the rule.
-      if(v==="coin"){buy=g.buyCrate(player,ing);if(buy)got="bought";break;}
+      if(v==="coin"){buy=g.buyCrate(player,ing);break;}
       if(v==="barter"){
         const give=await pickBarterCrates(player,ing);
         if(!give)continue;                       // backed out of the picker — offer the berth again
-        buy=g.barterCrate(player,ing,give);if(buy)got="bought";
+        buy=g.barterCrate(player,ing,give);
         break;
       }
       break;                                     // "Nah"
     }
   }
-  // WHAT WAS LEFT ON THE SHELF, decided by the engine for bot and human alike (Game.dockLeft) — a captain who
-  // taps "Nah" and a bot that declines get the identical sentence, which is the rule this whole file is held to.
-  /* `paid` IS WHAT LEFT THE PURSE and `price` is what the crate cost — and this line is the HUMAN berth's
-     copy of the engine's dock event (engine/index.js). The two must carry the same fields: on 2026-09-17 the
-     engine's gained `paid` and this one did not, so a human's PURCHASE stopped drawing its coins leaving for
-     one build. `scripts/qa/dock_event_one_shape_check.mjs` now fails if the two ever differ again. */
-  g.ev({t:"dock",p:player.idx,ing,heads:h?1:0,got,price:buy&&buy.paidIng?0:price,
-    paid:buy&&!buy.paidIng?price:0,
-    paidIng:buy&&buy.paidIng?buy.paidIng:undefined,
-    left:buy?undefined:g.dockLeft(player,ing),
-    black:buy?buy.black:0,wentDry:buy?buy.wentDry:0,firstDry:buy?buy.firstDry:0});
+  /* THE BERTH HANDS THE ENGINE WHAT THE CAPTAIN DECIDED, AND THE ENGINE'S OWN LINE SAYS IT (architecture item 49).
+     This berth used to write its own copy of the dock event beside the engine's, the two kept in step by hand — and on
+     2026-09-17 they fell out of step: the engine's line gained `paid`, this one did not, and a person's PURCHASE stopped
+     drawing its coins leaving the purse for a whole build on staging. What was bought, bartered or refused is all this
+     berth knows that the engine does not; every word of the line itself — what the flip turned up, what was paid, what
+     was left on the shelf — is Game.dockDone's, exactly as it is for a bot. */
+  g.dockDone(player,ing,h,price,buy);
   /* HIS ITEM 9: THE CRATE LANDS WHEN YE BUY IT. One call moved, none added.
      "the crate sound and the crate animation arrive after the summary has faded, instead of on the
      Buy click." Measured: 5489ms between the trusted mouse-down on the Buy petal and liveRender()
