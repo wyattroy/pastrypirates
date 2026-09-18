@@ -72,7 +72,13 @@ function bodyAt(src, h) {
 const fnBody = (src, head) => bodyAt(src, src.indexOf(head));
 const count = (s, re) => (s.match(new RegExp(re.source, "g")) || []).length;
 
-const WATCHER_BRANCH = /if\s*\(\s*!\s*local\s*\)\s*\{\s*camToCell\s*\(\s*own\s*,\s*SEAT_ZOOM\s*\)\s*;\s*return\s*;\s*\}/;
+/* ⚠ THE RETURN IS `return[^;]*;`, NOT A BARE `return;` — architecture item 48 (2026-09-17) made the
+   watching branch hand back the WAIT for the glide it just started (`return stageSettled();`), and a
+   regex pinned to the bare return would have failed this gate for a change it should not judge. What
+   this rule is about is unchanged and unweakened: the branch frames THAT CAPTAIN'S OWN SQUARE at
+   SEAT_ZOOM and leaves, before the sailChoices read. Whether it also hands back a wait is item 48's
+   fact and is held by scripts/qa/camera_settles_before_the_move_check.mjs. */
+const WATCHER_BRANCH = /if\s*\(\s*!\s*local\s*\)\s*\{\s*camToCell\s*\(\s*own\s*,\s*SEAT_ZOOM\s*\)\s*;\s*return[^;]*;\s*\}/;
 
 function rules(files) {
   const S = Object.fromEntries(Object.entries(files).map(([f, s]) => [f, stripComments(s)]));
@@ -101,7 +107,7 @@ function rules(files) {
     const m = cam ? WATCHER_BRANCH.exec(cam) : null;
     const choicesAt = cam ? cam.indexOf("sailChoices(") : -1;
     rule([
-      [!!m, "camFrameTurn has no `if (!local){ camToCell(own, SEAT_ZOOM); return; }` — a watching screen is not framed on that captain's boat"],
+      [!!m, "camFrameTurn has no `if (!local){ camToCell(own, SEAT_ZOOM); return … ; }` — a watching screen is not framed on that captain's boat"],
       [!!m && choicesAt >= 0 && m.index < choicesAt, "the watcher's boat frame does not stand before the Game.sailChoices read — a watching screen can still fall through and frame squares it draws none of"],
       [/const\s+SEAT_ZOOM\s*=/.test(stage), "SEAT_ZOOM is not defined in ui/stage.js — the distance is typed rather than named"],
       [/camToCell\s*\(\s*g\.players\[\s*i\s*\]\.pos\s*,\s*SEAT_ZOOM\s*\)/.test(stage), "camToSeat does not use SEAT_ZOOM — a line about a captain and a watcher's turn frame would drift apart"],
@@ -145,9 +151,14 @@ function rules(files) {
    to one square (the boat), so the injected pair says which one it took and with what. */
 function posed(camSrc) {
   if (!camSrc) throw new Error("camFrameTurn could not be found");
-  const make = new Function("S", "appState", "document", "camFitCells", "camToCell", "SEAT_ZOOM",
+  /* `stageSettled` is injected because architecture item 48 made the WATCHING branch hand back the
+     wait for its own glide, and this rule is the only one that runs that branch. A no-op here on
+     purpose: what this gate judges is WHICH FRAME the branch chooses, not how long anything waits
+     — that is camera_settles_before_the_move_check.mjs's own posed stream. */
+  const make = new Function("S", "appState", "document", "camFitCells", "camToCell", "SEAT_ZOOM", "stageSettled",
     `${camSrc}; return camFrameTurn;`);
   const doc = { querySelectorAll: () => [], querySelector: () => null };
+  const noWait = () => Promise.resolve();
   const r = { poses: 0, humanSeats: 0, botSeats: 0, differ: 0, notBoat: 0, chooserBoat: 0, first: "" };
   for (const seed of SEEDS) {
     const g = new Game(roundCfg(["human", "pirate", "trader", "balanced"]), seed, false);
@@ -165,11 +176,11 @@ function posed(camSrc) {
         let got = null;
         const fit = cells => { got = ["fit", (cells || []).length]; };
         const boat = (cell, zoom) => { got = ["boat", cell[0] + "," + cell[1], zoom]; };
-        make({}, appState, doc, fit, boat, 1.9)(i, null, false);           // a WATCHING screen
+        make({}, appState, doc, fit, boat, 1.9, noWait)(i, null, false);   // a WATCHING screen
         answers.push(JSON.stringify(got));
         if (!got || got[0] !== "boat" || got[1] !== `${x},${y}` || got[2] !== 1.9) r.notBoat++;
         got = null;
-        make({}, appState, doc, fit, boat, 1.9)(i, null, true);            // the screen BEING ASKED
+        make({}, appState, doc, fit, boat, 1.9, noWait)(i, null, true);     // the screen BEING ASKED
         if (!got || got[0] !== "fit") r.chooserBoat++;
       }
       if (new Set(answers).size > 1) {
@@ -196,7 +207,7 @@ real.forEach((r, i) => console.log(`  ${r.ok ? "PASS" : "FAIL"}  ${i + 1}. ${NAM
 
 /* RED-PROOF: each mutant is the real source with ONE copy put back, and the rule(s) named must go red. */
 const broken = (file, from, to) => files[file].includes(from) ? { ...files, [file]: files[file].replace(from, to) } : null;
-const WATCHER_LINE = "  if (!local){ camToCell(own, SEAT_ZOOM); return; }";
+const WATCHER_LINE = "  if (!local){ camToCell(own, SEAT_ZOOM); return stageSettled(); }";
 const MUTANTS = [
   [[2, 5], "the square-framing watcher branch put back — a watching screen falls through to the sail window again (the fault this item removed)",
     broken(STAGE, WATCHER_LINE + "\n", "")],

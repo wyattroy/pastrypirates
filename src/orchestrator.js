@@ -1834,8 +1834,18 @@ export async function consumeEvent(e){
      and whether the choice is being made HERE. A watching screen frames that captain's boat, bot or
      human alike; the screen being asked frames its own sail window (Game.sailChoices — the same call as
      its gold squares, architecture item 18) and refines it a moment later with the pill's room
-     (renderPickPrompt), which is the same function asked again with more to go on. */
-  if(e.t==="turn"&&!appState.replaying&&window.__pp4&&window.__pp4.turnFrame)window.__pp4.turnFrame(e.p,null,decisionIsLocal(e.p));
+     (renderPickPrompt), which is the same function asked again with more to go on.
+     ⭐⭐⭐ AND NOTHING OF THAT TURN IS DRAWN UNTIL THE CAMERA HAS GOT THERE — architecture item 48,
+     Wyatt's playtest ask of 2026-09-17: "the camera should center a bot before they begin to move."
+     The frame was only ASKED for; the glide is 650ms and the `sail` event was drawn the moment this
+     line returned, so on a guest phone in a real crew room the hull began moving 31-92ms after the
+     ask on 9 of 9 watched bot turns and the camera did not arrive until 653-666ms. The WAIT is the
+     door's own answer (ui/stage.js camFrameTurn returns stageSettled() on a watching screen, nothing
+     on the screen being asked), so there is no second rule here beside the frame — this line simply
+     waits for what it asked for. Awaiting here holds BOTH tiers: the host's turn loop waits on this
+     drain, and the guest's wire is one promise chain, so the next event cannot be drawn in front of
+     the camera on either. scripts/qa/camera_settles_before_the_move_check.mjs. */
+  if(e.t==="turn"&&!appState.replaying&&window.__pp4&&window.__pp4.turnFrame)await window.__pp4.turnFrame(e.p,null,decisionIsLocal(e.p));
   if(!appState.replaying)bobTheTurn();   // his game feel audit, then 2026-09-14: the boat whose turn it is bobs for the whole turn, on every screen — read from the one helper, so a baking captain's boat bobs too (board.js; architecture item 3)
   if(e.t==="end")stopTurnBob();                         // …and nothing bobs once the voyage is over
   $("scrub").max=Math.max(0,appState.game.events.length-1);
