@@ -54,9 +54,22 @@ const NOT_GAME = [
   /^sitemap\.xml$/,
 ];
 
-/** A repo-relative path. `.md` is never game code, wherever it lives. */
+/** A repo-relative path. `.md` is never game code, wherever it lives.
+ *
+ * ⛔ SEPARATORS ARE NORMALISED FIRST, AND THAT LINE IS LOAD-BEARING ON WINDOWS.
+ * Every pattern above is written with `/`, so a path that arrives with backslashes matches NONE of
+ * them and the function answers "this is the game" about tooling. Measured 2026-09-18, on the real
+ * file: `scripts\qa\x.mjs` -> true, `.claude\hooks\y.cjs` -> true. Wyatt works on a Windows
+ * laptop, so that is not a corner case there — it is every edit to a gate or a hook demanding a sea
+ * trial, and this file's own comment says where that ends: "a gate that cries wolf is a gate people
+ * learn to walk past, which is how six instruments rotted through the cutover".
+ *
+ * It belongs HERE rather than at the three call sites for the same reason the exclusion list does:
+ * three copies of one rule is the defect this file exists to remove. Found by Wy-Blade, on Windows,
+ * where it is visible. */
 function isGameCode(rel) {
-  return !!rel && !rel.endsWith(".md") && !NOT_GAME.some((re) => re.test(rel));
+  const p = String(rel || "").replace(/\\/g, "/");
+  return !!p && !p.endsWith(".md") && !NOT_GAME.some((re) => re.test(p));
 }
 
 module.exports = { NOT_GAME, isGameCode };

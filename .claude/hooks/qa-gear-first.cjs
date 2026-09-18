@@ -78,8 +78,17 @@ function main() {
   const ti = input.tool_input || {};
   const session = String(input.session_id || "nosession").replace(/[^A-Za-z0-9_-]/g, "").slice(0, 64) || "nosession";
   const repo = process.env.CLAUDE_PROJECT_DIR || path.resolve(__dirname, "..", "..");
-  const filePath = String(ti.file_path || "");
-  const rel = filePath.startsWith(repo) ? filePath.slice(repo.length + 1) : filePath;
+  /* ⛔ NORMALISE BOTH SIDES BEFORE COMPARING, or an absolute path survives into isGameCode() and
+     EVERY exclusion misses it, because they are all anchored with ^. Measured 2026-09-18: a tool
+     reporting `\Users\...\scripts\qa\x.mjs` while `repo` was resolved with forward slashes made
+     startsWith() false, left `rel` absolute, and this hook demanded a FULL sea trial for editing a
+     GATE. The separator fix in game-code.cjs is the other half and does not cover this one — that
+     half is for real Windows, where both sides are backslashed and only the exclusions need it. */
+  const slash = t => String(t || "").replace(/\\/g, "/").replace(/\/+$/, "");
+  const filePath = slash(ti.file_path);
+  const repoS = slash(repo);
+  const rel = filePath.startsWith(repoS + "/") ? filePath.slice(repoS.length + 1)
+            : filePath === repoS ? "" : filePath;
   const content = String(ti.content || ti.new_string || "");
 
   /* WHAT COUNTS AS GAME CODE lives in ONE place now — .claude/hooks/lib/game-code.cjs — because
@@ -168,7 +177,18 @@ THE FOUR STEPS. They never change and are never skipped:
   4. SWEEP            ${g.sweep(mode)}
 
 Which gear you are in is decided by the files you touch, not by how the change feels:
-     node scripts/qa/gear.mjs
+     node scripts/qa/gear.mjs --explain        what gear this change is, and why
+
+AND IF THIS GEAR IS WRONG FOR THIS CHANGE, LOWERING IT IS ALLOWED — OUT LOUD, NOT SILENTLY:
+     node scripts/qa/gear.mjs --gear=PLUMBING --reason="adding a tag to index.html, no behaviour"
+
+  Wyatt asked for exactly this on 2026-09-02: "we need a way to bypass sea trial for this -- it
+  clearly doesn't need a full one". Lowering the gear BY MOOD is the failure this hook exists to
+  stop; lowering it with a reason somebody can read afterwards is not, and the reason is carried
+  into the report. A gate that blocks you without naming its own escape hatch is a gate you learn
+  to resent and then to route around — which is worse than no gate.
+  (This paragraph is asserted by scripts/qa/hook_gear_override_reachable_check.mjs. It went missing
+  once, on 2026-09-18, found by Wy-Blade while that gate was red and outside the chain.)
 
 Full contract: docs/QA-PROCESS.md
 
