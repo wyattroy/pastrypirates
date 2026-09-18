@@ -47,6 +47,7 @@
     "node scripts/qa/coin_flip_one_pipe_check.mjs",
     "node scripts/qa/every_coin_flies_check.mjs",
     "node scripts/qa/coin_arrival_one_event_check.mjs",
+    "node scripts/qa/line_written_one_place_check.mjs",
     "node scripts/qa/dock_event_one_producer_check.mjs",
     "node scripts/qa/rewatch_one_purse_check.mjs",
     "node scripts/qa/seen_buttons_take_taps_check.mjs",

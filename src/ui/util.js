@@ -1955,17 +1955,48 @@ export function eventDrawn(e,capMs=9000){
    decides "ye", and who chose the move never enters. narrateLastEvent() and narrateCurrent() are only WHICH event. */
 /* ⭐ A COIN THAT IS BEING EXPLAINED WAITS FOR THE WORDS. Wyatt, 2026-09-15: "I think the coin you get from musing should only fly into
    your purse AFTER the narration line has finished writing -- because it's explaining where the coin comes from." So the one consumer
-   hands the flight here instead of running it itself, and it is let go when the line has finished TYPING — 9ms a character, the
-   typewriter's own rate (stage.js typewriterReveal), not when the line's reading time is up. The 8-second fallback is the safety a
-   screen with narration switched off needs: a coin must never be lost because nobody spoke. */
+   hands the flight here instead of running it itself, and it is let go when the line has finished TYPING (lineWritten, below), not when
+   the line's reading time is up. */
 const AFTER_LINE = new Map();
-/* The longest a thing waiting on a narration line will wait — a screen with narration off never writes one. The purse holds its count
-   a little past this (orchestrator.js, the pass coin), so the two are one number. */
+/* THE DEADLINE, NOT THE ANSWER. The longest a thing waiting on a narration line will wait, for a screen that writes no line at all —
+   the narrator steps over an unanswered prompt, or the words have no entry for the event. (This used to say "the purse holds its count
+   a little past this, so the two are one number"; the hold it named was deleted when payInto became the one pay-in door, and nothing
+   in src/ has read this number since except the line below.)
+   ⚠ IF A SCREEN EVER WAITS THIS OUT FOR A LINE IT DID WRITE, THAT IS THE DEFECT — NOT THIS NUMBER. That is exactly what a guest did
+   with every muse coin until 2026-09-18 (see lineWritten). Raising or lowering this cannot fix such a thing; it can only change how
+   long the wrong answer takes to arrive. */
 export const AFTER_LINE_CAP_MS = 8000;
 export function afterLine(e, fn){
   if(!e || typeof fn !== "function") return;
   AFTER_LINE.set(e, fn);
   setTimeout(() => runAfterLine(e), AFTER_LINE_CAP_MS);
+}
+/* ⭐⭐ THE ONE PLACE THAT SAYS THE WORDS EXPLAINING A COIN HAVE BEEN WRITTEN — WHICHEVER SCREEN WROTE THEM.
+   Wyatt, 2026-09-18, of a crew game: "guest never saw coin go into their purse when musing ON THEIR TURN -- it was added to the
+   beginning of their following turn! ... those coins seem to be moving across the screen & making noise only on the start of that
+   player's next turn."
+   MEASURED BEFORE THE REPAIR — two real browsers in a real crew room (host 1200x950, guest iPhone-13-mini 375x812 dsf3, touch), five
+   muse coins and five dock hauls on each screen, every time taken from the DOM and from these doors and counted from the moment the
+   event arrived ON THAT SCREEN: a dock's coins landed at 663ms on BOTH screens, and the chink came with the landing on both. A muse
+   coin landed at 1665ms on the host — and at 8673ms on the guest, which is the cap above to the millisecond, with a whole new turn
+   begun in between, all five times.
+   THE CAUSE WAS THAT ONLY ONE OF THE TWO NARRATORS EVER SAID THE LINE WAS WRITTEN. narrateEvent (below) worked the typing time out
+   inline and let the coin go; watchNarr (src/orchestrator.js), the guest's narrator, drew the very same line and said nothing at all —
+   so on a guest the deadline WAS the behaviour. Rule 23's exact shape: two consumers of one fact and nothing making them agree.
+   So the fact is decided HERE, once, and both narrators call it with the line they are about to hand to flash().
+   IT IS THE NEUTRAL LINE THAT IS TIMED, DELIBERATELY, AND NOT THIS SCREEN'S OWN "ye" WORDING. Each screen picks a variant of the same
+   sentence (pickNarrVariant, inside flash), and the variants differ by a word — so timing the picked one would give every screen a
+   slightly different answer to a question the whole table is asking about one coin, and would make this door ask who is looking, which
+   is a mode fork in code that draws (scripts/mode_fork_check.js). The neutral line is what every variant was built from, so one
+   duration serves them all and the coin leaves every boat on the same beat. Host and guest parity is worth more than two characters.
+   The rate is the narration bubble's own, shared with the typewriter that types it (stage.js stageFlash), so the two cannot drift
+   apart; the settle is the beat the last character gets before the coin moves.
+   scripts/qa/line_written_one_place_check.mjs holds all of it. */
+export const BUBBLE_MS_PER_CHAR = 9, LINE_SETTLE_MS = 120;
+export function lineWritten(html, e){
+  if(!e || typeof e !== "object") return;
+  const chars = String(html == null ? "" : html).replace(/<[^>]*>/g, "").length;
+  setTimeout(() => runAfterLine(e), BUBBLE_MS_PER_CHAR * chars + LINE_SETTLE_MS);
 }
 function runAfterLine(e){
   const fn = AFTER_LINE.get(e);
@@ -2041,8 +2072,9 @@ export async function narrateEvent(e){
   // could burn the ENTIRE 3s just typing itself in, leaving no time to actually read it before the
   // next event overwrote it. flash() awaits real reveal completion, then holds for length*80ms —
   // scaling with the text instead of a one-size-fits-all timer.
-  // the line is written after 9ms a character; anything waiting on the words (a muse coin) is let go then, not after the hold
-  setTimeout(() => runAfterLine(e), 9 * String(L.txt == null ? "" : L.txt).replace(/<[^>]*>/g, "").length + 120);
+  // anything waiting on the words (a muse coin) is let go when they are written, not after the hold — through the ONE door above, which
+  // the guest's narrator (src/orchestrator.js watchNarr) calls for the same line, so both screens let the same coin go at the same moment
+  lineWritten(L.txt,e);
   await netHandlers().onFlash(L.txt,undefined,undefined,variants);
   // THE BLACK MARKET'S ONE LESSON (Wyatt, 2026-08-12, "ceremony + marker"): the first time any
   // shelf on the board empties, a once-per-voyage centre-stage beat teaches that sold-out islands

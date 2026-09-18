@@ -21,7 +21,7 @@ import { narrationHoldMs, vwPx, vhPx, isDisabledBtn, fixedOrigin, fixedRect, ref
   waitLineIsSelfAddressed, pname } from "./util.js";
 import { typewriterReveal } from "./panel.js";
 import { HEXCOL, emojify, DIRS, STORM_PUSH, BOAT_IMG } from "../shared/index.js";
-import { say, sayText, whoseTurn } from "./util.js";   // every word from src/shared/words.js; whose turn it is (architecture item 3)
+import { say, sayText, whoseTurn, BUBBLE_MS_PER_CHAR } from "./util.js";   // every word from src/shared/words.js; whose turn it is (architecture item 3); the bubble's typing rate, shared with the coin that waits for it
 import { showsThinkingIndicator } from "../shared/visibility.js";
 import { pilotToggle, pilotIsOn, pilotMsg, pilotSee } from "./pilot.js";
 import { showCourseFor, paintMarks, clearCourse, forgetCourse, redrawCourse } from "./course.js";
@@ -1962,8 +1962,11 @@ function stageFlash(msg, ms, holdMs, variants, opts){
     const host = fxHost();
     host.appendChild(b);
     hopParrot();
-    // playtest 4: lines type themselves in, the game's own reveal — and fade out on replace
-    try { typewriterReveal(b.querySelector(".pp4BubIn"), 9); } catch (e) {}
+    /* playtest 4: lines type themselves in, the game's own reveal — and fade out on replace.
+       THE RATE IS NOT TYPED HERE ANY MORE. It is the same number util.js counts a coin's wait in
+       (lineWritten): how long the words take to write is one fact, and it used to be a 9 here and a 9
+       there, kept in step by nothing. Move it and both move. */
+    try { typewriterReveal(b.querySelector(".pp4BubIn"), BUBBLE_MS_PER_CHAR); } catch (e) {}
     /* ONLY AS WIDE AS THE WORDS — playtest 23 item 3 (Wyatt): "the narration text boxes should only
        be as wide as they need to be… For a single line text box the boxes should be only as wide as
        they need to be to fit the text."
