@@ -442,6 +442,19 @@ Measured on a phone, his own seat, same gesture, the two builds differing only i
 | his purse | 5→6→7→8 then **5 in one step** | 3→4→5→6 then 5→4→3 |
 | coins drawn leaving | **0** | 13 |
 
+**IT HAS NOW HAPPENED FOUR TIMES IN ONE DAY, WHICH IS WHY THIS ENTRY IS NOT A STORY.** Every one is
+the same shape — the thing that broke sat upstream of what anyone was watching:
+
+| | what was watched, and was right | what was wrong, upstream of it |
+|---|---|---|
+| the dock spend | `consumeEvent` — one spend line, no seat branch | `ui/flow.js` emitting a dock event without `paid` |
+| rule 10 of the coin gate | the consumer reads `paid`, not `price` | the two emitters had diverged |
+| "a bot's dock pays through payDock", "a human's too" | the ENGINE's purse, which never diverged | what the event told the SCREEN |
+| item 48's camera wait | the camera arriving before the boat moves | `render()` at a `turn` drawing a `sail` that landed DURING the wait, snapping the hull to its destination instead of walking it |
+
+The fourth was never seen by anyone: it was found by **reading what `render()` does at a `turn`
+before trusting a reorder**, which is the habit this entry is asking for.
+
 **The rule: when you change what an event MEANS, grep for every place that emits it before you
 change the place that reads it.** `grep -n 't:"<name>"' src/` costs two seconds. "There is one
 consumer" is a fact about the consumer and says nothing about how many things speak into it.
