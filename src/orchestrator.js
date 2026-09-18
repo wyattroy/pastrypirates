@@ -106,7 +106,10 @@ import {
   appendChatLine, showChatBubble,
   setFlipActive, armFlipTap, landFlipCoin, boardCell, boardShipEls, drawBoard, render, bobTheTurn, sailSetsOff, sailArrives, payInto, payOut, crateFlightFrom, crateFlightTo, holdMovesFrom, holdMovesTo, rideStreaks, firstHomeConfetti, shotLands, loserKnocked, stopTurnBob,
   seedIdleGameState, syncBoardSizing, watchMutePlacement, clearChatBubbles,
-  showSeatCoins, // MP-06: the ONE purse renderer, shared with render() (04-01 Task 2)
+  /* (`showSeatCoins` STOOD HERE — architecture item 17, 2026-09-18. It was imported for ONE caller,
+     the guest bake branch's till, which wrote a re-watch's lower number onto the captains row before
+     the host had charged anybody. A purse is drawn by render() now and only by render(), from the
+     state the engine put on the event — this file no longer moves a number on a row at all.) */
   battleSnapshot, renderBattleFromSnap,
   collectSideBets, settleSideBets, netIntroBarrier, showAhoyIntro, showTurnOrderIntro,
   pickCell, localAsk, pilotGate, armStormGate, pilotOpeningFork, takeTurn, runStormLive, renderPickPrompt, renderAskPrompt, clearSailWindow, draftDispatch, wireRestoreFail,
@@ -474,6 +477,38 @@ export function applyBattleSnap(snap){
   renderBattleFromSnap(snap);
 }
 
+/* ⭐ A REMOTE CAPTAIN'S LOOK IS PAID FOR AT THE TAP — architecture item 17, 2026-09-18.
+   THE ONE PLACE A RE-WATCH'S COINS EVER LEAVE A PURSE is the engine's `rewatch` event, drawn by the one
+   event consumer through the one spending door (payOut). A captain baking on their own device has no
+   engine, so this is how their tap reaches one: `epoch` — the number of looks they have bought — is
+   already stamped on every bench moment they publish (playBakeoffLive bumps it and publishes the
+   restarted shuffle in the same breath), so the purchase is ALREADY on the wire and already arriving
+   here. This only has to notice it and charge for it, once, in the engine.
+   It used to be charged in a lump when the whole bake came home, which is why a watching captain saw
+   nothing for seventeen seconds and then a coin — the measurement is in watchPrompt's bake branch.
+   ONLY THE HOST, AND NEVER FOR A SCREEN THAT CHARGES ITSELF: a captain whose decision is local has
+   already paid at the tap (flow.js onRewatch), and a bot never buys a look, so its epoch never moves.
+   THE LEDGER IS PER BENCH, and it is closed two ways so neither has to be relied on alone: the verdict
+   ends a bake, and an epoch lower than what has been paid for is a new bench whatever came before it.
+   `bakeRewatch` is asked for the WHOLE gap, so a bench moment that never arrives (one publish swallowed,
+   or a second look bought before the first was heard) is caught by the next one rather than lost. */
+let _rewatchPaid={seat:null,n:0};
+function chargeRewatches(snap){
+  if(!appState.isHost||appState.replaying||!snap)return;
+  const seat=snap.seat;
+  if(seat==null||decisionIsLocal(seat))return;
+  // the verdict is the last moment of a bake, so the ledger closes with it — the captain's NEXT bench
+  // starts its epoch at 0 again and must be able to buy from a clean slate
+  if(snap.phase==="reveal"){ if(_rewatchPaid.seat===seat)_rewatchPaid={seat:null,n:0}; return; }
+  const epoch=snap.epoch||0;
+  if(_rewatchPaid.seat!==seat||epoch<_rewatchPaid.n)_rewatchPaid={seat,n:0};   // a fresh bench for this captain
+  const want=epoch-_rewatchPaid.n;
+  if(want<=0)return;
+  const player=((appState.game&&appState.game.players)||[])[seat];
+  if(!player)return;
+  _rewatchPaid={seat,n:epoch};        // what they ASKED for; the engine alone says what their purse could stand
+  if(appState.game.bakeRewatch(player,want)>0)liveRender();   // the drain that draws the event, exactly as the local tap's does
+}
 export function watchBattle(){
   netWatchBattle(appState.db,appState.room,s=>{
     const v=s.val();
@@ -481,7 +516,7 @@ export function watchBattle(){
        so renderBattleFromSnap bails on it anyway — and this door is the bench's, not the fight's.
        (It used to matter far more: reaching that line at all set spectatingBattle, which silenced
        narration for the rest of the voyage. That flag is gone — architecture item 8.) */
-    if(v&&v.bake){applyBenchSnap(v.bake);return;}
+    if(v&&v.bake){chargeRewatches(v.bake);applyBenchSnap(v.bake);return;}
     if(!v)applyBenchSnap(null);                 // the node cleared: any watcher session ends
     /* THE BATTLE PATH STAYS GUEST-ONLY, AND THAT IS A DECLARED GAP, NOT AN OVERSIGHT.
        watchBattle is now attached by EVERY client (see beginGame) because a bench is published by
@@ -1023,21 +1058,24 @@ async function bakeTurnLive(player){
   let dec;
   if(human)dec=await bakeoffPrompt(player,setup,fallback);
   else{ if(perform)await botBakePerform(player,setup,fallback); dec={g:fallback,w:0}; }
-  /* WHERE A RE-WATCH IS ACTUALLY PAID FOR — three cases, one debit site, and the engine is the
-     only thing that ever moves a coin.
-       LOCAL, LIVE      already charged, one click at a time, by flow.js's onRewatch — so the purse
-                        on screen falls as you spend.
-       REPLAY           the prompt early-returns without ever running the UI, so nothing has been
-                        charged and the whole count settles here in one go.
-       REMOTE, LIVE     (04-01 Task 2, MP-06) the buyer has no engine to debit. Their own screen
-                        dropped the number optimistically the moment they bought; the COUNT rode
-                        home in the single reply, and this is where it becomes real. Same site,
-                        same call, same one-entry decision log — the host stays authoritative and
-                        the settled purse is what the end-of-voyage ranking reads.
-     bakeRewatch DRAWS NO RANDOM NUMBERS (see its note in the engine), so adding the remote case
-     cannot fork the seeded stream; it emits a `rewatch` event, exactly as the other two do, which
-     is also what reconciles the buyer's optimistic figure back to the settled one. */
-  if(dec.w&&(appState.replaying||!decisionIsLocal(player.idx)))g.bakeRewatch(player,dec.w);
+  /* WHERE A RE-WATCH IS PAID FOR — every look, live, at the tap that bought it, and THE PURSE ON EVERY
+     SCREEN FALLS THERE (architecture item 17, 2026-09-18).
+       LOCAL, LIVE      flow.js's onRewatch, one tap at a time.
+       REMOTE, LIVE     chargeRewatches, off the bench moment that tap publishes — one tap at a time,
+                        on this host's engine, so the `rewatch` event is drawn while the shuffle is
+                        replaying rather than a quarter of a minute later.
+       REPLAY           and this line, which is the ONLY case left here: the prompt early-returns
+                        without ever running the UI, so nothing has been charged and the whole count
+                        settles in one go from the log's own record of it.
+     `dec.w` IS STILL LOGGED FOR EVERY BAKE, live or not — that is what this line reads back on a
+     resume, and a log that recorded the guess but not the looks would rebuild a captain with the
+     wrong purse.
+     THE REMOTE CASE USED TO BE HERE TOO, charging the lot when the bake came home: `dec.w &&
+     (appState.replaying || !decisionIsLocal(player.idx))`. Leaving it beside the per-tap charge would
+     charge a remote captain twice, which is exactly what "make the count ONE" means here.
+     bakeRewatch DRAWS NO RANDOM NUMBERS (see its note in the engine), so no case of it can fork the
+     seeded stream. */
+  if(dec.w&&appState.replaying)g.bakeRewatch(player,dec.w);
   const out=g.bakeResolve(player,dec.g);
   // A-2: the verdict reveals for EVERY performed bake, not only a human's — the crates a bot's
   // watchers just studied come off the same way, through the same one publish.
@@ -2114,24 +2152,32 @@ export function watchPrompt(){
          watchBattle uses for spectatingBattle: read before you assign. */
       if(_liveBakePromptId===prompt.id)return;
       _liveBakePromptId=prompt.id;
-      /* MP-06, THE REMOTE PURSE. The engine is the only thing that moves a real coin and it lives
-         on the host, so what happens here is DISPLAY: the buyer's own purse drops the moment they
-         buy, the count rides home in the single reply, and the host charges it authoritatively
-         through Game.bakeRewatch — after which the ordinary `rewatch` event reconciles this screen
-         with the settled number.
-         THE ALTERNATIVE, RECORDED RATHER THAN TAKEN (D-56): a live spend channel would show the
-         true number instantly, at the price of a round-trip in the middle of a prompt and a second
-         way for a purse to be wrong. If the optimistic figure is ever seen to disagree with the
-         settled one, report the number — do not paper over it. */
-      const cost=prompt.cost||1;
-      let purse=(prompt.coins==null?0:prompt.coins);
-      const spend=(n)=>{
-        const want=cost*(n||0);
-        if(want<=0||purse<want)return false;
-        purse-=want;showSeatCoins(prompt.seat,purse);
-        return true;
-      };
-      spend.canAfford=()=>purse>=cost;
+      /* ⭐ MP-06, THE REMOTE PURSE — REBUILT BY ARCHITECTURE ITEM 17, 2026-09-18, and here is what it
+         used to do and what it cost. This branch kept a till of its own: it carried the price over the
+         wire (`prompt.cost||1`), ran its own purse down (`purse-=want`) and wrote the lower number
+         straight onto the captains row (`showSeatCoins`) — while the host charged nothing until the
+         whole bake was over. MEASURED, one crew room, two phones, one paid look each:
+             HOST bakes   — host's screen: purse 3→2 with a coin of theirs in flight within 45ms of
+                            the tap (19 samples); guest's screen: the same drop, the same coin, at 86ms.
+             GUEST bakes  — guest's own screen: purse 5→4 SILENTLY at the tap, no coin ever drawn
+                            leaving; host's screen: still 5 for 17.4 SECONDS (435 samples, nothing in
+                            flight), then 5→4 with the coin at 17.5s, when the bake ended. And the coin
+                            that finally flew on the buyer's own screen came out of a number that had
+                            already moved, so it left nothing behind it.
+         One purchase, two pictures, seventeen seconds apart. The `spend` closure was the second place
+         a purse dropped for a re-watch, and `prompt.cost||1` the second place a look had a price.
+         NOW: this screen decides nothing about money. The tap publishes the bench's new epoch (the
+         count of looks bought, which playBakeoffLive already stamps on every publish), the HOST reads
+         it off that publish and charges Game.bakeRewatch there, once per look — and the `rewatch`
+         event draws the coins leaving on every screen through the one spending door, the buyer's own
+         included. The round trip D-56 was cited to decline is the one the bench was already making.
+         WHAT IS LEFT HERE IS A QUESTION, NOT A TILL: may this captain buy another look? It is asked of
+         the ONE place that decides it (Game.canRewatch) about the purse this screen is already drawing
+         — a guest's players[] is the authority's own numbers, mirrored by consumeEvent off every
+         event's `state`, so the button greys itself the moment the charge lands. */
+      const baker=()=>((appState.game&&appState.game.players)||[])[prompt.seat];
+      const mayWatch=(n)=>(n||0)>0&&appState.game.canRewatch(baker());
+      mayWatch.canAfford=()=>appState.game.canRewatch(baker());
       /* THE SPEC IS THE OBJECT THAT CAME OVER THE WIRE, held once and handed both to the
          choreography and to the publisher — so a remote captain's bench and the bench every other
          captain watches are built from literally the same fields. */
@@ -2141,7 +2187,7 @@ export function watchPrompt(){
       // local screen would have titled the card "{Captain}'s Bake-Off" while a remote captain's
       // still read "The Bake-Off". A title is not load-bearing; the divergence would have been.
       const wireSpec={order:prompt.order||[],before:prompt.before||[],swaps:prompt.swaps||[],
-                      locked:prompt.locked||[],attempts:prompt.attempts||0,cost,baker:prompt.baker,
+                      locked:prompt.locked||[],attempts:prompt.attempts||0,baker:prompt.baker,
                       /* the same field the local branch reads — the parity gate above exists to
                          catch precisely this kind of one-sided omission, and `baker` was the last
                          one it caught. */
@@ -2160,7 +2206,7 @@ export function watchPrompt(){
          CANCELLING IS NOT OPTIONAL — see the writer's own note. It is cancelled on the answer path
          AND on the error path below, which are the only two ways out of this branch. */
       netForfeitOnDisconnect(appState.db,appState.room,prompt.id);
-      playBakeoffLive(wireSpec,{onRewatch:spend,onBench:(patch)=>benchPublish(wireSpec,seat,patch)})
+      playBakeoffLive(wireSpec,{onRewatch:mayWatch,onBench:(patch)=>benchPublish(wireSpec,seat,patch)})
         // The SAME SHAPE playBakeoffLive resolves for a local captain — {guess,rewatches} — so the
         // host's tail in bakeoffPrompt never has to know which tier answered. `null` (the bench
         // failed to render) travels as no `choice` at all, which remotePrompt already resolves to

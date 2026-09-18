@@ -3429,6 +3429,18 @@ class Game{
   }
   // Every captain at the ovens, in turn order. Bakes resolve together at the END of a day so that
   // arriving on the same day is a fair race rather than an accident of seat order (Wyatt's ruling).
+  /* ⭐ WHAT ANOTHER LOOK COSTS, AND WHETHER A PURSE CAN STAND ONE — THE ONE PLACE EITHER IS DECIDED
+     (architecture item 17, 2026-09-18). bakeRewatch charges through these two; the re-watch button
+     greys itself with them on the baker's own screen and on a remote captain's, so a purse that is
+     one coin short and a button that stays live can no longer be two different answers.
+     They used to be three: bakeRewatch's own `p.coins<cost`, flow.js's `player.coins>=BAKE_REWATCH_COST`,
+     and a third in orchestrator.js's guest branch that carried its own price (`prompt.cost||1`) and
+     its own running purse. Any change to what a look costs would have moved one of them.
+     `p` is taken so a price that ever stops being one flat coin — a captain's second look costing
+     more, say — has somewhere to be derived. THERE IS NO SECOND KNOB: if the price moves, it moves
+     here, and every screen follows. */
+  rewatchCost(p){ return BAKE_REWATCH_COST; }
+  canRewatch(p){ return !!p&&p.coins>=this.rewatchCost(p); }
   /* PAY FOR ANOTHER LOOK. Buys `n` replays of the shuffle at BAKE_REWATCH_COST each, and returns
      how many were actually AFFORDED — which is not always how many were asked for, so the caller
      must not assume. Coins are the only thing this minigame spends, and the only reason a rewatch
@@ -3439,15 +3451,24 @@ class Game{
      engine already applied. Emits an event so the spend shows up in the captain's log rather than
      coins quietly draining, and so a scrubbed replay can account for them.
 
-     Called with the whole count at once on replay, and one at a time live — see bakeTurnLive. */
+     Called with the whole count at once on replay, one at a time live from the captain's own tap
+     (flow.js onRewatch), and one at a time from a remote captain's bench moment (orchestrator.js
+     chargeRewatches) — three callers, this one charge. */
   bakeRewatch(p,n){
-    const cost=BAKE_REWATCH_COST;
-    let bought=0;
+    let bought=0,paid=0;
     for(let i=0;i<(n||0);i++){
-      if(p.coins<cost)break;
-      p.coins-=cost;bought++;
+      if(!this.canRewatch(p))break;
+      const cost=this.rewatchCost(p);
+      p.coins-=cost;paid+=cost;bought++;
     }
-    if(bought)this.ev({t:"rewatch",p:p.idx,n:bought,paid:bought*cost});
+    /* `looks`, NOT `n` — measured 2026-09-18, architecture item 17. The broadcast stamps its own
+       serial onto the wire copy of every event (`wire.n=appState.evPushed`, pushEvents, Q-18), so a
+       rewatch line that called its count `n` arrived on every screen but the host's saying how far
+       the feed had reached: a guest read `n:20` and `n:28` for two looks of one coin each. `paid` was
+       untouched, which is why nothing on screen was wrong — but the line was, everywhere the host was
+       not, and the next reader of it would have believed it. No other engine event carries a top-level
+       `n`; the collision was this one's alone. */
+    if(bought)this.ev({t:"rewatch",p:p.idx,looks:bought,paid});
     return bought;
   }
   bakersToday(order){ return order.filter(i=>this.players[i].baking&&!this.players[i].done); }

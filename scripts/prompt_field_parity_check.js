@@ -374,14 +374,17 @@ const BAKE_MIN_FIELDS = 4;
 const BAKEOFF_REL = "src/ui/bakeoff.js";   // where the ONE choreography lives
 const BAKE_GUEST_ONLY_OK = {
   id:     "stamped by remotePrompt() (orchestrator.js), not by bakeoffPrompt() — the round-trip's own identifier",
-  seat:   "stamped by remotePrompt() alongside id; the bake branch also uses it to name whose purse to redraw (MP-06)",
+  seat:   "stamped by remotePrompt() alongside id; the bake branch also uses it to name whose bench it publishes, and whose purse the one re-watch rule is asked about (architecture item 17)",
   kind:   "the discriminant itself — read to choose this branch, never a field the renderer draws",
 };
 // Sent for the HOST's own bookkeeping and deliberately not read back off the wire by the sender's
 // own branch. Each needs a reason, exactly like the ask channel's allow-list.
-const BAKE_HOST_ONLY_OK = {
-  coins:  "READ on the guest as p.coins for the optimistic purse (MP-06). Listed here only because a future host-side field would need a reason, not an omission.",
-};
+/* EMPTY, AND THAT IS THE POINT — architecture item 17, 2026-09-18. Its one entry was `coins`, the
+   baker's purse, sent so the guest branch could run an optimistic till of its own (`cost` rode beside
+   it on the payload for the same reason). Both are off the wire: a re-watch's price and whether a purse
+   can stand one are decided in ONE place (Game.rewatchCost / Game.canRewatch), asked about the purse
+   every screen is already drawing. A new host-only field still needs a reason here, not an omission. */
+const BAKE_HOST_ONLY_OK = {};
 export function checkBakeFieldParity(root) {
   const res = mk('assertion 4 — bake wire-field parity (bakeoffPrompt\'s kind:"bake" payload vs watchPrompt\'s bake branch)');
   const flowRaw = read(root, FLOW_REL);

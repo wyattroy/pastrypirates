@@ -51,7 +51,7 @@ import {
   // only dockFlavor consumer, and it now needs the icon placed by the declared {prefix,name} split
   // rather than interpolated in front of the whole flavour phrase.
   DIRS, DIRNAME, STORM_PUSH, WAVE_IMG, SAIL_RANGE, SAIL_RANGE_UPWIND, OPPOSITE, man, HEXCOL, iname, ilabelImg, iconImg, NAMES, dockPlace, dockFlavorIcon, ING_IMG,
-  CUPCAKE_IMG, CHECKMARK_IMG, CANCEL_X_IMG, DICE_IMG, FLIP_HEADS_IMG, FLIP_TAILS_IMG, COIN_SPIN_IMG, ovensNowEnabled, bake2Enabled, endCardEnabled, BAKE_REWATCH_COST,
+  CUPCAKE_IMG, CHECKMARK_IMG, CANCEL_X_IMG, DICE_IMG, FLIP_HEADS_IMG, FLIP_TAILS_IMG, COIN_SPIN_IMG, ovensNowEnabled, bake2Enabled, endCardEnabled,
   buildRoster, emojify,
 } from "../shared/index.js";
 import { el, boardCell, setFlipActive, armFlipTap, renderLiveShips, paintShipAt, setShipGlideMs, paintShipAtPoint, snapShipTo, render as renderBoard } from "./board.js";
@@ -975,7 +975,12 @@ export async function bakeoffPrompt(player,setup,fallback){
     swaps:(setup.swaps||[]).map(sw=>[sw[0],sw[1]]),
     locked:player.bake.locked.slice(),
     attempts:player.bake.attempts,
-    cost:BAKE_REWATCH_COST,
+    /* (`cost:BAKE_REWATCH_COST` and `coins:player.coins` STOOD HERE — architecture item 17, 2026-09-18.
+       Two facts sent over the wire so a remote captain's browser could run its own little till: the price
+       of a look, and the purse to take it out of. Both are now asked of the ONE place that decides them
+       (Game.rewatchCost / Game.canRewatch) on whichever screen is asking, and a purse is the one every
+       screen is already drawing — so there is nothing left on the wire to disagree with it. The button's
+       own label asks the same constant; see playBakeoffLive.) */
     /* T-25 (Wyatt, 2026-08-26): "the bakeoff title shouldn't say The Bake-off, it should say
        {Captain's name}'s bake-off, or {Your captain's name}, Yer Bake-Off."
        IT RIDES IN THE SPEC rather than being looked up on each screen, for the reason the whole
@@ -987,18 +992,17 @@ export async function bakeoffPrompt(player,setup,fallback){
        waiting to disagree. The bot's spec (orchestrator botBakePerform) has carried this since it
        was asked for; the HUMAN's — this one — did not, which is why the line was blank on the one
        screen he was looking at. */
-    recipe:(player.recipe||[]).slice(),
-    coins:player.coins};
+    recipe:(player.recipe||[]).slice()};
   // Spending a coin goes through the ENGINE, live, one at a time — so the purse on screen drops the
-  // moment the player buys a look rather than after the whole prompt resolves. `canAfford` lets the
-  // button grey out without the UI having to know the price.
+  // moment the player buys a look rather than after the whole prompt resolves. `canAfford` asks the
+  // engine's own rule (Game.canRewatch) rather than re-typing the comparison, so the button and the
+  // till can never give different answers about the same purse.
   //
-  // MP-06, THE REMOTE HALF, and it is deliberately asymmetric in ONE place only: a guest has no
-  // engine to debit, so its own copy of this pair (orchestrator.js's bake branch) decrements the
-  // purse ON SCREEN and reports the COUNT back in the single reply, which the host then charges
-  // authoritatively. The engine stays the only thing that moves a real coin.
+  // A REMOTE CAPTAIN REACHES THIS SAME ENGINE — architecture item 17. Their tap publishes the bench's
+  // new epoch, the host charges it there and the `rewatch` event draws the coins leaving on EVERY
+  // screen, exactly as this call does here. There is no guest-side till any more.
   const onRewatch=(n)=>appState.game.bakeRewatch(player,n)>0&&(liveRender(),true);
-  onRewatch.canAfford=()=>player.coins>=BAKE_REWATCH_COST;
+  onRewatch.canAfford=()=>appState.game.canRewatch(player);
   /* THE BENCH IS PUBLISHED BY WHOEVER IS BAKING (04-01 Task 3, MP-05). Only the captain with their
      hand on the crates knows when Ready was pressed or which crate was just named, so the same
      `io.onBench` hook exists on both tiers and the guest's copy (orchestrator.js's bake branch)

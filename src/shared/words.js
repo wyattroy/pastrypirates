@@ -431,7 +431,11 @@ export const WORDS = {
   "bake.titleMine": "{who}, Yer Bake-Off",
   "bake.watching": "{p} {p:is|are} at the ovens — watch the crates.",
   "bake.attempt": "attempt {n}",
-  "bake.watchAgain": "Watch again {icon}1",
+  // {n} is what a look costs, not a typed 1 — architecture item 17: the price is decided in one place
+  // (BAKE_REWATCH_COST, which the engine charges and the rules page prints), and this button says that
+  // very number. It read "Watch again {icon}1" until 2026-09-18, which would have gone on saying 1 the
+  // day the price moved.
+  "bake.watchAgain": "Watch again {icon}{n}",
   /* his words, 2026-08-08 and 2026-08-25 */
   "bake.introLead": "{icon} The ovens be roarin'! Yer ingredients be waitin'. Ye must bake yer recipe by addin' them in the <b>correct order</b>.",
   "bake.recipeName": "{name} Recipe",
