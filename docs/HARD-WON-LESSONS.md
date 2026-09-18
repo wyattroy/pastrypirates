@@ -421,7 +421,7 @@ const spender = (e.t==="refire"||e.t==="powder") ? e.a : e.p;
 if (spent>0 && spender!=null) payOut(spender, spent);      // one door
 ```
 
-Every word of that was true. **It was also worthless, because a dock event had two producers:**
+Every word of that was true. **It was also worthless, because a dock event has two producers:**
 
 | | |
 |---|---|
@@ -446,19 +446,11 @@ Measured on a phone, his own seat, same gesture, the two builds differing only i
 change the place that reads it.** `grep -n 't:"<name>"' src/` costs two seconds. "There is one
 consumer" is a fact about the consumer and says nothing about how many things speak into it.
 
-The splint was rule 11 of `scripts/qa/coin_arrival_one_event_check.mjs`, holding the two emitters to
-the same field set and failing in **both** directions. The existing rule 10 stayed green throughout,
-because it reads the consumer and the consumer was right — the divergence was upstream of everything
-that was looking. **That is the argument for convergence over gates:** a splint holds two things in
-step, and the repair is having one of them.
-
-**The repair landed 2026-09-18 (architecture item 49).** The human berth no longer writes a dock
-event: it hands `Game.dockDone` what the captain decided — the flip, the price the crate was offered
-at, and the purchase, barter or refusal — and the engine's own line says it, for a bot and a person
-alike. There is one emit site and nothing left to drift from, so rule 11 is now the COUNT (one
-producer, and it says what was paid) and `scripts/qa/dock_event_one_producer_check.mjs` holds the
-whole fact: the real human berth compiled out of `flow.js` and the engine's own berth, posed on the
-same board, event against event.
+The gate that guards it is rule 11 of `scripts/qa/coin_arrival_one_event_check.mjs`: every emitter
+of a dock event must carry the same field set, failing in **both** directions. The existing rule 10
+stayed green throughout, because it reads the consumer and the consumer was right — the divergence
+was upstream of everything that was looking. **That is the argument for convergence over gates:** a
+splint holds two things in step, and the repair is having one of them (backlog item 49).
 
 ### A PROBE THAT PRINTS ONLY WHAT IT SET OUT TO MEASURE CAN ONLY CONFIRM
 
