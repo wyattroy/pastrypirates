@@ -53,15 +53,55 @@
  *     F. a button painted over the question's words    -> no-cover-ask still FAILS               (the bar)
  *     G. the measured real case: the words painted over a still-tappable sail square -> PASSES   (his rule)
  */
+import fsSync from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { serve, launch, attach, killAll, sleep } from "../mp_rig.mjs";
+import { killProfile } from "../lib/stray_probes.mjs";
 import { MEASURE, structuralChecks } from "../lib/checks.mjs";
 
 const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "..");
 const PORT = 8960 + (process.pid % 40), DBG = 9960 + (process.pid % 40);
+/* ⭐ THIS GATE'S OWN PROFILE, AND THE ONE PLACE ITS NAME IS WRITTEN. It used to be spelled inline in
+   the launch() call and nowhere else, so nothing at the end of the run could name the folder to
+   remove — see dropOwnProfile below. */
+const PROFILE = path.join(REPO, `.tmp-pe-${process.pid}`);
 const url = serve(PORT);
-launch(DBG, path.join(REPO, `.tmp-pe-${process.pid}`));
+launch(DBG, PROFILE);
+
+/* ⭐ AND THE FOLDER GOES WITH THE BROWSER — 2026-09-18.
+ *
+ * MEASURED, not suspected: 64 `.tmp-pe-<pid>` Chrome profiles were standing in the repo root, all
+ * but one of them less than a day old. `launch()` wipes its profile on the way IN and `killAll()`
+ * only ever ends PROCESSES, so this gate — which is in `npm test` — dropped another ~36 MB folder
+ * every single suite run. They are gitignored, so `git status` never showed them and nobody saw.
+ *
+ * stray_probes' 24-hour sweep is the backstop and it works (it found the one old folder); it simply
+ * cannot keep up with a leak that fires several times an hour. A leak is fixed where it is made.
+ *
+ * KILL FIRST, THEN UNLINK — the order the launchers use. `killProfile` is the only scoped way to be
+ * sure nothing still holds this directory (a profile path is an identity; a debug port is not), and
+ * on Windows a file another process has open cannot be unlinked at all, which is why the removal
+ * retries briefly instead of trying once and giving up. IT NEVER THROWS: a gate that went red
+ * because a tidy-up failed would be reporting on the wrong thing entirely.
+ *
+ * AND IT SAYS WHAT IT DID, on every run, including the boring one — a sweep nobody hears about is a
+ * leak nobody fixes (stray_probes.mjs's own rule, 2026-09-15). */
+async function dropOwnProfile() {
+  try {
+    killProfile(PROFILE);
+    for (let i = 0; i < 10; i++) {
+      if (!fsSync.existsSync(PROFILE)) break;
+      try { fsSync.rmSync(PROFILE, { recursive: true, force: true }); } catch {}
+      if (!fsSync.existsSync(PROFILE)) break;
+      await sleep(100);
+    }
+    console.log(fsSync.existsSync(PROFILE)
+      ? `  [tidy] COULD NOT remove ${path.basename(PROFILE)} — something still holds it; the 24h sweep will take it`
+      : `  [tidy] removed this run's profile folder ${path.basename(PROFILE)}`);
+  } catch (e) { console.log("  [tidy] profile cleanup failed: " + e.message); }
+}
+
 const C = await attach(DBG);
 let bad = 0;
 const pass = m => console.log("  PASS  " + m);
@@ -230,4 +270,9 @@ try {
 } catch (e) {
   console.log("PROBE FAILED:", e.message);
   process.exitCode = 1;
-} finally { killAll(); }
+} finally {
+  /* AWAITED now, where it used to be fired and forgotten: the browser has to be gone before its
+     folder can be unlinked on Windows. killProcs() inside it is synchronous either way. */
+  await killAll();
+  await dropOwnProfile();
+}
