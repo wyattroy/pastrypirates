@@ -1,0 +1,207 @@
+  room PQUS
+  sailing, up to 420s…
+  settling 16500ms so every event's whole horizon has been watched…
+  raw capture kept: C:\Users\wyatt\AppData\Local\Temp\claude\C--Users-wyatt-Projects-pastrypirates\3fe59910-ffbf-4bb7-aa62-52e9b3063eba\scratchpad\shots-dev\twin-ledger-raw.json (142 KB — every observation this report argues from)
+
+THE TWIN LEDGER — one crew room, two screens, joined on the wire's own serial `n`.
+WHAT IT WATCHED: the PLAYED VOYAGE only. The lobby, the recipe picker, the victory card and the menus have no event kind and are not in this table.
+COVERAGE: this run exercised 18 of the 39 event kinds the engine can emit. Never reached: bake, bakeTurn, battle, battleflee, battlenull, blocked, blownOut, collab, disengage, end, engage, finish, halted, ovens, powder, refire, rewatch, shotLands, sidebet, testhold, unfinish.
+FILTERS, INCLUDING THE ZEROES:
+  horizon 15000ms — a channel later than this is not claimed as that event's reaction. It is applied to BOTH screens, so its error can only turn a very late reaction into a MISSING one; it cannot invent a difference.
+  events whose whole horizon was not watched (the tail of the run): 6 on the host, 6 on the guest — excluded from every finding. That exclusion can only HIDE a finding, never create one.
+  events seen on one screen only: 0 host-only, 0 guest-only — not compared.
+  not a game fact, so not compared (14): ocean-loop [declared in AMBIENCE_FILES / MUSIC_FILE (src/ui/audio.js)]; gull-1 [declared in AMBIENCE_FILES / MUSIC_FILE (src/ui/audio.js)]; gull-2 [declared in AMBIENCE_FILES / MUSIC_FILE (src/ui/audio.js)]; gull-3 [declared in AMBIENCE_FILES / MUSIC_FILE (src/ui/audio.js)]; gull-4 [declared in AMBIENCE_FILES / MUSIC_FILE (src/ui/audio.js)]; gull-5 [declared in AMBIENCE_FILES / MUSIC_FILE (src/ui/audio.js)]; creak-1 [declared in AMBIENCE_FILES / MUSIC_FILE (src/ui/audio.js)]; creak-2 [declared in AMBIENCE_FILES / MUSIC_FILE (src/ui/audio.js)]; creak-3 [declared in AMBIENCE_FILES / MUSIC_FILE (src/ui/audio.js)]; creak-4 [declared in AMBIENCE_FILES / MUSIC_FILE (src/ui/audio.js)]; creak-5 [declared in AMBIENCE_FILES / MUSIC_FILE (src/ui/audio.js)]; creak-6 [declared in AMBIENCE_FILES / MUSIC_FILE (src/ui/audio.js)]; music-ocean [declared in AMBIENCE_FILES / MUSIC_FILE (src/ui/audio.js)]; bells [played only on the screen it belongs to — LOCAL_ONLY_SOUND_EVENTS (src/ui/audio.js), his T-073 ruling]. This can only make the report QUIETER, never louder.
+  differences that did not reproduce (under 2 times or 20% of that kind, and not one of the five coin channels): 41 — counted, not listed.
+  a reaction counts as present if this event or anything that arrived within 600ms of it drew it — two events milliseconds apart otherwise flip who owns what lands between them. This too can only make the report QUIETER.
+  paired and fully watched: 212 events over 453s.
+
+THE TABLE — every time in ms from the moment that event arrived ON THAT SCREEN; medians.
+
+  screen  kind               words   flies   lands  number   chink   turns     evs  rows     own flies own number  own chink
+                            ← reached (first after the event arrived, whatever else began meanwhile)      ← owned (median, and how many of the rows own one)
+  host  anchorHold            1567       -       -       -   10302       1       6     1           -/0        -/0        -/0
+  guest  anchorHold           1568       -       -       -   10335       1       6     1           -/0        -/0        -/0
+  host  coinflip              2866    1616    2265    1624    2266       0       0    13           -/0        -/0        -/0
+  guest  coinflip             2866    1600    2249    1616    2250       0       0    13           -/0        -/0        -/0
+  host  dock                  2854    1615    2264    1616    2265       0       0    13       1615/11    1616/12    2265/11
+  guest  dock                 2866    1599    2249    1600    2250       0       0    13       1599/11    1600/12    2250/11
+  host  newround                 0    5122    5766    5433    5500       1       4    12           -/0      920/3      919/3
+  guest  newround                0    5133    5801    5417    5469       1       4    12           -/0      919/3      917/3
+  host  openoffer                0       -       -    6670    6684       1       2    18           -/0        -/0        -/0
+  guest  openoffer             733       -       -    6653    6684       1       2    18           -/0        -/0        -/0
+  host  parley                   0   10150   10816   10150   10817       1       6     4           -/0        -/0        -/0
+  guest  parley                  0   10132   10781   10132   10783       1       6     4           -/0        -/0        -/0
+  host  pass                     0    1017    1684    1685    1685       0       0    14       1017/14    1685/14    1685/14
+  guest  pass                    0    1034    1684    1685    1685       0       0    14       1034/14    1685/14    1685/14
+  host  purse                 2854    1615    2261    1615    2262       0       0    13           0/2      653/2      651/2
+  guest  purse                2866    1599    2249    1600    2249       0       0    13         299/2      967/2      967/2
+  host  recipeSet                6   11645   12312   12313    6145       1       4     4           -/0        -/0        -/0
+  guest  recipeSet             599   11648   12300   12301    6133       1       4     4           -/0        -/0        -/0
+  host  rimhead                  0       -       -       -       -       0       0     3           -/0        -/0        -/0
+  guest  rimhead                 0       -       -       -       -       0       0     3           -/0        -/0        -/0
+  host  sail                   928    2270    2915    2665    3199       0       2    41           -/0        -/0        -/0
+  guest  sail                 1151    2267    2934    2650    3184       0       2    41           -/0        -/0        -/0
+  host  storm                 2268   10368   11001   11002   11002       1       8     1           -/0        -/0        -/0
+  guest  storm                2268   10383   11034   11035   11035       1      10     1           -/0        -/0        -/0
+  host  stormSummary             0    8100    8734    8735    8735       1       4     1           -/0        -/0        -/0
+  guest  stormSummary            0    8115    8766    8767    8767       1       4     1           -/0        -/0        -/0
+  host  trade                    0    9183    9849    5291    5283       1       4    14           -/0        -/0        -/0
+  guest  trade                  16    4884    5517     934     934       1       3    14           -/0        -/0        -/0
+  host  tradewind             2250    3300    3949    3951    3951       0       1     5           -/0        -/0        -/0
+  guest  tradewind            1669    3317    3966    3968    3968       0       1     5           -/0        -/0        -/0
+  host  turn                  1650    2734    3382    3283    3384       0       3    45           -/0      941/2      932/4
+  guest  turn                 2968    2733    3366    3252    3384       0       3    45           -/0      902/2      917/4
+  host  turnOrder             1965    7546    8211    8213    8212       1       8     1           -/0        -/0        -/0
+  guest  turnOrder            1913    7561    8211    8212    8212       1       8     1           -/0        -/0        -/0
+  host  windmove              1567   10368   11001   11002   10302       1       6     3           -/0        -/0        -/0
+  guest  windmove             1568   10366   11017   11018   10335       1       6     3           -/0        -/0        -/0
+
+RANKED FINDINGS — order and content, never rate.
+  1. [rule 1: A MISSING REACTION] trade · anim:crate-land — 14 of 14
+       an animation (crate-land) on the guest and not on the host
+       events n=55, 59, 71, 75, 86, 91, 106, 110 …
+       n=55 host : reach words=0 flies=null lands=null number=5234 chink=5234 turns=1 evs=1 | own flies=null number=null chink=null sounds=[creak-1,creak-2,gull-4,store-ingredient] anims=[]
+       n=55 guest: reach words=1199 flies=null lands=null number=917 chink=917 turns=0 evs=0 | own flies=null number=null chink=null sounds=[] anims=[]
+       n=59 host : reach words=0 flies=9216 lands=9866 number=5252 chink=5250 turns=1 evs=4 | own flies=null number=null chink=null sounds=[store-ingredient] anims=[]
+       n=59 guest: reach words=0 flies=4884 lands=5517 number=919 chink=917 turns=1 evs=3 | own flies=null number=null chink=null sounds=[] anims=[]
+  2. [rule 1: A MISSING REACTION] trade · anim:trade-swap — 14 of 14
+       an animation (trade-swap) on the guest and not on the host
+       events n=55, 59, 71, 75, 86, 91, 106, 110 …
+       n=55 host : reach words=0 flies=null lands=null number=5234 chink=5234 turns=1 evs=1 | own flies=null number=null chink=null sounds=[creak-1,creak-2,gull-4,store-ingredient] anims=[]
+       n=55 guest: reach words=1199 flies=null lands=null number=917 chink=917 turns=0 evs=0 | own flies=null number=null chink=null sounds=[] anims=[]
+       n=59 host : reach words=0 flies=9216 lands=9866 number=5252 chink=5250 turns=1 evs=4 | own flies=null number=null chink=null sounds=[store-ingredient] anims=[]
+       n=59 guest: reach words=0 flies=4884 lands=5517 number=919 chink=917 turns=1 evs=3 | own flies=null number=null chink=null sounds=[] anims=[]
+  3. [rule 1: A MISSING REACTION] trade · anim:bob-settle — 12 of 14
+       an animation (bob-settle) on the guest and not on the host
+       events n=55, 59, 71, 75, 86, 91, 106, 110 …
+       n=55 host : reach words=0 flies=null lands=null number=5234 chink=5234 turns=1 evs=1 | own flies=null number=null chink=null sounds=[creak-1,creak-2,gull-4,store-ingredient] anims=[]
+       n=55 guest: reach words=1199 flies=null lands=null number=917 chink=917 turns=0 evs=0 | own flies=null number=null chink=null sounds=[] anims=[]
+       n=59 host : reach words=0 flies=9216 lands=9866 number=5252 chink=5250 turns=1 evs=4 | own flies=null number=null chink=null sounds=[store-ingredient] anims=[]
+       n=59 guest: reach words=0 flies=4884 lands=5517 number=919 chink=917 turns=1 evs=3 | own flies=null number=null chink=null sounds=[] anims=[]
+  4. [rule 1: A MISSING REACTION] trade · chink — 7 of 14
+       chink fired on the guest (on a neighbour within 600ms) and never on the host, nor on anything that arrived within 600ms of it
+       events n=55, 59, 71, 75, 86, 91, 106
+       n=55 host : reach words=0 flies=null lands=null number=5234 chink=5234 turns=1 evs=1 | own flies=null number=null chink=null sounds=[creak-1,creak-2,gull-4,store-ingredient] anims=[]
+       n=55 guest: reach words=1199 flies=null lands=null number=917 chink=917 turns=0 evs=0 | own flies=null number=null chink=null sounds=[] anims=[]
+       n=59 host : reach words=0 flies=9216 lands=9866 number=5252 chink=5250 turns=1 evs=4 | own flies=null number=null chink=null sounds=[store-ingredient] anims=[]
+       n=59 guest: reach words=0 flies=4884 lands=5517 number=919 chink=917 turns=1 evs=3 | own flies=null number=null chink=null sounds=[] anims=[]
+  5. [rule 1: A MISSING REACTION] trade · snd:abacus-click — 7 of 14
+       a sound (abacus-click) on the guest and not on the host
+       events n=55, 59, 71, 75, 86, 91, 106
+       n=55 host : reach words=0 flies=null lands=null number=5234 chink=5234 turns=1 evs=1 | own flies=null number=null chink=null sounds=[creak-1,creak-2,gull-4,store-ingredient] anims=[]
+       n=55 guest: reach words=1199 flies=null lands=null number=917 chink=917 turns=0 evs=0 | own flies=null number=null chink=null sounds=[] anims=[]
+       n=59 host : reach words=0 flies=9216 lands=9866 number=5252 chink=5250 turns=1 evs=4 | own flies=null number=null chink=null sounds=[store-ingredient] anims=[]
+       n=59 guest: reach words=0 flies=4884 lands=5517 number=919 chink=917 turns=1 evs=3 | own flies=null number=null chink=null sounds=[] anims=[]
+  6. [rule 1: A MISSING REACTION] trade · snd:coin-chink — 7 of 14
+       a sound (coin-chink) on the guest and not on the host
+       events n=55, 59, 71, 75, 86, 91, 106
+       n=55 host : reach words=0 flies=null lands=null number=5234 chink=5234 turns=1 evs=1 | own flies=null number=null chink=null sounds=[creak-1,creak-2,gull-4,store-ingredient] anims=[]
+       n=55 guest: reach words=1199 flies=null lands=null number=917 chink=917 turns=0 evs=0 | own flies=null number=null chink=null sounds=[] anims=[]
+       n=59 host : reach words=0 flies=9216 lands=9866 number=5252 chink=5250 turns=1 evs=4 | own flies=null number=null chink=null sounds=[store-ingredient] anims=[]
+       n=59 guest: reach words=0 flies=4884 lands=5517 number=919 chink=917 turns=1 evs=3 | own flies=null number=null chink=null sounds=[] anims=[]
+  7. [rule 1: A MISSING REACTION] trade · anim:coins-across — 7 of 14
+       an animation (coins-across) on the guest and not on the host
+       events n=55, 59, 71, 75, 86, 91, 106
+       n=55 host : reach words=0 flies=null lands=null number=5234 chink=5234 turns=1 evs=1 | own flies=null number=null chink=null sounds=[creak-1,creak-2,gull-4,store-ingredient] anims=[]
+       n=55 guest: reach words=1199 flies=null lands=null number=917 chink=917 turns=0 evs=0 | own flies=null number=null chink=null sounds=[] anims=[]
+       n=59 host : reach words=0 flies=9216 lands=9866 number=5252 chink=5250 turns=1 evs=4 | own flies=null number=null chink=null sounds=[store-ingredient] anims=[]
+       n=59 guest: reach words=0 flies=4884 lands=5517 number=919 chink=917 turns=1 evs=3 | own flies=null number=null chink=null sounds=[] anims=[]
+  8. [rule 1: A MISSING REACTION] trade · anim:treasure-settle — 7 of 14
+       an animation (treasure-settle) on the guest and not on the host
+       events n=55, 59, 71, 75, 86, 91, 106
+       n=55 host : reach words=0 flies=null lands=null number=5234 chink=5234 turns=1 evs=1 | own flies=null number=null chink=null sounds=[creak-1,creak-2,gull-4,store-ingredient] anims=[]
+       n=55 guest: reach words=1199 flies=null lands=null number=917 chink=917 turns=0 evs=0 | own flies=null number=null chink=null sounds=[] anims=[]
+       n=59 host : reach words=0 flies=9216 lands=9866 number=5252 chink=5250 turns=1 evs=4 | own flies=null number=null chink=null sounds=[store-ingredient] anims=[]
+       n=59 guest: reach words=0 flies=4884 lands=5517 number=919 chink=917 turns=1 evs=3 | own flies=null number=null chink=null sounds=[] anims=[]
+  9. [rule 1: A MISSING REACTION] trade · anim:turn-bob — 7 of 14
+       an animation (turn-bob) on the guest and not on the host
+       events n=55, 71, 86, 106, 123, 160, 196
+       n=55 host : reach words=0 flies=null lands=null number=5234 chink=5234 turns=1 evs=1 | own flies=null number=null chink=null sounds=[creak-1,creak-2,gull-4,store-ingredient] anims=[]
+       n=55 guest: reach words=1199 flies=null lands=null number=917 chink=917 turns=0 evs=0 | own flies=null number=null chink=null sounds=[] anims=[]
+       n=71 host : reach words=0 flies=null lands=null number=5291 chink=5283 turns=1 evs=1 | own flies=null number=null chink=null sounds=[store-ingredient] anims=[]
+       n=71 guest: reach words=948 flies=14330 lands=14964 number=918 chink=916 turns=2 evs=8 | own flies=null number=null chink=null sounds=[] anims=[coins-across,trade-swap]
+  10. [rule 1: A MISSING REACTION] turn · words — 22 of 45
+       words fired on the host (701ms after the event arrived) and never on the guest, nor on anything that arrived within 600ms of it
+       events n=12, 15, 27, 31, 52, 56, 68, 72 …
+       n=12 host : reach words=701 flies=2585 lands=3250 number=3251 chink=3251 turns=0 evs=2 | own flies=null number=null chink=null sounds=[gull-1,ship-move] anims=[turn-bob]
+       n=12 guest: reach words=1652 flies=2584 lands=3234 number=3235 chink=3235 turns=0 evs=2 | own flies=null number=null chink=null sounds=[ship-move] anims=[turn-bob]
+       n=15 host : reach words=1186 flies=2249 lands=2916 number=2917 chink=2917 turns=0 evs=2 | own flies=null number=null chink=null sounds=[ship-move] anims=[bob-settle,turn-bob]
+       n=15 guest: reach words=0 flies=2266 lands=2917 number=2918 chink=2917 turns=0 evs=2 | own flies=null number=null chink=null sounds=[ship-move] anims=[bob-settle,turn-bob]
+  11. [rule 1: A MISSING REACTION] trade · snd:ship-move — 6 of 14
+       a sound (ship-move) on the guest and not on the host
+       events n=55, 86, 106, 123, 160, 196
+       n=55 host : reach words=0 flies=null lands=null number=5234 chink=5234 turns=1 evs=1 | own flies=null number=null chink=null sounds=[creak-1,creak-2,gull-4,store-ingredient] anims=[]
+       n=55 guest: reach words=1199 flies=null lands=null number=917 chink=917 turns=0 evs=0 | own flies=null number=null chink=null sounds=[] anims=[]
+       n=86 host : reach words=0 flies=null lands=null number=5291 chink=5284 turns=1 evs=1 | own flies=null number=null chink=null sounds=[store-ingredient] anims=[]
+       n=86 guest: reach words=950 flies=null lands=null number=918 chink=917 turns=1 evs=1 | own flies=null number=null chink=null sounds=[] anims=[coins-across,trade-swap]
+  12. [rule 1: A MISSING REACTION] sail · words — 17 of 41
+       words fired on the host (200ms after the event arrived) and never on the guest, nor on anything that arrived within 600ms of it
+       events n=28, 32, 53, 57, 69, 73, 84, 88 …
+       n=28 host : reach words=200 flies=null lands=null number=null chink=null turns=0 evs=0 | own flies=null number=null chink=null sounds=[] anims=[bob-settle,sail-arrive,sail-lean]
+       n=28 guest: reach words=2598 flies=null lands=null number=null chink=null turns=0 evs=0 | own flies=null number=null chink=null sounds=[] anims=[bob-settle,sail-arrive,sail-lean]
+       n=32 host : reach words=2617 flies=null lands=null number=null chink=null turns=0 evs=2 | own flies=null number=null chink=null sounds=[] anims=[bob-settle,sail-arrive,sail-lean]
+       n=32 guest: reach words=0 flies=null lands=null number=null chink=null turns=0 evs=0 | own flies=null number=null chink=null sounds=[ship-move] anims=[bob-settle,sail-arrive,sail-lean]
+  13. [rule 1: A MISSING REACTION] trade · number — 5 of 14
+       number fired on the guest (on a neighbour within 600ms) and never on the host, nor on anything that arrived within 600ms of it
+       events n=59, 71, 75, 86, 91
+       n=59 host : reach words=0 flies=9216 lands=9866 number=5252 chink=5250 turns=1 evs=4 | own flies=null number=null chink=null sounds=[store-ingredient] anims=[]
+       n=59 guest: reach words=0 flies=4884 lands=5517 number=919 chink=917 turns=1 evs=3 | own flies=null number=null chink=null sounds=[] anims=[]
+       n=71 host : reach words=0 flies=null lands=null number=5291 chink=5283 turns=1 evs=1 | own flies=null number=null chink=null sounds=[store-ingredient] anims=[]
+       n=71 guest: reach words=948 flies=14330 lands=14964 number=918 chink=916 turns=2 evs=8 | own flies=null number=null chink=null sounds=[] anims=[coins-across,trade-swap]
+  14. [rule 1: A MISSING REACTION] tradewind · words — 1 of 5
+       words fired on the guest (1151ms after the event arrived) and never on the host, nor on anything that arrived within 600ms of it
+       events n=89
+       n=89 host : reach words=3299 flies=null lands=null number=9984 chink=9983 turns=0 evs=3 | own flies=null number=null chink=null sounds=[] anims=[bob-settle,ride-streak,sail-arrive,sail-lean]
+       n=89 guest: reach words=1151 flies=null lands=null number=9986 chink=9984 turns=0 evs=3 | own flies=null number=null chink=null sounds=[creak-2,creak-4] anims=[bob-settle,ride-streak,sail-arrive,sail-lean]
+  15. [rule 1: A MISSING REACTION] purse · words — 2 of 13
+       words fired on the host (1253ms after the event arrived) and never on the guest, nor on anything that arrived within 600ms of it
+       events n=141, 178
+       n=141 host : reach words=1253 flies=0 lands=651 number=651 chink=651 turns=0 evs=0 | own flies=0 number=651 chink=651 sounds=[abacus-click,coin-chink,cork-pop] anims=[treasure,treasure-settle]
+       n=141 guest: reach words=1900 flies=299 lands=967 number=967 chink=967 turns=0 evs=1 | own flies=299 number=967 chink=967 sounds=[abacus-click,coin-chink,cork-pop] anims=[treasure,treasure-settle]
+       n=178 host : reach words=653 flies=0 lands=649 number=653 chink=651 turns=0 evs=0 | own flies=0 number=653 chink=651 sounds=[coin-chink,cork-pop] anims=[treasure,treasure-settle]
+       n=178 guest: reach words=2617 flies=284 lands=951 number=952 chink=952 turns=0 evs=1 | own flies=284 number=952 chink=952 sounds=[coin-chink,cork-pop] anims=[treasure,treasure-settle]
+  16. [rule 2: A CROSSED BOUNDARY] trade · turns — 2 of 14
+       the reaction crossed 1 turn boundary(ies) on the host and 0 on the guest
+       events n=55, 71
+       n=55 host : reach words=0 flies=null lands=null number=5234 chink=5234 turns=1 evs=1 | own flies=null number=null chink=null sounds=[creak-1,creak-2,gull-4,store-ingredient] anims=[]
+       n=55 guest: reach words=1199 flies=null lands=null number=917 chink=917 turns=0 evs=0 | own flies=null number=null chink=null sounds=[] anims=[]
+       n=71 host : reach words=0 flies=null lands=null number=5291 chink=5283 turns=1 evs=1 | own flies=null number=null chink=null sounds=[store-ingredient] anims=[]
+       n=71 guest: reach words=948 flies=14330 lands=14964 number=918 chink=916 turns=2 evs=8 | own flies=null number=null chink=null sounds=[] anims=[coins-across,trade-swap]
+  17. [demoted — one screen was asked and the other was watching] openoffer · snd:store-ingredient — 14 of 18
+       a sound (store-ingredient) on the guest and not on the host
+       events n=54, 58, 70, 74, 85, 90, 105, 109 …
+       n=54 host : reach words=0 flies=null lands=null number=6243 chink=5934 turns=1 evs=2 | own flies=null number=null chink=null sounds=[] anims=[]
+       n=54 guest: reach words=1168 flies=null lands=null number=6268 chink=5967 turns=1 evs=2 | own flies=null number=null chink=null sounds=[creak-5,store-ingredient] anims=[]
+       n=58 host : reach words=0 flies=null lands=null number=6670 chink=6668 turns=0 evs=2 | own flies=null number=null chink=null sounds=[] anims=[]
+       n=58 guest: reach words=768 flies=null lands=null number=6668 chink=6667 turns=0 evs=2 | own flies=null number=null chink=null sounds=[store-ingredient] anims=[]
+  18. [demoted — one screen was asked and the other was watching] parley · words — 4 of 4
+       they part at character 6: host "…test2 offers 1 coins for  Hot Cinnamon. No captain will part …" vs guest "…test2 — ye offer 1 coins for  Hot Cinnamon. No captain will p…"
+       events n=30, 34, 146, 183
+       n=30 host : reach words=0 flies=null lands=null number=null chink=null turns=0 evs=0 | own flies=null number=null chink=null sounds=[bells] anims=[]
+       n=30 guest: reach words=0 flies=null lands=null number=null chink=null turns=0 evs=0 | own flies=null number=null chink=null sounds=[creak-3,gull-1] anims=[]
+       n=34 host : reach words=0 flies=null lands=null number=null chink=null turns=0 evs=0 | own flies=null number=null chink=null sounds=[storm] anims=[]
+       n=34 guest: reach words=0 flies=null lands=null number=null chink=null turns=0 evs=0 | own flies=null number=null chink=null sounds=[creak-1,creak-3,storm] anims=[]
+  19. [demoted — one screen was asked and the other was watching] rimhead · words — 3 of 3
+       they part at character 6: host "…test1 — ye ride at the head o' the current — she's got nowher…" vs guest "…test1 rides at the head o' the current — she's got nowhere to…"
+       events n=126, 163, 199
+       n=126 host : reach words=0 flies=null lands=null number=null chink=null turns=0 evs=0 | own flies=null number=null chink=null sounds=[] anims=[sail-arrive,sail-lean]
+       n=126 guest: reach words=0 flies=null lands=null number=null chink=null turns=0 evs=0 | own flies=null number=null chink=null sounds=[creak-5,gull-1,gull-4] anims=[sail-arrive,sail-lean]
+       n=163 host : reach words=0 flies=null lands=null number=null chink=null turns=0 evs=0 | own flies=null number=null chink=null sounds=[] anims=[bob-settle,sail-arrive,sail-lean]
+       n=163 guest: reach words=0 flies=null lands=null number=null chink=null turns=0 evs=0 | own flies=null number=null chink=null sounds=[] anims=[sail-arrive,sail-lean]
+  20. [demoted — one screen was asked and the other was watching] openoffer · words — 14 of 18
+       they part at character 6: host "…test2 is deciding……" vs guest "…test2 — ye trade 2 to Dough Hook for  Speckled Eggs…"
+       events n=54, 58, 70, 74, 85, 90, 105, 109 …
+       n=54 host : reach words=0 flies=null lands=null number=6243 chink=5934 turns=1 evs=2 | own flies=null number=null chink=null sounds=[] anims=[]
+       n=54 guest: reach words=1168 flies=null lands=null number=6268 chink=5967 turns=1 evs=2 | own flies=null number=null chink=null sounds=[creak-5,store-ingredient] anims=[]
+       n=58 host : reach words=0 flies=null lands=null number=6670 chink=6668 turns=0 evs=2 | own flies=null number=null chink=null sounds=[] anims=[]
+       n=58 guest: reach words=768 flies=null lands=null number=6668 chink=6667 turns=0 evs=2 | own flies=null number=null chink=null sounds=[store-ingredient] anims=[]
+
+LATENESS — printed, never failed (his ruling: "only a difference in content or order"). guest minus host, ms:
+  words    median      5   range -4466 … 6415   over 206 paired events
+  flies    median      0   range -4369 … 299   over 132 paired events
+  lands    median     -1   range -4367 … 316   over 132 paired events
+  number   median     -2   range -4373 … 316   over 159 paired events
+  chink    median     -2   range -4367 … 316   over 175 paired events
+
+pictures: C:\Users\wyatt\AppData\Local\Temp\claude\C--Users-wyatt-Projects-pastrypirates\3fe59910-ffbf-4bb7-aa62-52e9b3063eba\scratchpad\shots-dev\twin-ledger-host.png / twin-ledger-guest.png (end of run, not the moment of a finding)
+  [rig] room PQUS deleted
