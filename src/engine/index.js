@@ -2664,6 +2664,24 @@ class Game{
     if(this.cfg.singleDock&&this.dockOccupiedBy(port,p))return false;
     return true;
   }
+  /* WHAT A TURN THAT JUST SAILS WILL ACTUALLY PAY — the muse's dubloon, priced where the pass is
+     priced. takeTurn ends a turn it could not spend by leaning over the rail, and pays cfg.passCoin
+     for it (doPass, RULE-01) — bots and humans alike. The planner priced a plain sail on POSITION
+     ALONE, so a muse earned a coin in the game and nothing in the model, while the berth beside it
+     correctly credited its flip. Measured before the fix, over 1000 seeded voyages: 354 turns where
+     a bot walked off a berth it needed and mused instead, taking 354 coins where those berths would
+     have paid 708.
+     IT ASKS THE EXACT QUESTION takeTurn WILL ASK (principle 3), which is why it does not simply
+     return the config's payout. A ship that finishes beside a berth nobody is using DOCKS in takeTurn's fallback
+     and is paid the flip, and a ship that finishes at the ovens with a full recipe never sees the
+     Pass button at all (item 4, D-15). Both of those are scored as their own candidates, so
+     crediting a muse there would pay the same turn twice. */
+  passCoinAt(p,cell){
+    if(this.cfg.bakeoff&&!this.needs(p).length&&man(cell,this.home)<=1)return 0;  // the ovens, not the rail
+    const port=this.portAt(cell);
+    if(port&&this.canDock(p,port))return 0;                                       // the fallback works the berth
+    return this.cfg.passCoin||0;
+  }
   // Is another 2🌕 broadside worth it? The prize is a crate whose worth the bot has already
   // computed in turns; a re-fire buys a 50% shot at it for two coins' worth of dock time. The
   // shot count keeps a rich bot from grinding forever, and the reserve stops it going broke on a
@@ -3116,14 +3134,18 @@ class Game{
     const heads=this.cfg.dockHeads||0,tails=this.cfg.dockTails||0;
 
     for(const cell of candidates){
-      // POSITION ALONE: the race if I simply finish the turn here.
-      const sailT=this.turnsToWin3If(p,{cell},ctx);
+      // POSITION, AND THE COIN THE RAIL PAYS FOR IT: a plain sail ends in a muse, and passCoinAt
+      // says what this particular square's version of that turn is actually worth.
+      const museCoin=this.passCoinAt(p,cell);
+      const sailT=this.turnsToWin3If(p,{cell,coins:p.coins+museCoin},ctx);
       consider({cell,type:"sail",value:this.raceScore3(sailT,ctx.plans),
                 why:this.needs(p).length?"enroute":"finishing",
-                detail:{myT:sailT}});
+                detail:{myT:sailT,museCoin}});
 
       const port=this.portAt(cell);
-      if(port&&!(this.cfg.singleDock&&this.dockOccupiedBy(port,p))){
+      // "may I work this berth" is canDock's question and it is asked HERE through canDock, not
+      // written out a second time — the same convergence the muse coin above depends on.
+      if(port&&this.canDock(p,port)){
         /* THE BERTH, BRANCHED ON THE FLIP IT ACTUALLY IS. doDock flips FIRST and buys against the
            purse the flip just paid — so heads and tails are different states, evaluated exactly as
            doDock will play them (needsIt || the merchant's leverage clause), then averaged as
@@ -3243,7 +3265,7 @@ class Game{
       };
       for(const cell of candidates){
         if(cell[0]===p.pos[0]&&cell[1]===p.pos[1])continue;
-        mv({cell,type:"sail",value:this.raceScore3(this.turnsToWin3If(p,{cell},ctx),ctx.plans),why:"enroute"});
+        mv({cell,type:"sail",value:this.raceScore3(this.turnsToWin3If(p,{cell,coins:p.coins+this.passCoinAt(p,cell)},ctx),ctx.plans),why:"enroute"});
       }
       if(move)best=move;
     }
