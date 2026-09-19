@@ -8,7 +8,7 @@ fifteen that already exist.
 here is the one that is wrong.
 
 SHEET: https://claude.ai/artifact/LvqytfTYCwssQzTcmNFped
-BUILD: 2026.09.19.1-staging@f9ba7012
+BUILD: 2026.09.19.1-staging@781ce7ec
 NAME:  Pastry Pirates Checklist — he renamed it himself on 2026-09-17; it was "The plaque merge sheet".
 
 **ONE PAGE, TWO SPELLINGS — do not "reconcile" these into a second artifact.** The slug above and
