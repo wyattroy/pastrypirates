@@ -408,10 +408,28 @@ const CANNON_SOUND = "cannon";
 // called (Game.beginBattle) — never the `battle` event, because that event does not exist until the whole fight has already resolved.
 const BATTLE_ENGAGE_SOUND = "battle-swords";
 
-// D-01/D-03/D-04/D-06/D-21: the 25-key event->sound mapping, mirroring EVENT_NARRATION's exact
-// shape (src/ui/util.js) and register — a plain object literal, never a Map needing .get() with a
-// default, never a switch with no default, never a .find() that can throw on a miss. An absent
-// key reads as `undefined` and dispatches to silence with no throw and no console warning.
+// D-01/D-03/D-04/D-06/D-21: the event->sound mapping — a plain object literal, never a Map needing
+// .get() with a default, never a switch with no default, never a .find() that can throw on a miss.
+// An absent key reads as `undefined` and dispatches to silence with no throw and no console warning.
+/* ⛔ NO KEY HERE MAY NAME AN EVENT THE GAME CANNOT EMIT, and a gate holds it now:
+   scripts/qa/event_sound_kinds_real_check.mjs derives the producer list from the engine's own
+   emissions and fails on any entry that names something nothing in src/ emits.
+   ⭐ THE COUNT IS NOT WRITTEN DOWN HERE ANY MORE, because it rotted. This comment used to say "the
+   25-key event->sound mapping, mirroring EVENT_NARRATION's exact shape (src/ui/util.js)". On
+   2026-09-18 it held 38 keys against EVENT_NARRATION's 13, and SEVEN of them named events the
+   cutover deleted — so the table that is supposed to say what every action does had drifted by
+   seven entries, in the one file a "which sound plays here?" question is answered from.
+   THE RECORD OF WHAT WENT, so nobody puts them back by accident (each verified absent from all of
+   src/ before it was removed; all seven are still real in the FROZEN v1, classic/, which is exactly
+   how a table like this rots — every one of them was right when it was written):
+     fish: "fishing"        v2 rule 3, src/ui/flow.js:321 — "fishing is gone entirely"
+     anchor: "fishing"      the v1 storm ladder; `anchorHold` below is its only survivor
+     dodge: "battle-swords" the v1 storm ladder (src/ui/flow.js:1712 names the whole ladder as deleted)
+     shipwrecked: "storm"   v2.1, and it pointed at the ONE stem docs/AUDIO.md DEFECT-1/DEFECT-2 are
+                            about — a dead key aimed at the sound that must never come back
+     moored: null           explicit silence for an event v2 does not have (`blocked`/`halted` remain)
+     bakeoff: null          the engine emits `bake` and `bakeTurn`, never `bakeoff`
+     idle: null             emitted nowhere; the only other "idle" in src/ is an animation playState */
 const EVENT_SOUND = {
   // D-01 (sailing); D-04 (wind pushes your boat — your ship moved, just not by choice); D-21 (a
   // gale blows you off the dock — the identical case as windmove)
@@ -426,27 +444,23 @@ const EVENT_SOUND = {
   sail: "ship-move", windmove: null, blownOut: null,
   // D-01/D-04: a crate changing hands, whether docking or trading
   dock: "store-ingredient", trade: "store-ingredient",
-  // D-01; D-04 (fleeing/dodging — the clash happened, you just left it). NOT the battle's own
+  // D-01; D-04 (fleeing — the clash happened, you just left it). NOT the battle's own
   // start/end — see the `battle: null` entry below.
-  battleflee: "battle-swords", dodge: "battle-swords",
-  // D-01 (fishing); D-03 (dropping anchor in a storm); D-21 (the anchor holding — same family)
-  /* `anchorHold` is the storm case of the same instruction above — a ship riding the weather out.
-     ⚠ IT IS NOT ALLOWED TO BECOME "storm" AGAIN. That exact line was DEFECT-1 and DEFECT-2 in
+  battleflee: "battle-swords",
+  // D-21: a ship riding the weather out — the only survivor of v1's anchor/dodge/aground ladder
+  /* ⚠ IT IS NOT ALLOWED TO BECOME "storm" AGAIN. That exact line was DEFECT-1 and DEFECT-2 in
      docs/AUDIO.md (an 8-second bed at ~3x level, once per anchoring ship, unfadeable). Going
      SILENT is strictly further from that defect than "fishing" was, and the guard in
      scripts/audio_mapping_test.js now pins the invariant that actually matters — never a storm
      stem — rather than the literal it used to pin. */
-  fish: "fishing", anchor: "fishing", anchorHold: null,
-  // D-04: running aground / shipwrecked both borrow storm
-  // v2.1: nothing runs aground any more — the storm keeps its own cue via `newround`
-  shipwrecked: "storm",
+  anchorHold: null,
   // D-06 — explicit silence, not merely absent from the table
-  blocked: null, moored: null,
+  blocked: null,
   /* T-073 — YOUR TURN. His ruling (s4/q4): "Your Turn should use the Bell SFX sound. New day
      should NOT use this sound." So `newround` stays null below; the bell is on the TURN.
      ⭐ THIS IS THE ONE SOUND NOT HEARD BY THE WHOLE TABLE — see LOCAL_ONLY_SOUND_EVENTS. */
   turn: "bells",
-  newround: null, tradewind: null, bakeoff: null,
+  newround: null, tradewind: null,
   // architecture item 19: a boat that comes into the current AT its head rides no squares — explicit silence, like the ride itself
   rimhead: null,
   // playtest 21 item 3: the storm's one summary line. Deliberately SILENT — every ship in it has
@@ -477,7 +491,7 @@ const EVENT_SOUND = {
   // v2 events, explicit silence rather than merely absent (D-06). `purse` especially: it exists
   // only to push a fresh state snapshot to the Captains panel mid-turn and is invisible by design,
   // so it must never become audible if the unmapped default ever changes.
-  purse: null, idle: null, openoffer: null, collab: null,
+  purse: null, openoffer: null, collab: null,
   // NOTE: `anchorHold: "storm"` used to sit here, and it was the whole of DEFECT-1 and DEFECT-2 in
   // docs/AUDIO.md. `anchorHold` is already mapped to "fishing" above, and in a JS object literal the
   // LAST key wins — so this line silently overrode it, which (a) stranded fishing.mp3, downloaded
