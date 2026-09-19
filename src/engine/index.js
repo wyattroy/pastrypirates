@@ -2461,8 +2461,16 @@ class Game{
        exactly what the mixed-table run showed — docks up, crates bought down, purse trebled.
        Fractional turns say what the board says: four squares is one turn, two squares is half of
        one. Every consumer compares these costs against each other, so finer resolution can only
-       sharpen the comparison; nothing reads it as a whole number of moves. */
-    return Math.ceil(d/(upwind?SAIL_RANGE_UPWIND:SAIL_RANGE));
+       sharpen the comparison; nothing reads it as a whole number of moves.
+       ⛔ AND FROM 2026-08-09 TO 2026-09-18 THE LINE BELOW SAID Math.ceil ANYWAY (fixed on Wyatt's own
+       diagnosis). Checked across every reachable commit with `git log -S` on both spellings: the
+       fractional form had NEVER existed in this repo. The paragraph above was written in 1bec0989
+       IN THE SAME COMMIT as the ceil it condemns — so this is a fix that was described and never
+       landed, not one that landed and was lost. Which is the more dangerous of the two, because a
+       comment describing a fix reads exactly like a fix. A COMMENT IS NOT THE CODE, and the gate
+       that now holds this (scripts/qa/honest_ruler_check.mjs) strips comments before it matches,
+       for that reason. */
+    return d/(upwind?SAIL_RANGE_UPWIND:SAIL_RANGE);
   }
   // The three ways to get a crate, each priced in turns, and which one wins. This is the heart of
   // the planner and the answer to "what do I do when it's out of stock everywhere" (Wyatt asked
