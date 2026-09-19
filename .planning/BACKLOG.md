@@ -15,6 +15,92 @@ whole reason the file exists.
 ---
 ---
 
+# 🔴 A CALL BUTTON HIDES BEHIND THE QUESTION IT ANSWERS — phone, 2026-09-19
+
+**Found by the sea trial's `passplay-phone` leg, by the VISION JUDGE and by nothing else** — and
+that second half is the important part. See *"Why no check caught it"* below.
+
+**The picture is the report:** `.planning/found/2026-09-19-call-button-behind-the-ask-phone.png`
+(the trial's own `sea-trial-shots/passplay-phone-024-settled.png`).
+
+## What it shows
+
+A battle is brewing and the white ask reads *"Davy Scones — a battle's brewing! Guess the winner
+and win 2🪙."* **Three** captains are on offer. Two round Call buttons sit on the sea — Peg Leg
+Meg and Dough Hook. **The third, Flaky Jack, is behind the ask's own white box**, with perhaps 10px
+of its edge showing at the board's bottom rim. A player cannot pick a captain they cannot see.
+
+## ⚠ IT IS NOT YET A CONFIRMED FAULT, AND THAT IS WYATT'S CALL, NOT A SESSION'S
+
+His rule, 2026-09-17, recorded in `scripts/lib/checks.mjs` and `docs/INTENDED-BEHAVIOUR.md` §0,
+verbatim: *"the failing rule is 'unless it hides a button that the player cannot access by either
+waiting for 0.5 seconds or shifting the screen themselves (eg. dragging the board)'"*.
+
+Both escape hatches are arguably open here: the board can be dragged out from under the ask, and
+the ask is `pointer-events:none` for the radial prompt, so the button underneath very probably
+still answers a tap where it stands. **Against that:** this ask does *not* time out — it waits for
+an answer — and a player cannot guess a captain they do not know exists. **He has been asked.**
+Do not fix this before he rules; do not re-ask him if `DECISIONS.md` already carries the answer.
+
+## Why no check caught it — the blind spot, stated plainly
+
+`not-occluded` (rule 2, `scripts/lib/checks.mjs:224`) asks whether a control **is the topmost thing
+at its own centre**, and it answers with a *hit test*. The ask bubble is `pointer-events:none`, so
+the hit test returns the button — **a control that is 95% invisible measures as perfectly
+reachable.** The sibling rule `no-cover-ask` already has the missing half (`m.meetings`, with
+`meet.paints === 'control' | 'ask'`), so the machinery for "which of the two is on top **by paint**"
+exists and is simply not applied in this direction.
+
+**This is TOOLING and it is deliberately PARKED**, per `.claude/CLAUDE.md`: *"Do not build tooling
+when the ask is to fix the game."* Named here in one line so the next session does not rediscover
+it: *rule 2 measures reachability; nothing measures visibility.*
+
+## ⛔ AND BEFORE ANYONE TOUCHES THE PLACER
+
+`src/ui/stage.js:2056` carries Wyatt's standing order from 2026-08-30, and two shipped changes were
+reverted the night it was written: *"don't touch bubble placement again without a posed comparison
+— the same seeded sail prompt, before and after, two screenshots."* The obstacle table already
+knows about these buttons — `[".apBtn,#apStay", 60]` against `[".sailCell", 1000]` — so the search
+**saw** the circle and paid 60 to sit on it. There is also a "the pill gives way" lift at
+`stage.js:5713` for the mirror case that did not fire here. Whatever the fix, it is one of those two
+numbers or that lift, and it needs the posed board first: a three-way battle guess at phone width.
+
+---
+
+# 🟡 THE BATTLE COIN LANDS ON THE WORDS — phone, 2026-09-19
+
+**Two independent legs** (`solo-phone`, `passplay-phone`), which is why it is here and not filed as
+a one-off. Picture: `.planning/found/2026-09-19-battle-coin-on-the-words-phone.png`.
+
+The small coin that turns over a boat in a battle is drawn one step above the narration layer, so it
+lands on a word or two of the sentence underneath: *"ye ●●ow HEADS"* for *"ye show HEADS"*. Legible,
+but wrong.
+
+**The coin being in front is Wyatt's own ruling**, 2026-09-15, recorded in `src/ui/dockcoin.js`:
+*"the first narration box is showed in white, not dark blue — so it covers up the attacker's coin
+flip! … 2. the coin should flip in front of them."* **So do not put the coin back under the bubble.**
+The defect is that the coin (drawn at the boat's screen point) and the bubble are sent to the same
+spot at all — the bubble's obstacle search has no term for the flipping boat.
+
+---
+
+# 🟡 A NARRATION BOX WITH ONE LETTER IN IT — crew guest, phone, 2026-09-19
+
+**SEEN ONCE. NOT MEASURED. NOT CONFIRMED.** Picture:
+`.planning/found/2026-09-19-one-letter-narration-crew-guest.png`.
+
+On a crew guest's phone, a full-width dark narration box — sized as though for a whole sentence —
+painted a single teal *"t"* at its left edge and nothing else. Teal is that screen's own captain,
+`test2`, so the coloured name span rendered its first character and the rest of the line did not.
+
+The box being **sized for the full text while painting one character** is the useful clue: the text
+was in the DOM, so this is a reveal/paint fault rather than a missing narration key. It was a
+`-settled` screenshot, so the settle detector believed it had finished.
+
+**Next step is a measurement, not a fix.** One screenshot is not a defect report.
+
+---
+
 # 🔴 THE TRADE FAN SPILLS OFF THE BOARD AT SEVEN CIRCLES — found on WebKit/phone, 2026-09-19
 
 **Found by the sea trial's `solo-phone-wk` leg — a leg that COULD NOT RUN until WebKit was installed
