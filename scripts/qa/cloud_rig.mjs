@@ -37,7 +37,12 @@ const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..")
 const INSTALL = process.argv.includes("--install");
 const PW_DIR = process.env.PW_DIR || path.join(os.homedir(), ".pw");
 const BROWSERS = process.env.PLAYWRIGHT_BROWSERS_PATH || "/opt/pw-browsers";
-const IN_CLOUD = process.env.CLAUDE_CODE_REMOTE === "true" || fs.existsSync("/root/.ccr/ca-bundle.crt");
+/* The proxy CA bundle is how a container identifies itself when CLAUDE_CODE_REMOTE is not set.
+   NAMED, and guarded by its name below — an inline literal reads to tree_health_check as a path
+   that exists on one computer, and it is right to: the guard is what makes it safe, and a guard
+   it cannot see is a guard nobody can rely on. Same env override the SessionStart hook uses. */
+const CA_BUNDLE = process.env.CCR_CA_BUNDLE || "/root/.ccr/ca-bundle.crt";
+const IN_CLOUD = process.env.CLAUDE_CODE_REMOTE === "true" || fs.existsSync(CA_BUNDLE);
 
 const sh = (cmd, opts = {}) => { try { return execSync(cmd, { encoding: "utf8", stdio: ["ignore", "pipe", "pipe"], ...opts }).trim(); } catch (e) { return null; } };
 const has = bin => !!sh(`command -v ${bin}`);
