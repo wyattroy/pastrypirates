@@ -61,7 +61,7 @@ figcaption{font-size:12.5px;color:var(--muted);margin-top:4px}
 
 <header><div class="wrap">
 <h1>Pastry Pirates checklist</h1>
-<p class="stamp">staging is serving <b id="stamp">2026.09.19.1-staging@53338433</b> · the live game is 2026.09.17.6 (main 99cb5f05) — shipped 18 Sep<br>a different stamp is a different build — stop and tell me</p>
+<p class="stamp">staging is serving <b id="stamp">2026.09.19.1-staging@f9ba7012</b> · the live game is 2026.09.17.6 (main 99cb5f05) — shipped 18 Sep<br>a different stamp is a different build — stop and tell me</p>
 <div class="headrow">
   <a class="play" href="https://playpastrypirates.com/" target="_blank" rel="noopener">Play the live game →</a>
   <a class="play" href="https://staging.playpastrypirates.com/" target="_blank" rel="noopener" style="background:transparent;color:inherit;border:1px solid currentColor">Staging</a>
@@ -180,7 +180,7 @@ document.addEventListener("input",function(e){
    unblocks work. A section with no comment is simply absent, never padded with "(no comment)". */
 function notes(){
   const L=[]; const mark=function(v){ return v==="ok"?"AGREED":v==="bad"?"NO":""; };
-  L.push("PASTRY PIRATES — checklist, build 2026.09.19.1-staging@53338433");
+  L.push("PASTRY PIRATES — checklist, build 2026.09.19.1-staging@f9ba7012");
   const qs=QUESTIONS.filter(function(o){ return S[o.id]&&typeof S[o.id]==="object"&&(S[o.id].mark||S[o.id].note); });
   if(qs.length){ L.push("","ANSWERS");
     qs.forEach(function(o){ const v=S[o.id]; L.push("",o.t.replace(/^\d+ · /,""));
