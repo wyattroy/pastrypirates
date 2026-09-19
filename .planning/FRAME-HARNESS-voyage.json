@@ -1,0 +1,29 @@
+{
+ "renderer": "unknown",
+ "seconds": 60,
+ "frames": 3772,
+ "median": 16.7,
+ "p95": 16.8,
+ "p99": 33.3,
+ "longCount": 49,
+ "worst": {
+  "t": 4770,
+  "dt": 217,
+  "n": 83,
+  "names": {
+   "rimDrift": 36,
+   "rimPulse": 36,
+   "rimSpin": 4,
+   "rippleOut .hrip": 3,
+   "pp4CenterIn .pendingReveal.needsAction": 1,
+   "pp4Glow .apBtn.primary": 2,
+   "wa-api": 1
+  }
+ },
+ "tasks": 4,
+ "taskMs": 458,
+ "animMax": 84,
+ "animMedian": 81,
+ "peakAt": 5060,
+ "samples": 240
+}

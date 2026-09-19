@@ -1,0 +1,32 @@
+{
+ "renderer": "unknown",
+ "seconds": 45,
+ "frames": 2823,
+ "median": 16.7,
+ "p95": 16.8,
+ "p99": 33.4,
+ "longCount": 66,
+ "worst": {
+  "t": 477,
+  "dt": 350,
+  "n": 88,
+  "names": {
+   "wa-api .hidden": 1,
+   "bootBob .bootShip": 1,
+   "bootSlide .bootBarFill": 1,
+   "rimDrift": 36,
+   "rimPulse": 36,
+   "rimSpin": 4,
+   "rippleOut .hrip": 3,
+   "rowpulse .pulse": 1,
+   "rowpulse .chips.pulse": 4,
+   "wa-api": 1
+  }
+ },
+ "tasks": 7,
+ "taskMs": 795,
+ "animMax": 81,
+ "animMedian": 15,
+ "peakAt": 7059,
+ "samples": 180
+}
