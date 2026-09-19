@@ -3801,3 +3801,33 @@ rather than failing on them.
 ⚠ **One deserves a human eye: `shipwrecked: "storm"`.** If that event ever came back it would put
 the 8-second storm bed on the **master** bus at full level — which is DEFECT-2 exactly, the bug that
 cost this project weeks. Worth deleting or re-pointing the day anyone touches that map.
+
+**2026-09-19 — THREE RULINGS ON SOUND AND MAPS, and one on how a cloud session sets itself up.**
+
+- **⛔ THE CRATE LANDING IN THE HOLD ALREADY HAS ITS SOUND, AND IT STAYS. STOP SUGGESTING.** His
+  words: *"stop recommending crate chime to be the sound of a crate landing in the hold. You need to
+  write down that the crate landing in the hold already has the sound, and it is the thump sound
+  from buying a crate. And that is the way it should stay. Unless I say otherwise, stop suggesting."*
+  The sound is **`store-ingredient`** — the crate-acquisition thump, wired to `crate.landsInHold`
+  (as its bounce begins) and to `crate.changesHands` (a dock or a trade). **`crate-chime` is a
+  DIFFERENT sound for a different moment** — a crate you named RIGHT in the bake-off — and its name
+  is the only thing that invites the confusion. **NOBODY RE-OPENS THIS.** Two sessions in two days
+  have now offered to "fix" it; the wiring was never wrong and he has ruled on the name.
+- **A NEW MAP REPLACES EVERYTHING — not just the world's sounds.** *"A new map will replace
+  everything. It'll replace the background. and the ingredients and the island assets and the sound
+  effects and the music and the narration lines."* So the sound pack's `voyage/` vs `ceremony/`
+  split is NOT a licence to keep ceremony fixed — a map may replace every stem, and the fallback
+  exists so it does not HAVE to, never to say it should not.
+- **AND WE ARE NOT BUILDING MAPS NOW.** *"But we're not going to build that out now. What we're
+  doing now is preparing for that after the launch on October 1st. We want to prepare the code base
+  to be extensible in all these different directions."* So the work between now and 1 October is
+  EXTENSIBILITY, not content: assets, ingredients, islands, sound, music and narration each reachable
+  through one table that a pack can swap. The sound engine (2026-09-19) is the first of those six;
+  the others are not started and must not be started in place of launch work.
+- **THE COIN TICK IS FINE AND IS CLOSED.** *"I listened to the sound effects with the coin tick over
+  the ocean bed, and it sounded fine to me. I can change it back up to three if you'll stop talking
+  about it."* He has heard it against the bed — which is the exact thing docs/AUDIO.md §1c said had
+  never been heard — so that open question is ANSWERED. Do not raise `abacus-click`'s level again.
+- **A CLOUD SESSION SETS ITS OWN RIG UP, FROM THE DOCS, BEFORE IT NEEDS IT.** *"There is
+  documentation in the repo for how to set up the qa rig — you should have just looked for it and
+  set it up yourself."* `node scripts/qa/cloud_rig.mjs --install`, `docs/CLOUD-CONTAINER.md`.

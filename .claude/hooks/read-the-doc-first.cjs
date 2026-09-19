@@ -119,6 +119,26 @@ const SUBSYSTEMS = [
     ],
   },
   {
+    /* ⭐ THE CLOUD RIG — added 2026-09-19, and the trigger is deliberately the INSTALL rather than
+       the use. Wyatt: "there is documentation in the repo for how to set up the qa rig — you should
+       have just looked for it and set it up yourself." A session only reaches for apt-get, npm i
+       playwright or playwright install when something has ALREADY broken and it is guessing at the
+       repair; that is the exact moment to hand it the page that has the answer, and the one command
+       that does the whole rig at once. The SessionStart hook says the same thing earlier, for free,
+       to a session that has not broken anything yet. */
+    id: "cloudrig",
+    docs: ["docs/CLOUD-CONTAINER.md"],
+    why: "setting up the QA rig in a cloud container",
+    paths: [/^\.claude\/hooks\/cloud-session-start\.sh$/, /^scripts\/qa\/cloud_rig\.mjs$/],
+    bash: [
+      /apt-get\s+install/i,
+      /npm\s+i(nstall)?\s+playwright/i,
+      /playwright\s+install/i,
+      /\bpkill\b/i,          /* the container-only trap: -f matches your own shell, and the
+                                  browsers are called `chrome`, not `chromium` */
+    ],
+  },
+  {
     id: "deploy",
     docs: ["docs/GIT-AND-DEPLOY.md"],
     why: "git, deploying, or the live domain",

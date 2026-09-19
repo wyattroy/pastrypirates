@@ -76,4 +76,30 @@ if [ -n "${CLAUDE_ENV_FILE:-}" ]; then
 fi
 
 echo "pastrypirates cloud QA setup: browser ready (wrapper $WRAPPER -> $CHROME_REAL, TLS<=1.2 via proxy, CAs in $DB)"
+
+# 4. AND SAY WHAT ELSE THE RIG IS MISSING — Wyatt, 2026-09-19, after a session hunted for each
+#    piece as it broke: "you should have just looked for it and set it up yourself… then write
+#    that documentation in a way that they will find more easily."
+#
+#    THIS HOOK IS THE ONLY THING EVERY CLOUD SESSION IS GUARANTEED TO READ. The three pieces it
+#    does not install — rsync, the playwright package and WebKit — each fail LATER and each fails
+#    in a way that looks like something else: a dead deploy, a red gate 36 of 177, and two sea-trial
+#    legs quietly reported NOT RUN. Naming them here costs a second and removes the hunt.
+#
+#    It REPORTS, it does not install: WebKit is a 102 MB download and no session should pay for it
+#    at startup. The one command that does install it is printed below.
+if [ -f "$CLAUDE_PROJECT_DIR/scripts/qa/cloud_rig.mjs" ] 2>/dev/null || [ -f "scripts/qa/cloud_rig.mjs" ]; then
+  # `grep -c` EXITS 1 WHEN IT COUNTS ZERO, so a `|| echo "?"` here reported trouble on a
+  # HEALTHY rig — the first version of this hook did exactly that. Count without grep's exit.
+  RIG=$(node "${CLAUDE_PROJECT_DIR:-.}/scripts/qa/cloud_rig.mjs" 2>/dev/null | awk '/^  MISSING/{n++} END{print n+0}')
+  [ -n "$RIG" ] || RIG="?"
+  if [ "$RIG" = "0" ]; then
+    echo "pastrypirates cloud QA setup: rig complete — npm test, a FULL sea trial (WebKit legs included) and deploy:staging can all run"
+  else
+    echo "pastrypirates cloud QA setup: ⚠ $RIG piece(s) of the QA rig are MISSING (rsync / playwright / webkit)."
+    echo "pastrypirates cloud QA setup:   what and why:  node scripts/qa/cloud_rig.mjs"
+    echo "pastrypirates cloud QA setup:   fix them all:  node scripts/qa/cloud_rig.mjs --install"
+    echo "pastrypirates cloud QA setup:   background:    docs/CLOUD-CONTAINER.md"
+  fi
+fi
 exit 0

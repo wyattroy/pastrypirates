@@ -1,209 +1,213 @@
-<title>Pastry Pirates — playtest checklist</title>
+<title>Pastry Pirates Checklist</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zilla+Slab:wght@600;700&family=Source+Sans+3:wght@400;600;700&family=JetBrains+Mono:wght@400;700&display=swap">
 <style>
-:root{
-  --ink:#12303a; --muted:#5b7580; --line:#d8e3e7; --card:#fffdf7; --bg:#eef4f6;
-  --pass:#1f9d6b; --fail:#d1495b; --accent:#0f7f96; --shadow:0 1px 2px rgba(16,48,58,.08),0 6px 18px rgba(16,48,58,.06);
-}
-@media (prefers-color-scheme:dark){:root:not([data-theme=light]){
-  --ink:#e8f1f4; --muted:#93aab3; --line:#22414c; --card:#12262e; --bg:#0b1a20;
-  --pass:#3ec38c; --fail:#ff7085; --accent:#4fc3dd; --shadow:0 1px 2px rgba(0,0,0,.4),0 6px 18px rgba(0,0,0,.3);
-}}
+:root{--bg:#f6efe0;--card:#fffdf6;--line:#e2d6bd;--text:#24313a;--muted:#6d6455;--teal:#1d96a6;--gold:#f5a623;
+ --mint:#27c78d;--coral:#f2679e;--wood:#8a5a2b;--shadow:0 1px 2px rgba(45,30,10,.07),0 8px 22px rgba(45,30,10,.08)}
+@media (prefers-color-scheme:dark){:root:not([data-theme=light]){--bg:#141c20;--card:#1b262b;--line:#2f4048;--text:#e9f1f3;--muted:#9aa9a5;--shadow:0 1px 2px rgba(0,0,0,.5),0 8px 22px rgba(0,0,0,.4)}}
+:root[data-theme=dark]{--bg:#141c20;--card:#1b262b;--line:#2f4048;--text:#e9f1f3;--muted:#9aa9a5;--shadow:0 1px 2px rgba(0,0,0,.5),0 8px 22px rgba(0,0,0,.4)}
 *{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--ink);
-  font:16px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;
-  padding:0 0 120px}
-header{position:sticky;top:0;z-index:10;background:var(--card);border-bottom:1px solid var(--line);
-  padding:14px 18px;box-shadow:var(--shadow)}
-.wrap{max-width:920px;margin:0 auto}
-h1{margin:0 0 2px;font-size:19px;letter-spacing:.2px}
-.sub{color:var(--muted);font-size:13.5px}
-.sub a{color:var(--accent)}
-.bar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:10px}
-.count{font-variant-numeric:tabular-nums;font-weight:700;font-size:13.5px}
-button{font:inherit;font-size:13.5px;padding:7px 13px;border-radius:9px;border:1px solid var(--line);
-  background:var(--card);color:var(--ink);cursor:pointer}
-button.primary{background:var(--accent);color:#fff;border-color:transparent;font-weight:600}
-button:active{transform:translateY(1px)}
-section{max-width:920px;margin:22px auto 0;padding:0 18px}
-h2{font-size:15px;text-transform:uppercase;letter-spacing:.9px;color:var(--muted);
-  margin:26px 0 10px;font-weight:700}
-.note{background:var(--card);border:1px solid var(--line);border-left:3px solid var(--accent);
-  border-radius:10px;padding:12px 14px;margin:0 0 14px;font-size:14.5px;box-shadow:var(--shadow)}
-.item{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px;
-  margin:0 0 12px;box-shadow:var(--shadow)}
-.item.pass{border-left:4px solid var(--pass)}
-.item.fail{border-left:4px solid var(--fail)}
-.top{display:flex;gap:11px;align-items:flex-start}
-.n{flex:0 0 auto;min-width:26px;height:26px;padding:0 7px;border-radius:7px;background:var(--bg);
-  color:var(--muted);font-size:12.5px;font-weight:700;display:flex;align-items:center;justify-content:center}
-.txt{flex:1 1 auto;min-width:0}
-.look{font-weight:650}
-.right{color:var(--muted);font-size:14.5px;margin-top:3px}
-.why{color:var(--muted);font-size:13px;margin-top:5px;font-style:italic;opacity:.85}
-.acts{display:flex;gap:7px;margin:11px 0 0;flex-wrap:wrap}
-.acts button{min-width:74px}
-.acts button[aria-pressed=true][data-v=pass]{background:var(--pass);color:#fff;border-color:transparent;font-weight:650}
-.acts button[aria-pressed=true][data-v=fail]{background:var(--fail);color:#fff;border-color:transparent;font-weight:650}
-textarea{width:100%;margin-top:9px;min-height:0;height:38px;padding:8px 10px;border-radius:9px;
-  border:1px solid var(--line);background:var(--bg);color:var(--ink);font:inherit;font-size:14.5px;resize:vertical}
-textarea:focus{outline:2px solid var(--accent);outline-offset:1px;height:84px}
-textarea.has{height:84px;background:var(--card)}
-.saved{color:var(--muted);font-size:12.5px}
-dialog{border:none;border-radius:12px;padding:0;max-width:680px;width:92vw;box-shadow:var(--shadow);background:var(--card);color:var(--ink)}
-dialog::backdrop{background:rgba(6,20,26,.55)}
-dialog .in{padding:16px}
-dialog textarea{height:46vh;font:13px/1.45 ui-monospace,SFMono-Regular,Menlo,monospace}
-@media print{header{position:static}.acts,button{display:none}.item{break-inside:avoid}}
+body{margin:0;background:var(--bg);color:var(--text);font:16px/1.55 "Source Sans 3",-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif}
+.wrap{max-width:780px;margin:0 auto;padding:0 18px}
+header{background:var(--card);border-bottom:3px solid var(--wood);padding:16px 0 12px;box-shadow:var(--shadow);position:sticky;top:0;z-index:5}
+h1{font-family:"Zilla Slab",Georgia,serif;font-size:clamp(21px,5vw,29px);margin:0 0 4px;letter-spacing:-.4px}
+.stamp{font:700 12.5px/1.3 "JetBrains Mono",monospace;color:var(--muted);word-break:break-all;margin:0}
+.stamp b{color:var(--wood)}
+.headrow{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:10px}
+a.play,button.copy{display:inline-block;background:var(--teal);color:#04262b;font-weight:700;font-family:inherit;
+ padding:9px 15px;border-radius:10px;text-decoration:none;font-size:15px;border:0;cursor:pointer}
+button.copy{background:var(--gold);color:#3d2a00}
+h2{font-family:"Zilla Slab",Georgia,serif;font-size:19px;margin:28px 0 2px;color:var(--wood)}
+.sub{color:var(--muted);font-size:13.5px;margin:0 0 10px}
+.item{background:var(--card);border:1px solid var(--line);border-left:5px solid var(--line);border-radius:12px;padding:12px 14px;margin:0 0 10px;box-shadow:var(--shadow)}
+.item.marked-ok{border-left-color:var(--mint)}
+.item.marked-bad{border-left-color:var(--coral)}
+.item h3{margin:0 0 4px;font-size:15.5px;font-weight:700}
+.item p{margin:0 0 8px;font-size:14px;color:var(--muted)}
+.item p.why{color:var(--text)}
+.num{font:700 12px/1 "JetBrains Mono",monospace;color:var(--teal);letter-spacing:.5px}
+.btns{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.btns button{font:inherit;font-size:13.5px;font-weight:700;padding:7px 14px;border-radius:9px;
+ border:1px solid var(--line);background:var(--bg);color:var(--text);cursor:pointer}
+button.ok[aria-pressed=true]{background:var(--mint);color:#053a26;border-color:transparent}
+button.bad[aria-pressed=true]{background:var(--coral);color:#4a0d26;border-color:transparent}
+textarea{width:100%;margin-top:8px;padding:8px 10px;border-radius:9px;border:1px solid var(--line);
+ background:var(--bg);color:var(--text);font:inherit;font-size:14px;resize:vertical;min-height:38px}
+.q{background:#fff3cd;color:#6b4e00;border:1px solid #e8cf86;border-left:5px solid var(--gold);border-radius:12px;padding:12px 14px;margin:0 0 10px}
+@media (prefers-color-scheme:dark){:root:not([data-theme=light]) .q{background:#3a3016;color:#f6e7bd;border-color:#5d4d23;border-left-color:var(--gold)}}
+:root[data-theme=dark] .q{background:#3a3016;color:#f6e7bd;border-color:#5d4d23;border-left-color:var(--gold)}
+.q h3{margin:0 0 4px;font-size:15.5px}
+.q p{color:inherit;opacity:.92;font-size:14px;margin:0 0 8px}
+.check{display:flex;gap:10px;align-items:flex-start;padding:9px 0;border-bottom:1px dashed var(--line)}
+.check:last-of-type{border-bottom:0}
+.check input{margin-top:4px;width:18px;height:18px;accent-color:var(--mint);flex:0 0 auto}
+.check label{font-size:14.5px}
+.check label b{display:block;font-size:12px;color:var(--muted);font-weight:600;letter-spacing:.3px;text-transform:uppercase;margin-top:2px}
+.check label a{color:var(--teal);text-decoration:none;border-bottom:1px solid currentColor}
+.saved{font-size:12.5px;color:var(--muted);margin-left:2px}
+.foot{margin:26px 0 60px;color:var(--muted);font-size:13.5px}
+.done{background:var(--card);border:1px solid var(--line);border-left:5px solid var(--mint);border-radius:12px;padding:10px 14px;margin:0 0 10px;font-size:14px}
+.done b{color:var(--text)}
+.block{background:var(--card);border:1px solid var(--line);border-left:5px solid var(--coral);border-radius:12px;padding:10px 14px;margin:0 0 10px;font-size:14px}
+.block b{color:var(--text)}
+figure{margin:0 0 8px}
+figure img{display:block;width:100%;border-radius:9px;border:1px solid var(--line);background:#0e1a1e}
+figcaption{font-size:12.5px;color:var(--muted);margin-top:4px}
+.shots{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px;margin:0 0 8px}
+.link{display:inline-block;margin:0 8px 6px 0;font-size:13.5px;font-weight:700;color:var(--teal);text-decoration:none;border-bottom:1px solid currentColor}
+.ceo{background:var(--card);border:1px solid var(--line);border-left:5px solid var(--wood);border-radius:12px;padding:12px 14px;margin:0 0 10px}
+.ceo q{display:block;font-family:"Zilla Slab",Georgia,serif;font-size:16px;line-height:1.45}
+.ceo cite{display:block;margin-top:8px;font-size:13px;color:var(--muted);font-style:normal}
 </style>
 
 <header><div class="wrap">
-  <h1>Pastry Pirates — playtest checklist</h1>
-  <div class="sub">Build <strong id="stamp">2026-08-25g</strong> · <a href="https://playpastrypirates.com/4" target="_blank" rel="noopener">playpastrypirates.com/4</a>
-   — if the menu shows an older stamp, stop and tell me: there's no build step, so an old stamp means it isn't deployed.</div>
-  <div class="bar">
-    <span class="count" id="count">0 / 0</span>
-    <button class="primary" id="copy">Copy my notes</button>
-    <button id="reset">Clear all</button>
-    <span class="saved" id="saved">saves as you type</span>
-  </div>
+<h1>Pastry Pirates checklist</h1>
+<p class="stamp">staging is serving <b id="stamp">2026.09.19.1-staging@53338433</b> · the live game is 2026.09.17.6 (main 99cb5f05) — shipped 18 Sep<br>a different stamp is a different build — stop and tell me</p>
+<div class="headrow">
+  <a class="play" href="https://playpastrypirates.com/" target="_blank" rel="noopener">Play the live game →</a>
+  <a class="play" href="https://staging.playpastrypirates.com/" target="_blank" rel="noopener" style="background:transparent;color:inherit;border:1px solid currentColor">Staging</a>
+  <button class="copy" id="copyBtn">Copy my notes</button>
+  <span class="saved" id="copySaid"></span>
+</div>
 </div></header>
 
-<section id="list"></section>
+<div class="wrap">
 
-<dialog id="out"><div class="in">
-  <p style="margin:0 0 8px"><strong>Paste this back to me.</strong> Only items you marked or commented on are included.</p>
-  <textarea id="outtxt" readonly></textarea>
-  <div style="display:flex;gap:8px;margin-top:10px">
-    <button class="primary" id="docopy">Copy to clipboard</button>
-    <button id="close">Close</button>
-  </div>
-</div></dialog>
+<h2 id="qHead">Answers I need</h2>
+<p class="sub" id="qSub">Each with my recommendation.</p>
+<div id="questions"></div>
+
+<h2>What changed on staging — to look at</h2>
+<p class="sub">Each with what was measured — and, where something is not yet measured, a plain note saying so.</p>
+<div id="items"></div>
+
+<h2>The playtest — go and do these, then tell me</h2>
+<p class="sub">Each opens staging, and each takes Pass, Problem and a note — the tick boxes are gone. The sound ones are the point of this build: nothing should SOUND different, so anything that does is a bug.</p>
+<div id="checks"></div>
+
+<h2>What is still open, and whose it is</h2>
+<div id="open"></div>
+
+<div class="foot">Everything saves as ye tap it. Production is still 2026.09.17.6 — nothing on this page has reached real players yet.</div>
+</div>
 
 <script>
-const DATA = [
- {h:"Today — 2026-08-25, everything since your last sheet"},
- {note:"<strong>Six builds landed since 24f: a, b, c, d, e, f.</strong> The pulse bug is dead — you confirmed that one yourself on your iPhone, so #1 is now just the standing check. The rest of this section is new and unlooked-at."},
- {n:1,look:"SAIL somewhere — then look at the fan that comes up",right:"The circles swell and settle, same as when ye stay put.",why:"THE pulse bug, and sailing was the whole trigger: the buttons were built while the boat glided, and yer phone's WebKit never creates an animation for something it isn't drawing yet. You already confirmed this green — it's here so a regression can't slip past."},
- {n:2,look:"A narration bubble that appears while the camera is still moving — watch it for its whole life",right:"It picks a side ONCE and stays there. It travels with the camera, but it never jumps from below the boat to above it partway through.",why:"It now latches its side from where the boat ENDS UP, not where it is mid-glide. Red/green: 2 flips before, 0 after — on a reproduction ye described yourself (sail north, then a far-off boat pushes yer own to the top edge)."},
- {n:3,look:"Anything sitting near a swelling circle — the peek hint, a narration bubble beside the fan",right:"Nothing shuffles or re-jumps as the circle breathes.",why:"Two placements were measuring the button LIVE while it pulsed — it swings 66px → 75.9px, so they re-decided every tick. They now all read the same reserved peak box. Ye guessed this cause yerself."},
- {n:4,look:"ANY question with options — look under the question pill for a grey helper line",right:"There is none. Every explanation now sits on the circle it belongs to, with a little tail pointing at it.",why:"Measured before deleting: the shared line sat 6px under the question and 182px away from the nearest button it was actually about. Every sentence in it was already on the button."},
- {n:5,look:"The ONE exception — a dock coin flip",right:"Its line is still there: “⚪ HEADS strikes buried treasure (+3🌕) · ⚫ TAILS is a turn's work on the docks (+1🌕). Either way, ye may then buy a crate.”",why:"Ye kept it on purpose — “it's useful.” It's the only helper line left in the game. If ye see any OTHER grey line under a question, that's a miss."},
- {n:6,look:"The Bake-Off recipe card",right:"“Add them in this exact order or it's a ruined mess.” is inside the card itself now, word for word.",why:"It was the one helper sentence that wasn't already on a button, so it moved rather than died."},
- {n:7,look:"Sail prompts, over and over — watch for a red shout",right:"Never. No red “SAIL BUG” text, ever, in any game.",why:"It was never a player message — it's my alarm. The check behind it still runs and still shouts in the console; it just stopped shouting at YOU."},
- {n:8,look:"Any number in any sentence the game says to ye",right:"A numeral — 2, 3, 16 — never the word.",why:"Yer standing rule, swept across the copy."},
 
- {h:"Shipped 2026-08-24f — from your evening notes"},
- {note:"Unchanged since that sheet. Skip any ye already checked."},
- {n:9,look:"Crew game: as the HOST, close the tab mid-voyage, take your time, then reopen the site",right:"The GUEST reads “⚓ Yer matey has left the game… let's give 'em 30 seconds to return before callin' off yer voyage.” — and when ye get back inside the window, the voyage simply continues. Nobody is kicked.",why:"Yer design, built verbatim. Measured: the message reaches the guest within 2 seconds; a host back at 8s resumed with the guest never seeing the death card."},
- {n:10,look:"Crew game: the host leaves for GOOD",right:"The guest keeps the message for the full 30 seconds, and only then gets the “left the voyage” card.",why:"Measured: the card landed at 32 seconds — yer 30 plus one poll beat."},
- {n:11,look:"The recipe card: tap one to select it, hold the sea to peek the board, release — then tap the card ONCE",right:"That single tap confirms it.",why:"The internal selection was being silently reset by any outside tap while the visible one stayed — pixels and state disagreed."},
- {n:12,look:"Type yer name and hit Enter — name popup, join screen, or a pass-and-play name row",right:"Enter presses that screen's continue button. No mouse trip.",why:"Swept across every name field. The chat box keeps its own Enter."},
- {n:13,look:"A sail prompt — the whole stay-put flow",right:"NO Stay put button at first. A yellow flashing square sits UNDER yer own boat. Tap the boat (or the square) and the Stay put circle appears. “Aye, stay put” and “Keep sailin'” are gone.",why:"Behind the boat came free — the sail-square layer already draws under the ships."},
- {n:14,look:"Everything on a STAGE — flip coin, ceremony buttons, battle buttons, Start in every mode",right:"All breathe the same orange glow. One ring, one definition.",why:"Start buttons pulse now; they never had any rule at all."},
- {n:15,look:"A greyed circle — an Attack ye can't afford",right:"Never pulses. A button that isn't asking for a tap stays still."},
+const QUESTIONS=[{"id": "q-pack-name", "n": "ANSWER NEEDED — WHAT THE SOUNDS OF THIS WORLD ARE CALLED", "t": "The set in the game today needs a name, because it is about to have a sibling", "d": "Every sound now lives in a folder named after the world it belongs to, so a second world's sounds can sit beside them rather than on top of them. I had to call this one something to build it, and I called it home-waters.", "why": "I deliberately did NOT call it “default”. The second map should read as its sibling, not as an exception to it — and the day ye have four, “default” tells ye nothing about which water ye are in.", "opts": "MY RECOMMENDATION: yer own name for the starting world, whatever ye would call it out loud — the one with Tortuga in it. home-waters is my placeholder and I have no attachment to it. It is one word in one line and costs a minute to change.", "hard": "⚠ Nothing a player ever sees. It is a folder name — but it is the word every future map is named against, so it is worth ye picking it rather than me. ⭐ AND YER RULING IS WRITTEN DOWN: a new map replaces EVERYTHING — the background, the ingredients, the island assets, the sound effects, the music and the narration lines. The two folders inside a pack (voyage / ceremony) are there so somebody MAKING one can see what each sound is for, never to say the ceremony stays fixed."}, {"id": "q-plumbing", "n": "ANSWER NEEDED — DID I GO FAR ENOUGH, OR TOO FAR?", "t": "This pass changed no sound at all. Is that right, or is there something ye want moved while it is open?", "d": "I treated it as plumbing: every sound fires at exactly the same instant, from exactly the same slice of the same file, as it did yesterday. I proved it rather than claiming it — 177 comparisons against the old code, 0 differences.", "why": "The reason to hold that line is that it makes the change safe to judge: if anything sounds different when ye play it, that is a BUG and not a decision, and ye can report it as one. The reason to break it is that the engine is open right now and moving a sound is cheap today and dearer next week.", "opts": "MY RECOMMENDATION: keep it plumbing. If there is a sound ye want changed, name it and it is quick now — but I am not going to keep offering candidates. And the crate in the hold is settled: it already has its sound, the thump from buying a crate, and it stays that way.", "hard": "⚠ ANSWER THIS ONE IF YE ANSWER NOTHING ELSE. It is the only one that decides what I do next."}, {"id": "q-sheet-shape", "n": "ANSWER NEEDED — IS THIS SHEET THE SHAPE YE WANTED?", "t": "Every row on this page now has Pass, Problem and a comment box. The tick boxes are gone.", "d": "Ye said: “Remove the check boxes at the bottom, I don't use them because I need a way to always give feedback about an item on the list; if it's on the list for me to see, it must have PASS, PROBLEM, and a comment box next to it.” So the bottom list is now cards like the rest.", "why": "I kept it as TWO lists rather than merging them, because they ask ye for different things: the middle list is “here is what changed, does it look right”, and the bottom list is “go and do this, then tell me”. Both now answer the same three ways.", "opts": "MY RECOMMENDATION: keep the two lists. If ye would rather have one long list in the order I think ye should walk it, say so and it is a five-minute change.", "hard": "⚠ AND I CUT THE PAGE DOWN, which ye should know because it is most of what changed. It ran to thirty items going back to 14 September, nearly all of which ye had already judged. What is left is what is on staging and NOT yet judged by ye: three things that changed, and eighteen things to go and do. Yer marks on the rows that are still here are untouched; the rows I removed took their marks with them, and those were all ones ye had already answered."}];
+const ITEMS=[{"id": "i-levels", "n": "⭐ THE ONE TO LISTEN TO — YER OWN MIXING PASS, NOW WITH THE SEA UNDER IT", "t": "All eighteen sounds at the levels ye set by ear, heard for the first time against the ocean bed", "d": "On the 18th ye levelled every sound in the tuner and raised the bed in the same pass — the sea 0.596 → 0.695, the gulls doubled, the creaks up 4 dB, while sailing came down 9.6 dB, the muse 6.6 dB, the coin flip 8.1 dB and the coin chink 6.8 dB.", "why": "✅ YE HAVE ALREADY CLOSED THE OPEN QUESTION ON THIS ONE. The notes from the 18th said ye tuned with the bed switched OFF, so the balance against the sea had never been heard by anybody. Ye have now heard it — \"I listened to the sound effects with the coin tick over the ocean bed, and it sounded fine to me\" — so it is answered, and the coin tick goes back up to 3 whenever ye say the word. What is left here is ordinary playing: if something else vanishes under the sea or shouts over it, tell me which.", "links": [["Play on staging", "https://staging.playpastrypirates.com/"], ["The sound levels tuner", "https://claude.ai/artifact/8RGLEGWL8ks6EEyWtv4jHT"]]}, {"id": "i-sound-engine", "n": "THE SOUND ENGINE — YER ASK, BUILT", "t": "Every sound in the game now comes from one list, through one door, out of a folder per map", "d": "Ye said eight of the eighteen never went through the event map and were played straight from code. Measured exactly: seven went through the map, one through both, and TEN were played by little functions named after the files themselves — playCardSwish, playLidNote, playCrateVerdict — from twenty-four places across six files. Every one of those names is a filename, so a new map's sounds would have had to be threaded through all twenty-four.", "why": "Now there is ONE list that says what every moment in the game sounds like, and one door they all go out of. A piece of the game asks for a MOMENT — “the bake-off's lid lands” — and never for a file. The files moved into sfx/<the map>/voyage, /ceremony, /ambience and /music, so a second map drops its own folder in beside this one. ⭐ NOTHING SOUNDS DIFFERENT, and that is measured rather than promised: 177 comparisons against yesterday's code, 0 differences; in a real browser all 31 files loaded from their new homes and 23 sounds played with no errors. A new check (six rules, each proved able to fail) now stops any part of the game naming a sound file again.", "links": [["Play on staging", "https://staging.playpastrypirates.com/"]]}, {"id": "i-wreck", "n": "“SHIPWRECKED” IS GONE", "t": "Out of the live game entirely, at yer word", "d": "Ye said: remove it from the code entirely, it doesn't exist any more in the game and never will. It had already stopped happening — nothing has been able to shipwreck since the v2 rules — but the word was still sitting in eleven places: a dead flag on every captain's record, a fabricated event in two test suites, a rung in two storm-ladder checks, and four comments.", "why": "All gone. The one place it still lives is the frozen v1 at /classic, which has its own engine and where shipwrecking is a real rule that really fires — deleting it there would break a page that is still served. ⚠ Tell me if ye want that one gone too and I will do it, but it means the old game stops working. Nothing is lost by removing the reminders: the build already fails on ANY sound wired to an event that cannot happen, which is a stronger guard than a comment.", "links": [["Play on staging", "https://staging.playpastrypirates.com/"]]}, {"id": "i-rig", "n": "THE QA RIG — SET UP FROM THE DOCS THIS TIME, NOT GUESSED AT", "t": "One command now sets a cloud container up, and the session start says if anything is missing", "d": "Ye were right, and it cost this session real time. The repo already documented every piece — rsync, the browser, Playwright, WebKit — in GIT-AND-DEPLOY §7 and DRIVING-THE-GAME §8c. I read neither, and hunted each one down as it broke instead.", "why": "THE ONE THAT MATTERED: I installed the Playwright PACKAGE and never installed WEBKIT, so the first sea trial I ran could never have sailed its two Safari-family legs — and nothing shouts about that, it just reads NOT RUN at the bottom of a long report. WebKit is in now (26.6, launched and proved rather than assumed) and the trial has been re-run from scratch. So it cannot happen again: `node scripts/qa/cloud_rig.mjs` says what is missing and `--install` fixes it; the session-start hook prints the verdict so nobody has to know the script exists; and docs/CLOUD-CONTAINER.md is a one-page front door named for where a session actually is, linked from CLAUDE.md.", "links": [["Play on staging", "https://staging.playpastrypirates.com/"]]}];
+/* ⭐ THE TICK BOXES ARE GONE — his word, 2026-09-19: "Remove the check boxes at the bottom, I don't
+   use them because I need a way to always give feedback about an item on the list; if it's on the
+   list for me to see, it must have PASS, PROBLEM, and a comment box next to it." So these are cards
+   like every other row, and they come out in Copy my notes the same way. A tick could only ever say
+   "I did it", which is the one thing he does not need to tell me. */
+const WALKS=[["w-sound-minute", "PLAY A MINUTE WITH THE SOUND ON FULL", "Sit on the board for a minute without doing much. Ye should hear the sea, a gull now and then, the hull creaking, and the fiddle. Tell me the balance: what is too loud, what has gone missing under the sea.", "https://staging.playpastrypirates.com/"], ["w-sound-coins", "EARN SOME COINS, THEN SPEND THEM", "A coin going IN chinks, and a run of them climbs half a step each. A coin going OUT clicks.", "https://staging.playpastrypirates.com/"], ["w-sound-muse", "MUSE ON YER TURN", "The anchor sound and the coin's chink land on the same beat — that pair is what ye called “too loud by a lot”, and it is now 4.7 dB quieter as a moment on top of 5.1 dB off the stem.", "https://staging.playpastrypirates.com/"], ["w-sound-sail", "SAIL, A FEW TIMES OVER", "The sail sound is heard on 92% of all turns — more than any other — and ye cut it 9.6 dB. Is it still there enough to feel like ye moved?", "https://staging.playpastrypirates.com/"], ["w-sound-turn", "WAIT FOR THE TURN BELL", "It is the one sound only YOUR screen hears, and it is the one that has to cut through. Ye cut it 4 dB. If a turn ever goes unnoticed, this is the number to put back.", "https://staging.playpastrypirates.com/"], ["w-sound-fight", "ATTACK A CAPTAIN AND FIGHT IT OUT", "The clash as the fight is CALLED, the coin spinning, the cannon as a shot LANDS. All three on every screen.", "https://staging.playpastrypirates.com/"], ["w-sound-dock", "DOCK AND BUY A CRATE", "A cork pop as ye buy, then the crate's woomp as it lands in the hold about a second and a third later — they should not collide.", "https://staging.playpastrypirates.com/"], ["w-sound-bakeoff", "GO TO THE OVENS AND RUN A BAKE-OFF", "The cannon as the ovens fire up, a swish per crate as they shuffle, a marimba note climbing per lid, then a chime for right and a squawk for wrong.", "https://staging.playpastrypirates.com/?ovens=1"], ["w-sound-end", "JUMP TO THE END AND LET THE CARD PLAY", "The win sting, the drumroll, a whoosh per award, the score rows ticking, a swish as ye swipe the pages.", "https://staging.playpastrypirates.com/?endcard=1"], ["w-sound-storm", "SIT THROUGH A STORM", "Thunder once as it arrives, then scattered about every 20 seconds, panned somewhere new each time, on its own quieter bus.", "https://staging.playpastrypirates.com/"], ["w-crew", "PLAY A CREW GAME AND LISTEN ON BOTH SCREENS", "Every sound but the turn bell should reach BOTH screens. The bell is yours alone, on purpose. If anything else is heard on one screen and not the other, that is the bug this whole pass exists to make impossible.", "https://staging.playpastrypirates.com/"], ["w-mute", "CYCLE THE SOUND CONTROL — FULL, EFFECTS ONLY, MUTE", "Three ways round and back to full. On “effects only” the fiddle should go and everything else stay.", "https://staging.playpastrypirates.com/"], ["w-win", "PLAY A WHOLE VOYAGE AND WIN IT", "Still the one thing the smarter-bots work needs from ye — the bots learn only from voyages a person wins, and none has been logged yet.", "https://staging.playpastrypirates.com/"], ["w-176-dock", "LAND ON A DOCK AND PASS — BUY NOTHING", "No coins leave yer purse, and no clicking. This was one of yer five from the .17.5 playtest.", "https://staging.playpastrypirates.com/"], ["w-176-mouse", "DRAG A VICTORY CARD PAGE AND RELEASE OUTSIDE THE WINDOW", "It lets go and springs back. Another of yer five.", "https://staging.playpastrypirates.com/?endcard=1"], ["w-176-resize", "AT THE CEREMONY, RESIZE THE WINDOW", "The crown, the name and the podium all re-centre.", "https://staging.playpastrypirates.com/?endcard=1"], ["w-176-predark", "START A VOYAGE AND WATCH THE EDGES WHILE THE AHOY CARD IS UP", "The dark reaches every edge, at the same shade as the coin flip's.", "https://staging.playpastrypirates.com/"], ["w-404", "TYPE AN ADDRESS THAT DOESN'T EXIST", "A cream card on the deep-sea ground, two lines, and a “Sail back to port” button that reaches the game.", "https://staging.playpastrypirates.com/no-such-page"]].map(function(r){ return { id:r[0], t:r[1], d:r[2], links:[["Open it", r[3]]] }; });
+const OPEN=[["blk", "⚠ THE DEEP SWEEP IS STILL SAILING — AND I RESTARTED IT", "The full sea trial is the robot playing all three modes at three window sizes plus a real two-browser crew game. I started one, then found I had set the rig up wrong — no WebKit — so its two Safari-family legs could never have sailed and it would have said NOT RUN at the bottom. Killed it, installed WebKit properly, and started it again from scratch. WHAT IS ALREADY PROVED on this build: the 177-gate suite green; 177 comparisons against the old code showing no sound changed; and the live staging site driven in a browser — all 31 sound files loaded from their new folders, 23 sounds played, 0 page errors. WHAT IS NOT: the deep sweep. I will tell ye its verdict either way.", ""], ["blk", "Three answers at the top of this page", "Mine to act on. The one that decides what I do next is whether this pass stays plumbing-only. Yer fourth is already answered and gone: a new map replaces EVERYTHING, and that is written into the code and the notes.", ""], ["blk", "One voyage, won, on staging", "Yours, and it is still the only thing the smarter bots wait on.", "https://staging.playpastrypirates.com/"], ["blk", "Twelve lines that still say a captain's name", "Yours: the storm's seven pieces and the co-baker line name a GROUP, which the one rule cannot say at all. One answer per group covers all twelve.", ""], ["blk", "Moving the game to Cloudflare", "Yours first: step 0 — turning DNSSEC off at Squarespace — still open.", "https://claude.ai/artifact/HgGTWrpKkxb1bswaH9SY3P"], ["blk", "A “+16” that means sixteen in all", "Noticed, not changed: a bot's counter circle reads “Crustbeard+16” while 16 is the whole price. Yer ruling was to fix it; the three shapes are on Wy-Blade's page.", ""], ["blk", "The crew rematch (sails up, 5-second countdown)", "Not built yet. In a crew the dock still leaves the game, as Play again did.", ""], ["ok", "Settled and closed, so nobody re-opens them", "THE CRATE IN THE HOLD already has its sound — the thump from buying a crate — and it stays; I will stop suggesting otherwise, and it is written into the code beside the cue so the next session cannot offer it either. THE COIN TICK is fine over the bed by yer own ears, and goes back to 3 on yer word. A NEW MAP REPLACES EVERYTHING, and maps are an after-launch job: between now and 1 October the work is making the code extensible in those six directions, not making content.", ""], ["ok", "The sword clash is not a fault, and my notes said it was", "Luis checked the file and found it fine, ye relayed it, and the note that called it clipped is withdrawn. It measures +0.2 dBFS and that is a judged exception, not outstanding work.", ""], ["ok", "The twin ledger — the first Onehelm instrument", "Wy-Blade's, on dev: the same game fact watched on two screens and joined on the wire's own serial. It is an instrument, not something a player sees. It is NOT on staging in this build.", ""], ["ok", "This build was checked before ye were handed it", "The full suite, 177 gates, green — one of them brand new and holding the sound engine's rule. The sounds themselves were proved unchanged by comparison against yesterday's code rather than by me saying so.", ""], ["ok", "The cloud container can run the browser checks now", "Wy-Blade being offline cost the first run of the suite: the cloud box had no Playwright, so 140 of 177 gates never ran. Installed where the manual says it goes. Worth knowing for every future cloud session.", ""]];
+const $=id=>document.getElementById(id);
+const KEY="pp-merge-sheet-2026-09-15-build6";   // unchanged on purpose: his marks live here
+let S={};
+let db=null;
+(async()=>{ try{ db=await claude.use("db"); if(!db) return;
+  const d=await db.doc("mergesheet/wyatt").get();
+  if(d&&d.data&&d.data.S10){ S={...S,...d.data.S10}; paint(); } }catch(e){} })();
+try{ const raw=localStorage.getItem(KEY); if(raw) S=JSON.parse(raw)||{}; }catch(e){}
 
- {h:"Still unchecked — carried over"},
- {note:"Nothing here has changed; these have simply never been looked at."},
- {n:16,look:"IF any reconnect ever sits there — about 15 seconds",right:"“⚓ Still reconnectin'…” with a Back to port button. Ye can never be stranded."},
- {n:17,look:"Crew game: a GUEST reaches the ovens (host makes the room from /4/?ovens=1)",right:"They bake in their OWN browser — recipe, five face-down crates, shuffle, tapping, reveal."},
- {n:18,look:"Crew game: while ANY captain bakes, the other screens",right:"Same face-down bench, same shuffle, same badges, same verdict, everywhere."},
- {n:19,look:"Crew game: “Watch again 🌕1” as a guest",right:"Purse drops on yer screen, shuffle replays, host ends on the same number."},
- {n:20,look:"Crew game: close a tab mid-bake",right:"That captain forfeits in ~2½ seconds; the voyage carries on."},
- {n:21,look:"Solo with ?ovens=1: the moment yer bake is scored",right:"A few seconds to read it, then back to the board."},
- {n:22,look:"Solo: the rest of that day, and attempt 2",right:"Nothing hides behind a spent card; a fresh Bake-Off card arrives for attempt 2."},
- {n:23,look:"A storm that sweeps someone into the trade winds",right:"ONE report, in the post-storm summary. Never a separate line during the storm."},
- {n:24,look:"The black market's first dry shelf — and every centre-stage card",right:"Clear of the header row, vertically comfortable."},
- {n:25,look:"Pass, in every direction the fan points",right:"Side-to-side fan: Pass rightmost. Up-and-down: lowest. 45° cutoff."},
- {n:26,look:"The greyed-Buy explainer — flip TAILS at a dock ye can't afford",right:"“It costs 3🌕 and ye've 1🌕 — 2🌕 short.” Sits with its own circle, not across another box."},
- {n:27,look:"Every coin flip — yers, a bot's, dock and battle",right:"All one second; bots' dock coins spin and land like yers."},
- {n:28,look:"A narration bubble while sail squares are up",right:"Lands on open water — never on a square or the question."},
- {n:29,look:"⚠️ Crew: does the GUEST draw the wind pill, clock chip and day counter?",right:"Still UNPROVEN. Missing any of the three is a real finding.",why:"PAR-02."},
- {n:30,look:"Crew: as a GUEST, counter-offer with coins",right:"A real slider, same as the host. No ± circles."},
- {n:31,look:"Counter-offer, then refresh mid-voyage",right:"Replays to the same place — yer number remembered."},
- {n:32,look:"❓ PASS-AND-PLAY: a second captain's trade-answer prompt with NO hand-off card",right:"YER TASTE CALL — recorded as correct, one line either way."},
+let canSave=true;
+function save(){
+  try{ localStorage.setItem(KEY,JSON.stringify(S)); }catch(e){ canSave=false; }
+  try{ if(db) db.doc("mergesheet/wyatt").update({S10:S,_t:Date.now()}); }catch(e){}
+  document.querySelectorAll(".saved").forEach(n=>{ if(n.id==="copySaid") return;
+    n.textContent = canSave ? "saved ✓" : "can't save here — copy yer notes before ye leave";
+    clearTimeout(n._t); n._t=setTimeout(()=>n.textContent="",1600); });
+}
+function esc(s){ return String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
+function shots(o){ return o.shots ? '<div class="shots">'+o.shots.map(function(p){
+  return '<figure><img src="'+esc(p[0])+'" alt="'+esc(p[1])+'" loading="lazy"><figcaption>'+esc(p[1])+'</figcaption></figure>'; }).join("")+'</div>' : ""; }
+function links(o){ return o.links ? o.links.map(function(p){
+  return '<a class="link" href="'+esc(p[1])+'" target="_blank" rel="noopener">'+esc(p[0])+' →</a>'; }).join("") : ""; }
 
- {h:"Whole voyages — the real bar"},
- {note:"A stretch of play is not QA. These three are the gate, and they found a nine-day-old softlock the first night they were run."},
- {n:33,look:"Solo, all the way to the end card"},
- {n:34,look:"Pass-and-play, all the way to the end card"},
- {n:35,look:"A crew game — two devices — to the end card, BOTH screens",right:"Same game on both: same wording, same moment, cameras agreeing."},
+function block(o,warn){
+  return '<div class="'+(warn?"q":"item")+'" data-id="'+o.id+'">'
+    + (o.n?'<div class="num">'+esc(o.n)+'</div>':"")
+    + '<h3>'+esc(o.t)+'</h3>'
+    + '<p>'+esc(o.d)+'</p>'
+    + (o.why?'<p class="why">'+esc(o.why)+'</p>':"")
+    + (o.opts?'<p class="why"><b>'+esc(o.opts)+'</b></p>':"")
+    + (o.hard?'<p class="why">'+esc(o.hard)+'</p>':"")
+    + shots(o) + links(o)
+    + '<div class="btns">'
+    + '<button class="ok" data-v="ok" aria-pressed="false">'+(warn?"Do as ye recommend":"Pass")+'</button>'
+    + '<button class="bad" data-v="bad" aria-pressed="false">'+(warn?"No — and here is why":"Problem")+'</button>'
+    + '<span class="saved"></span></div>'
+    + '<textarea placeholder="'+(warn?"Yer answer, in yer words…":"Notes — what you saw, and where…")+'"></textarea>'
+    + '</div>';
+}
 
- {h:"Already known — please do NOT spend time reporting these"},
- {note:"<strong>1.</strong> Phone, trade with the coin slider: offer text hidden behind the slider box, “Toasty Wheat” clipped.<br><strong>2.</strong> Desktop recipe picker: “Bake this!” covering the plate icon on the selected card.<br><strong>3.</strong> Occasional stacked circles in a crowded fan — known, intermittent, mine to catch.<br><strong>4.</strong> Extreme window shapes letterbox the board deliberately.<br><strong>5. Multi-captain trades still ask each holder one at a time</strong> — two holders costs about 18 seconds of everyone else reading “…is deciding”. Known, open, and it is what I am building right now."}
-];
+$("questions").innerHTML=QUESTIONS.map(function(o){return block(o,true)}).join("");
+if(!QUESTIONS.length){ $("qHead").textContent="Nothing waiting on an answer from me"; $("qSub").textContent="Everything below is to look at and play."; }
+$("items").innerHTML=ITEMS.map(function(o){return block(o,false)}).join("");
+$("checks").innerHTML=WALKS.map(function(o){return block(o,false)}).join("");
+$("open").innerHTML=OPEN.map(function(r){
+  return '<div class="'+(r[0]==="blk"?"block":"done")+'"><b>'+esc(r[1])+'</b> — '+esc(r[2])
+    +(r[3]?' <a class="link" href="'+esc(r[3])+'" target="_blank" rel="noopener">open →</a>':'')+'</div>'; }).join("");
 
-const KEY="pp4-playtest-2026-08-25f";
-/* GUARDED, for the same reason as its two siblings: this sheet is opened as a hosted page on his
-   PHONE, and in a private tab the accessor itself THROWS rather than returning null -- an
-   unguarded read here would take the whole page down and leave him a blank screen instead of a
-   checklist. A storage failure costs him his saved marks and nothing else. */
-const store = {
-  read(){ try{ return JSON.parse(localStorage.getItem(KEY)||"{}"); }catch(e){ return {}; } },
-  write(v){ try{ localStorage.setItem(KEY,JSON.stringify(v)); return true; }catch(e){ return false; } },
-  drop(){ try{ localStorage.removeItem(KEY); }catch(e){} }
-};
-let state=store.read();
-const save=()=>{const ok=store.write(state);const s=document.getElementById("saved");s.textContent=ok?"saved ✓":"can’t save here — copy yer notes before ye leave";clearTimeout(save._t);save._t=setTimeout(()=>s.textContent="saves as you type",1200);tally();};
-const list=document.getElementById("list");
-
-for(const d of DATA){
-  if(d.h){const h=document.createElement("h2");h.textContent=d.h;list.appendChild(h);continue;}
-  if(d.note){const p=document.createElement("div");p.className="note";p.innerHTML=d.note;list.appendChild(p);continue;}
-  const it=document.createElement("div");it.className="item";it.id="i"+d.n;
-  it.innerHTML=`<div class="top"><div class="n">${d.n}</div><div class="txt">
-      <div class="look"></div>${d.right?'<div class="right"></div>':""}${d.why?'<div class="why"></div>':""}
-    </div></div>
-    <div class="acts">
-      <button data-v="pass" aria-pressed="false">Passed</button>
-      <button data-v="fail" aria-pressed="false">Problem</button>
-    </div>
-    <textarea placeholder="Notes on #${d.n}…"></textarea>`;
-  it.querySelector(".look").textContent=d.look;
-  if(d.right) it.querySelector(".right").textContent=d.right;
-  if(d.why) it.querySelector(".why").textContent=d.why;
-  const st=state[d.n]||{};
-  const ta=it.querySelector("textarea");
-  ta.value=st.c||""; if(ta.value) ta.classList.add("has");
-  if(st.v) it.classList.add(st.v);
-  it.querySelectorAll(".acts button").forEach(b=>{
-    if(st.v===b.dataset.v) b.setAttribute("aria-pressed","true");
-    b.onclick=()=>{
-      const cur=state[d.n]||{}; const v=cur.v===b.dataset.v?null:b.dataset.v;
-      state[d.n]={...cur,v};
-      it.classList.remove("pass","fail"); if(v) it.classList.add(v);
-      it.querySelectorAll(".acts button").forEach(o=>o.setAttribute("aria-pressed", String(o.dataset.v===v)));
-      save();
-    };
+function paint(){
+  document.querySelectorAll("[data-id]").forEach(function(el){
+    /* A row that was a TICK BOX until 2026-09-19 stored a bare `true`. Read it as "no verdict yet"
+       rather than letting it throw — his marks survive the change, and an old tick was never a
+       verdict anyway (it said "I did it", not "it was right"). */
+    let v=S[el.dataset.id]; if(typeof v!=="object"||v===null) v={};
+    el.querySelectorAll("button").forEach(function(b){ b.setAttribute("aria-pressed",String(v.mark===b.dataset.v)); });
+    el.classList.toggle("marked-ok", v.mark==="ok");
+    el.classList.toggle("marked-bad", v.mark==="bad");
+    const t=el.querySelector("textarea"); if(t&&document.activeElement!==t) t.value=v.note||"";
   });
-  ta.oninput=()=>{state[d.n]={...(state[d.n]||{}),c:ta.value};ta.classList.toggle("has",!!ta.value);save();};
-  it._d=d; list.appendChild(it);
+
 }
-function tally(){
-  const items=DATA.filter(d=>d.n);
-  const done=items.filter(d=>(state[d.n]||{}).v).length;
-  const bad=items.filter(d=>(state[d.n]||{}).v==="fail").length;
-  document.getElementById("count").textContent=`${done} / ${items.length} checked${bad?` · ${bad} problem${bad>1?"s":""}`:""}`;
+
+document.addEventListener("click",function(e){
+  const b=e.target.closest(".item button.ok, .item button.bad, .q button"); if(!b) return;
+  const el=b.closest("[data-id]"), id=el.dataset.id;
+  S[id]=S[id]||{}; S[id].mark = S[id].mark===b.dataset.v ? null : b.dataset.v;
+  paint(); save();
+});
+document.addEventListener("input",function(e){
+  if(e.target.matches("textarea")){ const el=e.target.closest("[data-id]");
+    S[el.dataset.id]=S[el.dataset.id]||{}; S[el.dataset.id].note=e.target.value; save(); }
+});
+
+
+/* COPY IS ONE TAP. The first tap copies; the message is confirmation of something that already
+   happened — and it never claims a copy it did not make. ANSWERS COME OUT FIRST: they are what
+   unblocks work. A section with no comment is simply absent, never padded with "(no comment)". */
+function notes(){
+  const L=[]; const mark=function(v){ return v==="ok"?"AGREED":v==="bad"?"NO":""; };
+  L.push("PASTRY PIRATES — checklist, build 2026.09.19.1-staging@53338433");
+  const qs=QUESTIONS.filter(function(o){ return S[o.id]&&typeof S[o.id]==="object"&&(S[o.id].mark||S[o.id].note); });
+  if(qs.length){ L.push("","ANSWERS");
+    qs.forEach(function(o){ const v=S[o.id]; L.push("",o.t.replace(/^\d+ · /,""));
+      if(v.mark) L.push("  -> "+mark(v.mark)); if(v.note) L.push("  "+v.note); }); }
+  const is=ITEMS.filter(function(o){ return S[o.id]&&typeof S[o.id]==="object"&&(S[o.id].mark||S[o.id].note); });
+  if(is.length){ L.push("","VERDICTS");
+    is.forEach(function(o){ const v=S[o.id]; L.push("",o.t);
+      if(v.mark) L.push("  -> "+(v.mark==="ok"?"PASS":"PROBLEM")); if(v.note) L.push("  "+v.note); }); }
+  const ws=WALKS.filter(function(o){ return S[o.id]&&typeof S[o.id]==="object"&&(S[o.id].mark||S[o.id].note); });
+  if(ws.length){ L.push("","THE PLAYTEST ("+ws.length+" of "+WALKS.length+" answered)");
+    ws.forEach(function(o){ const v=S[o.id]; L.push("",o.t);
+      if(v.mark) L.push("  -> "+(v.mark==="ok"?"PASS":"PROBLEM")); if(v.note) L.push("  "+v.note); }); }
+  return L.join("\n");
 }
-tally();
-document.getElementById("copy").onclick=()=>{
-  const L=[`Pastry Pirates playtest — build ${document.getElementById("stamp").textContent}`,""];
-  for(const d of DATA){ if(!d.n) continue; const s=state[d.n]||{}; if(!s.v && !(s.c||"").trim()) continue;
-    L.push(`#${d.n} [${s.v==="pass"?"PASSED":s.v==="fail"?"PROBLEM":"—"}] ${d.look}`);
-    if((s.c||"").trim()) L.push(`    ${s.c.trim().replace(/\n/g,"\n    ")}`);
-  }
-  const items=DATA.filter(d=>d.n), skipped=items.filter(d=>!(state[d.n]||{}).v).map(d=>d.n);
-  if(skipped.length) L.push("", `Not checked: ${skipped.join(", ")}`);
-  if(L.length<=2) L.push("(nothing marked yet)");
-  document.getElementById("outtxt").value=L.join("\n");
-  document.getElementById("out").showModal();
-};
-document.getElementById("docopy").onclick=async()=>{
-  const t=document.getElementById("outtxt"); t.select();
-  try{ await navigator.clipboard.writeText(t.value); document.getElementById("docopy").textContent="Copied ✓"; }
-  catch(e){ document.execCommand("copy"); document.getElementById("docopy").textContent="Copied ✓"; }
-  setTimeout(()=>document.getElementById("docopy").textContent="Copy to clipboard",1500);
-};
-document.getElementById("close").onclick=()=>document.getElementById("out").close();
-document.getElementById("reset").onclick=()=>{ if(!confirm("Clear every mark and note?"))return;
-  state={}; store.drop(); location.reload(); };
+$("copyBtn").addEventListener("click",async function(){
+  const txt=notes(); let ok=false;
+  try{ await navigator.clipboard.writeText(txt); ok=true; }catch(e){}
+  if(!ok){ const ta=document.createElement("textarea"); ta.value=txt;
+    ta.style.cssText="position:fixed;left:0;top:0;opacity:0"; document.body.appendChild(ta);
+    ta.focus(); ta.select();
+    try{ ok=document.execCommand("copy"); }catch(e){}
+    if(ok) ta.remove();
+    else { ta.style.cssText="width:100%;height:220px;margin-top:8px"; } }
+  const s=$("copySaid");
+  s.textContent = ok ? "copied ✓" : "couldn't copy — the text is selected, copy it by hand";
+  clearTimeout(s._t); s._t=setTimeout(function(){ s.textContent=""; },3000);
+});
+
+paint();
 </script>

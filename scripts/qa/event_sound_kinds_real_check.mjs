@@ -1,21 +1,27 @@
 #!/usr/bin/env node
 /* A SOUND MAPPED TO SOMETHING THAT CANNOT HAPPEN IS DEAD WIRING.
  *
- * FACT: which of the game's events make a sound. It is decided in one place — EVENT_SOUND,
- * src/ui/audio.js — and that place is a HAND-KEPT TABLE whose other half, the list of events the
- * engine can actually emit, lives in the engine and moves without it.
+ * FACT: which of the game's events make a sound. It is decided in one place — EVENT_CUE,
+ * src/shared/sounds.js — and that place is a HAND-KEPT TABLE whose other half, the list of events
+ * the engine can actually emit, lives in the engine and moves without it.
+ *
+ * (It was EVENT_SOUND in src/ui/audio.js until 2026-09-19, when the whole sound design moved into
+ * the shared tier so a second map can bring its own pack. The table's VALUES are cue names now
+ * rather than stem names — "which moment is this?" instead of "which file?" — and this gate reads
+ * its KEYS, which are the event kinds and did not change. What it guards is unchanged with them.)
  *
  * IT HAD ALREADY DRIFTED BY TWO ENTRIES WHEN THIS GATE WAS WRITTEN, 2026-09-18, and both were found
  * by reading the table's own comments against the engine:
  *   fish: "fishing"    — src/ui/flow.js:321, in the game's own words: "v2 rule 3: fishing is gone
  *                        entirely. fishCast() and its whole flip-for-coins path are deleted".
  *                        Nothing in src/ has emitted a `fish` event since the cutover.
- *   shipwrecked: "storm" — its own comment two lines above it says "v2.1: nothing runs aground any
- *                        more — the storm keeps its own cue via `newround`". And the stem it named
- *                        was `storm`, the one stem docs/AUDIO.md DEFECT-1 and DEFECT-2 are about
- *                        (an 8-second bed at ~3x level, once per ship, unfadeable). A dead key
- *                        pointing at the one stem that must never come back is the worst kind of
- *                        dead: harmless today, and armed.
+ *   anchor: "fishing"  — the v1 storm ladder, deleted with the rest of it by the v2 rules. The
+ *                        second entry of the pair was the worse of the two: it pointed at `storm`,
+ *                        the one stem docs/AUDIO.md DEFECT-1 and DEFECT-2 are about (an 8-second
+ *                        bed at ~3x level, once per ship, unfadeable). A dead key aimed at a sound
+ *                        that must never come back is the worst kind of dead: harmless today, and
+ *                        armed. Its name is out of this tree entirely now (Wyatt, 2026-09-19), so
+ *                        the mutant below exercises the rule with the survivor of the same pair.
  * Both were real kinds in the FROZEN v1 (classic/, and the determinism fixtures still record them),
  * which is exactly how a table rots — the entry was right when it was written.
  *
@@ -55,7 +61,8 @@ function tableKeys(src, name) {
 }
 
 function rules(files) {
-  const keys = tableKeys(files["src/ui/audio.js"] || "", "const EVENT_SOUND=") .concat(tableKeys(files["src/ui/audio.js"] || "", "const EVENT_SOUND ="));
+  const T = files["src/shared/sounds.js"] || "";
+  const keys = tableKeys(T, "const EVENT_CUE=").concat(tableKeys(T, "const EVENT_CUE ="));
   const keySet = [...new Set(keys)];
   const produced = emittedKinds(files);
   const out = [];
@@ -72,8 +79,8 @@ function rules(files) {
   const lost = MUST_HAVE.filter(k => !produced.has(k));
   const strays = strayEmitters(files);
   rule(anchors.length === 0 && lost.length === 0 && strays.length === 0 && keySet.length >= 15 && produced.size >= 25,
-    `both lists are derived and alive: ${keySet.length} sound entries read out of audio.js, ${produced.size} event kinds derived from the ${EMITTER_FILES.length} files that emit them (the ternary's blownOut/windmove and the ones built in a variable, sail and battleflee, included), and nothing else in src/ emits`,
-    anchors.length ? `the event->sound table could not be read (missing ${anchors.join(", ")}; ${keySet.length} keys found) — rule 1 above would pass on nothing`
+    `both lists are derived and alive: ${keySet.length} sound entries read out of sounds.js, ${produced.size} event kinds derived from the ${EMITTER_FILES.length} files that emit them (the ternary's blownOut/windmove and the ones built in a variable, sail and battleflee, included), and nothing else in src/ emits`,
+    anchors.length ? `the event->cue table could not be read (missing ${anchors.join(", ")}; ${keySet.length} keys found) — rule 1 above would pass on nothing`
       : lost.length ? `the producer derivation lost ${lost.join(", ")} — a live event would be condemned as dead`
         : strays.length ? `${strays.join(", ")} emits events too, and the derivation does not read it — add it to EMITTER_FILES in scripts/lib/twin_ledger.mjs`
           : `the lists look wrong: ${keySet.length} sound entries, ${produced.size} event kinds`);
@@ -88,16 +95,16 @@ for (const r of real) console.log(`  ${r.ok ? "PASS" : "FAIL"}  ${r.text}`);
    mutants are not inventions — they are the tree as it stood before this commit. */
 const broke = (file, from, to) => { const f = { ...files }; if (!f[file] || !f[file].includes(from)) return null; f[file] = f[file].replace(from, to); return f; };
 const MUTANTS = [
-  ["the `fish` sound put back (it was there until 2026-09-18)", broke("src/ui/audio.js", "  anchorHold: null,", "  fish: \"fishing\", anchorHold: null,"), 0],
-  ["the `shipwrecked` -> storm mapping put back (it was there until 2026-09-18)", broke("src/ui/audio.js", "  blocked: null,", "  shipwrecked: \"storm\",\n  blocked: null,"), 0],
-  ["the `idle` silence put back (it was there until 2026-09-18)", broke("src/ui/audio.js", "  purse: null,", "  purse: null, idle: null,"), 0],
+  ["the `fish` sound put back (it was there until 2026-09-18)", broke("src/shared/sounds.js", "  anchorHold: null,", "  fish: \"anchor.drops\", anchorHold: null,"), 0],
+  ["the `anchor` -> fishing mapping put back (it was there until 2026-09-18)", broke("src/shared/sounds.js", "  blocked: null,", "  anchor: \"anchor.drops\",\n  blocked: null,"), 0],
+  ["the `idle` silence put back (it was there until 2026-09-18)", broke("src/shared/sounds.js", "  purse: null,", "  purse: null, idle: null,"), 0],
   ["the engine's one non-literal emission flattened, so `blownOut` vanishes from the derived list",
     broke("src/engine/index.js", 'this.ev({t:blown?"blownOut":"windmove",p:p.idx})', 'this.ev({t:"windmove",p:p.idx})'), 1],
   ["the derivation narrowed to `.ev({t:\"…\"`, which loses the events built in a variable (sail, battleflee)",
     broke("src/engine/index.js", 'const move={...(as||{t:"sail",p:p.idx})', 'const move={...(as||{tt:"sail",p:p.idx})'), 1],
   ["a fourth file starts emitting events where the derivation does not look",
     broke("src/ui/board.js", "const ON_THE_WAY={},LEAVING={};", "const ON_THE_WAY={},LEAVING={};\nfunction stray(g){g.ev({t:\"kraken\",p:0});}"), 1],
-  ["the sound table renamed, so its keys cannot be read at all", broke("src/ui/audio.js", "const EVENT_SOUND = {", "const EVENT_SOUND_RENAMED = {"), 1],
+  ["the event->cue table renamed, so its keys cannot be read at all", broke("src/shared/sounds.js", "const EVENT_CUE = {", "const EVENT_CUE_RENAMED = {"), 1],
 ];
 let proofOk = true;
 for (const [what, mutant, idx] of MUTANTS) {

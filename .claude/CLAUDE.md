@@ -186,6 +186,7 @@ unworkable.)*
 | Bot behaviour or tuning | [`docs/BOT-DESIGN-PRINCIPLES.md`](../docs/BOT-DESIGN-PRINCIPLES.md), [`docs/BOT-V3-RACE-PLANNER.md`](../docs/BOT-V3-RACE-PLANNER.md) |
 | Browser or playtest automation | [`docs/DRIVING-THE-GAME.md`](../docs/DRIVING-THE-GAME.md) |
 | Git, deploying, the live domain | [`docs/GIT-AND-DEPLOY.md`](../docs/GIT-AND-DEPLOY.md) |
+| **Working in a cloud container (no laptop)** | [`docs/CLOUD-CONTAINER.md`](../docs/CLOUD-CONTAINER.md) — *one command sets the QA rig up. Run it BEFORE your first `npm test`, not after a gate goes red* |
 | Testing or trusting any instrument | [`docs/QA-PROCESS.md`](../docs/QA-PROCESS.md) |
 | **Publishing ANY page for him** | [`docs/ARTIFACT-GUIDELINES.md`](../docs/ARTIFACT-GUIDELINES.md) — *commentable per section, pass/problem, and RE-USE the sheet. His standing asks, in one place* |
 | **Anything that looks like a host/guest bug** | [`docs/INTENDED-BEHAVIOUR.md`](../docs/INTENDED-BEHAVIOUR.md) — *the things that look wrong and are not. He has explained the same one three times* |
