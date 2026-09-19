@@ -126,6 +126,10 @@ const PLAN={
 class Game{
   constructor(cfg,seed,record){
     this.cfg=cfg; this.record=record; this.rng=mulberry32(seed);
+    // The berth this captain is hypothetically standing in while planTurnV3 prices "dock here", so
+    // a rival's plan can be re-costed against it. Transient: posed and put back inside one
+    // evaluation, never read outside one, never serialised.
+    this.berthHold=null;
     this.seed=seed; this.randCalls=0;
     const n=cfg.grid; this.home=[Math.floor(n/2),Math.floor(n/2)];
     // --- round world: pixelated circle + trade-wind rim channel ---
@@ -2894,8 +2898,15 @@ class Game{
     const fc=this.forecastWind()||this.windNow;
     let at=q.pos,coins=q.coins,t=0;
     const buys=[];
+    /* A BERTH I AM STANDING IN IS A BERTH THEY CANNOT USE. cfg.singleDock means one ship fits, so
+       while this captain works a berth, a rival whose voyage calls at that island waits for it to
+       clear. `berthHold` is the hypothesis planTurnV3 poses when it prices "dock here" — the same
+       mutate-and-restore contract as the token decrement standing beside it — and it is read HERE
+       and nowhere else, so a berth's denial is scored through the ONE rival-plan overlay rather
+       than a second mechanism bolted on next to it. */
+    const hold=this.berthHold;
     while(need>0){
-      let best=null,bing=null,bsail=0,bearn=0,bprice=0;
+      let best=null,bing=null,bsail=0,bearn=0,bprice=0,bwait=0;
       for(const ing of this.ings){
         if(held.has(ing)||buys.some(b=>b.ing===ing))continue;
         // an empty shelf is no longer a dead end: the black market prices it flat (mirrors
@@ -2907,11 +2918,14 @@ class Game{
           :stock[ing]<=0?this.cfg.blackMarket
           :Math.max(1,base-stock[ing]);
         const earn=this.coinTurns(price-coins);
-        const cost=sail+earn+1;
-        if(best===null||cost<best){best=cost;bing=ing;bsail=sail;bearn=earn;bprice=price;}
+        // they only wait if they would ARRIVE while the berth is still held — the same arrival
+        // schedule tour3 already uses to decide which shelves are bare by the time you get there
+        const wait=(hold&&hold.ing===ing&&hold.by!==q)?Math.max(0,hold.until-(t+sail)):0;
+        const cost=sail+wait+earn+1;
+        if(best===null||cost<best){best=cost;bing=ing;bsail=sail;bearn=earn;bprice=price;bwait=wait;}
       }
       if(bing===null){t+=4;need--;continue;}   // nothing buyable: a deal or a fight, ~4 turns
-      t+=bsail+bearn+1;
+      t+=bsail+bwait+bearn+1;
       coins+=bearn*pay+pay-bprice;             // the buying flip pays too, same as doDock
       if(stock[bing]<1e9&&stock[bing]>0)stock[bing]--;   // the black market's shelf is bottomless
       buys.push({ing:bing,t});
@@ -2920,6 +2934,22 @@ class Game{
     }
     const home=this.legTurns3(at,this.home,fc);
     t+=(home===null?PLAN.unreachable:home)+(this.cfg.bakeoff?PLAN.bakeTurns:0);
+    /* BEING IN THEIR WAY CAN NEVER SPEED THEM UP. This walk is GREEDY — cheapest next errand, in
+       order — so a cost added to one leg can tip it into a DIFFERENT order that happens to beat the
+       order it was already taking, and the blocked plan comes back SHORTER. That is an artefact of
+       the greedy, not a voyage the rival actually gets: their unblocked self was free to take that
+       order too and did not. Caught by scripts/qa/honest_ruler_check.mjs's posed board on seed
+       79190 — sugar's berth held, their ETA 20 -> 19 — which is the whole reason that rule exists
+       as a posed board and not as a regex.
+       So the held plan is only believed while it is not faster than the free one. The error runs
+       AGAINST denial being worth anything (it can only ever price a block at zero, never at more
+       than it is worth), so the denial this engine scores is a FLOOR. */
+    if(hold&&buys.some(b=>b.ing===hold.ing)){
+      this.berthHold=null;
+      const free=this.rivalPlan3(q);
+      this.berthHold=hold;
+      if(t<free.eta)return free;
+    }
     return {eta:t,buys};
   }
   // Recompute one rival's ETA under a hypothesis about their hold — they lost a crate to me, or
@@ -3161,13 +3191,29 @@ class Game{
                                           coins:purse-(take?price:0)},ctx);
           // my purchase empties a shelf slot rivals may have been counting on — their race moves.
           // Not on a black-market buy: that shelf is bottomless, so nobody's plan changes.
+          /* AND THE BERTH IS MINE WHILE I WORK IT. Wyatt, 2026-09-18: "If you dock to get a coin,
+             your distance to that ingredient is zero. That's worth more than if you move one square
+             away to muse a coin. It's also a better move because it blocks others from using the
+             dock." Until this change dockOccupiedBy was only ever a COST — every reading of it
+             priced somebody ELSE's ship sitting in the berth — and nothing credited this captain
+             for being the ship in it.
+             HOW LONG THE BLOCK LASTS IS NOT A CONSTANT. It is the turns I still owe this berth,
+             earned at the rate any captain earns them (coinTurns of what the flip leaves me short)
+             plus the one turn the purchase itself costs. So a bot about to buy and sail denies
+             almost nothing, and a bot with an empty purse and a long grind ahead denies a lot —
+             which is the true shape of it, and it moves with the board instead of being typed. */
+          const hold=this.cfg.singleDock?1+this.coinTurns((price===null?0:price)-purse):0;
+          const bought=take&&this.tokens[port]>0;
           let ov=null;
-          if(take&&this.tokens[port]>0){
+          if(bought||hold>0){
             ov=new Map();
-            this.tokens[port]--;
+            if(bought)this.tokens[port]--;
+            const held=this.berthHold;
+            if(hold>0)this.berthHold={ing:port,until:hold,by:p};
             for(const e of ctx.plans)
               if(e.plan.buys.some(b=>b.ing===port))ov.set(e.q,this.rivalPlan3(e.q).eta);
-            this.tokens[port]++;
+            this.berthHold=held;
+            if(bought)this.tokens[port]++;
           }
           const s=this.raceScore3(myT,ctx.plans,ov);
           ep+=0.5*s;branches.push({pay,myT,take,s:+s.toFixed(4)});
