@@ -188,12 +188,14 @@ if (volStart === -1) {
    explicit silence and is the file's own convention for a moment that should make no sound.
 
    DEAD KEYS ARE DELIBERATELY NOT FAILED HERE, and the reason is evidence, not leniency. Measured
-   2026-09-18 over 200 seeded voyages plus a grep of every emitter in src/: seven EVENT_SOUND keys
-   name an event nothing emits — `fish`, `anchor`, `shipwrecked`, `dodge` (which name real stems)
-   and `moored`, `idle`, `bakeoff` (explicit silence). They cost nothing at runtime: an event that
-   never fires never reaches the lookup. Failing them would be a gate deciding, on its own, to
-   delete four records of intent — and the standing ruling is that the default is KEEP. They are
-   reported in docs/AUDIO.md §1c instead, where a person can rule on them. */
+   2026-09-18 over 200 seeded voyages plus a grep of every emitter in src/: six EVENT_SOUND keys
+   name an event nothing emits — `fish`, `anchor`, `dodge` (which name real stems) and `moored`,
+   `idle`, `bakeoff` (explicit silence). They cost nothing at runtime: an event that never fires
+   never reaches the lookup. Failing them would be a gate deciding, on its own, to delete three
+   records of intent — and the standing ruling is that the default is KEEP. They are reported in
+   docs/AUDIO.md §1c instead, where a person can rule on them. (It was seven until 2026-09-19:
+   the wreck at the bottom of the v1 storm ladder is out of the live tree at Wyatt's word, and
+   scripts/qa/event_sound_kinds_real_check.mjs is what keeps any of them from coming back.) */
 const evSoundStems = [];
 {
   const s0 = src.indexOf("const EVENT_SOUND = {");

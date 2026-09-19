@@ -10,12 +10,13 @@
  *   fish: "fishing"    — src/ui/flow.js:321, in the game's own words: "v2 rule 3: fishing is gone
  *                        entirely. fishCast() and its whole flip-for-coins path are deleted".
  *                        Nothing in src/ has emitted a `fish` event since the cutover.
- *   shipwrecked: "storm" — its own comment two lines above it says "v2.1: nothing runs aground any
- *                        more — the storm keeps its own cue via `newround`". And the stem it named
- *                        was `storm`, the one stem docs/AUDIO.md DEFECT-1 and DEFECT-2 are about
- *                        (an 8-second bed at ~3x level, once per ship, unfadeable). A dead key
- *                        pointing at the one stem that must never come back is the worst kind of
- *                        dead: harmless today, and armed.
+ *   anchor: "fishing"  — the v1 storm ladder, deleted with the rest of it by the v2 rules. The
+ *                        second entry of the pair was the worse of the two: it pointed at `storm`,
+ *                        the one stem docs/AUDIO.md DEFECT-1 and DEFECT-2 are about (an 8-second
+ *                        bed at ~3x level, once per ship, unfadeable). A dead key aimed at a sound
+ *                        that must never come back is the worst kind of dead: harmless today, and
+ *                        armed. Its name is out of this tree entirely now (Wyatt, 2026-09-19), so
+ *                        the mutant below exercises the rule with the survivor of the same pair.
  * Both were real kinds in the FROZEN v1 (classic/, and the determinism fixtures still record them),
  * which is exactly how a table rots — the entry was right when it was written.
  *
@@ -89,7 +90,7 @@ for (const r of real) console.log(`  ${r.ok ? "PASS" : "FAIL"}  ${r.text}`);
 const broke = (file, from, to) => { const f = { ...files }; if (!f[file] || !f[file].includes(from)) return null; f[file] = f[file].replace(from, to); return f; };
 const MUTANTS = [
   ["the `fish` sound put back (it was there until 2026-09-18)", broke("src/ui/audio.js", "  anchorHold: null,", "  fish: \"fishing\", anchorHold: null,"), 0],
-  ["the `shipwrecked` -> storm mapping put back (it was there until 2026-09-18)", broke("src/ui/audio.js", "  blocked: null,", "  shipwrecked: \"storm\",\n  blocked: null,"), 0],
+  ["the `anchor` -> fishing mapping put back (it was there until 2026-09-18)", broke("src/ui/audio.js", "  blocked: null,", "  anchor: \"fishing\",\n  blocked: null,"), 0],
   ["the `idle` silence put back (it was there until 2026-09-18)", broke("src/ui/audio.js", "  purse: null,", "  purse: null, idle: null,"), 0],
   ["the engine's one non-literal emission flattened, so `blownOut` vanishes from the derived list",
     broke("src/engine/index.js", 'this.ev({t:blown?"blownOut":"windmove",p:p.idx})', 'this.ev({t:"windmove",p:p.idx})'), 1],

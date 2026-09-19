@@ -418,18 +418,24 @@ const BATTLE_ENGAGE_SOUND = "battle-swords";
    25-key event->sound mapping, mirroring EVENT_NARRATION's exact shape (src/ui/util.js)". On
    2026-09-18 it held 38 keys against EVENT_NARRATION's 13, and SEVEN of them named events the
    cutover deleted — so the table that is supposed to say what every action does had drifted by
-   seven entries, in the one file a "which sound plays here?" question is answered from.
+   seven entries, in the one file a "which sound plays here?" question is answered from. SIX are
+   listed below; the seventh is gone from this file entirely — see the note under the list.
    THE RECORD OF WHAT WENT, so nobody puts them back by accident (each verified absent from all of
    src/ before it was removed; all seven are still real in the FROZEN v1, classic/, which is exactly
    how a table like this rots — every one of them was right when it was written):
      fish: "fishing"        v2 rule 3, src/ui/flow.js:321 — "fishing is gone entirely"
      anchor: "fishing"      the v1 storm ladder; `anchorHold` below is its only survivor
-     dodge: "battle-swords" the v1 storm ladder (src/ui/flow.js:1712 names the whole ladder as deleted)
-     shipwrecked: "storm"   v2.1, and it pointed at the ONE stem docs/AUDIO.md DEFECT-1/DEFECT-2 are
-                            about — a dead key aimed at the sound that must never come back
+     dodge: "battle-swords" the v1 storm ladder (src/ui/flow.js names the whole ladder as deleted)
      moored: null           explicit silence for an event v2 does not have (`blocked`/`halted` remain)
      bakeoff: null          the engine emits `bake` and `bakeTurn`, never `bakeoff`
-     idle: null             emitted nowhere; the only other "idle" in src/ is an animation playState */
+     idle: null             emitted nowhere; the only other "idle" in src/ is an animation playState
+   THE SEVENTH IS NOT NAMED HERE AND THAT IS DELIBERATE — Wyatt, 2026-09-19: the wreck at the bottom
+   of the v1 storm ladder "doesn't exist any more in the game and never will", so its name is out of
+   the live tree altogether rather than preserved in a list of things not to do. NOTHING IS LOST BY
+   THAT: a comment was never what stopped a dead key coming back — scripts/qa/event_sound_kinds_real_check.mjs
+   fails the build on ANY key here naming an event nothing in src/ emits, which is the whole class,
+   not one remembered member of it. It is still a live rule in the FROZEN v1 (classic/), which keeps
+   its own engine and its own audio table and is not touched by this. */
 const EVENT_SOUND = {
   // D-01 (sailing); D-04 (wind pushes your boat — your ship moved, just not by choice); D-21 (a
   // gale blows you off the dock — the identical case as windmove)
