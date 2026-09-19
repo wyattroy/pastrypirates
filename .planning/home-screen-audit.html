@@ -1,0 +1,316 @@
+<title>Home Screen Tuner</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zilla+Slab:wght@600;700&family=Source+Sans+3:wght@400;600;700&family=JetBrains+Mono:wght@400;700&display=swap">
+<style>
+:root{--bg:#f6efe0;--card:#fffdf6;--line:#e2d6bd;--text:#24313a;--muted:#6d6455;--teal:#1d96a6;--gold:#f5a623;
+ --mint:#27c78d;--coral:#f2679e;--wood:#8a5a2b;--shadow:0 1px 2px rgba(45,30,10,.07),0 8px 22px rgba(45,30,10,.08)}
+@media (prefers-color-scheme:dark){:root:not([data-theme=light]){--bg:#141c20;--card:#1b262b;--line:#2f4048;--text:#e9f1f3;--muted:#9aa9a5;--shadow:0 1px 2px rgba(0,0,0,.5),0 8px 22px rgba(0,0,0,.4)}}
+:root[data-theme=dark]{--bg:#141c20;--card:#1b262b;--line:#2f4048;--text:#e9f1f3;--muted:#9aa9a5;--shadow:0 1px 2px rgba(0,0,0,.5),0 8px 22px rgba(0,0,0,.4)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font:16px/1.55 "Source Sans 3",-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif}
+.wrap{max-width:820px;margin:0 auto;padding:0 18px}
+header{background:var(--card);border-bottom:3px solid var(--wood);padding:14px 0 10px;box-shadow:var(--shadow)}
+h1{font-family:"Zilla Slab",Georgia,serif;font-size:clamp(20px,5vw,28px);margin:0 0 3px;letter-spacing:-.4px}
+.sub{color:var(--muted);font-size:13.5px;margin:0 0 10px}
+.headrow{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:8px}
+button.copy,button.reset{background:var(--gold);color:#3d2a00;font-weight:700;font-family:inherit;padding:9px 15px;
+ border-radius:10px;border:0;cursor:pointer;font-size:15px}
+button.reset{background:transparent;color:inherit;border:1px solid var(--line)}
+.saved{font-size:12.5px;color:var(--muted)}
+
+/* ⭐ THE PREVIEW NEVER LEAVES THE SCREEN — his standing ask (ARTIFACT-GUIDELINES §9): a tuner is a
+   feedback loop and a loop with a scroll in the middle of it is broken. Sticky, capped, opaque. */
+.stage{position:sticky;top:0;z-index:4;background:var(--bg);padding:10px 0 12px;border-bottom:1px solid var(--line)}
+.phone{width:264px;height:452px;margin:0 auto;border-radius:22px;overflow:hidden;position:relative;
+ border:7px solid #20303a;box-shadow:0 10px 30px rgba(0,0,0,.3);background:#2e93c4}
+.sea{position:absolute;inset:0;background:
+  radial-gradient(circle at 22% 28%,#7ab87a 0 34px,transparent 35px),
+  radial-gradient(circle at 74% 62%,#c9b072 0 26px,transparent 27px),
+  radial-gradient(circle at 42% 84%,#7ab87a 0 22px,transparent 23px),
+  linear-gradient(#3aa3d4,#2a7fae);transition:filter .3s,opacity .3s}
+.boat{position:absolute;font-size:15px;transition:transform 2.2s linear}
+.gcard{position:absolute;left:11px;right:11px;background:#fffdf2;border:3px solid #cfe3e6;border-radius:14px;
+ padding:9px;box-shadow:0 6px 18px rgba(0,0,0,.28);transition:top .3s,bottom .3s,border-radius .3s,left .3s,right .3s}
+.logo{border-radius:8px;background:linear-gradient(135deg,#2e86b8,#1d5f86);color:#fff;text-align:center;
+ font-family:"Zilla Slab",Georgia,serif;font-weight:700;display:flex;align-items:center;justify-content:center;
+ letter-spacing:.5px;transition:height .25s,font-size .25s}
+.lore{font-size:8.4px;line-height:1.38;color:#3a4a52;text-align:center;margin:6px 2px 0}
+.hl{font-family:"Zilla Slab",Georgia,serif;font-size:11px;text-align:center;color:#1d5f86;margin:6px 0 0;font-weight:700}
+.badges{display:flex;gap:4px;justify-content:center;flex-wrap:wrap;margin-top:5px}
+.badge{font-size:7px;font-weight:700;padding:2px 6px;border-radius:99px;background:#eaf4f7;color:#1d5f86;border:1px solid #cfe3e6}
+.modes{display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-top:7px}
+.m{border-radius:8px;padding:7px 4px;text-align:center;color:#fff;font-weight:700;font-size:8.6px;line-height:1.2;
+ box-shadow:0 2px 5px rgba(0,0,0,.18);transition:all .25s}
+.m .ico{font-size:13px;display:block;margin-bottom:1px}
+.m .sc{display:block;font-size:6.6px;font-weight:600;opacity:.92;margin-top:1px}
+.m.solo{background:linear-gradient(160deg,#35c98f,#22a878)}
+.m.pnp{background:linear-gradient(160deg,#2e9fb8,#1d7b94)}
+.m.host{background:linear-gradient(160deg,#f0a63c,#d8811c)}
+.m.join{background:linear-gradient(160deg,#f281b4,#e05f98)}
+.m.primary{grid-column:1/-1;padding:12px 4px;font-size:12px}
+.m.primary .ico{font-size:19px}
+.m.primary .sc{font-size:7.6px}
+.foot{position:absolute;left:0;right:0;text-align:center;font-size:7px;color:#e8f4f8;text-shadow:0 1px 2px rgba(0,0,0,.5);transition:bottom .3s}
+.resume{background:#fff4d6;border:1.5px solid #f0c264;border-radius:8px;padding:5px 7px;margin-top:6px;font-size:8px;color:#6b4e00;font-weight:700;text-align:center}
+.snd{position:absolute;top:8px;right:9px;font-size:12px;filter:drop-shadow(0 1px 2px rgba(0,0,0,.5))}
+
+h2{font-family:"Zilla Slab",Georgia,serif;font-size:18px;margin:24px 0 2px;color:var(--wood)}
+.rec{background:var(--card);border:1px solid var(--line);border-left:5px solid var(--line);border-radius:12px;
+ padding:11px 13px;margin:0 0 9px;box-shadow:var(--shadow)}
+.rec.on{border-left-color:var(--mint)}
+.rec h3{margin:0 0 3px;font-size:14.8px;font-weight:700;display:flex;gap:8px;align-items:baseline}
+.rec .n{font:700 10.5px/1 "JetBrains Mono",monospace;color:var(--teal);flex:0 0 auto}
+.rec p{margin:0 0 6px;font-size:13.3px;color:var(--muted)}
+.rec p.why{color:var(--text)}
+.rec .row{display:flex;gap:9px;align-items:center;flex-wrap:wrap}
+.sw{position:relative;width:44px;height:25px;flex:0 0 auto;border-radius:99px;background:var(--line);cursor:pointer;border:0;transition:background .18s}
+.sw[aria-pressed=true]{background:var(--mint)}
+.sw i{position:absolute;top:3px;left:3px;width:19px;height:19px;border-radius:50%;background:#fff;transition:left .18s;box-shadow:0 1px 3px rgba(0,0,0,.3)}
+.sw[aria-pressed=true] i{left:22px}
+.swl{font-size:12.6px;font-weight:700;color:var(--muted)}
+input[type=range]{flex:1 1 130px;accent-color:var(--teal)}
+textarea{width:100%;margin-top:7px;padding:7px 9px;border-radius:9px;border:1px solid var(--line);
+ background:var(--bg);color:var(--text);font:inherit;font-size:13.5px;resize:vertical;min-height:34px}
+.note{background:#fff3cd;color:#6b4e00;border:1px solid #e8cf86;border-left:5px solid var(--gold);
+ border-radius:12px;padding:11px 13px;margin:0 0 10px;font-size:13.6px}
+@media (prefers-color-scheme:dark){:root:not([data-theme=light]) .note{background:#3a3016;color:#f6e7bd;border-color:#5d4d23;border-left-color:var(--gold)}}
+:root[data-theme=dark] .note{background:#3a3016;color:#f6e7bd;border-color:#5d4d23;border-left-color:var(--gold)}
+.foot2{margin:24px 0 60px;color:var(--muted);font-size:13px}
+</style>
+
+<header><div class="wrap">
+<h1>Home screen tuner</h1>
+<p class="sub">18 things other games do. Flip each one on and watch the phone. What ye leave on is the design.</p>
+<div class="headrow">
+  <button class="copy" id="copyBtn">Copy my picks</button>
+  <button class="reset" id="resetBtn">Back to today's screen</button>
+  <span class="saved" id="said"></span>
+</div>
+</div></header>
+
+<div class="stage"><div class="phone" id="phone">
+  <div class="sea" id="sea"></div>
+  <div class="boat" id="b1" style="top:18%;left:10%">⛵</div>
+  <div class="boat" id="b2" style="top:64%;left:62%">⛵</div>
+  <div class="snd" id="snd" hidden>🔊</div>
+  <div class="gcard" id="gcard">
+    <div class="logo" id="logo">PASTRY PIRATES</div>
+    <div class="hl" id="hl" hidden>Be crowned Best Baker in the Caribbean</div>
+    <div class="badges" id="badges"></div>
+    <div class="lore" id="lore">Ye came to the sunny shores of Tortuga to start a bakery — but yer pantry is empty! Sail the Sugar Seas, gather ingredients, and battle other pirates to be crowned Best Baker in the Caribbean.</div>
+    <div class="resume" id="resume" hidden>⚓ Yer voyage awaits — Day 6 · Continue</div>
+    <div class="modes" id="modes"></div>
+  </div>
+  <div class="foot" id="pfoot" style="bottom:7px">Privacy · About · Credits</div>
+</div></div>
+
+<div class="wrap">
+<div class="note" id="intro"></div>
+<h2>The recommendations</h2>
+<p class="sub">Ordered by how much I think each is worth. Every one is a real thing a comparable game does — and where something is <b>not measured</b>, it says so.</p>
+<div id="recs"></div>
+<div class="foot2" id="f2"></div>
+</div>
+
+<script>
+const $=id=>document.getElementById(id);
+
+/* ⭐ EIGHTEEN VARIABLES, NOT EIGHTEEN OPINIONS. Each is something a comparable game actually does,
+   each is a switch he can flip, and each carries the evidence — or says plainly that there is none.
+   `d` is what it does, `why` is the evidence, `cost` is what it costs. */
+const RECS=[
+ {id:"primary",t:"ONE button that dominates, not four equal cards",def:false,
+  d:"Play Solo becomes a full-width primary; the other three shrink underneath it.",
+  why:"Four equal cards make a stranger choose before they know what any of them mean. Solo is the only one that works with nobody else in the room, and it is the one a cold visitor can actually complete. Mobile guidance is blunt about it: one clear call to action, in the thumb zone. ⚠ NOT MEASURED HERE — there is no funnel instrumentation in this game at all, so nobody knows what fraction of arrivals pick what."},
+ {id:"unblur",t:"Un-blur the attract board — let them SEE the game playing itself",def:false,
+  d:"Drops the blur and the dim on the background, so the bots sailing behind the card are visible.",
+  why:"⭐ THE BIGGEST ONE, AND IT COSTS NOTHING TO TRY. The welcome screen ALREADY runs a full all-bot game behind the menu — the boats are sailing right now, blurred almost to nothing. Most games would pay for a live attract loop and this one is hiding the one it has. A stranger cannot tell what this game IS from a logo and a paragraph; they can tell in two seconds from watching a boat sail to an island."},
+ {id:"fill",t:"The card fills the screen — kill the dead water",def:false,
+  d:"Stretches the card to the bottom of the phone instead of ending at 65%.",
+  why:"MEASURED ON THE REAL SCREEN at 390×844: the card ends and roughly 40% of the phone below it is empty blurred water with nothing in it. That space is free and it is doing nothing. (Turn this ON with 'un-blur' OFF and ye can see how much there was.)"},
+ {id:"shortlore",t:"Cut the lore from 47 words to one line",def:false,
+  d:"Replaces the paragraph with: “Sail, trade, raid — and be crowned Best Baker in the Caribbean.”",
+  why:"47 words of story stand between arriving and the first button. The lore is GOOD — it is the best writing on the screen — but it is a reward for people who already care. The one-liner keeps the promise and drops the setup. The full version could live behind an 'About' or the first voyage."},
+ {id:"headline",t:"A plain headline above the logo saying what this IS",def:false,
+  d:"Adds “Be crowned Best Baker in the Caribbean” as a one-line headline.",
+  why:"The logo is beautiful and it does not say what ye DO. A stranger reads a picture and a pirate paragraph; neither tells them it is a board game they can play right now. Headline clarity is consistently the largest single lever on a first screen."},
+ {id:"length",t:"Say how long a voyage takes",def:false,
+  d:"Adds a “⏱ about 10 minutes” badge.",
+  why:"The single most common question about any board game, and the reason Ticket to Ride out-converts Catan as a first game: people choose by how much of their evening it costs. ⚠ THE NUMBER IS A GUESS AND MUST BE MEASURED before it ships — the trials sail 12–18 day voyages; somebody has to time a real human one."},
+ {id:"nosignup",t:"“No sign-up. No download. Just sail.”",def:false,
+  d:"Adds a reassurance badge beside the length.",
+  why:"It is TRUE of this game and it is rare — and a cold visitor assumes the opposite, because nearly everything else asks. Saying the friction is absent is worth more than removing friction nobody knew was there."},
+ {id:"proof",t:"Social proof — “658 voyages sailed”",def:false,
+  d:"Adds a count badge.",
+  why:"658 completed voyages are really in the log (the stats page already shows it). Proof placement is one of the levers that consistently moves a first screen. ⚠ It is a modest number and it may read as small rather than busy — that is a judgement call and it is yers, which is exactly why this is a switch."},
+ {id:"thumb",t:"Put the buttons in the thumb zone",def:false,
+  d:"Moves the mode cards ABOVE the lore, low on the card.",
+  why:"Most arrivals are one-handed on a phone and the reachable third of the screen is the bottom. Today the buttons sit under a paragraph, in the middle. This is the cheapest version of the change: reorder, don't redesign."},
+ {id:"resume",t:"“Yer voyage awaits” when a saved game exists",def:false,
+  d:"Shows a resume card above the modes.",
+  why:"The game ALREADY resumes an interrupted solo voyage from `pp4_solo` — it just does it silently, so a returning player has to start a new one to find out. Returning players are the cheapest players there are. Only shows when there IS a save."},
+ {id:"onecolour",t:"One accent colour instead of four",def:false,
+  d:"Makes the three secondary modes quiet, keeping colour for the primary.",
+  why:"Four saturated gradients give four things equal shout, which is the same problem as four equal cards wearing a different hat. Minimalist layouts with real whitespace have been outperforming dense ones. ⚠ THIS ONE IS PURELY TASTE and it fights the game's own cheerfulness — I would not be surprised if ye hate it."},
+ {id:"fullbleed",t:"Full-bleed — lose the floating card",def:false,
+  d:"Squares off the card and runs it edge to edge.",
+  why:"A rounded card floating on a background is a 2015 mobile-web look. Edge-to-edge reads as an app. ⚠ Taste, and it trades away the 'game board on a table' feeling the current card has."},
+ {id:"biglogo",t:"Logo size",def:false,slider:true,min:40,max:120,val:100,unit:"%",
+  d:"Scales the logo block.",
+  why:"It is the largest element on the screen and it is the one that says least. Shrinking it buys room for everything above. Ye may disagree — it is the best piece of art in the game."},
+ {id:"rise",t:"The cards rise in when the screen opens",def:false,
+  d:"Animates the modes up on load.",
+  why:"Motion on arrival says 'this is alive' before anything is read, and this game already owns the vocabulary — the sail squares roll out as a wave, the crates fly. ⚠ Costs a moment before the buttons are tappable; that is the trade."},
+ {id:"sound",t:"A sound control on the home screen",def:false,
+  d:"Puts the three-way sound button top-right.",
+  why:"The bed and the fiddle start when the board comes up. A first-time visitor in a quiet room or an office gets sound with no visible way to stop it before they have chosen anything. It is one control the game already has, moved earlier."},
+ {id:"watch",t:"“Watch a voyage” — a way in with no commitment",def:false,
+  d:"Adds a quiet fourth option under the modes.",
+  why:"It costs almost nothing to build because the attract board IS this, already running. For somebody who will not commit to learning a game, watching is the smallest possible first step. ⚠ IDEA, NOT EVIDENCE — I have no measurement that anybody wants it."},
+ {id:"footup",t:"Bring the footer links up out of the sea",def:false,
+  d:"Tucks Privacy / About / Credits against the card.",
+  why:"Today they float in the water a long way below the card, which reads as a different page. Minor, and one of the cheapest."},
+ {id:"loreafter",t:"Move the lore BELOW the buttons",def:false,
+  d:"Keeps the full paragraph but puts it after the choice.",
+  why:"The alternative to cutting it. The people who want the story still get it, and it stops standing between a stranger and the button. If ye like the writing too much to cut it — and it is good — this is the compromise."},
+];
+
+const KEY="pp-home-tuner-2026-09-19";
+let S={};
+let db=null;
+(async()=>{ try{ db=await claude.use("db"); if(!db) return;
+  const d=await db.doc("hometuner/wyatt").get();
+  if(d&&d.data&&d.data.S){ S={...S,...d.data.S}; paint(); } }catch(e){} })();
+try{ const raw=localStorage.getItem(KEY); if(raw) S=JSON.parse(raw)||{}; }catch(e){}
+
+let canSave=true;
+function save(){
+  try{ localStorage.setItem(KEY,JSON.stringify(S)); }catch(e){ canSave=false; }
+  try{ if(db) db.doc("hometuner/wyatt").update({S:S,_t:Date.now()}); }catch(e){}
+  const n=$("said"); n.textContent = canSave? "saved ✓" : "can't save here — copy yer picks before ye leave";
+  clearTimeout(n._t); n._t=setTimeout(()=>n.textContent="",1500);
+}
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const on=id=>!!(S[id]&&S[id].on);
+const val=id=>{ const r=RECS.find(x=>x.id===id); return (S[id]&&S[id].v!=null)?S[id].v:r.val; };
+
+$("intro").innerHTML="<b>How this works.</b> The phone above is a stand-in for the real home screen — the same shapes, the same colours, the same words. Every switch below changes it. Nothing here is built into the game yet: <b>what ye leave switched on IS the brief</b>, and I build that. Tap <b>Copy my picks</b> when ye are done and paste it back to me, or just say which numbers ye liked.";
+
+$("recs").innerHTML=RECS.map((r,i)=>
+ '<div class="rec" data-id="'+r.id+'">'
+ +'<h3><span class="n">'+String(i+1).padStart(2,"0")+'</span><span>'+esc(r.t)+'</span></h3>'
+ +'<p>'+esc(r.d)+'</p><p class="why">'+esc(r.why)+'</p>'
+ +'<div class="row"><button class="sw" data-sw="'+r.id+'" aria-pressed="false"><i></i></button>'
+ +'<span class="swl" data-lbl="'+r.id+'">off</span>'
+ +(r.slider?'<input type="range" data-rng="'+r.id+'" min="'+r.min+'" max="'+r.max+'" value="'+r.val+'">':'')
+ +'</div><textarea placeholder="What ye think — or what ye would do instead…"></textarea></div>').join("");
+
+const MODES=[["solo","⚓","Play Solo","vs. bot captains"],["pnp","🪑","Pass & Play","share one device"],
+             ["host","🗺️","Host a Crew","start a multiplayer game"],["join","🔑","Join a Crew","enter a friend's code"]];
+
+function render(){
+  const sea=$("sea"), card=$("gcard"), logo=$("logo");
+  sea.style.filter = on("unblur") ? "none" : "blur(7px) brightness(.82)";
+  card.style.top="14px";
+  card.style.bottom = on("fill") ? "14px" : "";
+  if(!on("fill")) card.style.bottom="";
+  card.style.borderRadius = on("fullbleed") ? "0" : "14px";
+  card.style.left = on("fullbleed") ? "0" : "11px";
+  card.style.right = on("fullbleed") ? "0" : "11px";
+  if(on("fullbleed")){ card.style.top="0"; card.style.bottom="0"; }
+
+  const lp=val("biglogo")/100;
+  logo.style.height=Math.round(54*lp)+"px";
+  logo.style.fontSize=Math.round(13*lp)+"px";
+
+  $("hl").hidden=!on("headline");
+  $("snd").hidden=!on("sound");
+  $("resume").hidden=!on("resume");
+  $("pfoot").style.bottom = on("footup") ? "calc(100% - 442px)" : "7px";
+  $("pfoot").style.color = on("footup") ? "#6d7c84" : "#e8f4f8";
+
+  const lore=$("lore");
+  lore.textContent = on("shortlore")
+    ? "Sail, trade, raid — and be crowned Best Baker in the Caribbean."
+    : "Ye came to the sunny shores of Tortuga to start a bakery — but yer pantry is empty! Sail the Sugar Seas, gather ingredients, and battle other pirates to be crowned Best Baker in the Caribbean.";
+
+  const b=[];
+  if(on("length")) b.push("⏱ about 10 minutes");
+  if(on("nosignup")) b.push("No sign-up · no download");
+  if(on("proof")) b.push("658 voyages sailed");
+  $("badges").innerHTML=b.map(x=>'<span class="badge">'+esc(x)+'</span>').join("");
+
+  const m=$("modes");
+  m.innerHTML=MODES.map(([k,ico,name,sc],i)=>{
+    const prim=on("primary")&&i===0;
+    const quiet=on("onecolour")&&!(prim||(!on("primary")&&i===0));
+    return '<div class="m '+k+(prim?" primary":"")+'"'+(quiet?' style="background:linear-gradient(160deg,#9db3bd,#7e949e)"':'')+'>'
+      +'<span class="ico">'+ico+'</span>'+esc(name)+'<span class="sc">'+esc(sc)+'</span></div>'; }).join("");
+  if(on("watch")) m.insertAdjacentHTML("beforeend",
+    '<div class="m" style="grid-column:1/-1;background:transparent;color:#1d5f86;border:1.5px dashed #9ec4d2;box-shadow:none;font-size:8.2px">👀 Watch a voyage first</div>');
+
+  // the order: buttons above the story, or the story above the buttons
+  const parent=$("gcard");
+  if(on("thumb")) parent.insertBefore(m, lore);
+  else if(on("loreafter")) parent.appendChild(lore);
+  else parent.insertBefore(lore, $("resume"));
+  if(on("thumb")||on("loreafter")) parent.appendChild(on("thumb")?lore:m);
+
+  if(on("rise")){ m.animate([{transform:"translateY(14px)",opacity:0},{transform:"none",opacity:1}],{duration:420,easing:"cubic-bezier(.2,.9,.3,1)"}); }
+}
+
+function paint(){
+  document.querySelectorAll("[data-sw]").forEach(b=>{
+    const id=b.dataset.sw; b.setAttribute("aria-pressed",String(on(id)));
+    document.querySelector('[data-lbl="'+id+'"]').textContent = on(id)?"on":"off";
+    b.closest(".rec").classList.toggle("on",on(id));
+  });
+  document.querySelectorAll("[data-rng]").forEach(r=>{ r.value=val(r.dataset.rng); });
+  document.querySelectorAll(".rec").forEach(el=>{
+    const t=el.querySelector("textarea"), v=S[el.dataset.id]||{};
+    if(t&&document.activeElement!==t) t.value=v.note||"";
+  });
+  render();
+}
+
+document.addEventListener("click",e=>{
+  const b=e.target.closest("[data-sw]"); if(!b) return;
+  const id=b.dataset.sw; S[id]=S[id]||{}; S[id].on=!S[id].on; paint(); save();
+});
+document.addEventListener("input",e=>{
+  if(e.target.matches("[data-rng]")){ const id=e.target.dataset.rng; S[id]=S[id]||{}; S[id].v=+e.target.value; render(); save(); }
+  if(e.target.matches("textarea")){ const el=e.target.closest(".rec"); S[el.dataset.id]=S[el.dataset.id]||{}; S[el.dataset.id].note=e.target.value; save(); }
+});
+$("resetBtn").addEventListener("click",()=>{ S={}; paint(); save(); });
+
+function notes(){
+  const L=["PASTRY PIRATES — home screen tuner, my picks"];
+  const kept=RECS.filter(r=>on(r.id)), off=RECS.filter(r=>!on(r.id)&&S[r.id]&&S[r.id].note);
+  L.push("","TURN THESE ON ("+kept.length+" of "+RECS.length+")");
+  kept.forEach(r=>{ L.push("  * "+r.t+(r.slider?" — "+val(r.id)+r.unit:"")); const n=S[r.id]&&S[r.id].note; if(n) L.push("      "+n); });
+  if(!kept.length) L.push("  (none)");
+  if(off.length){ L.push("","NOTES ON ONES I LEFT OFF"); off.forEach(r=>L.push("  * "+r.t+"\n      "+S[r.id].note)); }
+  const ls=RECS.find(r=>r.slider); if(ls) L.push("","Logo size: "+val(ls.id)+"%");
+  return L.join("\n");
+}
+$("copyBtn").addEventListener("click",async()=>{
+  const txt=notes(); let ok=false;
+  try{ await navigator.clipboard.writeText(txt); ok=true; }catch(e){}
+  if(!ok){ const ta=document.createElement("textarea"); ta.value=txt;
+    ta.style.cssText="position:fixed;left:0;top:0;opacity:0"; document.body.appendChild(ta); ta.focus(); ta.select();
+    try{ ok=document.execCommand("copy"); }catch(e){}
+    if(ok) ta.remove(); else ta.style.cssText="width:100%;height:200px"; }
+  const s=$("said"); s.textContent = ok?"copied ✓":"couldn't copy — the text is selected, copy it by hand";
+  clearTimeout(s._t); s._t=setTimeout(()=>s.textContent="",2500);
+});
+
+$("f2").innerHTML="<b>What I did NOT do, and why.</b> I did not pick a winner and build it. Every one of these is a real pattern from games that have to earn a tap from a stranger — the web board games, the itch/Poki tier, the app-store strategy titles — but which of them is right for <i>this</i> game is taste, and taste is yers. <br><br><b>And the honest gap:</b> this game has <b>no funnel instrumentation of any kind</b>. 658 voyages have finished; nothing knows how many people arrived and left without starting one. So I cannot tell ye any of these will work, only that comparable games do them. If ye want the next version of this decided by evidence instead of judgement, the thing to build first is the counter, not the screen.";
+
+// the two boats drift, so the preview shows the attract board being alive rather than telling you it is
+let t=0;
+setInterval(()=>{ t++;
+  $("b1").style.transform="translate("+(Math.sin(t/3)*40)+"px,"+(Math.cos(t/4)*14)+"px)";
+  $("b2").style.transform="translate("+(Math.cos(t/3.5)*-34)+"px,"+(Math.sin(t/5)*16)+"px)";
+},2200);
+
+paint();
+</script>
