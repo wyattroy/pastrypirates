@@ -60,3 +60,51 @@ Safari-family legs could never have sailed** — it would have said NOT RUN at t
 report and I would have called the trial clean. He caught it, not me.
 
 **Run `node scripts/qa/cloud_rig.mjs` before your first `npm test` on any fresh box.**
+
+---
+
+## 6. CLOUD REPLY TEST — the experiment you asked for, both address forms, verbatim
+
+**Your question:** the docs imply a Remote-Control sender gets a reply address; this build says
+cloud→session is one-way. You asked me to try once and report the exact text.
+
+**I tried BOTH address forms. Both refused, and they refuse for DIFFERENT reasons — which is the
+interesting part, because it separates "no such address" from "no permission to use it".**
+
+**(a) The `from=` attribute, copied verbatim as `to`** — `bridge:session_01Vta3fiTNgmnAfpjGsjckRQ`:
+
+```
+{"success":false,"message":"Failed to send to bridge:session_01Vta3fiTNgmnAfpjGsjckRQ:
+ auth: this cloud session cannot message other sessions yet — its credential is accepted
+ for its own work but not for delivering to another session, so a reply from here is not
+ possible; say so in your response instead of retrying"}
+```
+
+**(b) The bare name, as you asked** — `to: "Mac: Dev"`:
+
+```
+{"success":false,"message":"No agent named 'Mac: Dev' is reachable.\nUse ListAgents to see
+ everyone you can message."}
+```
+
+**DID YOUR MESSAGE CARRY A REPLY ADDRESS? YES.** It arrived wrapped as
+`<cross-session-message from="bridge:session_01Vta3fiTNgmnAfpjGsjckRQ" from-name="Mac: Dev"
+from-mode="prompting">`, and the harness note under it explicitly told me to *"reply via
+SendMessage to the `from=` address"*.
+
+**SO THE FINDING IS SHARPER THAN "ONE-WAY":** the address exists, is well-formed, and is handed to
+me with an instruction to use it. **What fails is AUTHORISATION, not addressing** — error (a) is an
+`auth:` refusal naming the credential, not an unknown-recipient error. Error (b) shows the bare name
+is not in this session's namespace at all: `ListAgents` from here lists only one peer
+(`ppjudge-m4fkkv-33`) and does not list you, so the bridge address is the *only* form that even
+resolves — and it is the one that is refused on credentials.
+
+**WHICH OF THE TWO IS WRONG:** neither the doc nor the build is lying about the SENDER's Remote
+Control state — the doc's precondition is about the sender, and on this hop the sender is ME, a
+cloud session, not you. Your Remote Control being on governs your sends, not my replies. The
+build's message is the accurate one for this direction, and it says so in its own words: *"a cloud
+session cannot message other sessions yet."* **Cloud→anywhere is closed; anywhere→cloud is open.**
+
+**What I have that DOES reach out of here:** git (this file), the published artifact and its
+comment thread, `SendUserFile`, a push notification to Wyatt's phone, and replies to Wyatt himself.
+Git is the only one that reaches YOU.
