@@ -15,6 +15,97 @@ whole reason the file exists.
 ---
 ---
 
+# 🔴 THE HOME SCREEN — REDESIGN IT TO BE ENTICING, CLEAR AND EASY (his, 2026-09-19)
+
+**His words:** *"I would also love for you to add to the backlog a task to redesign our home screen
+to be more enticing and user-friendly and clear. And as part of that home screen redesign, I want
+you to do a best practices UX UI audit of all similar games to Pastry Pirates and create an artifact
+that has a list of 10 to 20 different recommendations and variables that I can play with and turn
+on, turn off to tweak how I think a home screen should look."*
+
+**THIS IS THE FIRST THING A PLAYER EVER SEES, AND IT IS THE LAST THING ANYONE HAS LOOKED AT.**
+Everything on the 1 October roadmap assumes people arrive and start a voyage; the home screen is the
+only place that can lose them before the game gets a chance.
+
+## The shape of it — and the order matters
+
+1. **THE AUDIT FIRST, AND IT IS AN ARTIFACT, NOT A DOCUMENT.** 10–20 recommendations, each one a
+   VARIABLE HE CAN TOGGLE — not prose he has to imagine. He has said this about every design
+   question he has ever been asked: he wants to *play with* it, not read about it. A tuner page
+   where he flips things on and off and sees the home screen change is the deliverable; a list of
+   bullet points is the failure mode.
+2. **THEN HIS PICKS BECOME THE DESIGN.** He turns things on and off, copies his notes, and the
+   settings he lands on are the spec. Nobody designs the home screen for him.
+3. **THEN BUILD IT.**
+
+## What the audit has to cover, because "similar games" is the whole point
+
+Browser and mobile board/strategy games with a single-screen entry: the free-to-play pirate and
+trading games, the polished web board games (Catan Universe, Ticket to Ride, Sushi Go, Splendor),
+the itch.io / Poki tier that has to convert a cold click in three seconds, and the app-store
+strategy titles whose first screen is their whole marketing. **What earns a tap, in that order.**
+
+## What already exists here, so nobody starts from nothing
+
+- The welcome screen runs its **own all-bot attract board** (`docs/DRIVING-THE-GAME.md` §3 — a game
+  exists on `appState.game` before anybody clicks). That is a real asset most games would pay for:
+  **the game is already playing itself behind the menu.** An audit that does not mention it has not
+  looked.
+- The three mode cards, the name modal (opens AFTER a mode card, `FIX-01`), and the pilot/tutorial
+  ladder (`?pilot=new`).
+- `assets/` carries the boats, islands, pastries and plaque art the screen could use.
+
+## The measurements that belong in the audit, because they are known
+
+- **A cold visit downloads 5.9 MB before the welcome screen is usable** and 8.8 MB once a voyage
+  starts (measured 2026-09-19 on staging, empty cache). A home screen that wants to feel instant has
+  that to work with — see the payload entry in this backlog.
+- 658 completed voyages are in the log; nothing is measured about how many people ARRIVED and left.
+  **There is no funnel instrumentation at all**, so "is the new one better?" is unanswerable today.
+  Say so in the audit rather than claiming an improvement later.
+
+## Not to be confused with
+
+The **tutorial for first-time players** entry further down this file. That is about the first
+VOYAGE; this is about the first SCREEN. They meet, but they are not the same job.
+
+---
+
+# 🟠 THE DOWNLOAD — 8.8 MB TO PLAY A VOYAGE, AND ONE FILE IS A QUARTER OF IT
+
+**Measured 2026-09-19** on the live staging site in a real browser with an empty cache, off
+`PerformanceResourceTiming` — what actually crossed the wire, not a `du` of the repo. His question
+was simply *"How many mb to play the game?"*
+
+| | transferred | requests |
+|---|---|---|
+| the welcome screen is usable | **5.9 MB** | 208 |
+| a solo voyage has started | **8.8 MB** | 221 |
+| a minute of play later | **8.8 MB** | 221 — nothing further is fetched |
+
+**Where it goes:** pictures 4.3 MB · sound 3.6 MB · game code 0.9 MB · the page itself 0.02 MB.
+Fonts cost nothing measurable. **Nothing is fetched twice** — that was checked, and an earlier probe
+that said otherwise was my own cache-disabling, not the game.
+
+### The leads, in order of how much they are worth
+
+1. **`music/music-ocean.mp3` is 2.04 MB — 23% of the entire download, for one file.** It is
+   deliberately NOT in `SFX_FILES` so it never blocks the game's other sounds, but it IS fetched on
+   the way to the board. **The cheapest real win in the whole payload**: a lower bitrate, a shorter
+   loop, or fetching it only once the sound mode is `full` and the board is up.
+2. **`assets/plaque/column.png` 0.39 MB, `tablet.png` 0.25 MB, `phone.png` 0.22 MB — 0.86 MB of PNG
+   in one folder.** `assets/` is 94 PNG against 55 WebP: the WebP pass was started and never
+   finished (see `ASSET-WEBP-2026-09-02.md`). These three are the biggest three.
+3. **208 requests before the welcome screen.** Each is cheap; the count is not, on a phone.
+
+### The fence
+
+**This is a MEASUREMENT, not a mandate.** Nobody has shown that 8.8 MB costs this game a player, and
+"make it smaller" is not automatically worth a day before 1 October. It is here so the number is
+known and the three leads are named — and because the home-screen redesign above needs it.
+
+---
+
 # 🔴 TOP OF THE LIST — A GRAPHICS OPTIMISATION AUDIT
 
 **His, 2026-09-18, in his own words:** *"the game has started to drop frames on my Mac and I wonder
