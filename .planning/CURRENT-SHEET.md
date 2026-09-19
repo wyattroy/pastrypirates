@@ -8,7 +8,7 @@ fifteen that already exist.
 here is the one that is wrong.
 
 SHEET: https://claude.ai/artifact/LvqytfTYCwssQzTcmNFped
-BUILD: 2026.09.17.6-staging@18c2bb93
+BUILD: 2026.09.19.1-staging@53338433
 NAME:  Pastry Pirates Checklist — he renamed it himself on 2026-09-17; it was "The plaque merge sheet".
 
 **ONE PAGE, TWO SPELLINGS — do not "reconcile" these into a second artifact.** The slug above and
@@ -30,6 +30,26 @@ item arriving early.
 
 *(Empty right now. `cf-404` was queued here on 2026-09-18 and folded into the sheet the same night,
 once staging served it at `@18c2bb93` — the queue did its job and the item moved on.)*
+
+## ⚠ THE SHEET WAS CUT DOWN ON 2026-09-19, AND THAT IS WHY IT IS SHORT
+
+His instruction: *"Update the playtest checklist for what is currently on staging. Remove the check
+boxes at the bottom, I don't use them because I need a way to always give feedback about an item on
+the list; if it's on the list for me to see, it must have PASS, PROBLEM, and a comment box next to
+it."*
+
+So two things changed and the second is the one a future session will be tempted to undo:
+
+1. **THERE ARE NO TICK BOXES ANY MORE.** Every row on the page — including the go-and-do-this list
+   at the bottom, which was checkboxes — is a card with **Pass**, **Problem** and a note. A tick
+   could only ever say "I did it", which is the one thing he does not need to tell us.
+2. **IT WENT FROM THIRTY ITEMS TO THREE, PLUS EIGHTEEN WALKS.** The page had accumulated everything
+   since 14 September, nearly all of it already judged by him. What is on it now is only what
+   staging serves AND he has not yet ruled on. **Do not re-add a judged item to make the page look
+   fuller** — his rulings live in `.claude/memory/DECISIONS.md`, which is where they belong.
+
+Marks are stored under the same localStorage key as before, and a row that used to be a tick box
+stored a bare `true`; the page reads that as "no verdict yet" rather than throwing.
 
 ## The others, so nobody re-makes them
 
