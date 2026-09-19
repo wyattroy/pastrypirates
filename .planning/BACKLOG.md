@@ -15,6 +15,51 @@ whole reason the file exists.
 ---
 ---
 
+# 🔴 THE TRADE FAN SPILLS OFF THE BOARD AT SEVEN CIRCLES — found on WebKit/phone, 2026-09-19
+
+**Found by the sea trial's `solo-phone-wk` leg — a leg that COULD NOT RUN until WebKit was installed
+that night.** It is on the Safari-family engine at phone width, which is the family Wyatt's own
+phone is in, and it is the first thing that leg found.
+
+**The picture is the report:** `.planning/found/2026-09-19-trade-fan-spills-webkit-phone.png`
+(the trial's own `sea-trial-shots/solo-phone-wk-012-settled.png`).
+
+## What it shows
+
+A trade prompt — *"What do ye WANT from the table?"* — with **seven** ingredient circles. Six sit on
+the board. **The seventh, "Vanilla Beans", is outside the board entirely**: it straddles the rope
+border, sits on the captains panel, and covers the recipe name "Cinnamon Snaps" and part of the
+ingredient row beneath it.
+
+**And the same leg reported the other end of the same fault**, as a separate structural failure:
+
+> `no-cover-ask×1 — control covering the question it answers: "Fresh Milk" covers "What do ye WANT
+> from the table" (paints over 4%)`
+
+**Top and bottom. ONE CAUSE: the fan of seven is taller than the band it is given**, so it overruns
+the question above and the rope below. Do not fix these as two bugs.
+
+## Where the arithmetic is
+
+`fanDiscCeiling(base, n)` in `src/ui/stage.js` caps the disc SIZE so a ring of n petals fits:
+`room = min(vwPx()-16, capBandBottom() - (boardBand().top + 32) - 8)` and `D·(ring+1) ≤ room`. The
+ceiling looks right. **The PLACEMENT is a separate search** with its own `xMin/xMax/yMin/yMax`, and
+that is where a petal is ending up outside the band — either its bounds disagree with `room`, or it
+took a least-bad placement when nothing clean was found.
+
+## ⚠ Before touching it
+
+- **His standing rule for this exact screen:** *"don't touch bubble placement again without a posed
+  comparison — the same seeded sail prompt, before and after, two screenshots."* It is written into
+  `stage.js` beside the code.
+- **`scripts/qa/_picker_seven_check.mjs` is NOT the instrument for this** — it poses the RECIPE
+  picker ("pick yer recipe"), a different screen. It was run on 2026-09-19 and reported cleanly,
+  which proves nothing about this fan. A posed **trade** fan of seven is what is needed, and it does
+  not exist yet.
+- The count is the trigger: **seven**. Six fit. Whatever is built should be posed at 6, 7 and 8.
+
+---
+
 # 🟠 "TAP TO SAIL" OVER THE GOLD SQUARES — READ THIS BEFORE TOUCHING THE PLACER
 
 **His, with a photograph and a circle drawn on it:** *"it could EASILY move down to the area i've
