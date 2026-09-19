@@ -2390,10 +2390,20 @@ class Game{
      STILL ON THE OLD NUMBER, DELIBERATELY: the trade pricing at askFor/worthToMe. Those turn turns back into
      COINS and were never on the ladder; the last time this constant moved under trade pricing it cost 21
      ladder points, so they move on their own measurement, not on this one. */
-  coinTurns(n){
-    const pay=((this.cfg.dockHeads||0)+(this.cfg.dockTails||0))/2||PLAN.coinsPerDockTurn;
-    return n<=0?0:n/pay;
-  }
+  /* WHAT A TURN AT A BERTH PAYS — said ONCE, and derived from the berth. Three places used to write
+     this expression out (here, tour3, rivalPlan3), two of them with a different fallback; now they
+     all ask. NO SECOND KNOB: if a berth's payout is ever tuned it moves on cfg.dockHeads/dockTails
+     and everything that prices a turn follows, which is the whole point of there being one of these. */
+  dockPay(){ return ((this.cfg.dockHeads||0)+(this.cfg.dockTails||0))/2||PLAN.coinsPerDockTurn; }
+  /* AND IT IS FRACTIONAL, DELIBERATELY. Needing 5 coins at 2 a berth turn is 2.5 turns, not 3.
+     Every caller used to round this up — acquireTurns with Math.ceil(coinTurns(...)), tour3 and
+     rivalPlan3 by dividing again inside their own Math.ceil — and a ruler that cannot see half a
+     turn cannot see a berth beating a muse. Measured on seed 79190 before the fix: a bot standing
+     on the sugar berth it needed, with an empty purse, priced working that berth at 25 turns-to-win
+     and sailing two squares away at 25, and took the sail. Half turns are what tells those apart.
+     Nobody reads this as a whole number of moves; every consumer only ever compares it with another
+     one of the same kind. */
+  coinTurns(n){ return n<=0?0:n/this.dockPay(); }
   /* ⭐ DOES THIS CAPTAIN TAKE THIS CRATE? THE ONE ANSWER — it used to be written twice, once in doDock (what a
      bot PLAYS) and once in planTurnV3's berth branch (what a bot EVALUATES), kept in step by hand. The CEO
      found the pair on 2026-09-15, the audit before it found the same shape in the dock's payment, and the
@@ -2500,10 +2510,12 @@ class Game{
     if(price!==null){
       const dock=this.islandOf[ing];
       const sail=this.sailTurns(from,dock,wind);
-      // coins I still have to earn, at 4 a docking turn — and I can earn them at THIS dock, so
-      // the earning turns and the arrival turns stack rather than needing a detour
+      // coins I still have to earn, at whatever a berth pays (dockPay) — and I can earn them at
+      // THIS dock, so the earning turns and the arrival turns stack rather than needing a detour.
+      // FRACTIONAL: half a turn of earning is half a turn, and rounding it up is what made a berth
+      // and a muse cost the same.
       const short=Math.max(0,price-p.coins);
-      const earn=Math.ceil(this.coinTurns(short));
+      const earn=this.coinTurns(short);
       // somebody else is tied up in that berth. Only one ship fits (singleDock), so this errand
       // means loitering until they leave — price the wait, so a different ingredient wins the leg
       // instead. Without this a bot fixates on an occupied berth it can never reach, cannot
@@ -2859,7 +2871,7 @@ class Game{
     const held=new Set(q.ing);
     let need=Math.max(0,rs-held.size);
     const stock={};for(const ing of this.ings)stock[ing]=this.tokens[ing]||0;
-    const pay=((this.cfg.dockHeads||0)+(this.cfg.dockTails||0))/2||1;
+    const pay=this.dockPay();
     const base=this.cfg.crateBase||6;
     const fc=this.forecastWind()||this.windNow;
     let at=q.pos,coins=q.coins,t=0;
@@ -2876,7 +2888,7 @@ class Game{
         const price=stock[ing]>=1e9?base-1
           :stock[ing]<=0?this.cfg.blackMarket
           :Math.max(1,base-stock[ing]);
-        const earn=Math.max(0,Math.ceil((price-coins)/pay));
+        const earn=this.coinTurns(price-coins);
         const cost=sail+earn+1;
         if(best===null||cost<best){best=cost;bing=ing;bsail=sail;bearn=earn;bprice=price;}
       }
@@ -2935,7 +2947,7 @@ class Game{
       return {turns:(home===null?PLAN.unreachable:home)+(this.cfg.bakeoff?PLAN.bakeTurns:0),
               first:this.home};
     }
-    const pay=((this.cfg.dockHeads||0)+(this.cfg.dockTails||0))/2||1;
+    const pay=this.dockPay();
     const base=this.cfg.crateBase||6;
     let best=PLAN.unreachable,bestFirst=null;
     const walk=(rest,at,coins,t,first)=>{
@@ -2982,7 +2994,7 @@ class Game{
           let bm=null,bmPurse=0;
           if(sail!==null&&this.cfg.blackMarket){
             const bprice=this.cfg.blackMarket;
-            const bearn=Math.max(0,Math.ceil((bprice-coins)/pay));
+            const bearn=this.coinTurns(bprice-coins);
             bm=sail+bearn+1;
             bmPurse=coins+bearn*pay+pay-bprice;
           }
@@ -2998,7 +3010,7 @@ class Game{
           }
         }else{
           const price=raw>=1e9?base-1:Math.max(1,base-left);
-          const earn=Math.max(0,Math.ceil((price-coins)/pay));
+          const earn=this.coinTurns(price-coins);
           cost=sail+earn+1;
           end=this.dockOf[ing];
           purse=coins+earn*pay+pay-price;   // the buying flip pays too, same as doDock
