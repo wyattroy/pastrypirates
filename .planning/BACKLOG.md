@@ -15,6 +15,47 @@ whole reason the file exists.
 ---
 ---
 
+# 🟠 "TAP TO SAIL" OVER THE GOLD SQUARES — READ THIS BEFORE TOUCHING THE PLACER
+
+**His, with a photograph and a circle drawn on it:** *"it could EASILY move down to the area i've
+circled in red. rewrite the algorithm that places this on the board."*
+
+## ⛔ WHAT I GOT WRONG ON 2026-09-19, so nobody repeats it
+
+I read the first 45 lines of the bubble's `place()` in `src/ui/stage.js`, saw it clamp to
+`boardBand()` and pick above/below by room, saw no mention of sail squares, and concluded the root
+cause was that **the bubble avoids the chrome but not the subject**. I was about to rewrite it.
+
+**That is wrong. Read the NEXT thirty lines.** The placer already implements D-38 in full: a
+weighted obstacle search where a sail square outranks the controls, which outrank the question,
+which outranks its helper line; six-plus candidate spots; distance from the boat as a TIE-BREAK
+only, so no amount of distance buys covering a square. It was built after the judge measured a
+bubble standing on **seven of twenty-two** squares on a 390×664 phone. It also carries his own
+warning in the code, in his words: *"don't touch bubble placement again without a posed comparison
+— the same seeded sail prompt, before and after, two screenshots."*
+
+## What is actually needed, and it is not a rewrite
+
+**A REPRO.** I wrote a probe to pose sail prompts at four window sizes and measure bubble-vs-square
+overlap. **It never reached a sail prompt at any size** — so it produced no evidence either way, and
+its "0 of 4 violations" is an INSTRUMENT FAILURE, not a clean bill of health. It is not committed;
+a check that cannot fail is not a check.
+
+So one of two things unblocks this, and both are cheap:
+
+1. **His photograph.** He has it — he drew the circle on it. The window size and what was on the
+   board at the time is the whole brief, because the weighted search only loses in particular
+   geometries and his is one of them.
+2. **Or a posed repro that actually reaches a sail prompt** — the driver in
+   `docs/DRIVING-THE-GAME.md` §5b plays a real voyage; the probe above tried to wait for one and
+   timed out. Injecting the state (§5e) is the documented way and is what to try next.
+
+**Until one of those exists, do not touch the placer.** The likely truth is that the search is
+right and one geometry defeats it — which is a tuning question against a real case, not an
+algorithm to rewrite blind.
+
+---
+
 # 🔴 THE HOME SCREEN — REDESIGN IT TO BE ENTICING, CLEAR AND EASY (his, 2026-09-19)
 
 **His words:** *"I would also love for you to add to the backlog a task to redesign our home screen
