@@ -53,7 +53,7 @@ stored a bare `true`; the page reads that as "no verdict yet" rather than throwi
 
 ## The others, so nobody re-makes them
 
-- Home Screen Tuner (2026-09-19, his ask: *"a best practices UX UI audit of all similar games to Pastry Pirates and create an artifact that has a list of 10 to 20 different recommendations and variables that I can play with and turn on, turn off"*) — 18 switches over a live phone preview of the home screen; what he leaves ON is the brief. His picks in localStorage `pp-home-tuner-2026-09-19` and the `hometuner/wyatt` store, or pasted from Copy my picks — https://claude.ai/artifact/MdibwZDFaF2RrecqHb1JBm
+- The First Ten Minutes (2026-09-19 — REPLACES the Home Screen Tuner at the same URL, his word: "this replaces/extends the home-screen audit". A first-time-player audit walked in a real browser at 375x812 and 1280x900: 19 measured weak points from the cold index page through the Ahoy fork and the tutorial to the first sail decision, each with 2-3 ways out graded EASY/MEDIUM/HARD and each saying what it LEAVES undone. Agree / Not a problem, a solution picker and a note per finding; his marks in localStorage `ftue/wyatt`. Ten of the old tuner's toggles survive inside it as named solutions; two of them were measured WRONG and are called out. The tuner itself is still in the artifact's version history.) — https://claude.ai/artifact/MdibwZDFaF2RrecqHb1JBm
 
 - Card-feel tuner — https://claude.ai/code/artifact/b6cfcdac-fa74-425c-9b1b-ba518af4e4fc
 - The Plaque (captains box plan) — https://claude.ai/code/artifact/8e2e8de9-0782-4124-979a-6e88f6fe8400

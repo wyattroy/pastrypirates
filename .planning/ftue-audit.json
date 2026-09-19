@@ -1,0 +1,591 @@
+{
+  "walked": "I drove a real headless Chrome through the whole first-time journey on the local repo, at his iPhone 13 mini size (375x812, 2x, touch emulation on so the game sees a finger and not a mouse) and again at desktop (1280x900), clearing all saved data before every run so every walk was genuinely a stranger's. 44 screenshots, every one read back pixel by pixel. I walked: the index page cold; all four mode cards; the captain-name box; the Ahoy card and its 'Do ye know how to play?' fork, BOTH ways; the whole tutorial branch frame by frame (17 distinct screens from the Ahoy card to the first sail decision); the veteran branch; the recipe picker; the parrot switch; the burger menu and the How to play page; and a reload mid-voyage as a returning player. Two things I want him to know I got WRONG first and caught: the hint said 'Click and hold the sea' on a phone and I nearly reported it, but with a real finger emulated it correctly says 'Tap and hold' - that was my instrument, not his game. And the repo's own driving manual says the X on the name box confirms the name instead of cancelling; I measured it today and it cancels cleanly and puts you back on the home screen, so I dropped that finding and the manual is what is stale. What I could NOT reach: the bake-off and the end of the voyage (a solo voyage takes far longer than this container allows, and the ask was the first-time journey, so I stopped at the first real decision); real Safari on his own phone, which this container can never do; and a second human in a crew game. One side effect he should know about: tapping 'Host a Crew' creates a live room immediately, so my walk left a real room with the code HUNG in the database - I was not permitted to delete it and it needs sweeping.",
+  "limits": [
+    "This is one careful person's read of the screens, not a user test. Nobody in this repo has watched a real stranger play, and that is still the single most valuable thing missing.",
+    "There is no funnel instrumentation in this game at all, so nobody can say how many people arrive and leave, or which of the four cards they tap. Every claim here about what a player would DO is a judgement; every claim about what a player SEES is measured.",
+    "I drove with a script, so my timings are the FLOOR - the fastest a journey can possibly go with every prompt answered the instant it appears. A real person reading the words will always be slower.",
+    "I ran Chrome. His phone is Safari. Nothing here may be reported as 'Safari passed'.",
+    "I did not reach the bake-off or the end of a voyage, so anything a first-timer learns or fails to learn in the last third of the game is not covered.",
+    "Where a weak point is something he has already ruled on, I say so and I do not re-argue it. Where I disagree with the existing home-screen audit I say so and show the measurement."
+  ],
+  "supersedes": [
+    "WHAT THE OLD HOME-SCREEN AUDIT GOT RIGHT, and I am keeping: the FORMAT. Eighteen things he can flip on and off beats eighteen paragraphs, and that is still the right way to settle the home screen. Ten of its toggles survive intact and I name them inside my findings as ready-made solutions: one dominant button (01), cut the lore (04), a plain headline (05), say how long a voyage takes (06), 'no sign-up' (07), buttons in the thumb zone (09), footer links up out of the water (17), lore below the buttons (18), a sound control on the home screen (15), and fill the dead water (03).",
+    "WHAT IT GOT WRONG, and this is the big one: its headline recommendation, 'un-blur the attract board - the boats are sailing right now, this game is hiding the attract loop it already has'. THE BOARD DOES NOT PLAY. I sampled it seven times over thirty seconds: zero game events, and the four boats' positions were byte-identical every time (7,6 / 7,8 / 8,7 / 6,7). The same instrument watched a real voyage reach 18 events in under a minute, so it can see movement - there is none to see. Worse, those four positions are dead centre of the board, which is exactly where the welcome card sits, so un-blurring the picture would reveal empty water with the boats hidden behind the card. The IDEA is still the best one on that list. It just is not free, and it is not a CSS change: somebody has to make the attract board actually sail.",
+    "WHAT IT ALSO GOT WRONG, backwards: toggle 10, 'Yer voyage awaits when a saved game exists - the game already resumes an interrupted voyage, it just does it silently, so a returning player has to start a new one to find out'. Measured the opposite. A returning player is dropped STRAIGHT into the old voyage at Day 2 with no home screen at all, no welcome back and no choice. The problem is not that resume is hidden; it is that you cannot decline it without finding the burger menu and 'Leave game'. The toggle as written would solve a problem the game does not have.",
+    "A small number it got wrong: the lore paragraph is 35 words, not 47. I counted the rendered text.",
+    "WHAT I AM DROPPING from it, and why: toggle 08 'social proof - 658 voyages sailed'. The audit itself admits it may read as small rather than busy, I have no evidence either way, and adding a number a stranger cannot interpret is not obviously better than silence. It stays his call and I am not re-arguing it. Toggles 11 (one accent colour), 12 (full-bleed, lose the card) and 13 (logo size) are pure taste with no measurement behind them - I have folded them in as taste options under findings 1 and 3 rather than leaving them as separate items competing with things that ARE measured.",
+    "WHAT IS NEW HERE: everything past the home screen. The old audit stopped at the first screen; fifteen of the nineteen findings below are about what happens after the first tap, which is where I think more players are actually being lost."
+  ],
+  "findings": [
+    {
+      "id": "f-nothing-says-what-this-is",
+      "stage": "Arrival",
+      "title": "A stranger cannot tell what this game IS, or how long it costs them",
+      "seen": "The whole home screen carries 65 visible words. The biggest thing on it by a long way is the logo illustration - 146 points tall on a phone, a skull, a rolling pin and a pile of pastry - and it is a picture, not a sentence. The only explanation is 35 words of story, in pirate voice, centred, five lines deep on a phone: 'Ye came to the sunny shores of Tortuga to start a bakery - but yer pantry is empty! Sail the Sugar Seas, gather ingredients, and battle other pirates to be crowned Best Baker in the Caribbean.' Nowhere on the screen does it say this is a board game, that a voyage takes about X minutes, that it is free, that there is nothing to download and no account to make, or that you can play right now on your own. The first tappable thing appears 1.4 seconds after the page opens.",
+      "why": "This is the one screen that can lose somebody before the game gets any chance at all. The lore is the best writing on the page but it is a reward for people who already care - it answers 'what is the story' for somebody who has not yet been told 'what is this'. I am inferring the cost, not measuring it, because there is no funnel instrumentation in this game at all.",
+      "evidence": [
+        "01-arrival-phone.png - the whole home screen at iPhone 13 mini size: logo, 5 lines of lore, four cards, then 500 points of empty blurred water",
+        "02-arrival-desktop.png - the same at 1280x900, where the blurred board IS legible as a map and the phone version is not"
+      ],
+      "confidence": "measured",
+      "solutions": [
+        {
+          "effort": "EASY",
+          "what": "Put one plain line above or below the logo saying what you do, and cut the lore to a single sentence beneath the buttons. This is the old audit's toggles 05 (headline), 04 (cut the lore) and 18 (lore below the buttons) taken together - his own wording wins, but as a starting point: 'A pirate board game. Race three captains for the ingredients, get home first, bake.' RECOMMENDED - it is the cheapest change on this whole list and it is the one a stranger notices first.",
+          "gets": "Somebody who has never heard of this knows inside two seconds that it is a board game they can play right now, instead of guessing from a picture.",
+          "leaves": "Does not tell them how long it takes, does not show them the game, does not change the four-door problem below."
+        },
+        {
+          "effort": "MEDIUM",
+          "what": "Add the two facts that decide it for people: a length badge and a no-friction badge - the old audit's toggles 06 and 07. THE LENGTH NUMBER MUST BE MEASURED FIRST; nobody has timed a real human voyage and shipping a guess would be worse than shipping nothing.",
+          "gets": "Answers the two questions everyone actually asks about a board game they have not played - how much of my evening, and what do I have to sign up for. 'No sign-up, no download' is TRUE here and rare, which is why saying it is worth more than it sounds.",
+          "leaves": "Still a page of words. Still does not show the game moving."
+        },
+        {
+          "effort": "HARD",
+          "what": "Replace the logo's dominance with a short looping picture of an actual turn - a boat taking a gold square, docking, a coin flip - sized to the top third of the phone, with the headline over it.",
+          "gets": "The strongest possible answer to 'what is this', because it is a demonstration rather than a claim. Fifteen seconds of footage does what no sentence can.",
+          "leaves": "Costs real work to produce and adds to a download that is already 5.9MB before the home screen is usable. Does not fix the mode choice underneath it."
+        }
+      ]
+    },
+    {
+      "id": "f-attract-board-is-a-photograph",
+      "stage": "Arrival",
+      "title": "The game is NOT playing itself behind the menu - the board back there is a photograph",
+      "seen": "Behind the welcome card is a board with four boats on it, blurred to blur(7px) with a slight dim. It looks like a game in progress. It is not. I sampled it seven times across thirty seconds: the four boats were at 7,6 / 7,8 / 8,7 / 6,7 at every single sample, their screen pixels were identical every time, and the game logged ZERO events the whole while. The same measurement watched a real voyage climb to 18 events in under a minute, so the instrument can see movement - there is none. And those four positions are the dead centre of the board, which is exactly the patch the welcome card covers, so even with the blur removed the boats would be behind the card.",
+      "why": "The existing home-screen audit calls un-blurring this 'THE BIGGEST ONE, AND IT COSTS NOTHING TO TRY' on the premise that the boats are already sailing. They are not, so that change would deliver blurry empty water and read as a fizzle. The underlying idea - show the game instead of a logo - is still the best one on that list; it just needs building, not un-blurring. Naming this matters more than the fix, because otherwise a session spends a day on a one-line change and reports a win that is not there.",
+      "evidence": [
+        "18-attract-desktop-30s.png - taken 30 seconds and several minutes after 02-arrival-desktop.png and pixel-identical to it",
+        "02-arrival-desktop.png - the same frame earlier; note there are no boats visible anywhere, because all four are behind the card",
+        "01-arrival-phone.png - on a phone the blur is so close that the background reads as plain blue water"
+      ],
+      "confidence": "measured",
+      "solutions": [
+        {
+          "effort": "EASY",
+          "what": "Leave the blur alone and stop treating this as a free win. If he wants to try it today, the honest version is: drop the blur AND move the four boats off centre so they are not behind the card - they would then be four boats parked in the water, which is prettier than blur and still not a game.",
+          "gets": "A nicer-looking background and an accurate picture of what the change is worth.",
+          "leaves": "Everything. Nothing moves, nothing is demonstrated, and it does not answer 'what is this game'."
+        },
+        {
+          "effort": "MEDIUM",
+          "what": "Make the attract board take a turn every few seconds - one boat moves, one dock flip, one coin - looping quietly, with the card sitting to one side so the movement is visible past it. Unblur to a light haze so the card's text still reads. RECOMMENDED if he wants the home screen to do real work.",
+          "gets": "A stranger sees a boat move across a map in two seconds and understands it is a board game about sailing, with no words at all. This is the genuinely large lever the old audit was reaching for.",
+          "leaves": "Costs a build, not a toggle. Adds work on the home screen that must not slow down the first tap - the buttons have to stay tappable at 1.4 seconds."
+        },
+        {
+          "effort": "HARD",
+          "what": "Add 'Watch a voyage' as a quiet fourth way in (the old audit's toggle 16) on top of a real attract loop: the card slides away and the bots play on in full view, with a Play button always on screen.",
+          "gets": "The smallest possible first step for somebody who will not commit to learning a board game. Watching is free and it converts.",
+          "leaves": "Nobody has any evidence anyone wants this - the old audit flagged that honestly and so do I. It is a bet, and it is only worth making once the board actually plays."
+        }
+      ]
+    },
+    {
+      "id": "f-four-equal-doors",
+      "stage": "Choosing a mode",
+      "title": "Four identical doors, three of which need other people - and one of them books a room the instant you touch it",
+      "seen": "Four cards in a 2x2 grid, each exactly 122x95 points on a phone, each a different saturated gradient - green, teal, orange, pink - so all four shout equally. 'Play Solo / vs. bot captains', 'Pass & Play / share one device', 'Host a Crew / start a multiplayer game', 'Join a Crew / enter a friend's code'. Only the first works with nobody else in the room. The icons do not help: Play Solo carries an ANCHOR, which in every other part of this game means stop or moor; Pass & Play carries a pink stool. And tapping 'Host a Crew' does not show you what hosting is - it creates a real live room straight away. My walk created one by curiosity alone; it is sitting in the database now under the code HUNG.",
+      "why": "A stranger has to choose before they know what any of the four words mean, and three of the four choices are dead ends for a person on their own. Picking wrong costs a back-tap at best; picking Host costs a room nobody will ever join. The equal sizing is the mechanism - nothing on the screen says 'this one, if you are alone'.",
+      "evidence": [
+        "01-arrival-phone.png - the four cards, identical size, four gradients",
+        "11-host-phone.png - what one curious tap on Host produces: a live room, code HUNG, three bot seats and a Start button",
+        "10-passplay-phone.png - Pass & Play, reached through the same card"
+      ],
+      "confidence": "measured",
+      "solutions": [
+        {
+          "effort": "EASY",
+          "what": "Make Play Solo a full-width primary card and shrink the other three underneath it (the old audit's toggle 01), and quieten their colours so one accent leads (its toggle 11, which is taste and which he may hate). Swap Play Solo's anchor for something that means go. RECOMMENDED: the size change alone, without the colour change, because the colour change fights the game's own cheerfulness.",
+          "gets": "A cold visitor's thumb lands on the one door that works for them, and the other three read as 'later, with friends' rather than as equal options.",
+          "leaves": "Does not stop a curious tap on Host from booking a room. Does not explain what Pass & Play means to somebody who has never played a board game on a phone."
+        },
+        {
+          "effort": "MEDIUM",
+          "what": "Make Host a Crew show the lobby BEFORE it creates the room - the code appears when you tap 'Create the game', not when you tap the card. Group the two crew cards under one 'Play with friends' heading so there are effectively two doors, not four.",
+          "gets": "No more abandoned rooms from curiosity, and a first-timer facing two choices instead of four: alone, or with people.",
+          "leaves": "Does not change what a player understands about pass-and-play versus online. Does not touch the name box or anything after it."
+        }
+      ]
+    },
+    {
+      "id": "f-ahoy-fork-punishes-enthusiasm",
+      "stage": "The first pop-up",
+      "title": "The Ahoy card asks 'Do ye know how to play?' - and the fun-sounding answer switches the whole tutorial off",
+      "seen": "The first thing in the game is a cream card reading '- Ahoy! Choose a recipe, gather each ingredient, then sail home first to win!' and then, underneath, 'Do ye know how to play?' with two white circles, both exactly 102x102 points, side by side: 'Yarrgh!' on the left and 'Nah' on the right. 'Yarrgh!' is a cheer. It is in the first-read position, it carries the anchor that the rest of the card carries, and it is the one that turns the teaching OFF. I measured what it costs: taking 'Yarrgh!' sets all eleven teaching moments to their last rung at once. The first time you are asked to move, the tutorial branch says 'Wyatt: Tap a gold square to sail - head for a dock.' with 'Sailin' into the wind only gets ye half the distance.' underneath; the 'Yarrgh!' branch says 'Wyatt: tap to sail'. Four words, and no mention of docks or wind anywhere in the game after that.",
+      "why": "The word does the opposite of its job. An excited newcomer taps the pirate noise because it is the fun one, and the game reads it as 'I am a veteran, give me nothing'. This is the single most expensive tap in the journey because it is irreversible-feeling and it happens before the player has seen one thing they could judge it by - they are being asked whether they know how to play a game they have not yet looked at.",
+      "evidence": [
+        "04-after-name-phone.png - the Ahoy card mid-typing, before the question appears",
+        "06-02-nah-phone.png and 14-nah-fork.png - the fork: two identical white circles, 'Yarrgh!' left, 'Nah' right",
+        "06-99-nah-first-decision.png - what the 'Nah' branch says at the first move: a full sentence plus the wind rule",
+        "15-yarrgh-first-decision.png - what the 'Yarrgh!' branch says at the same moment: 'Wyatt: tap to sail'"
+      ],
+      "confidence": "measured",
+      "solutions": [
+        {
+          "effort": "EASY",
+          "what": "Change the two words so the answer matches the meaning, and make the helpful one the default-looking one. Something like 'Show me' (left, bigger, warmer) and 'I've played before' (right, quieter). His wording, obviously - but the test is that a stranger reading only the button can tell which one gives them help. RECOMMENDED, and it is a words-only change.",
+          "gets": "An excited first-timer keeps the eleven teaching moments they came for, instead of losing them to a cheer.",
+          "leaves": "Still asks the question before they have seen anything. Still all-or-nothing - there is no middle setting."
+        },
+        {
+          "effort": "MEDIUM",
+          "what": "Stop asking. Default every new device to the full teaching and put the skip somewhere a veteran will find it - 'I've played before, skip the tips' as a small line under the Ahoy card, or the parrot button itself. Ask nothing until the player has at least seen the board.",
+          "gets": "Nobody can lose the tutorial by accident. The cost lands on veterans, who are the people best equipped to find a switch.",
+          "leaves": "A returning player on a new phone gets tips they do not need for a turn or two before they find the switch."
+        },
+        {
+          "effort": "HARD",
+          "what": "Move the question to where the answer is cheap: let the first voyage teach by default, and after the first turn ask once, in Polly's voice, 'Want me to keep chirping?' - by then they have seen what the chirping is.",
+          "gets": "An informed choice instead of a blind one, and it becomes a Polly moment rather than a system prompt.",
+          "leaves": "New moving part in the turn flow. Does not help somebody who bounces before their first turn."
+        }
+      ]
+    },
+    {
+      "id": "f-polly-is-an-icon-not-a-character",
+      "stage": "Polly",
+      "title": "Polly is a picture on four buttons. She has a name, a voice and a body - and she never uses them to teach anything",
+      "seen": "I swept every place the parrot appears. Her ART rides on four buttons and one card: the '?' help chip in the top bar, the 'Nah' fork button, the 'Start' turn-order button, the 'Aye aye' button, and the awards at the end of the voyage, where she bobs. Her VOICE - the one element in the game that is actually named 'polly' and gets its own box - has exactly ONE caller in the entire game, and it is the help switch: 'Polly's helping!' when you turn her on, 'Polly's not helping' when you turn her off. That is everything Polly ever says. Meanwhile ALL ELEVEN tutorial moments - the sail rule, the wind rule, docking, attacking, trading, the recipe, the storm, buying - are spoken by nobody, in a plain cream bubble, with no parrot on them at all; I counted zero parrots across the whole set. And she is not even called the same thing twice: the help chip's label says 'Yer parrot', the switch says 'Yer parrot's watchin'', and only the two toggle lines say 'Polly'. The very first sentence of the game, the Ahoy line, carries an anchor.",
+      "why": "His note was 'Polly could be more of a consistent character', and the measurement is blunter than that: she is not a character at all, she is a decoration on buttons. Everything she is supposedly saying is said by the game in a voice with no face, and the only time she speaks in her own name is to announce her own switch. A helper who only ever talks about herself is not a helper.",
+      "evidence": [
+        "16-parrot-toggled.png - the one and only time Polly's art appears WITH words attached to it, and the words are 'Polly's not helping'",
+        "06-99-nah-first-decision.png - three separate pieces of teaching on screen at once, none of them carrying a parrot",
+        "04-after-name-phone.png - the game's opening sentence, spoken by an anchor",
+        "06-07-nah-phone.png - the parrot on the Start button, as a decoration beside a line she is not saying"
+      ],
+      "confidence": "measured",
+      "solutions": [
+        {
+          "effort": "EASY",
+          "what": "Give her the lines she is already meant to own. Put the parrot on the front of every one of the eleven teaching moments, exactly as it already sits on 'Aye aye' and 'Start', and settle on ONE name everywhere - if she is Polly on the switch she is Polly on the chip too, not 'yer parrot'. Nothing new is built; the art and the sentences both already exist. RECOMMENDED - this is the whole of his note, available today.",
+          "gets": "Every helpful sentence in the first voyage visibly comes from the same bird the player can switch on and off. The switch stops being a mystery, because its effect now has a face.",
+          "leaves": "She still has no personality beyond the pirate voice the whole game already speaks in. She still says nothing that is not a rule."
+        },
+        {
+          "effort": "MEDIUM",
+          "what": "Give her a body in the tutorial moments, not just a badge: her own bubble, anchored where she sits, with the bob she already has on the victory awards. Give her one reaction to things that are NOT rules - the first ingredient aboard, the first raid on you, arriving home.",
+          "gets": "A companion rather than a label. The player has somebody on the boat with them, which is a different feeling from a game that is explaining itself.",
+          "leaves": "Needs his taste on how often she speaks - too many chirps and she becomes noise, and that judgement is not mine."
+        },
+        {
+          "effort": "HARD",
+          "what": "Make her the frame of the whole first voyage: she introduces the Ahoy card in her own voice instead of the anchor, she asks the 'know how to play' question herself, she hands over the recipe, and she is the one who gives the awards at the end - which she already does.",
+          "gets": "One voice from the first screen to the last, and the end-of-voyage awards stop being the only place she is a character. Her switch then reads as 'quiet down, Polly' rather than as a settings toggle.",
+          "leaves": "A real writing pass across the opening, and it touches copy he has already ruled on - the Ahoy line, the fork, the turn order line - so nothing here ships without him."
+        }
+      ]
+    },
+    {
+      "id": "f-help-is-a-tiny-unlabelled-riddle",
+      "stage": "Polly",
+      "title": "The only help control in the game is 39 points wide, says nothing, and the first tap makes things worse",
+      "seen": "The help control is a chip in the top bar showing a small parrot and a question mark. I measured it: 39 points wide by 24 points tall. Apple's own minimum is 44 by 44. It has no text label; its only explanation is a hover title, 'Yer parrot's watchin'', which a phone cannot show. And I measured what it does for the player who most needs it - somebody who tapped 'Yarrgh!' and then got lost. First tap: the parrot goes OFF, all eleven teaching moments stay spent, and Polly announces 'Polly's not helping'. SECOND tap: everything resets to the fullest wording. So the player who wants help has to tap twice, and the first tap tells them help has been switched off.",
+      "why": "This is the escape hatch for every other problem in this audit, and it is a 39-point riddle. A confused person taps it once, is told Polly is not helping, and concludes they have broken something. The two-tap recovery is invisible - nothing on screen or in the rules mentions it.",
+      "evidence": [
+        "16-parrot-toggled.png - one tap, and the game's answer is 'Polly's not helping'",
+        "06-99-nah-first-decision.png - the chip in the ribbon at actual size, between the four captain circles and the burger",
+        "23-burger-menu-phone.png - the burger menu, which does NOT contain the parrot switch"
+      ],
+      "confidence": "measured",
+      "solutions": [
+        {
+          "effort": "EASY",
+          "what": "Grow the tap target to at least 44 by 44 and make the OFF state read as off - a faded bird, or a small slash - so the chip says which way it is set without being tapped. RECOMMENDED.",
+          "gets": "A player can hit it, and can tell at a glance whether Polly is on, so the first tap stops being a gamble.",
+          "leaves": "Still takes two taps to get the full wording back, and still nothing says so."
+        },
+        {
+          "effort": "MEDIUM",
+          "what": "Make ONE tap always mean 'help me' when the words are already spent: if the teaching is at its last rung, a tap turns Polly on AND resets to the fullest wording, and she says 'Aye - I'll explain as we go.' Only tap her again to quiet her.",
+          "gets": "The confused player gets exactly what they reached for, on the first try, which is the whole job of that button.",
+          "leaves": "Changes the two-state toggle he ruled on in 2026-09-02 (ruling 6) - so this is his call, not a fix to be applied. It keeps two states; it just changes which state a spent ladder counts as."
+        },
+        {
+          "effort": "HARD",
+          "what": "Add a small 'Stuck?' affordance that appears when the player does nothing for a while at a prompt, in Polly's voice, offering the explanation for the thing they are currently looking at.",
+          "gets": "Help arrives at the moment of confusion instead of requiring a confused person to go looking for it.",
+          "leaves": "Needs tuning so it never nags a player who is just thinking - and on a shot clock, that judgement matters."
+        }
+      ]
+    },
+    {
+      "id": "f-twenty-seconds-and-three-bot-turns",
+      "stage": "The tutorial",
+      "title": "Your first move is 20 seconds away, and you may have to watch three bots first",
+      "seen": "From tapping Play Solo to the first moment you can move, answering every prompt the instant it appears: 22.9 seconds with the tutorial on, 19.1 seconds with it off. That is the floor - a real person reading the words is slower. In the walk I recorded frame by frame, the human captain was dealt LAST, so the first decision came after nine screens of other people's business, including 'peers starboard and sees a marshmallow manatee floating in the swell' and 'catches sight of a blueberry beluga spraying jam as it splashes down'. The line that tells you the turn order is 'Dough Hook goes first! The rest o' ye get [coin].' - it never says that you are last, and it never says that going last is why your purse is fuller.",
+      "why": "A first-timer's attention is at its highest in the first thirty seconds and this journey spends most of it on other captains. The sea-creature lines are lovely, and they are the first words a new player reads about a game they are trying to learn - they teach nothing and they arrive before anything has been taught. Going last is an ADVANTAGE in this game, and the one moment it could be explained is the one line that mentions it.",
+      "evidence": [
+        "06-07-nah-phone.png - 'Dough Hook goes first! The rest o' ye get [coin].'",
+        "06-10-nah-phone.png through 06-16-nah-phone.png - seven screens of bot business and sea creatures before the human's first move",
+        "06-99-nah-first-decision.png - the first decision, arriving at roughly 23 seconds"
+      ],
+      "confidence": "measured",
+      "solutions": [
+        {
+          "effort": "EASY",
+          "what": "Finish the turn-order sentence so it does the work it is standing in for: name where the player is in the order and why it pays - 'Dough Hook goes first. Ye sail last, Wyatt - so ye start with the fullest purse: 6.' RECOMMENDED, one line.",
+          "gets": "The first number in the game stops being a mystery coin and becomes a piece of strategy the player owns from turn one.",
+          "leaves": "Does not shorten the wait. Does not stop the sea creatures arriving before any teaching has happened."
+        },
+        {
+          "effort": "MEDIUM",
+          "what": "On the FIRST voyage only, deal the human captain first, and hold the sea-creature colour until day two.",
+          "gets": "A new player acts inside about eight seconds instead of twenty-three, and their first reading is about the game rather than about a manatee. The flavour is not lost, it is delayed until it is a reward rather than an obstacle.",
+          "leaves": "Turn order is dealt by the engine, so this is a real change to how a first voyage is set up - and whether a first-timer should get a special deal is his call, not mine."
+        },
+        {
+          "effort": "HARD",
+          "what": "Let the first turn happen before the bots move at all: the player takes one sail and one action with the board to themselves, and the other three captains join from day two.",
+          "gets": "The strongest possible opening - you do the thing before you watch anyone else do it, which is how almost every board game teaches at a table.",
+          "leaves": "Changes the shape of day one, which has knock-on effects on coins, prices and the race. Not a small piece of work."
+        }
+      ]
+    },
+    {
+      "id": "f-three-voices-at-the-first-decision",
+      "stage": "The first decision",
+      "title": "The first moment you can act, three different help texts arrive at once in three different styles",
+      "seen": "At the first sail decision the phone shows, stacked and simultaneous: a white bubble with a teal border reading 'Wyatt: Tap a gold square to sail - head for a dock.'; below it a grey italic pill reading 'Sailin' into the wind only gets ye half the distance.'; and lower, over the board, a dark navy pill reading 'Tap and hold the sea to reveal the board'. Three boxes, three shapes, three colours, three different kinds of instruction - what to do, a rule, and a gesture you did not ask about - and none of them carries the parrot. Arriving at the same instant: the camera zooms in, fourteen gold squares roll out, a dotted course appears (mostly running off the edge of the zoomed view), an anchor inside a pulsing ring sits next to your boat, and the captains box slides up from the bottom with four rows and four black rectangles in it.",
+      "why": "This is the moment the player is finally allowed to do something, and it is the busiest screen in the journey. Three voices at once is one of them being read and two being skipped, and the skipped one may be the wind rule - the single most important sentence in the game. I am inferring that they skip; what is measured is that all three are on screen together, in three styles.",
+      "evidence": [
+        "06-99-nah-first-decision.png - all three boxes at once, plus the zoom, the gold squares, the dotted course and the captains box",
+        "15-yarrgh-first-decision.png - the same moment with the teaching spent: one bubble, four words"
+      ],
+      "confidence": "measured",
+      "solutions": [
+        {
+          "effort": "EASY",
+          "what": "Hold the 'Tap and hold the sea' gesture hint back until the second turn - it is a comfort feature, not something needed to make the first move - and give the wind rule the same bubble as the instruction, with the parrot on it, rather than a second style underneath. RECOMMENDED.",
+          "gets": "Two things to read instead of three, in one voice instead of three, at the exact moment the player is deciding.",
+          "leaves": "Still a busy screen - the zoom, the squares, the course and the captains box all still arrive at once."
+        },
+        {
+          "effort": "MEDIUM",
+          "what": "Stagger the arrival on the first turn only: gold squares and the instruction first; the captains box slides in a beat later; the dotted course draws itself after that, so the player watches it being drawn rather than finding it already there.",
+          "gets": "The screen teaches itself in an order, and the dotted course - which is the best teaching device in the game - actually gets noticed instead of being one of nine things that appeared together.",
+          "leaves": "Adds a couple of seconds to a first move that is already 20 seconds away, so it trades against the finding above."
+        },
+        {
+          "effort": "HARD",
+          "what": "Pull the camera back on the first turn so the whole dotted course and its X marks are on screen at once, then zoom to the boat as the player commits.",
+          "gets": "The player sees where this recipe is going to take them before they take the first step - which is what the course was built to show, and today most of it is outside the zoomed view.",
+          "leaves": "Camera work, and it touches the one display door - so it is a careful change, not a quick one."
+        }
+      ]
+    },
+    {
+      "id": "f-bake-this-covers-the-recipe-name",
+      "stage": "The tutorial",
+      "title": "You cannot read the name of the recipe you are choosing - the button sits on top of it",
+      "seen": "At 'Wyatt, pick yer recipe:' the card shows a plate of brownies, five ingredient pictures, and the recipe's name. The name is 'Spiced Fudge Brownies'. What you can actually read is 'Sp' and 'es' - the orange 'Bake this!' pill sits directly across the middle of the title. The card also covers the centre of the board, which is where the dotted course that the helper line has just told you about ('Tap a recipe to see its route') is drawn.",
+      "why": "This is the first real choice in the game and the thing being chosen cannot be read. It is not a new find - it is written in his own decisions file from 2026-09-02 as one of two picker defects he was shown and did not rule on, and it is still there today. I am re-confirming it with a screenshot because it has now survived long enough to be worth raising again.",
+      "evidence": [
+        "06-04-nah-phone.png - 'Bake this!' across the title; the readable fragments are 'Sp' and 'es'",
+        "06-03-nah-phone.png - the picker a beat earlier, before the prompt line arrives"
+      ],
+      "confidence": "measured",
+      "solutions": [
+        {
+          "effort": "EASY",
+          "what": "Move 'Bake this!' below the ingredient row instead of across the middle of the card. RECOMMENDED - it is a placement change and the defect has been open since September.",
+          "gets": "You can read what you are about to commit to.",
+          "leaves": "The card still covers the middle of the board, so the route it tells you to look at is still partly underneath it."
+        },
+        {
+          "effort": "MEDIUM",
+          "what": "Shrink the card and move it down over the captains box, so the board's middle - and the dotted course with its X marks - stays visible while you flip between the two recipes.",
+          "gets": "The choice becomes what it was designed to be: two routes across a map you can see, rather than two pictures on a card.",
+          "leaves": "He has already ruled the card must sit anchored to the top of the captains box (ruling 22) - so this is a refinement inside his ruling, not a new layout, and the sizing is his call."
+        }
+      ]
+    },
+    {
+      "id": "f-how-to-play-is-941-words-and-not-on-the-home-screen",
+      "stage": "The tutorial",
+      "title": "The rules are 941 words, nearly four phone screens of solid prose - and you cannot reach them before you start a game",
+      "seen": "'How to play' is 941 words. On a phone it is 3,057 points of scroll inside a 487-point window - about six full swipes, roughly 3.8 phone screens of continuous text, with no pictures, no diagrams, and no way to jump to a section. It covers the goal, setting sail, wind, sailing, docking, prices, the black market, attacking, calling a fight, trading, musing, the trade winds, storms, the bake-off and winning. It is well written. And it is NOT on the home screen: the button lives in the in-game menu, so the only way a curious stranger can read the rules is to start a game first and then find the burger.",
+      "why": "Somebody deciding whether to spend ten minutes on an unfamiliar board game cannot look at the rules without committing. And once inside, a confused player is handed four screens of prose at the exact moment they are least able to read four screens of prose. The backlog already asks the right question about this - 'find out whether anyone opens it' - and there is no way to know, because nothing measures it.",
+      "evidence": [
+        "24-how-to-play-phone.png - the top of the rules on a phone: three paragraphs visible, 3.8 screens below",
+        "23-burger-menu-phone.png - where it lives: second item in the in-game burger menu"
+      ],
+      "confidence": "measured",
+      "solutions": [
+        {
+          "effort": "EASY",
+          "what": "Put a 'How to play' link on the home screen, beside Privacy / About / Credits. RECOMMENDED - the page exists, it is good, and right now a stranger cannot get to it at all.",
+          "gets": "Somebody who wants to know what they are getting into can find out before they commit, and search engines get a crawlable path to the rules page.",
+          "leaves": "Still 941 words of unbroken prose. Does not help the player who is confused mid-turn."
+        },
+        {
+          "effort": "MEDIUM",
+          "what": "Break it into collapsed sections that open one at a time - The goal / Yer turn / Money / Fighting / Storms / The bake-off - so the first screen is a table of contents rather than a wall.",
+          "gets": "A player looking for one answer ('how does the wind work?') finds it in one tap instead of six swipes.",
+          "leaves": "Same words, same length overall. Does not put any of it where the player is actually stuck."
+        },
+        {
+          "effort": "HARD",
+          "what": "Let Polly open the relevant section: tapping her while a prompt is up shows the rule for THAT prompt, and the full page stays as the reference behind it.",
+          "gets": "Help that arrives about the thing on screen, which is the only kind a confused person can use. It also finally gives the parrot chip a second job worth its place in the ribbon.",
+          "leaves": "Requires mapping each prompt to a section, and it does not shorten the page for anyone who does open it whole."
+        }
+      ]
+    },
+    {
+      "id": "f-rules-describe-a-compass-that-is-not-there",
+      "stage": "The tutorial",
+      "title": "The rules tell you to look at a compass with two needles. There is no compass anywhere in the game",
+      "seen": "'How to play' says: 'Look at the compass: the big needle is this day's wind, and the ghost needle behind it is next day's.' I looked for it. Every compass picture in the game measures zero by zero and is off screen, on a phone and on a desktop alike, because the style sheet hides the whole compass while a voyage is being played - the wind pill replaced it. What the player actually has is a strip of text near the top reading 'WIND NOW: S[down] - FORECAST: S[down]'. There is no dial, no big needle and no ghost needle.",
+      "why": "A first-timer who is confused about the wind goes to the rules, is told to look at a compass, hunts for a compass, and finds nothing. That is worse than no rules at all - it teaches them that the game's own explanations cannot be trusted, at the exact moment they most need to trust them. The wind is the hardest rule in this game and this is the one place it is explained.",
+      "evidence": [
+        "24-how-to-play-phone.png - the rules text visible on screen, including 'Look at the compass'",
+        "25-compass-phone.png and 25-compass-desktop.png - a live voyage at both sizes; every compass picture measures 0x0 and is off screen",
+        "06-99-nah-first-decision.png - what the player really has: the 'WIND NOW / FORECAST' text strip"
+      ],
+      "confidence": "measured",
+      "solutions": [
+        {
+          "effort": "EASY",
+          "what": "Rewrite that sentence to describe the thing that is actually there: 'The strip at the top shows today's wind and tomorrow's - and tomorrow's is never wrong, so ye can plan around it.' RECOMMENDED. It is one sentence and it removes a straight contradiction.",
+          "gets": "The rules stop pointing at something that does not exist, and the forecast - a genuinely good mechanic - gets explained in terms of what the player can see.",
+          "leaves": "Does not make the wind easier to understand; it just stops the explanation being wrong."
+        },
+        {
+          "effort": "MEDIUM",
+          "what": "Sweep the whole rules page against the live game the same way, and fix every other sentence that describes something that has changed. I found this one by looking; nobody knows how many more there are.",
+          "gets": "A rules page that can be trusted, which is the only thing that makes it worth having.",
+          "leaves": "A sweep, not a system - it will drift again unless something checks it."
+        },
+        {
+          "effort": "HARD",
+          "what": "Put a small picture of the real wind strip inside the rules at that paragraph, drawn from the game rather than described in words.",
+          "gets": "The rules point at a thing the player recognises the moment they close the page, and a picture cannot drift out of date the way a sentence can.",
+          "leaves": "Needs a way to draw the strip outside a voyage, which is real work for one paragraph."
+        }
+      ]
+    },
+    {
+      "id": "f-returning-player-is-trapped-in-the-old-voyage",
+      "stage": "Arrival",
+      "title": "Come back later and the game puts you straight back in the old voyage - with no home screen and no way to say no",
+      "seen": "I played a voyage to Day 2, then reloaded the page the way anybody returning would. There is no welcome screen. There is no 'welcome back'. There is no choice. The board comes up on Day 2, mid-voyage, with the old recipe, the old captains and the old coins, and the narration line is 'Wyatt: tap to sail'. The home screen and its four cards are not shown at all. To start a fresh voyage you have to know to open the burger menu and pick 'Leave game', which is the last item, in red, under a divider.",
+      "why": "Resuming is a good feature and a returning player is the cheapest player there is. But resuming SILENTLY AND WITHOUT ASKING means somebody who came back to show a friend, or who abandoned a voyage they were losing, cannot get out without hunting. And the branding, the lore and the mode choice - the whole home screen - is never seen again after the first visit. Note this is the opposite of what the existing home-screen audit assumed.",
+      "evidence": [
+        "22-returning-player-phone.png - a plain reload: straight into Day 2, no welcome screen",
+        "23-burger-menu-phone.png - the only exit, 'Leave game', last item under a divider"
+      ],
+      "confidence": "measured",
+      "solutions": [
+        {
+          "effort": "EASY",
+          "what": "Show the home screen with a resume card on top of it - 'Yer voyage awaits, Day 2 - Continue' above the four mode cards, only when there is a saved voyage. This is the old audit's toggle 10, but doing the opposite of what that toggle described. RECOMMENDED.",
+          "gets": "A returning player gets the same one-tap resume they get today, plus the ability to say no, plus the home screen they have not seen since their first visit.",
+          "leaves": "One extra tap for the player who did want to continue. Does not tell them what state the voyage was in."
+        },
+        {
+          "effort": "MEDIUM",
+          "what": "Make the resume card carry a picture of where they left off - day, recipe, how many ingredients aboard, who is ahead - so the choice is informed rather than blind.",
+          "gets": "Somebody coming back after a few days remembers what they were doing before they commit to it, which is most of why people abandon saved games.",
+          "leaves": "Needs a small summary drawn from the save, which is a build, not a toggle."
+        }
+      ]
+    },
+    {
+      "id": "f-wind-strip-says-question-marks",
+      "stage": "The first pop-up",
+      "title": "The second most prominent thing on the first game screen reads 'WIND NOW: ? - FORECAST: ?'",
+      "seen": "Directly under the top bar, on a dark pill, in grey capitals: 'WIND NOW: ? - FORECAST: ?'. It is the widest piece of text on the screen after the Ahoy card. It stays that way through the Ahoy card, through the 'know how to play' question, through the whole recipe choice and through the recipe-stowed line - I watched it hold across seven consecutive screens - and it only fills in when day one actually starts ('WIND NOW: S[down] - FORECAST: S[down]').",
+      "why": "Two question marks, prominently placed, at the exact moment a stranger is scanning the screen trying to work out what anything means. It reads as something broken or something they have failed to do. It is also the game's first missed chance to say what the wind IS - a label with nothing in it teaches nothing, where a label saying 'the wind sets at the start of the day' would.",
+      "evidence": [
+        "04-after-name-phone.png - 'WIND NOW: ? - FORECAST: ?' above the Ahoy card",
+        "06-04-nah-phone.png - still question marks through the recipe choice",
+        "06-08-nah-phone.png - the first screen where it fills in, seven screens later"
+      ],
+      "confidence": "measured",
+      "solutions": [
+        {
+          "effort": "EASY",
+          "what": "Hide the strip until it has something to say, or replace the question marks with words - 'The wind sets at first light'. RECOMMENDED: hide it. An empty instrument is worse than no instrument.",
+          "gets": "The opening screen loses a piece of visible nonsense, and the strip's first appearance becomes a moment that means something.",
+          "leaves": "Does not explain the wind. Does not change how dense the first screen is."
+        },
+        {
+          "effort": "MEDIUM",
+          "what": "Let the strip introduce itself the first time it fills: it slides in with one Polly line - 'The wind blows one way all day, and I'll tell ye tomorrow's an' all.' Once, on the first voyage only.",
+          "gets": "The hardest rule in the game gets introduced at the moment its instrument first appears, instead of being buried in the sail prompt's second line and in 941 words of rules.",
+          "leaves": "One more thing to read on a screen that is already carrying a lot, so it trades against the first-decision finding above."
+        }
+      ]
+    },
+    {
+      "id": "f-the-opening-is-dark-and-the-card-is-half-empty",
+      "stage": "The first pop-up",
+      "title": "The Ahoy screen is dim, and the card sits half-empty while its sentence types itself out",
+      "seen": "His description is accurate. On a phone the board is dimmed behind the Ahoy card and everything below the board is dark navy - though that empty band is HIS OWN RULING and correct ('Right by design', 2026-09-13: the opening screens have no captains box until a recipe is picked), so it is not a defect and I am not proposing it be filled. What IS worth his eye is two other things. First, the card is sized for the full sentence and then types the sentence in, so for the first couple of seconds a player looks at a large cream box with one and a half lines in it and a big blank space underneath - it reads as unfinished rather than as suspense. Second, on desktop the dim covers only the game column: the right-hand menu column stays bright while the board is greyed, which is already a known defect in the backlog from 2026-09-13 and I am only confirming it still happens on the first screen a player ever sees.",
+      "why": "The first impression of the game world is a greyed-out board and a half-empty box. The dim is doing a job - it is pushing the card forward - but it is doing it to the one picture that would tell a new player what they have arrived in. I am inferring the emotional cost; the dim, the empty card and the partial dim on desktop are all measured.",
+      "evidence": [
+        "04-after-name-phone.png - the card mid-typing: one and a half lines of text, a large blank below them",
+        "21-ahoy-fork-desktop.png - the desktop version: the board dimmed, the right-hand menu column bright, the card left of centre",
+        "06-01-nah-phone.png - the same card a beat later, still typing"
+      ],
+      "confidence": "measured",
+      "solutions": [
+        {
+          "effort": "EASY",
+          "what": "Let the card grow with the sentence instead of being pre-sized for it, or drop the typing on this one card so the sentence is simply there. And lighten the dim on the opening card only, so the board is visibly a map rather than a greyed-out screen. RECOMMENDED: fix the pre-sized box first, it is the cheaper and more obvious of the two.",
+          "gets": "The first screen looks finished instead of half-loaded, and the player's first sight of the sea is of a place rather than of something switched off.",
+          "leaves": "Does not touch the desktop dim bug. Does not add anything to the screen."
+        },
+        {
+          "effort": "MEDIUM",
+          "what": "Make the opening card an arrival rather than a dialogue: the camera starts wide on the whole sea, drifts in, and the card fades up over an undimmed board.",
+          "gets": "The best art in the game gets its moment, and 'quite dark and just says ahoy' becomes 'oh, a map'.",
+          "leaves": "Adds seconds to a start that is already 20 seconds from the first move. His call whether that trade is worth it."
+        }
+      ]
+    },
+    {
+      "id": "f-name-asked-twice",
+      "stage": "The name prompt",
+      "title": "The game asks your name, then asks again - and on Join a Crew it forgets the answer",
+      "seen": "Every one of the four cards opens the same box: 'What do they call ye, captain?' with 'Davy Scones' already in it, selected, and one button, 'Aye, that's me name'. The box is identical whichever card you tapped - nothing on it says which mode you are about to enter. Then: Pass & Play asks for all four names again in a list, with your first answer pre-filled in the top slot. Join a Crew asks 'Yer captain name' AGAIN, in an EMPTY box with the placeholder 'e.g. Davy Scones' - I checked the field's contents and the name you just typed is not carried into it. Host a Crew does carry it, and puts a 'Change yer name' button beside it in the lobby.",
+      "why": "Three different answers to the same question in the same flow. The Join path is the worst of the three because it loses what you typed, so a player who chose a name they liked has to type it a second time or accept a different default. And an identical name box for four different destinations means somebody who tapped the wrong card has no way to notice before they are through it.",
+      "evidence": [
+        "03-name-modal-phone.png - the box after tapping Play Solo",
+        "10-passplay-phone-namestep.png - the identical box after tapping Pass & Play",
+        "10-passplay-phone.png - and then four name slots underneath",
+        "19-join-phone.png - Join a Crew asking again, with an empty box",
+        "11-host-phone.png - Host, which does carry the name through"
+      ],
+      "confidence": "measured",
+      "solutions": [
+        {
+          "effort": "EASY",
+          "what": "Carry the name into the Join screen's box the way Host already does, and put the mode's own name and icon in the title of the box so it reads 'Play Solo - what do they call ye, captain?'. RECOMMENDED.",
+          "gets": "Nobody types their name twice, and a mis-tap on the four cards is catchable one screen earlier.",
+          "leaves": "Pass & Play still asks for a list of names after the box, which is reasonable but is still two screens for one idea."
+        },
+        {
+          "effort": "MEDIUM",
+          "what": "Drop the separate name box for Pass & Play and Join, since both screens already have a name field: tap the card, go straight to the screen that needs the names.",
+          "gets": "One screen removed from two of the four journeys, and the question asked once, where it belongs.",
+          "leaves": "Solo and Host still use the box. Whether that inconsistency is acceptable is his call."
+        }
+      ]
+    },
+    {
+      "id": "f-crew-code-friction",
+      "stage": "Choosing a mode",
+      "title": "The room code cannot be copied, the box that takes it is the wrong size, and nothing says where a code comes from",
+      "seen": "The host's lobby shows 'share this code with yer crew' and then four big orange letters. There is no copy button and no share button - on a phone you read four letters and type them into a message by hand. The code my walk generated was HUNG; codes are four random letters, so some of what they spell will be unfortunate. On the other side, Join a Crew shows a box with the placeholder 'CODE' that accepts up to six characters, when the codes it takes are four. And nothing on the Join screen says where a code comes from or that a friend has to make one first.",
+      "why": "This is the whole invite path, and every step of it is a small friction on a phone: read four letters, retype them, hope you got them right into a six-wide box. Inviting a friend is how a browser game grows, and it is the least polished screen in the journey.",
+      "evidence": [
+        "11-host-phone.png - 'share this code with yer crew' and the code HUNG, with nothing to tap",
+        "19-join-phone.png - the CODE box, empty, no explanation of where a code comes from"
+      ],
+      "confidence": "measured",
+      "solutions": [
+        {
+          "effort": "EASY",
+          "what": "Put a Copy button beside the code, size the Join box to four characters, and add one line to the Join screen: 'A mate hosts a crew and sends ye four letters.' RECOMMENDED.",
+          "gets": "The invite becomes a tap and a paste instead of reading and retyping, and somebody who arrived at Join by mistake knows why they have no code.",
+          "leaves": "Still two people coordinating by hand. Still no filter on what four letters can spell."
+        },
+        {
+          "effort": "MEDIUM",
+          "what": "Give the host a Share button that hands the phone's own share sheet a ready-made message with a link that joins the room directly, and filter the code generator against a short list of words you would not want on screen.",
+          "gets": "One tap to invite, and the friend taps a link instead of typing anything. That is the difference between an invite that happens and one that does not.",
+          "leaves": "Needs a link that carries the code and a lobby that can accept it, which is a real piece of work."
+        }
+      ]
+    },
+    {
+      "id": "f-recipe-is-five-pictures-with-no-names",
+      "stage": "The tutorial",
+      "title": "Your recipe is five pictures and no words, and nothing shows which ones you still need",
+      "seen": "The recipe card shows a plate of the finished pastry and a row of five ingredient pictures with no names under them. Once chosen, the same five sit on the rope plaque above the captains box - still with no names, and with no visible empty state, so there is nothing showing which five you are hunting and which you have got. The narration says 'Each gets a tick when ye hold it' - but before you hold anything there are no ticks and no empty boxes, just five pictures. The islands on the board are drawn with their ingredient on them, so the matching IS learnable, but nothing tells a first-timer to look.",
+      "why": "IMPORTANT - THIS IS NOT A DEFECT AND HE HAS RULED ON IT. On 2026-09-02 he chose icons over the ten ingredient names and explicitly rejected adding text: 'The recipe choice moment has a lot of text in it already, and it's pretty overwhelming - even as is. Adding more text is not the solution to this.' I am raising it only because the CONSEQUENCE for a first-timer is real: five unnamed pictures and no progress state, and I think it can be fixed without adding any text, which is what his ruling actually forbids.",
+      "evidence": [
+        "06-04-nah-phone.png - the recipe card: a plate and five unnamed pictures",
+        "06-06-nah-phone.png - the same five on the rope plaque, with no empty or ticked state",
+        "06-99-nah-first-decision.png - the plaque during play: still no indication of what is still needed",
+        "22-returning-player-phone.png - Day 2, three captains holding ingredients, the player's plaque unchanged"
+      ],
+      "confidence": "measured",
+      "solutions": [
+        {
+          "effort": "EASY",
+          "what": "Give the five plaque pictures a visible empty state - faded, or in an empty slot outline - so they fill in as you collect. No words added, so his ruling stands. RECOMMENDED.",
+          "gets": "The recipe becomes a progress bar you can read at a glance, which is the single most useful thing a player can know at any moment in this game.",
+          "leaves": "Still does not tell you what the pictures are called, or where to find them."
+        },
+        {
+          "effort": "MEDIUM",
+          "what": "Let a tap on any plaque picture flash the island that holds it, and the dotted course to it. Still no words - a gesture that answers 'where is this one?'.",
+          "gets": "A player can answer their own question about any ingredient without reading anything, and it teaches the island-picture connection by doing rather than by telling.",
+          "leaves": "A gesture nobody knows about, unless Polly mentions it - which is words, so his call."
+        },
+        {
+          "effort": "HARD",
+          "what": "On the first voyage only, when Polly hands over the recipe, run the five pictures one at a time with the camera flicking to each island that holds it.",
+          "gets": "The player learns the whole map and their whole errand in about five seconds, before their first move, without a sentence being added.",
+          "leaves": "Adds time to an opening that is already slow, and it is a new sequence to build and tune."
+        }
+      ]
+    },
+    {
+      "id": "f-sound-says-it-is-on-and-blocked",
+      "stage": "The first pop-up",
+      "title": "The first thing in the menu says the sound is ON and blocked at the same time",
+      "seen": "The top item of the in-game menu, on phone and desktop, reads: 'Sound: ON - blocked by yer browser'. That is the first line a player reads if they open the menu. There is also no sound control anywhere on the home screen, so a visitor in a quiet room or an office has no way to settle the question before the board comes up and the music starts.",
+      "why": "'ON - blocked' is a contradiction to anybody who does not know that browsers refuse to play audio until you have tapped something. It reads as a fault in the game. And the missing home-screen control means the one moment a person would want to pre-empt sound is the one moment they cannot.",
+      "evidence": [
+        "23-burger-menu-phone.png - 'Sound: ON - blocked by yer browser' as the first menu item",
+        "21-ahoy-fork-desktop.png - the same line at the top of the desktop menu column",
+        "01-arrival-phone.png - the home screen, with no sound control anywhere on it"
+      ],
+      "confidence": "measured",
+      "solutions": [
+        {
+          "effort": "EASY",
+          "what": "Say what the player should DO instead of describing the state - 'Sound: tap the board to start it'. RECOMMENDED, and the game already has almost this wording elsewhere ('Sound is on but yer browser has stalled it. Tap the board twice.').",
+          "gets": "A line that tells the player how to fix it, instead of one that reads like a bug report.",
+          "leaves": "Still nothing on the home screen."
+        },
+        {
+          "effort": "MEDIUM",
+          "what": "Put the existing three-way sound control on the home screen, top-right - the old audit's toggle 15. It is one control the game already has, moved earlier.",
+          "gets": "Somebody arriving in a quiet room can turn it down before anything plays, which is the difference between them continuing and them closing the tab.",
+          "leaves": "One more thing on a first screen that this audit is otherwise trying to simplify - so its placement matters and that is taste, which is his."
+        }
+      ]
+    },
+    {
+      "id": "f-passplay-placeholder-clipped",
+      "stage": "Choosing a mode",
+      "title": "Pass & Play's instructions are cut off mid-word on a phone",
+      "seen": "Two of the four name slots read 'Player 3 (or leave blank for a bo' and 'Player 4 (or leave blank for a bo'. The word is 'bot' and it does not fit. The screen above them already carries 43 words explaining the same thing ('Leave a box blank to fill that seat with a bot captain instead'), so the truncated hint is a second copy of an instruction that has already been given in full.",
+      "why": "Small, and the cheapest thing on this list to fix. It also happens to be the only place in the whole journey where text is visibly broken rather than merely dense, which makes it the kind of thing a first-time player notices and reads as sloppiness.",
+      "evidence": [
+        "10-passplay-phone.png - slots 3 and 4, both cut at 'for a bo'"
+      ],
+      "confidence": "measured",
+      "solutions": [
+        {
+          "effort": "EASY",
+          "what": "Cut the hint in the boxes to 'Player 3' and 'Player 4' and let the paragraph above do its job - it already says it properly. RECOMMENDED.",
+          "gets": "Nothing on screen is broken, and one piece of duplicated instruction disappears.",
+          "leaves": "Nothing else - this is a complete fix for the thing it describes."
+        },
+        {
+          "effort": "MEDIUM",
+          "what": "Replace the paragraph and the hints together with a labelled row per seat - a coloured dot, a name box, and a small 'bot' tag that appears when the box is empty, so the rule shows itself rather than being described.",
+          "gets": "The player sees what a blank seat does instead of reading about it, and 43 words come off the screen.",
+          "leaves": "A small redesign of that panel, and the four colours would need to match the captain colours used in the game."
+        }
+      ]
+    }
+  ]
+}
